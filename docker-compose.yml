@@ -1,0 +1,29 @@
+# Tum sistemi (gateway + orkestrator) tek komutla ayaga kaldirir: docker compose up -d
+# Sadece gateway'i ayri calistirmak isterseniz gateway/docker-compose.yml'i kullanabilirsiniz.
+services:
+  litellm-gateway:
+    image: docker.litellm.ai/berriai/litellm:latest
+    container_name: litellm-gateway
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./gateway/litellm_config.yaml:/app/config.yaml:ro
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: ["--config", "/app/config.yaml"]
+
+  orchestrator:
+    build: ./orchestrator
+    container_name: coklu-llm-orchestrator
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      GATEWAY_BASE_URL: http://litellm-gateway:4000
+    env_file:
+      - .env
+    depends_on:
+      - litellm-gateway
