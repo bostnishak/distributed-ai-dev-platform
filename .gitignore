@@ -1,0 +1,32 @@
+# Secrets — gerçek key'ler asla commit edilmez
+.env
+*.env
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# Node (ileride bir arayüz eklenirse)
+node_modules/
+
+# Docker / loglar
+*.log
+.docker/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dagitim icin paketlenmis dosyalar (kaynaktan uretiliyor, tekrar Compress-Archive ile alinabilir)
+*.zip
+
+# IDE / araç durumu
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.claude/
