@@ -46,7 +46,13 @@
   .chat-item {
     display: flex; align-items: center; gap: 6px;
     padding: 8px; border-radius: 8px; font-size: 13px; color: #333;
-    cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    cursor: pointer;
+  }
+  /* Baslik span'i kendi icinde kisalsin (ellipsis) ki sil butonuna yer kalsin --
+     onceden bu kurallar .chat-item'in kendisindeydi ve uzun basliklarda sil butonunu
+     kapsayici disina (overflow:hidden ile gorunmez sekilde) itiyordu (2026-09-25 bulundu). */
+  .chat-item > span:first-child {
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1;
   }
   .chat-item:hover { background: #eeeef0; }
   .chat-item.active { background: #e6e6fb; color: #4f46e5; font-weight: 600; }
@@ -137,9 +143,53 @@
   #sendBtn.ready { background: #1a1a1a; cursor: pointer; }
   #sendBtn:disabled { cursor: default; }
   #hint { text-align: center; font-size: 11.5px; color: #b0b0b8; margin-top: 10px; }
+
+  /* --- Mobil/tablet uyumluluk --- */
+  #sidebarToggle { display: none; }
+  #sidebarOverlay { display: none; }
+
+  @media (max-width: 860px) {
+    body { position: relative; overflow-x: hidden; }
+
+    #sidebarToggle {
+      display: flex; align-items: center; justify-content: center;
+      width: 38px; height: 38px; border-radius: 8px; border: 1px solid #e2e2e8;
+      background: white; cursor: pointer; position: fixed; top: 10px; left: 10px; z-index: 110;
+      font-size: 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    #sidebarOverlay.active {
+      display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 99;
+    }
+    #sidebar {
+      position: fixed; top: 0; left: 0; height: 100%; width: min(80vw, 300px);
+      transform: translateX(-100%); transition: transform 0.22s ease; z-index: 100;
+      box-shadow: 2px 0 16px rgba(0,0,0,0.15);
+    }
+    #sidebar.open { transform: translateX(0); }
+
+    #centerStage { padding-top: 56px; }
+    #centerStage h1 { font-size: 20px; text-align: center; padding: 0 12px; }
+
+    .msg-row { padding: 0 14px; }
+    .msg, .msg-wrap { max-width: 86%; }
+
+    #inputWrap { padding: 10px 14px 18px; }
+    #hint { font-size: 10.5px; padding: 0 4px; }
+  }
+
+  @media (max-width: 480px) {
+    .msg, .msg-wrap { max-width: 92%; }
+    .msg { font-size: 14px; padding: 10px 13px; }
+    #centerStage h1 { font-size: 18px; }
+    #inputPill { padding: 8px 8px 8px 12px; }
+    #attachBtn, #sendBtn { width: 30px; height: 30px; }
+  }
 </style>
 </head>
 <body>
+
+<button id="sidebarToggle" aria-label="Menüyü aç/kapat">☰</button>
+<div id="sidebarOverlay"></div>
 
 <div id="sidebar">
   <div class="brand"><span class="dot"></span> Çoklu-LLM Orkestratör</div>
@@ -184,9 +234,21 @@ const fileInput = document.getElementById('fileInput');
 const fileChip = document.getElementById('fileChip');
 const fileChipName = document.getElementById('fileChipName');
 const removeFile = document.getElementById('removeFile');
+const sidebar = document.getElementById('sidebar');
+const sidebarToggle = document.getElementById('sidebarToggle');
+const sidebarOverlay = document.getElementById('sidebarOverlay');
 
 let selectedFile = null;
 let started = false;
+
+// Mobil/tablette sidebar acilir-kapanir bir panel (bkz. CSS'teki @media 860px).
+// Masaustunde bu class'larin gorsel bir etkisi yok, o yuzden kosulsuz cagirmak zararsiz.
+function openSidebar() { sidebar.classList.add('open'); sidebarOverlay.classList.add('active'); }
+function closeSidebar() { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('active'); }
+sidebarToggle.addEventListener('click', () => {
+  sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+});
+sidebarOverlay.addEventListener('click', closeSidebar);
 let currentChatId = null;
 let currentMessages = []; // {role: 'user'|'assistant', text, modelBadge?, fileName?}
 
@@ -290,6 +352,7 @@ function openChat(id) {
     else addAssistantMessage(m.text, m.modelBadge, false, false, false);
   }
   renderChatList();
+  closeSidebar();
 }
 
 function startNewChat() {
@@ -300,6 +363,7 @@ function startNewChat() {
   centerStage.style.display = 'flex';
   started = false;
   renderChatList();
+  closeSidebar();
 }
 
 const MODEL_LABELS = {
