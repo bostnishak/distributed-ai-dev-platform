@@ -152,7 +152,8 @@ if ($MasterHost -or $SkipTailscale) {
     $tailscale = "C:\Program Files\Tailscale\tailscale.exe"
     if (-not (Test-Path $tailscale)) {
         Write-Host "Tailscale kurulu değil, winget ile kuruluyor..."
-        winget install --id tailscale.tailscale -e --silent --accept-package-agreements --accept-source-agreements
+        # winget ids are case-sensitive with -e: "tailscale.tailscale" finds nothing.
+        winget install --id Tailscale.Tailscale -e --silent --accept-package-agreements --accept-source-agreements
     }
     if (-not (Test-Path $tailscale)) { throw "Tailscale kurulamadı. https://tailscale.com/download adresinden kurup scripti tekrar çalıştırın." }
     $state = $null
