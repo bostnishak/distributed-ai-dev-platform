@@ -67,10 +67,27 @@ MODEL_LABELS = {
 }
 
 
-async def call_gateway(model: str, prompt: str, think: bool) -> str:
+# Arayuz artik Markdown tablo ve SVG kod bloklarini gercek tablo/cizim olarak render
+# edebiliyor (2026-09-25) -- modele bunu bilmedigi surece kullanmayi akil edemeyebilir,
+# bu yuzden kisa bir sistem talimati ekleniyor. Siniflandirici cagrisina KARISTIRILMIYOR
+# (o, kendi siki formatini bozmasin diye ayri tutuluyor).
+ANSWER_SYSTEM_PROMPT = (
+    "Yanit verirken uygun oldugunda bicimlendirme kullan: karsilastirma/liste gibi "
+    "yapili bilgiler icin Markdown tablosu (| basli | basli |\\n|---|---|\\n| hucre | hucre |), "
+    "kume/diyagram/sema gibi gorsel bir anlatim daha faydali olacaksa ```svg ile baslayan "
+    "bir SVG kod blogu (basit sekiller, dogrudan cizim olarak gosterilecek). Zorunlu degil, "
+    "sadece gercekten faydali oldugunda kullan."
+)
+
+
+async def call_gateway(model: str, prompt: str, think: bool, system_prompt: str | None = None) -> str:
+    messages = []
+    if system_prompt:
+        messages.append({"role": "system", "content": system_prompt})
+    messages.append({"role": "user", "content": prompt})
     payload = {
         "model": model,
-        "messages": [{"role": "user", "content": prompt}],
+        "messages": messages,
         "think": think,
     }
     async with httpx.AsyncClient(timeout=180.0) as client:
@@ -237,6 +254,6 @@ async def chat(prompt: str = Form(...), file: UploadFile | None = File(None)):  
 
     task_type = forced_task_type or keyword_category_override(prompt) or classified_task
     route = TASK_ROUTES[task_type]
-    content = await call_gateway(route["model"], full_prompt, route["think"])
+    content = await call_gateway(route["model"], full_prompt, route["think"], system_prompt=ANSWER_SYSTEM_PROMPT)
 
     return ChatResponse(content=content, used_model=route["model"], task_type=task_type)

@@ -102,7 +102,16 @@
   .msg.assistant code { background: #e6e6ea; border-radius: 4px; padding: 1px 5px; font-size: 13px; font-family: Consolas, monospace; }
   .msg.assistant pre { background: #1e1e2a; color: #e6e6ea; border-radius: 8px; padding: 12px; overflow-x: auto; margin: 6px 0; }
   .msg.assistant pre code { background: none; padding: 0; color: inherit; }
+  .msg.assistant table { border-collapse: collapse; margin: 8px 0; font-size: 13.5px; display: block; overflow-x: auto; max-width: 100%; }
+  .msg.assistant th, .msg.assistant td { border: 1px solid #d9d9e0; padding: 6px 10px; text-align: left; }
+  .msg.assistant th { background: #eaeaef; font-weight: 600; }
+  .msg.assistant tr:nth-child(even) td { background: #fafafb; }
+  .svg-diagram { margin: 8px 0; max-width: 100%; overflow-x: auto; }
+  .svg-diagram svg { max-width: 100%; height: auto; }
   .msg-wrap { display: flex; flex-direction: column; max-width: 65%; }
+  /* The wrapper already limits the width; without this the bubble got 65% of 65%
+     and tables/diagrams were squeezed into a narrow column. */
+  .msg-wrap > .msg { max-width: 100%; }
   .badge-row { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
   .badge {
     font-size: 11px; font-weight: 600; color: #4f46e5; background: #eef0ff;
@@ -385,10 +394,35 @@ function escapeHtml(str) {
 // Kucuk, bagimsiz bir Markdown->HTML donusturucu (CDN/harici kutuphane kullanmiyoruz --
 // sistem tamamen lokal kalsin diye). Basliklar, kalin/italik, madde/numarali listeler,
 // kod bloklari ve satir ici kod'u destekler -- LLM ciktilarinin buyuk kismini kapsar.
+// SVG kod bloklarini (ör. model bir Venn semasi/kume gosterimi uretirse) ham kod olarak
+// degil gercek bir cizim olarak gostermek icin -- innerHTML'e basmadan once script/olay
+// isleyicilerini temizliyoruz (2026-09-25). Kucuk yerel modelin her zaman gecerli/duzgun
+// bir SVG uretecegi garanti degil, ama urettiginde artik gosterilebiliyor.
+function sanitizeSvg(svg) {
+  return ensureSvgViewBox(svg
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/\son\w+\s*=\s*"[^"]*"/gi, '')
+    .replace(/\son\w+\s*=\s*'[^']*'/gi, '')
+    .replace(/(xlink:href|href)\s*=\s*"javascript:[^"]*"/gi, '')
+    .replace(/(xlink:href|href)\s*=\s*'javascript:[^']*'/gi, ''));
+}
+
+// Models often emit <svg width=".." height=".."> without a viewBox. Such an SVG is clipped
+// instead of scaled when CSS shrinks it to fit the bubble, so derive the viewBox from its size.
+function ensureSvgViewBox(svg) {
+  return svg.replace(/<svg\b[^>]*>/i, (tag) => {
+    if (/\bviewBox\s*=/i.test(tag)) return tag;
+    const w = tag.match(/\bwidth\s*=\s*["']?(\d+(?:\.\d+)?)(?:px)?["']?/i);
+    const h = tag.match(/\bheight\s*=\s*["']?(\d+(?:\.\d+)?)(?:px)?["']?/i);
+    if (!w || !h) return tag;
+    return tag.replace(/<svg\b/i, `<svg viewBox="0 0 ${w[1]} ${h[1]}"`);
+  });
+}
+
 function renderMarkdown(raw) {
   const codeBlocks = [];
-  let text = raw.replace(/```([\s\S]*?)```/g, (_, code) => {
-    codeBlocks.push(code.replace(/^\w*\n/, ''));
+  let text = raw.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+    codeBlocks.push({ lang: lang.trim().toLowerCase(), code });
     return `\u0000CODEBLOCK${codeBlocks.length - 1}\u0000`;
   });
 
@@ -401,6 +435,24 @@ function renderMarkdown(raw) {
   text = text.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<em>$1</em>');
   text = text.replace(/`([^`\n]+)`/g, '<code>$1</code>');
 
+  // Markdown tablolari (| basli | basli |\n|---|---|\n| hucre | hucre |) -- gercek testte
+  // model tablo istendiginde bu sozdizimini urettigi halde duz metin olarak kaliyordu
+  // (2026-09-25 bulundu), <table> HTML'ine ceviriyoruz.
+  text = text.replace(
+    /(^|\n)(\|.+\|)\n(\|[ \t:|-]+\|)\n((?:\|.*\|\n?)*)/g,
+    (_match, pre, headerLine, _sepLine, bodyLines) => {
+      const parseRow = (line) => line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim());
+      const headers = parseRow(headerLine);
+      const rows = bodyLines.split('\n').filter((l) => l.trim()).map(parseRow);
+      let html = '<table><thead><tr>' + headers.map((h) => `<th>${h}</th>`).join('') + '</tr></thead><tbody>';
+      for (const row of rows) {
+        html += '<tr>' + row.map((c) => `<td>${c}</td>`).join('') + '</tr>';
+      }
+      html += '</tbody></table>';
+      return pre + html;
+    }
+  );
+
   // Ardisik "- "/"* " satirlarini <ul>, "1. " satirlarini <ol> yap
   text = text.replace(/(^|\n)((?:[-*] .*(?:\n|$))+)/g, (m, pre, block) => {
     const items = block.trim().split('\n').map(l => `<li>${l.replace(/^[-*]\s+/, '')}</li>`).join('');
@@ -412,11 +464,17 @@ function renderMarkdown(raw) {
   });
 
   text = text.split(/\n{2,}/).map(p => {
-    if (/^<(h1|h2|h3|ul|ol)/.test(p.trim())) return p;
+    if (/^<(h1|h2|h3|ul|ol|table)/.test(p.trim())) return p;
     return `<p>${p.replace(/\n/g, '<br>')}</p>`;
   }).join('');
 
-  text = text.replace(/\u0000CODEBLOCK(\d+)\u0000/g, (_, i) => `<pre><code>${escapeHtml(codeBlocks[i])}</code></pre>`);
+  text = text.replace(/\u0000CODEBLOCK(\d+)\u0000/g, (_, i) => {
+    const block = codeBlocks[i];
+    if (block.lang === 'svg' && /^\s*<svg[\s>]/i.test(block.code)) {
+      return `<div class="svg-diagram">${sanitizeSvg(block.code)}</div>`;
+    }
+    return `<pre><code>${escapeHtml(block.code)}</code></pre>`;
+  });
   return text;
 }
 
