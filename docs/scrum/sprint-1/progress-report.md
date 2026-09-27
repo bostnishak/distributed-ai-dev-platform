@@ -85,5 +85,5 @@ Work so far is concentrated on one member. The team should discuss this at the R
 
 1. A teammate reviews and approves PR #1, then it is merged.
 2. The Product Owner reviews the SRS, the Product Goal and the backlog order; the team agrees on the Definition of Done.
-3. Each member installs their agent (PB-14); Işıl accepts her invitation and Berfin shares her GitHub username.
+3. Işıl accepts her invitation and Berfin shares her GitHub username. Connecting members' own computers (PB-14) was postponed on 27 Sep. The team decides at the Review whether it moves to Sprint 2. It should be done before agents start executing tasks in Sprint 3.
 4. Sprint Review, Retrospective and the final version of this report on 7 Oct; Sprint 2 Planning on 8 Oct.
