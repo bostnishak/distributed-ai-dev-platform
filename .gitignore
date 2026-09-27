@@ -1,4 +1,4 @@
-# Secrets — gerçek key'ler asla commit edilmez
+# Secrets: real keys and tokens are never committed
 .env
 *.env
 !.env.example
@@ -10,11 +10,16 @@ __pycache__/
 .venv/
 venv/
 .pytest_cache/
+.ruff_cache/
 
-# Node (ileride bir arayüz eklenirse)
+# Master's local SQLite database (created at runtime)
+master/data/
+*.db
+
+# Node (in case a JS tool is ever added)
 node_modules/
 
-# Docker / loglar
+# Docker / logs
 *.log
 .docker/
 
@@ -22,10 +27,10 @@ node_modules/
 .DS_Store
 Thumbs.db
 
-# Dagitim icin paketlenmis dosyalar (kaynaktan uretiliyor, tekrar Compress-Archive ile alinabilir)
+# Distribution archives (generated from the sources)
 *.zip
 
-# IDE / araç durumu
+# IDE / tool state
 .idea/
 .vscode/*
 !.vscode/extensions.json

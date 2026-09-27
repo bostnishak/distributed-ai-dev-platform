@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dağıtık YZ Yazılım Geliştirme Platformu</title>
+<link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+
+<button id="sidebarToggle" aria-label="Menüyü aç/kapat">☰</button>
+<div id="sidebarOverlay"></div>
+
+<aside id="sidebar">
+  <div class="brand">
+    <span class="dot"></span>
+    <div>
+      <div class="brand-title">Dağıtık YZ Platformu</div>
+      <div class="brand-sub">Yazılım geliştirme · team6</div>
+    </div>
+  </div>
+
+  <nav id="nav">
+    <a href="#/new" data-view="new"><span class="nav-icon">＋</span> Yeni Proje</a>
+    <a href="#/projects" data-view="projects"><span class="nav-icon">▤</span> Projeler</a>
+    <a href="#/agents" data-view="agents"><span class="nav-icon">◉</span> Ajanlar</a>
+    <a href="#/assistant" data-view="assistant"><span class="nav-icon">✦</span> Asistan</a>
+  </nav>
+
+  <div id="assistantSide" hidden>
+    <button id="newChatBtn">＋ Yeni sohbet</button>
+    <div class="sidebar-label">Sohbetler</div>
+    <div id="chatList"></div>
+  </div>
+
+  <div class="sidebar-foot">%100 lokal · veriler bilgisayarlarımızdan çıkmaz</div>
+</aside>
+
+<main id="main">
+  <section id="view-page" class="view page" hidden></section>
+
+  <section id="view-assistant" class="view chat" hidden>
+    <div id="centerStage">
+      <h1>Bugün aklında ne var?</h1>
+    </div>
+
+    <div id="messages"></div>
+
+    <div id="inputWrap">
+      <div id="fileChip"><span id="fileChipName"></span><span class="remove" id="removeFile">✕</span></div>
+      <div id="inputPill">
+        <button id="attachBtn" title="Dosya ekle">＋</button>
+        <textarea id="promptInput" rows="1" placeholder="İstediğin bir şeyi sor"></textarea>
+        <button id="sendBtn">↑</button>
+      </div>
+      <div id="hint">Sistem hangi modelin yanıt vereceğine otomatik karar verir · PDF, DOCX, TXT ve görsel yükleyebilirsin</div>
+      <input type="file" id="fileInput" style="display:none" accept=".pdf,.docx,.txt,.md,image/*">
+    </div>
+  </section>
+</main>
+
+<script type="module" src="/static/js/app.js"></script>
+</body>
+</html>
