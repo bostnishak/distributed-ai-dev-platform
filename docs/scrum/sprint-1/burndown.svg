@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 380" width="640" height="380" font-family="-apple-system, Segoe UI, Roboto, Arial, sans-serif">
+  <style>
+    .axis { stroke: #b0b0b8; stroke-width: 1; }
+    .grid { stroke: #ececf1; stroke-width: 1; }
+    .ideal { stroke: #b0b0b8; stroke-width: 2; stroke-dasharray: 6 5; fill: none; }
+    .actual { stroke: #4f46e5; stroke-width: 2.5; fill: none; }
+    .point { fill: #4f46e5; }
+    .today { stroke: #b91c1c; stroke-width: 1; stroke-dasharray: 3 3; }
+    .lbl { font-size: 11px; fill: #6b6b76; }
+    .lbl-axis { font-size: 11px; fill: #1a1a1a; }
+    .title { font-size: 14px; fill: #1a1a1a; font-weight: 600; }
+    .sub { font-size: 11px; fill: #6b6b76; }
+    .legend { font-size: 11px; fill: #1a1a1a; }
+  </style>
+
+  <text x="50" y="20" class="title">Sprint 1 Burndown — kalan backlog öğesi (14 üzerinden)</text>
+  <text x="50" y="35" class="sub">Tek anlık görüntü: pano 27 Eylül'de kuruldu, geçmiş gün-gün hareket verisi yok. Uydurulmuş ara noktalar yok.</text>
+
+  <!-- Y grid + labels (0..14 remaining) -->
+  <g>
+    <line x1="50" y1="310" x2="620" y2="310" class="axis"/>
+    <line x1="50" y1="40" x2="50" y2="310" class="axis"/>
+    <!-- gridlines every 2 units -->
+    <line x1="50" y1="310" x2="620" y2="310" class="grid"/>
+    <line x1="50" y1="271.4" x2="620" y2="271.4" class="grid"/>
+    <line x1="50" y1="232.9" x2="620" y2="232.9" class="grid"/>
+    <line x1="50" y1="194.3" x2="620" y2="194.3" class="grid"/>
+    <line x1="50" y1="155.7" x2="620" y2="155.7" class="grid"/>
+    <line x1="50" y1="117.1" x2="620" y2="117.1" class="grid"/>
+    <line x1="50" y1="78.6" x2="620" y2="78.6" class="grid"/>
+    <line x1="50" y1="40" x2="620" y2="40" class="grid"/>
+    <text x="40" y="314" text-anchor="end" class="lbl-axis">0</text>
+    <text x="40" y="275.4" text-anchor="end" class="lbl">2</text>
+    <text x="40" y="236.9" text-anchor="end" class="lbl">4</text>
+    <text x="40" y="198.3" text-anchor="end" class="lbl">6</text>
+    <text x="40" y="159.7" text-anchor="end" class="lbl">8</text>
+    <text x="40" y="121.1" text-anchor="end" class="lbl">10</text>
+    <text x="40" y="82.6" text-anchor="end" class="lbl">12</text>
+    <text x="40" y="44" text-anchor="end" class="lbl-axis">14</text>
+  </g>
+
+  <!-- X axis labels: day 0 (24 Eyl, sprint start), day 7 (1 Eki), day 14 (7 Eki, sprint end) -->
+  <text x="50" y="330" text-anchor="middle" class="lbl-axis">24 Eyl (gün 0)</text>
+  <text x="335" y="330" text-anchor="middle" class="lbl">1 Eki (gün 7)</text>
+  <text x="620" y="330" text-anchor="end" class="lbl-axis">7 Eki (gün 14)</text>
+
+  <!-- Today marker: day 3 = 27 Eylül -->
+  <line x1="172.1" y1="40" x2="172.1" y2="310" class="today"/>
+  <text x="172.1" y="350" text-anchor="middle" class="lbl" fill="#b91c1c">bugün: gün 3 (27 Eyl)</text>
+
+  <!-- Ideal reference line: linear 14 -> 0 over 14 days -->
+  <polyline points="50,40 620,310" class="ideal"/>
+
+  <!-- Actual: only two real points: day 0 (14 remaining, true by definition) and today
+       (12 remaining, measured: PB-01/02 merged to main; PB-03..10,12,13 in PR #1 awaiting
+       review; PB-11 in progress; PB-14 not started). No days in between are invented. -->
+  <polyline points="50,40 172.1,78.6" class="actual"/>
+  <circle cx="50" cy="40" r="4" class="point"/>
+  <circle cx="172.1" cy="78.6" r="4" class="point"/>
+  <text x="182" y="75" class="legend">12 kalan (bugün)</text>
+
+  <!-- Legend -->
+  <g transform="translate(430,50)">
+    <line x1="0" y1="0" x2="24" y2="0" class="ideal"/>
+    <text x="30" y="4" class="legend">İdeal (referans çizgisi)</text>
+    <line x1="0" y1="20" x2="24" y2="20" class="actual"/>
+    <text x="30" y="24" class="legend">Gerçek (ölçülen)</text>
+  </g>
+</svg>

@@ -33,11 +33,19 @@ No Sprint Planning record exists for this sprint in the repository. This backlog
 
 "In review" means the work is in the Sprint 1 pull request and waits for a teammate's review.
 
-## Verified so far (27 September 2026)
+## Mid-sprint status snapshot — not the Sprint Review
 
+Per the [Scrum honesty rule](../README.md): the Sprint Review, Retrospective and course-required
+Progress Report are events tied to the end of the sprint (7 October) and are not written before
+then. What follows is a plain status check-in on day 3 of 14, so the team can see where things
+stand; it does not replace those end-of-sprint records.
+
+- **Pull request:** [#1 "Sprint 1: platform foundation (PB-03 – PB-13)"](https://github.com/bostnishak/distributed-ai-dev-platform/pull/1), open, not yet merged. All three CI checks (`master`, `agent`, `docker-build`) pass. Waiting on a teammate's review (branch protection requires one approval).
+- **Trello:** the board (<https://trello.com/b/VvJnXmp6>) now carries all 43 backlog cards with the same `PB-xx` IDs as `product-backlog.md`, arranged in the columns from [../README.md](../README.md). PB-11 is the only Sprint 1 item still in *Yapılıyor*: `main` is protected, `docker-build`/`master`/`agent` CI and one approval are required, and Semih, Furkan and Zeynep Duru are added as collaborators; Işıl and Berfin still need to send their GitHub usernames.
+- **Burndown (single real snapshot, not a fitted trend):** ![Sprint 1 burndown](burndown.svg). Definition-of-Done-wise, only PB-01 and PB-02 are merged to `main`; the other eleven Sprint 1 items are drafted and sitting in PR #1, so by a strict burndown they still count as remaining. 12 of 14 items remaining on day 3 is a little behind the 11-remaining idealized pace — consistent with everything being drafted but nothing else past the PR-review gate yet.
 - Sample requirements document ([kutuphane-yonetim-sistemi.md](../../examples/kutuphane-yonetim-sistemi.md)) decomposed by Qwen3.5 4B on the master's CPU:
   - 44–52 s per run
   - 7 entities, 11–15 endpoints (varies between runs), 9 pages, 3 open questions
   - 16 tasks
 - All six agents registered with their real context windows and capabilities: `uye1` on its own (master) computer, `uye2`–`uye6` as staging on the master computer until the members connect.
-- Master: 56 unit tests pass. Agent: 13 unit tests pass. Lint is clean.
+- Master: 72 unit tests pass (56 plus 16 for the assistant's calculator, code-run and CSV/XLSX support added 27 September). Agent: 13 unit tests pass. Lint is clean.
