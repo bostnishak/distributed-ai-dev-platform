@@ -4,7 +4,14 @@ import pytest
 from docx import Document
 from pypdf import PdfWriter
 
-from extract import UnsupportedFileError, extract_docx_text, extract_pdf_text, extract_text
+from extract import (
+    UnsupportedFileError,
+    extract_csv_text,
+    extract_docx_text,
+    extract_pdf_text,
+    extract_text,
+    extract_xlsx_text,
+)
 
 
 def _docx_bytes(paragraphs: list[str], table: list[list[str]] | None = None) -> bytes:
@@ -49,3 +56,26 @@ def test_extract_text_dispatches_by_extension():
 def test_extract_text_rejects_unknown_types():
     with pytest.raises(UnsupportedFileError):
         extract_text("resim.png", b"\x89PNG")
+
+
+def test_extract_csv_text():
+    text = extract_csv_text(b"ad,yas\nAli,25\nVeli,30\n")
+    assert "ad | yas" in text
+    assert "Ali | 25" in text
+    assert "Veli | 30" in text
+
+
+def test_extract_xlsx_text():
+    from openpyxl import Workbook
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Sayfa1"
+    ws.append(["ad", "yas"])
+    ws.append(["Ali", 25])
+    buf = io.BytesIO()
+    wb.save(buf)
+    text = extract_xlsx_text(buf.getvalue())
+    assert "Sayfa1" in text
+    assert "ad | yas" in text
+    assert "Ali | 25" in text
