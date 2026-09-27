@@ -1,53 +1,41 @@
-# LiteLLM Gateway config. Tum uyelerin lokal modelleri buraya tek isim altinda toplanir.
-# Aktif olmayan (henuz IP'si olmayan) girdiler yorum satirinda birakildi -- varsayim yapip
-# sahte deger yazmak yerine, o kisi hazir olunca yorumdan cikarilacak.
+# LiteLLM gateway configuration. It serves only the Assistant tab; the platform's own agents
+# talk to their local Ollama directly. The gateway is removed in Sprint 3 (PB-37), when the
+# Assistant moves onto the agent infrastructure.
 #
-# VERI GIZLILIGI (karar: 2026-09-25): Bu sistem TAMAMEN LOKAL calisir, hicbir bulut/harici
-# API'ye veri gonderilmez. Onceden planlanan ucretsiz bulut modelleri (Groq/Gemini/OpenRouter)
-# bu yuzden tamamen kaldirildi. Belge/gorsel analizi icin (eskiden Gemini'nin yapacagi is)
-# ileride kucuk bir LOKAL vision modeli (ör. Moondream2, Qwen2.5-VL-3B) eklenmesi gerekiyor --
-# henuz eklenmedi, bu yuzden "analiz" gorev tipi orkestratorde simdilik Uye-1'e (metin-only) dusuyor.
+# Data privacy: everything runs locally. No cloud or external LLM API is used.
+#
+# All six models currently run on the master's computer (staging), reached from Docker through
+# host.docker.internal. Model-specific notes verified on 2026-09-24/25:
+# - "think" passes through the gateway unchanged (think:false ~1.7 s, think:true ~37 s).
+# - qwen2.5-coder:7b does not support thinking; think:true returns HTTP 400.
 
 model_list:
-  # --- Uye-1: Ishak Bostan -- bu makine (orkestratorle ayni makine, Docker'dan
-  # "host.docker.internal" ile erisilir) ---
-  - model_name: uye1-qwen
+  - model_name: uye1-qwen          # İshak Bostan
     litellm_params:
       model: ollama_chat/qwen3.5:4b
       api_base: http://host.docker.internal:11434
 
-  # --- Diger uyeler: 2026-09-25'te hepsi test edilip calistigi dogrulandi ("kod" -> uye5-coder
-  # testi de dahil). Kullanici, arkadaslarina yardim edip her birinin kendi makinesinde calistigini
-  # VE gateway'e baglandigini kendi gozlemleyip onaylayana kadar bu 5 model bu makinede (gecici
-  # staging/referans olarak) kalacak -- api_base'ler o yuzden hala host.docker.internal.
-  # Her arkadas kendi makinesinde dogrulandikca, ilgili satir <UYEN_LAN_IP>'ye guncellenip
-  # bu makinedeki kopyasi silinecek (Uye-1 disinda hicbiri bu makinede kalici degil). ---
-  - model_name: uye2-phi4mini   # Duru Kucuk
+  - model_name: uye2-phi4mini      # Zeynep Duru Küçük
     litellm_params:
       model: ollama_chat/phi4-mini
       api_base: http://host.docker.internal:11434
 
-  - model_name: uye3-llama   # Furkan Kaan
+  - model_name: uye3-llama         # Furkan Kaan Özbeyli
     litellm_params:
       model: ollama_chat/llama3.2:3b
       api_base: http://host.docker.internal:11434
 
-  - model_name: uye4-gemma   # Semih Sarica
+  - model_name: uye4-gemma         # Semih Sarıca
     litellm_params:
       model: ollama_chat/gemma4:e4b
       api_base: http://host.docker.internal:11434
 
-  - model_name: uye5-coder   # Isil Karademir -- NOT: qwen2.5-coder "thinking" desteklemiyor,
-  # bu model icin orkestratorde think:false kullanilmali (dogrulandi, 400 hatasi aliniyor aksi halde)
+  - model_name: uye5-coder         # Işıl Karademir (no thinking support)
     litellm_params:
       model: ollama_chat/qwen2.5-coder:7b
       api_base: http://host.docker.internal:11434
 
-  - model_name: uye6-qwen-light   # Berfin Yigit
+  - model_name: uye6-qwen-light    # Berfin Yiğit
     litellm_params:
       model: ollama_chat/qwen3:1.7b
       api_base: http://host.docker.internal:11434
-
-# NOT: "think:false/true" (Ollama'nin thinking modu ac/kapa parametresi) gateway uzerinden
-# dogrulandi (2026-09-24): think:false -> 1.7sn/reasoning yok, think:true -> 37sn/reasoning var.
-# Ekstra bir litellm_settings gerekmiyor, istek govdesinde "think" alani dogrudan geciyor.

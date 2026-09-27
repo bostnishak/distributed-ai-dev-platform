@@ -1,3 +1,5 @@
+# Runs only the LiteLLM gateway. Normally the root docker-compose.yml starts it together
+# with the master; this file is for debugging the gateway on its own.
 services:
   litellm-gateway:
     image: docker.litellm.ai/berriai/litellm:latest
@@ -10,7 +12,6 @@ services:
     env_file:
       - ../.env
     extra_hosts:
-      # Linux Docker'da host.docker.internal'in calismasi icin gerekli;
-      # Docker Desktop (Windows/Mac) zaten kendisi sagliyor, zararsiz.
+      # Needed for host.docker.internal on Linux Docker; Docker Desktop provides it anyway.
       - "host.docker.internal:host-gateway"
     command: ["--config", "/app/config.yaml"]
