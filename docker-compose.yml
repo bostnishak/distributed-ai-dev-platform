@@ -1,6 +1,30 @@
-# Tum sistemi (gateway + orkestrator) tek komutla ayaga kaldirir: docker compose up -d
-# Sadece gateway'i ayri calistirmak isterseniz gateway/docker-compose.yml'i kullanabilirsiniz.
+# Distributed AI Software Development Platform (runs on the master's computer)
+#
+#   docker compose up -d --build                      master + LiteLLM gateway + uye1's agent
+#   docker compose --profile staging up -d --build    also runs uye2..uye6 on this computer
+#
+# uye1 (İshak Bostan) really runs on this computer, so its agent is part of the normal stack.
+# The "staging" profile keeps the other five members' agents here until each member's own
+# computer is connected (see agent-node/README.md). Staging agents register with mode=staging,
+# so the UI never presents them as running on the members' machines.
+
+x-staging-agent: &staging-agent
+  build: ./agent
+  profiles: ["staging"]
+  restart: unless-stopped
+  depends_on:
+    - master
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+
+x-staging-env: &staging-env
+  OLLAMA_URL: http://host.docker.internal:11434
+  MASTER_URL: http://master:8000
+  AGENT_MODE: staging
+  AGENT_TOKEN: ${AGENT_TOKEN:?AGENT_TOKEN must be set in .env}
+
 services:
+  # Serves the Assistant tab until it moves onto the agent infrastructure (Sprint 3, PB-36/37).
   litellm-gateway:
     image: docker.litellm.ai/berriai/litellm:latest
     container_name: litellm-gateway
@@ -15,15 +39,85 @@ services:
       - "host.docker.internal:host-gateway"
     command: ["--config", "/app/config.yaml"]
 
-  orchestrator:
-    build: ./orchestrator
-    container_name: coklu-llm-orchestrator
+  master:
+    build: ./master
+    container_name: dadp-master
     restart: unless-stopped
     ports:
       - "8000:8000"
     environment:
       GATEWAY_BASE_URL: http://litellm-gateway:4000
+      OLLAMA_URL: http://host.docker.internal:11434
+      MASTER_MODEL: qwen3.5:4b
+      DB_PATH: /data/platform.db
     env_file:
       - .env
+    volumes:
+      - master-data:/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - litellm-gateway
+
+  agent-uye1:
+    build: ./agent
+    container_name: dadp-agent-uye1
+    restart: unless-stopped
+    depends_on:
+      - master
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      <<: *staging-env
+      AGENT_MODE: node
+      AGENT_ID: uye1
+      MEMBER_NAME: İshak Bostan
+      MODEL: qwen3.5:4b
+
+  agent-uye2:
+    <<: *staging-agent
+    container_name: dadp-agent-uye2
+    environment:
+      <<: *staging-env
+      AGENT_ID: uye2
+      MEMBER_NAME: Zeynep Duru Küçük
+      MODEL: phi4-mini
+
+  agent-uye3:
+    <<: *staging-agent
+    container_name: dadp-agent-uye3
+    environment:
+      <<: *staging-env
+      AGENT_ID: uye3
+      MEMBER_NAME: Furkan Kaan Özbeyli
+      MODEL: llama3.2:3b
+
+  agent-uye4:
+    <<: *staging-agent
+    container_name: dadp-agent-uye4
+    environment:
+      <<: *staging-env
+      AGENT_ID: uye4
+      MEMBER_NAME: Semih Sarıca
+      MODEL: gemma4:e4b
+
+  agent-uye5:
+    <<: *staging-agent
+    container_name: dadp-agent-uye5
+    environment:
+      <<: *staging-env
+      AGENT_ID: uye5
+      MEMBER_NAME: Işıl Karademir
+      MODEL: qwen2.5-coder:7b
+
+  agent-uye6:
+    <<: *staging-agent
+    container_name: dadp-agent-uye6
+    environment:
+      <<: *staging-env
+      AGENT_ID: uye6
+      MEMBER_NAME: Berfin Yiğit
+      MODEL: qwen3:1.7b
+
+volumes:
+  master-data:

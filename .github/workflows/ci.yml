@@ -7,26 +7,51 @@ on:
     branches: [main]
 
 jobs:
-  orchestrator-test:
+  master:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: orchestrator
+        working-directory: master
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
       - name: Install dependencies
         run: pip install -r requirements-dev.txt
-
       - name: Lint (ruff)
         run: ruff check .
-
-      - name: Sanity import check
-        run: python -c "import app"
-
       - name: Unit tests (pytest)
         run: pytest tests/ -v
+
+  agent:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: agent
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+      - name: Lint (ruff)
+        run: ruff check .
+      - name: Unit tests (pytest)
+        run: pytest tests/ -v
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Compose file (all profiles)
+        env:
+          AGENT_TOKEN: ci-placeholder
+        run: |
+          cp .env.example .env
+          docker compose --profile staging config --quiet
+      - name: Build master image
+        run: docker build -t dadp-master:ci master
+      - name: Build agent image
+        run: docker build -t dadp-agent:ci agent
