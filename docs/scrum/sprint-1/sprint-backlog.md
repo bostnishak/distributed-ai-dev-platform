@@ -27,7 +27,7 @@ No Sprint Planning record exists for this sprint in the repository. This backlog
 | PB-09 | Basic task decomposition | İshak Bostan | In review |
 | PB-10 | Scrum artifacts | İshak Bostan | In review (Product Goal, order: PO; DoD: team) |
 | PB-11 | GitHub collaboration and required CI | İshak Bostan | In progress |
-| PB-12 | Trello board | İshak Bostan | To do |
+| PB-12 | Trello board | İshak Bostan | In review (members still to be invited) |
 | PB-13 | Tailscale network and member setup scripts | İshak Bostan | In review |
 | PB-14 | Each member installs and registers their own agent | Each member | To do |
 

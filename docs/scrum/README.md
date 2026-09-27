@@ -45,7 +45,7 @@ Sprints are two weeks long. Timeboxes are scaled from the Scrum Guide's one-mont
 
 ## Tools
 
-- **Trello** is the day-to-day board. Its cards are in Turkish and carry the same IDs as this backlog (`PB-xx`).
+- **Trello** is the day-to-day board: <https://trello.com/b/VvJnXmp6>. Its cards are in Turkish and carry the same IDs as this backlog (`PB-xx`). The suggested sprint is in the card title (`[S2]` …), because the free plan is used and labels are not required.
   - Lists: Product Backlog → Sprint Backlog → Yapılıyor → İnceleme / Test → Bitti.
   - Labels: sprint number and work type.
 - **GitHub** holds code and documentation.

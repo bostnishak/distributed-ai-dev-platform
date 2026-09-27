@@ -21,7 +21,7 @@
 | PB-09 | Basic task decomposition: specification + task graph with dependencies | İshak Bostan | In review |
 | PB-10 | Scrum artifacts: Product Goal, Product Backlog, Definition of Done, templates | İshak Bostan (Product Goal and order: Duru; DoD: whole team) | In review |
 | PB-11 | GitHub collaboration: collaborators, protected `main`, required CI, PR review | İshak Bostan | In progress |
-| PB-12 | Trello board mirroring this backlog | İshak Bostan | To do |
+| PB-12 | Trello board mirroring this backlog | İshak Bostan | In review (board set up 27 Sep; members still to be invited) |
 | PB-13 | Team network (Tailscale) and member setup scripts | İshak Bostan | In review |
 | PB-14 | Each member installs and registers their own agent node | Each member (suggested) | To do |
 
