@@ -1,6 +1,6 @@
 """Assistant tab logic that does not need a model or the gateway."""
 
-from assistant import keyword_category_override, parse_classifier_response
+from assistant import keyword_category_override, parse_classifier_response, try_calculate
 
 
 class TestKeywordCategoryOverride:
@@ -62,3 +62,64 @@ class TestParseClassifierResponse:
         text = "KATEGORI: kod\nUYGUNSUZ: hayir\nEvet, bu kod ornegi calisir."
         _category, inappropriate = parse_classifier_response(text)
         assert inappropriate is False
+
+
+class TestTryCalculate:
+    def test_multiplication_with_trailing_question(self):
+        assert try_calculate("125*4 kaç eder") == "125*4 = 500"
+
+    def test_division_normalizes_clean_float_to_int(self):
+        assert try_calculate("10/2 nedir") == "10/2 = 5"
+
+    def test_parentheses_and_clean_division_becomes_int(self):
+        assert try_calculate("(38+7)/3 hesapla") == "(38+7)/3 = 15"
+
+    def test_no_trailing_words_still_works(self):
+        assert try_calculate("7+8") == "7+8 = 15"
+
+    def test_caret_power(self):
+        assert try_calculate("2^10 kaç eder") == "2^10 = 1024"
+
+    def test_non_arithmetic_prompt_returns_none(self):
+        assert try_calculate("Fotosentez nedir?") is None
+
+    def test_bare_number_does_not_trigger(self):
+        assert try_calculate("100") is None
+
+    def test_bare_signed_number_does_not_trigger(self):
+        assert try_calculate("-5") is None
+
+    def test_division_by_zero_returns_none(self):
+        assert try_calculate("5/0 nedir") is None
+
+    def test_huge_exponent_rejected_for_resource_safety(self):
+        assert try_calculate("2^999999 kaç eder") is None
+
+    def test_overly_long_expression_rejected(self):
+        assert try_calculate("1+" * 150 + "1") is None
+
+
+class TestRunCode:
+    """/run-code needs no gateway or model (plain subprocess isolation), unlike the other
+    assistant flows, so it is exercised directly through the client fixture."""
+
+    def test_stdout_captured(self, client):
+        resp = client.post("/api/assistant/run-code", json={"code": "print(2 + 2)"})
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["stdout"].strip() == "4"
+        assert data["exit_code"] == 0
+        assert data["timed_out"] is False
+
+    def test_runtime_error_captured_in_stderr(self, client):
+        resp = client.post("/api/assistant/run-code", json={"code": "1 / 0"})
+        data = resp.json()
+        assert data["exit_code"] != 0
+        assert "ZeroDivisionError" in data["stderr"]
+
+    def test_timeout_is_reported(self, client, monkeypatch):
+        import assistant
+
+        monkeypatch.setattr(assistant, "CODE_RUN_TIMEOUT_SECONDS", 1)
+        resp = client.post("/api/assistant/run-code", json={"code": "import time; time.sleep(5)"})
+        assert resp.json()["timed_out"] is True

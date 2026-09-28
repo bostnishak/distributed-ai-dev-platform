@@ -40,4 +40,4 @@ No Sprint Planning record exists for this sprint in the repository. This backlog
   - 7 entities, 11–15 endpoints (varies between runs), 9 pages, 3 open questions
   - 16 tasks
 - All six agents registered with their real context windows and capabilities: `uye1` on its own (master) computer, `uye2`–`uye6` as staging on the master computer until the members connect.
-- Master: 56 unit tests pass. Agent: 13 unit tests pass. Lint is clean.
+- Master: 72 unit tests pass (56 plus 16 for the assistant's calculator, code-run and CSV/XLSX support added 27 September). Agent: 13 unit tests pass. Lint is clean.
