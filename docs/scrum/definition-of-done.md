@@ -4,7 +4,7 @@
 
 A backlog item is **Done** when all of the following hold:
 
-1. **Acceptance criteria** of the item are met and the Product Owner accepted it.
+1. **Acceptance criteria** of the item are met and the team accepted it at the Sprint Review.
 2. **Code is on `main`** through a pull request that:
    - has passing CI (lint + unit tests for `master` and `agent`, Docker builds);
    - was reviewed and approved by at least one teammate other than the author.

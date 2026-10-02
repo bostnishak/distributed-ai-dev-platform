@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| Version | 1.0 (Sprint 1 draft; to be reviewed by the Product Owner, Zeynep Duru Küçük) |
+| Version | 1.0 (Sprint 1 draft; to be reviewed by the team) |
 | Date | 27 September 2026 |
 | Source | Course term project document (`term project_updated.pdf`) and decisions of the team |
 
@@ -34,7 +34,7 @@ Out of scope: training or fine-tuning models, cloud-hosted LLM services, deploym
 ### 1.4 Stakeholders
 
 - **Instructor** (Ensar Gül) — evaluates the platform, process and documentation.
-- **Scrum Team** (team6) — Product Owner, Scrum Master and Developers (see README).
+- **Scrum Team** (team6) — Scrum Master and Developers; no Product Owner, at the instructor's request (see README).
 - **Platform user** — a person who submits a requirements document and follows the generated project.
 
 ## 2. Overall description
