@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | Date | 7 October 2026 |
-| Facilitator | Işıl Karademir (Scrum Master) |
+| Facilitator | Zeynep Duru Küçük (Scrum Master) |
 | Participants | |
 
 Topics the interim progress report suggests discussing (the team decides what to cover):

@@ -8,11 +8,23 @@ We follow the [2020 Scrum Guide](https://scrumguides.org/scrum-guide.html). This
 
 | Accountability | Member |
 |---|---|
-| Product Owner | Zeynep Duru Küçük |
-| Scrum Master | Işıl Karademir |
-| Developers | İshak Bostan (informal technical lead; the master runs on his computer), Furkan Kaan Özbeyli, Semih Sarıca, Berfin Yiğit, and the PO and SM when they work on backlog items |
+| Scrum Master | Zeynep Duru Küçük |
+| Product Owner | none (see below) |
+| Developers | all six members |
 
-- **Product Owner.** Owns the Product Goal and orders the Product Backlog. Accepts or rejects work against the Definition of Done.
+The instructor assigned these roles on 1 October 2026:
+
+| Member | Role | Additional responsibilities |
+|---|---|---|
+| İshak Bostan | Master agent's LLM | Master-side selection, scheduling, integration and error recovery (PB-24, PB-34, PB-40, PB-44, PB-50); the master runs on this computer |
+| Furkan Kaan Özbeyli | Sub-agent interface | Sandboxed test runner (PB-41), security hardening (PB-56) |
+| Zeynep Duru Küçük | Scrum Master; Trello, backend | — |
+| Berfin Yiğit | Web interface, dashboard | — |
+| Semih Sarıca | LLM model selection | Testing / QA (Sprint 1 tests, PB-33, PB-42, PB-43, PB-55) |
+| Işıl Karademir | GitHub processes | SRS and process documents, task classification (PB-23), final documentation (PB-54) |
+
+No Product Owner: the instructor asked the team not to have one, so the Developers agree on the Product Goal and the order of the Product Backlog together and accept work at the Sprint Review. Until 1 October the records named Zeynep Duru Küçük as Product Owner and Işıl Karademir as Scrum Master; records dated before then show that assignment.
+
 - **Scrum Master.** Establishes Scrum in the team, facilitates the events when needed, removes impediments and keeps the timeboxes.
 - **Developers.** Create the Sprint Backlog, build the Increment and hold each other accountable to the Definition of Done. There are no sub-teams or hierarchies.
 
@@ -39,7 +51,7 @@ Sprints are two weeks long. Timeboxes are scaled from the Scrum Guide's one-mont
 
 | Artifact | Commitment | Where |
 |---|---|---|
-| Product Backlog | **Product Goal**: see [product-backlog.md](product-backlog.md) (draft, PO to confirm) | `product-backlog.md` and the Trello list *Product Backlog* |
+| Product Backlog | **Product Goal**: see [product-backlog.md](product-backlog.md) (draft, the team confirms) | `product-backlog.md` and the Trello list *Product Backlog* |
 | Sprint Backlog | **Sprint Goal**: set by the team at Sprint Planning | `sprint-N/sprint-backlog.md` and the Trello list *Sprint Backlog* |
 | Increment | **Definition of Done**: see [definition-of-done.md](definition-of-done.md) (draft, team to agree) | GitHub `main` + a demo at the Sprint Review |
 

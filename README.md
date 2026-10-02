@@ -12,16 +12,16 @@ A web-based platform where a **master agent** turns a long software requirements
 
 ## Team
 
-| Name | Student no. | Scrum role | Agent · model |
+| Name | Student no. | Role (assigned by the instructor) | Agent · model |
 |---|---|---|---|
-| İshak Bostan | 2304010592 | Developer · technical lead, hosts the master | `uye1` · Qwen3.5 4B (Alibaba) |
-| Zeynep Duru Küçük | 2304010588 | Product Owner · Developer | `uye2` · Phi-4-mini 3.8B (Microsoft) |
-| Furkan Kaan Özbeyli | 2304010585 | Developer | `uye3` · Llama 3.2 3B (Meta) |
-| Semih Sarıca | 2304010590 | Developer | `uye4` · Gemma 4 E4B (Google) |
-| Işıl Karademir | 2304010607 | Scrum Master · Developer | `uye5` · Qwen2.5-Coder 7B (Alibaba) |
-| Berfin Yiğit | 2304010589 | Developer | `uye6` · Qwen3 1.7B (Alibaba) |
+| İshak Bostan | 2304010592 | Master agent's LLM (the master runs on this computer) | `uye1` · Qwen3.5 4B (Alibaba) |
+| Zeynep Duru Küçük | 2304010588 | Scrum Master · Trello, backend | `uye2` · Phi-4-mini 3.8B (Microsoft) |
+| Furkan Kaan Özbeyli | 2304010585 | Sub-agent interface | `uye3` · Llama 3.2 3B (Meta) |
+| Semih Sarıca | 2304010590 | LLM model selection | `uye4` · Gemma 4 E4B (Google) |
+| Işıl Karademir | 2304010607 | GitHub processes | `uye5` · Qwen2.5-Coder 7B (Alibaba) |
+| Berfin Yiğit | 2304010589 | Web interface, dashboard | `uye6` · Qwen3 1.7B (Alibaba) |
 
-"Technical lead" is an informal responsibility (the master runs on İshak's computer), not a hierarchy: the Scrum Guide has no sub-teams or ranks among Developers.
+Every member is also a Developer. No Product Owner: the instructor asked the team not to have one, so the Developers agree on the Product Goal and the order of the Product Backlog together and accept work at the Sprint Review. Work outside a role title is listed as an additional responsibility in [docs/scrum/README.md](docs/scrum/README.md).
 
 ## Status — Sprint 1 (24 Sep – 7 Oct 2026)
 
