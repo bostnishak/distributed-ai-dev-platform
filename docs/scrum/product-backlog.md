@@ -2,7 +2,7 @@
 
 **Status: draft.** The team has no Product Owner (the instructor's decision), so the team confirms the Product Goal and the order of the items together. Owners are *suggestions*: the Developers choose who works on what at each Sprint Planning.
 
-On 1 October, after the instructor's feedback that Sprint 1 work was not spread across the team, the instructor assigned a role to every member (see [README.md](README.md)), every Sprint 1 item got a responsible member by role, and the Sprint 2–5 suggestions were redistributed so that every member has at least one item in every sprint. PB-51 (dashboard) moved from Sprint 5 to Sprint 4.
+On 1 October, after the instructor's feedback that Sprint 1 work was not spread across the team, the instructor assigned a role to every member (see [README.md](README.md)), every Sprint 1 item got a responsible member by role, and the Sprint 2–5 suggestions were redistributed so that every member has at least one item in every sprint. Items stay in the sprints of the course plan; PB-47 (project page for the Sprint 4 results) was added so that every member has an item in Sprint 4.
 
 ## Product Goal (draft)
 
@@ -10,22 +10,22 @@ On 1 October, after the instructor's feedback that Sprint 1 work was not spread 
 
 ## Sprint 1 — foundation (24 Sep – 7 Oct 2026)
 
-| ID | Item | Built by | Responsible (1–7 Oct) | Status |
-|---|---|---|---|---|
-| PB-01 | Chat assistant with automatic model routing, content moderation and PDF/DOCX/TXT upload (built before the course document was received; now the Assistant tab) | İshak Bostan | Semih Sarıca (model selection test, model research) | Done (25 Sep) |
-| PB-02 | Responsive layout for desktop, tablet and mobile | İshak Bostan | Berfin Yiğit | Done (25 Sep) |
-| PB-03 | Markdown tables and SVG diagrams in assistant answers | İshak Bostan | Berfin Yiğit | In review |
-| PB-04 | Software Requirements Specification ([SRS.md](../SRS.md)) | İshak Bostan | Işıl Karademir | In review |
-| PB-05 | Architecture document ([architecture.md](../architecture.md)) | İshak Bostan | Furkan Kaan Özbeyli | In review |
-| PB-06 | Platform web interface: New Project, Projects, Agents, Assistant | İshak Bostan | Berfin Yiğit; also drafts the Sprint 2 Agents tab design | In review |
-| PB-07 | Master agent prototype: REST API, SQLite data model, background analysis | İshak Bostan | Zeynep Duru Küçük (backend); tests: Semih Sarıca | In review |
-| PB-08 | Agent service and registration of agents and models (plus staging profile) | İshak Bostan | Furkan Kaan Özbeyli | In review |
-| PB-09 | Basic task decomposition: specification + task graph with dependencies | İshak Bostan | İshak Bostan; tests with two more sample documents: Semih Sarıca | In review |
-| PB-10 | Scrum artifacts: Product Goal, Product Backlog, Definition of Done, templates | İshak Bostan | Zeynep Duru Küçük (Definition of Done, Daily Scrum); Işıl Karademir (process documents, Product Goal and order with the team) | In review |
-| PB-11 | GitHub collaboration: collaborators, protected `main`, required CI, PR review | İshak Bostan | Işıl Karademir (invitation, PR #1 and PR #3 reviews, branch rules) | In progress |
-| PB-12 | Trello board mirroring this backlog | İshak Bostan | Zeynep Duru Küçük | In review (all six members joined) |
-| PB-13 | Team network (Tailscale) and member setup scripts | İshak Bostan | Furkan Kaan Özbeyli | In review |
-| PB-14 | Each member installs and registers their own agent node | Each member (suggested) | — | Postponed by the team |
+| ID | Item | Responsible | Status |
+|---|---|---|---|
+| PB-01 | Chat assistant with automatic model routing, content moderation and PDF/DOCX/TXT upload (built before the course document was received; now the Assistant tab) | Semih Sarıca (model selection test, model research) | Done (25 Sep) |
+| PB-02 | Responsive layout for desktop, tablet and mobile | Berfin Yiğit | Done (25 Sep) |
+| PB-03 | Markdown tables and SVG diagrams in assistant answers | Berfin Yiğit | In review |
+| PB-04 | Software Requirements Specification ([SRS.md](../SRS.md)) | Işıl Karademir | In review |
+| PB-05 | Architecture document ([architecture.md](../architecture.md)) | Furkan Kaan Özbeyli | In review |
+| PB-06 | Platform web interface: New Project, Projects, Agents, Assistant | Berfin Yiğit; also drafts the Sprint 2 Agents tab design | In review |
+| PB-07 | Master agent prototype: REST API, SQLite data model, background analysis | Zeynep Duru Küçük (backend); tests: Semih Sarıca | In review |
+| PB-08 | Agent service and registration of agents and models (plus staging profile) | Furkan Kaan Özbeyli | In review |
+| PB-09 | Basic task decomposition: specification + task graph with dependencies | İshak Bostan; tests with two more sample documents: Semih Sarıca | In review |
+| PB-10 | Scrum artifacts: Product Goal, Product Backlog, Definition of Done, templates | Zeynep Duru Küçük (Definition of Done, Daily Scrum); Işıl Karademir (process documents, Product Goal and order with the team) | In review |
+| PB-11 | GitHub collaboration: collaborators, protected `main`, required CI, PR review | Işıl Karademir (invitation, PR #1 and PR #3 reviews, branch rules) | In progress |
+| PB-12 | Trello board mirroring this backlog | Zeynep Duru Küçük | In review (all six members joined) |
+| PB-13 | Team network (Tailscale) and member setup scripts | Furkan Kaan Özbeyli | In review |
+| PB-14 | Each member installs and registers their own agent node | Each member (suggested) | Postponed by the team |
 
 Acceptance for PB-14: the member's agent appears in the *Ajanlar* tab as "Üyenin bilgisayarı" with the right model and context window, and the matching staging container is stopped. If this is not done by the Sprint 1 Review, it returns to the Product Backlog.
 
@@ -65,13 +65,14 @@ Acceptance for PB-14: the member's agent appears in the *Ajanlar* tab as "Üyeni
 | PB-44 | Error detection, recovery and reassignment of failed tasks | İshak Bostan | Timeout, offline agent or invalid output → retry, then next-best agent (max 3 attempts) |
 | PB-45 | Conflict resolution for results that touch the same files | Işıl Karademir | Conflicts detected and resolved or reported; never silently overwritten |
 | PB-46 | Scheduler and selection tests with fake agents | Zeynep Duru Küçük | Failure scenarios covered in CI |
-| PB-51 | Dashboard: overview and live event stream | Berfin Yiğit | Shows active projects, agent load and recent events |
+| PB-47 | Project page: test results, code-review findings and reassignment history | Berfin Yiğit | Each task shows its test result, review findings and reassignment history; works on desktop and mobile |
 
 ## Sprint 5 — end-to-end and demo (19 Nov – 2 Dec)
 
 | ID | Item | Suggested owner | Acceptance criteria |
 |---|---|---|---|
 | PB-50 | End-to-end workflow hardening with the sample document | İshak Bostan | Sample document → running web application, repeatable |
+| PB-51 | Dashboard: overview and live event stream | Berfin Yiğit | Shows active projects, agent load and recent events |
 | PB-52 | Performance measurements: durations, success rates, tokens/s | Zeynep Duru Küçük | Stored per task and agent; exported for the report |
 | PB-53 | Agent / model comparison view | Berfin Yiğit | Side-by-side capabilities and measured performance |
 | PB-54 | Final documentation and user guide | Işıl Karademir | Up-to-date README, SRS, architecture, user guide |

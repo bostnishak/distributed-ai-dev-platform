@@ -14,29 +14,29 @@ No Sprint Planning record exists for this sprint in the repository. This backlog
 
 ## Items
 
-| ID | Item | Built by | Responsible (1–7 Oct) | Status |
-|---|---|---|---|---|
-| PB-01 | Chat assistant (now the Assistant tab) | İshak Bostan | Semih Sarıca | Done — 25 Sep |
-| PB-02 | Responsive layout | İshak Bostan | Berfin Yiğit | Done — 25 Sep |
-| PB-03 | Tables and SVG diagrams in answers | İshak Bostan | Berfin Yiğit | In review |
-| PB-04 | Software Requirements Specification | İshak Bostan | Işıl Karademir | In review |
-| PB-05 | Architecture document | İshak Bostan | Furkan Kaan Özbeyli | In review |
-| PB-06 | Platform web interface (4 tabs) | İshak Bostan | Berfin Yiğit | In review |
-| PB-07 | Master agent prototype (API, SQLite, background analysis) | İshak Bostan | Zeynep Duru Küçük; tests: Semih Sarıca | In review |
-| PB-08 | Agent service and registration, staging profile | İshak Bostan | Furkan Kaan Özbeyli | In review |
-| PB-09 | Basic task decomposition | İshak Bostan | İshak Bostan; tests: Semih Sarıca | In review |
-| PB-10 | Scrum artifacts | İshak Bostan | Zeynep Duru Küçük (DoD, Daily Scrum); Işıl Karademir (process documents) | In review |
-| PB-11 | GitHub collaboration and required CI | İshak Bostan | Işıl Karademir | In progress |
-| PB-12 | Trello board | İshak Bostan | Zeynep Duru Küçük | In review (all six members joined) |
-| PB-13 | Tailscale network and member setup scripts | İshak Bostan | Furkan Kaan Özbeyli | In review |
-| PB-14 | Each member installs and registers their own agent | Each member | — | Postponed by the team |
-| — | Sprint Review, Retrospective and progress report (7 Oct) | Zeynep Duru Küçük (SM) | — | Planned |
+| ID | Item | Responsible | Status |
+|---|---|---|---|
+| PB-01 | Chat assistant (now the Assistant tab) | Semih Sarıca | Done — 25 Sep |
+| PB-02 | Responsive layout | Berfin Yiğit | Done — 25 Sep |
+| PB-03 | Tables and SVG diagrams in answers | Berfin Yiğit | In review |
+| PB-04 | Software Requirements Specification | Işıl Karademir | In review |
+| PB-05 | Architecture document | Furkan Kaan Özbeyli | In review |
+| PB-06 | Platform web interface (4 tabs) | Berfin Yiğit | In review |
+| PB-07 | Master agent prototype (API, SQLite, background analysis) | Zeynep Duru Küçük; tests: Semih Sarıca | In review |
+| PB-08 | Agent service and registration, staging profile | Furkan Kaan Özbeyli | In review |
+| PB-09 | Basic task decomposition | İshak Bostan; tests: Semih Sarıca | In review |
+| PB-10 | Scrum artifacts | Zeynep Duru Küçük (DoD, Daily Scrum); Işıl Karademir (process documents) | In review |
+| PB-11 | GitHub collaboration and required CI | Işıl Karademir | In progress |
+| PB-12 | Trello board | Zeynep Duru Küçük | In review (all six members joined) |
+| PB-13 | Tailscale network and member setup scripts | Furkan Kaan Özbeyli | In review |
+| PB-14 | Each member installs and registers their own agent | Each member | Postponed by the team |
+| — | Sprint Review, Retrospective and progress report (7 Oct) | Zeynep Duru Küçük (SM) | Planned |
 
 "In review" means the work is on `main` (merged with the Sprint 1 pull request) and waits for the responsible member's checks.
 
 ## Who does what until the Review (from 1 October)
 
-The instructor pointed out that Sprint 1 work sat with one member, and on 1 October assigned a role to every member (see [../README.md](../README.md)). İshak built the Sprint 1 items, and that stays as recorded. From 1 October each item has a responsible member by role, who tests it, fixes what they find through pull requests and presents it at the Sprint Review.
+The instructor pointed out that Sprint 1 work sat with one member, and on 1 October assigned a role to every member (see [../README.md](../README.md)). From 1 October each item has a responsible member by role, who tests it, fixes what they find through pull requests and presents it at the Sprint Review.
 
 | Member | Role | Sprint 1 work (1–7 Oct) |
 |---|---|---|
