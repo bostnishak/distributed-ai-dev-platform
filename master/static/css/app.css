@@ -256,6 +256,27 @@ ul.plain { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.6; }
 .download-link:hover { color: var(--accent); }
 .thinking { color: #9a9aa5; font-style: italic; }
 
+/* --- Run button (executes a Python code block the coder agent produced) --- */
+.code-block { margin: 6px 0; }
+.code-block pre { margin-bottom: 0; border-radius: 8px 8px 0 0; }
+.run-code-btn {
+  display: block; width: 100%; text-align: left; border: none; cursor: pointer;
+  background: #2b2b38; color: #b7b7c4; font-size: 12px; padding: 6px 12px;
+  border-radius: 0 0 8px 8px; font-family: inherit;
+}
+.run-code-btn:hover { background: #353544; color: #fff; }
+.run-code-btn:disabled { cursor: default; }
+.run-output {
+  margin-top: 4px; background: #101018; color: #d7d7de; border-radius: 8px;
+  padding: 10px 12px; font-size: 12.5px; font-family: Consolas, monospace;
+  white-space: pre-wrap; word-wrap: break-word;
+}
+/* --danger is tuned for light backgrounds; this box is dark, so a lighter red is used instead. */
+.run-output.run-error { color: #ff9d9d; }
+.code-run-disabled .run-code-btn,
+.code-run-disabled .run-output { display: none; }
+.code-run-disabled .code-block pre { border-radius: 8px; }
+
 #inputWrap { padding: 16px 12% 26px; }
 #fileChip {
   display: none; align-items: center; gap: 6px; font-size: 12px; color: #444;

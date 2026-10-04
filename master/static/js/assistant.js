@@ -12,6 +12,7 @@ const MODEL_LABELS = {
   'uye5-coder': 'Üye-5 (Işıl Karademir) · Qwen2.5-Coder',
   'uye6-qwen-light': 'Üye-6 (Berfin Yiğit) · Qwen3 1.7B',
   'moderation': '⚠️ İçerik denetimi',
+  'hesaplama': '🧮 Hesap makinesi (anında, model kullanılmadı)',
 };
 
 let els;
@@ -292,8 +293,65 @@ export function initAssistant() {
     persistCurrentChat();
     startNewChat();
   });
+  els.messages.addEventListener('click', handleRunCodeClick);
+  showRunButtonsIfEnabled();
 
   startNewChat();
+}
+
+// The master keeps code running off unless CODE_RUN_ENABLED is set, so the Run buttons stay
+// hidden (body class) until the master confirms the feature is on.
+async function showRunButtonsIfEnabled() {
+  document.body.classList.add('code-run-disabled');
+  try {
+    const resp = await fetch('/api/assistant/config');
+    const data = await resp.json();
+    if (data.code_run_enabled) document.body.classList.remove('code-run-disabled');
+  } catch {
+    // Leave the buttons hidden when the master cannot be asked.
+  }
+}
+
+// Delegated on the messages container: messages (including ones restored from chat history)
+// are inserted via innerHTML, so a single listener here covers every "Run" button rather than
+// binding one per code block.
+async function handleRunCodeClick(e) {
+  const btn = e.target.closest('.run-code-btn');
+  if (!btn) return;
+  const block = btn.closest('.code-block');
+  const code = block.querySelector('pre code').textContent;
+  const outputEl = block.querySelector('.run-output');
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Çalışıyor...';
+  outputEl.hidden = false;
+  outputEl.classList.remove('run-error');
+  outputEl.textContent = '';
+
+  try {
+    const resp = await fetch('/api/assistant/run-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) {
+      outputEl.textContent = data.detail || 'Kod çalıştırılamadı.';
+      outputEl.classList.add('run-error');
+    } else {
+      const parts = [];
+      if (data.stdout) parts.push(data.stdout);
+      if (data.stderr) parts.push(data.stderr);
+      outputEl.textContent = parts.join('\n') || '(çıktı yok)';
+      outputEl.classList.toggle('run-error', data.exit_code !== 0);
+    }
+  } catch (err) {
+    outputEl.textContent = 'Bağlantı hatası: ' + err.message;
+    outputEl.classList.add('run-error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '▶ Çalıştır';
+  }
 }
 
 export function focusAssistant() {

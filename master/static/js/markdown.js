@@ -1,6 +1,16 @@
 // A small, self-contained Markdown -> HTML renderer for assistant answers (no CDN library,
 // so the system stays fully local). Supports headings, bold/italic, lists, inline code,
-// code blocks, GFM tables and ```svg blocks rendered as sanitized inline diagrams.
+// code blocks, GFM tables, ```svg blocks rendered as sanitized inline diagrams, and a "Run"
+// button under Python code blocks (see assistant.js for the click handler).
+
+// A block gets the Run button when its fence is explicitly tagged python/py, when another
+// language is explicitly tagged we never run it as Python, and with no tag we fall back to a
+// content heuristic.
+function looksLikePython(lang, code) {
+  if (lang === 'python' || lang === 'py') return true;
+  if (lang) return false;
+  return /^\s*(def |import |from |print\(|class |if __name__)/m.test(code);
+}
 
 export function escapeHtml(str) {
   const div = document.createElement('div');
@@ -82,7 +92,15 @@ export function renderMarkdown(raw) {
     if (block.lang === 'svg' && /^\s*<svg[\s>]/i.test(block.code)) {
       return `<div class="svg-diagram">${sanitizeSvg(block.code)}</div>`;
     }
-    return `<pre><code>${escapeHtml(block.code)}</code></pre>`;
+    const escaped = escapeHtml(block.code);
+    if (!looksLikePython(block.lang, block.code)) {
+      return `<pre><code>${escaped}</code></pre>`;
+    }
+    return (
+      `<div class="code-block"><pre><code>${escaped}</code></pre>` +
+      `<button class="run-code-btn" type="button">▶ Çalıştır</button>` +
+      `<div class="run-output" hidden></div></div>`
+    );
   });
   return text;
 }
