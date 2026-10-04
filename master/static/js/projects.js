@@ -437,7 +437,7 @@ export async function renderProjectDetail(root, id, ctx) {
         h('h2', null, `Açık sorular (${spec.open_questions.length})`),
         h('p', { class: 'muted small', style: { marginTop: 0 } },
           'Master ajan, dokümanda belirsiz veya eksik bulduğu noktaları tahminle doldurmak yerine buraya yazar. ' +
-          'Bunların Product Owner ile netleştirilmesi gerekir.'),
+          'Bunların ekip ile netleştirilmesi gerekir.'),
         spec.open_questions.length
           ? h('ul', { class: 'plain' }, spec.open_questions.map((q) => h('li', null, q)))
           : h('p', { class: 'small' }, 'Model belirsiz bir nokta bildirmedi.')));
