@@ -273,6 +273,9 @@ ul.plain { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.6; }
 }
 /* --danger is tuned for light backgrounds; this box is dark, so a lighter red is used instead. */
 .run-output.run-error { color: #ff9d9d; }
+.code-run-disabled .run-code-btn,
+.code-run-disabled .run-output { display: none; }
+.code-run-disabled .code-block pre { border-radius: 8px; }
 
 #inputWrap { padding: 16px 12% 26px; }
 #fileChip {

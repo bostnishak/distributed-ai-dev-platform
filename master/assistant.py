@@ -7,9 +7,11 @@ infrastructure (PB-36); until then its behaviour is intentionally unchanged.
 import ast
 import asyncio
 import operator
+import os
 import re
 import subprocess
 import sys
+import tempfile
 
 import httpx
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
@@ -287,6 +289,7 @@ class CodeRunResponse(BaseModel):
 
 CODE_RUN_TIMEOUT_SECONDS = 5
 CODE_RUN_MEMORY_LIMIT_MB = 128
+NOBODY_ID = 65534
 
 
 def _limit_code_run_resources() -> None:
@@ -299,16 +302,36 @@ def _limit_code_run_resources() -> None:
     resource.setrlimit(resource.RLIMIT_AS, (mem_bytes, mem_bytes))
 
 
+def _code_run_env() -> dict[str, str]:
+    """A minimal environment: the run must not see the master's secrets (AGENT_TOKEN, the
+    gateway key) through os.environ."""
+    env = {"PYTHONIOENCODING": "utf-8"}
+    if sys.platform == "win32":
+        # Python cannot start on Windows without these.
+        for key in ("SYSTEMROOT", "PATH"):
+            if key in os.environ:
+                env[key] = os.environ[key]
+    return env
+
+
 def _run_code_blocking(code: str) -> CodeRunResponse:
-    preexec = _limit_code_run_resources if sys.platform != "win32" else None
+    options: dict = {}
+    if sys.platform != "win32":
+        options["preexec_fn"] = _limit_code_run_resources
+        # The master runs as root in its Docker image. Drop to "nobody" so a run cannot read
+        # root-only files such as /proc/1/environ (the master's environment).
+        if os.geteuid() == 0:
+            options.update(user=NOBODY_ID, group=NOBODY_ID, extra_groups=[])
     try:
         result = subprocess.run(
             [sys.executable, "-I", "-c", code],
             capture_output=True,
             text=True,
             timeout=CODE_RUN_TIMEOUT_SECONDS,
-            preexec_fn=preexec,
+            env=_code_run_env(),
+            cwd=tempfile.gettempdir(),
             check=False,
+            **options,
         )
         return CodeRunResponse(
             stdout=result.stdout[-4000:],
@@ -326,17 +349,27 @@ def _run_code_blocking(code: str) -> CodeRunResponse:
         )
 
 
+@router.get("/config")
+async def assistant_config():
+    """Tells the web UI which optional Assistant features this master has switched on."""
+    return {"code_run_enabled": config.CODE_RUN_ENABLED}
+
+
 @router.post("/run-code", response_model=CodeRunResponse)
 async def run_code(body: CodeRunRequest):
     """Run a code block (see the "Run" button) in an isolated subprocess.
 
+    Off unless CODE_RUN_ENABLED is set, because the web UI has no login yet (PB-56).
+
     LIMIT (deliberate trade-off): this is not a full security sandbox -- no container or VM,
     and network access is not blocked. It is subprocess isolation with a time (RLIMIT_CPU) and
-    memory (RLIMIT_AS) ceiling only, which is enough for a team member to test code that came
-    out of their own prompt on their own machine -- NOT for a public/multi-tenant service. A
-    real sandbox (Docker/gVisor) would be out of proportion to this project's "low RAM/GPU/CPU"
-    budget; PB-41 (Sprint 4) revisits this for agent-executed code.
+    memory (RLIMIT_AS) ceiling, a minimal environment and, inside Docker, the unprivileged
+    "nobody" user. That is enough for a team member to test code that came out of their own
+    prompt on their own machine -- NOT for a public/multi-tenant service. PB-41 (Sprint 4)
+    adds a real sandbox for agent-executed code.
     """
+    if not config.CODE_RUN_ENABLED:
+        raise HTTPException(status_code=403, detail="Kod çalıştırma bu sunucuda kapalı (CODE_RUN_ENABLED).")
     # subprocess.run is blocking; without a thread a running snippet could hold up another
     # user's /chat request on the same event loop for up to CODE_RUN_TIMEOUT_SECONDS.
     return await asyncio.to_thread(_run_code_blocking, body.code)

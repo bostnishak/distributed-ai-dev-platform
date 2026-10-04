@@ -1,5 +1,8 @@
 """Assistant tab logic that does not need a model or the gateway."""
 
+import pytest
+
+import config
 from assistant import keyword_category_override, parse_classifier_response, try_calculate
 
 
@@ -99,9 +102,30 @@ class TestTryCalculate:
         assert try_calculate("1+" * 150 + "1") is None
 
 
+class TestRunCodeSwitch:
+    def test_disabled_by_default(self, client):
+        assert client.get("/api/assistant/config").json() == {"code_run_enabled": False}
+        resp = client.post("/api/assistant/run-code", json={"code": "print(1)"})
+        assert resp.status_code == 403
+
+    def test_config_reports_enabled(self, client, monkeypatch):
+        monkeypatch.setattr(config, "CODE_RUN_ENABLED", True)
+        assert client.get("/api/assistant/config").json() == {"code_run_enabled": True}
+
+
 class TestRunCode:
     """/run-code needs no gateway or model (plain subprocess isolation), unlike the other
     assistant flows, so it is exercised directly through the client fixture."""
+
+    @pytest.fixture(autouse=True)
+    def enable_code_run(self, monkeypatch):
+        monkeypatch.setattr(config, "CODE_RUN_ENABLED", True)
+
+    def test_master_secrets_not_visible(self, client, monkeypatch):
+        monkeypatch.setenv("AGENT_TOKEN", "secret-that-must-not-leak")
+        code = "import os; print(os.environ.get('AGENT_TOKEN'))"
+        resp = client.post("/api/assistant/run-code", json={"code": code})
+        assert resp.json()["stdout"].strip() == "None"
 
     def test_stdout_captured(self, client):
         resp = client.post("/api/assistant/run-code", json={"code": "print(2 + 2)"})

@@ -294,8 +294,22 @@ export function initAssistant() {
     startNewChat();
   });
   els.messages.addEventListener('click', handleRunCodeClick);
+  showRunButtonsIfEnabled();
 
   startNewChat();
+}
+
+// The master keeps code running off unless CODE_RUN_ENABLED is set, so the Run buttons stay
+// hidden (body class) until the master confirms the feature is on.
+async function showRunButtonsIfEnabled() {
+  document.body.classList.add('code-run-disabled');
+  try {
+    const resp = await fetch('/api/assistant/config');
+    const data = await resp.json();
+    if (data.code_run_enabled) document.body.classList.remove('code-run-disabled');
+  } catch {
+    // Leave the buttons hidden when the master cannot be asked.
+  }
 }
 
 // Delegated on the messages container: messages (including ones restored from chat history)
