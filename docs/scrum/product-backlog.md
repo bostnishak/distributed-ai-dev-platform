@@ -79,6 +79,15 @@ Acceptance for PB-14: the member's agent appears in the *Ajanlar* tab as "Üyeni
 | PB-55 | Final testing and demo rehearsal, including stopping an agent mid-task | Semih Sarıca | Demo script rehearsed; failure scenario recovers |
 | PB-56 | Security hardening: UI access, bind addresses | Furkan Kaan Özbeyli | Only intended networks can reach the UI; documented |
 
+## Not yet scheduled
+
+Found by the Sprint 1 tests ([test report](sprint-1/test-report.md)). The team picks a sprint at Sprint Planning.
+
+| ID | Item | Suggested owner | Acceptance criteria |
+|---|---|---|---|
+| PB-60 | Check open questions against the document ([#5](https://github.com/bostnishak/distributed-ai-dev-platform/issues/5)) | İshak Bostan | No open question asks about something the document answers, on the three sample documents |
+| PB-61 | Every item of the document's data list becomes an entity ([#6](https://github.com/bostnishak/distributed-ai-dev-platform/issues/6)) | İshak Bostan | The clinic sample document yields all 8 data items, with the document's spelling |
+
 ## Recurring each sprint
 
 - **Sprint Planning, Review, Retrospective, progress report:** facilitated by the Scrum Master (Zeynep Duru Küçük). Records go in `sprint-N/` from the [templates](templates/).

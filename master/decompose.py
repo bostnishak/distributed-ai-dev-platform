@@ -64,11 +64,13 @@ Rules:
 - Use only what the document states or clearly implies. Never invent features, fields or pages.
 - If something needed to build the application is ambiguous or missing (for example user roles,
   validation rules, limits or business rules), add a short question to "open_questions" instead
-  of guessing.
-- Write every name, description and question in the same language as the document.
+  of guessing. Never ask about something the document already answers.
+- Write every name, description and question in the same language as the document, with the
+  document's spelling.
 - Keep descriptions short (at most 15 words).
 - entities: the data the application stores, with their fields. Field types: string, text,
-  integer, number, boolean, date, datetime.
+  integer, number, boolean, date, datetime. If the document lists the data the system stores,
+  create one entity for every item in that list.
 - api_endpoints: REST endpoints such as "GET /api/books" or "PUT /api/books/{id}". "entity" is
   the name of the entity the endpoint works on, or an empty string.
 - pages: the screens of the web interface. "entities" lists the entity names each page shows.

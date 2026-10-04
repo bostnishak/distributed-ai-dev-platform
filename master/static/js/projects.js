@@ -410,7 +410,7 @@ export async function renderProjectDetail(root, id, ctx) {
         h('div', { class: 'loading', style: { padding: '6px 0' } }, h('span', { class: 'spinner' }),
           h('span', null, 'Master ajan dokümanı analiz ediyor… geçen süre: ', elapsed)),
         h('p', { class: 'muted small' },
-          'Yerel model CPU üzerinde çalıştığı için bu işlem birkaç dakika sürebilir. Sayfa kendini yeniler.')));
+          'Model bu bilgisayarda yerel olarak çalıştığı için bu işlem birkaç dakika sürebilir. Sayfa kendini yeniler.')));
       ctx.poll(async () => {
         elapsed.textContent = formatSeconds(elapsedSince(p.updated_at));
         const latest = await api(`/api/projects/${id}`);

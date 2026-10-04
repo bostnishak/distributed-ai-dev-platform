@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="640" viewBox="0 0 1000 640" font-family="Segoe UI, Arial, sans-serif">
+  <rect width="1000" height="640" fill="#ffffff"/>
+  <!-- sidebar -->
+  <rect x="0" y="0" width="190" height="640" fill="#f6f6f8"/>
+  <circle cx="26" cy="28" r="9" fill="#4f46e5"/>
+  <text x="44" y="33" font-size="13" font-weight="700" fill="#1a1a1a">Dağıtık YZ Platformu</text>
+  <text x="22" y="80" font-size="12" fill="#444">+ Yeni Proje</text>
+  <text x="22" y="108" font-size="12" fill="#444">▤ Projeler</text>
+  <rect x="12" y="122" width="166" height="26" rx="7" fill="#e8e7fb"/>
+  <text x="22" y="140" font-size="12" font-weight="700" fill="#3b36b8">◉ Ajanlar</text>
+  <text x="22" y="168" font-size="12" fill="#444">✦ Asistan</text>
+
+  <!-- header -->
+  <text x="220" y="40" font-size="20" font-weight="700" fill="#1a1a1a">Ajanlar</text>
+  <text x="220" y="60" font-size="11.5" fill="#6b6b76">Her ajanın canlı durumu (PB-20) ve ölçülen yetenek puanları (PB-22)</text>
+  <rect x="838" y="22" width="140" height="30" rx="8" fill="#fff" stroke="#d4d4dc"/>
+  <text x="908" y="42" font-size="11.5" text-anchor="middle" fill="#333">↻ Tümünü değerlendir</text>
+
+  <!-- summary row -->
+  <g font-size="11" fill="#333">
+    <rect x="220" y="76" width="160" height="46" rx="8" fill="#e7f6ec"/>
+    <text x="232" y="96" font-size="18" font-weight="700" fill="#15803d">4</text>
+    <text x="232" y="113">çevrimiçi</text>
+    <rect x="392" y="76" width="160" height="46" rx="8" fill="#fff6e5"/>
+    <text x="404" y="96" font-size="18" font-weight="700" fill="#b45309">1</text>
+    <text x="404" y="113">meşgul (görev yürütüyor)</text>
+    <rect x="564" y="76" width="160" height="46" rx="8" fill="#f3f3f5"/>
+    <text x="576" y="96" font-size="18" font-weight="700" fill="#6b6b76">1</text>
+    <text x="576" y="113">çevrimdışı</text>
+    <rect x="736" y="76" width="242" height="46" rx="8" fill="#eef0ff"/>
+    <text x="748" y="96" font-size="12" font-weight="700" fill="#3b36b8">Son değerlendirme: 8 Eki 14:20</text>
+    <text x="748" y="113">PB-21 setleri · her boyutta 5+ örnek</text>
+  </g>
+
+  <!-- agent card template -->
+  <g id="card">
+    <rect x="220" y="138" width="372" height="232" rx="12" fill="#fff" stroke="#e2e2e8"/>
+    <text x="236" y="164" font-size="14" font-weight="700" fill="#1a1a1a">İshak Bostan</text>
+    <text x="236" y="181" font-size="11" fill="#6b6b76" font-family="Consolas, monospace">uye1 · qwen3.5:4b · bağlam 262.144</text>
+    <rect x="496" y="150" width="82" height="20" rx="10" fill="#e7f6ec"/>
+    <circle cx="508" cy="160" r="4" fill="#16a34a"/>
+    <text x="516" y="164" font-size="10.5" fill="#15803d">çevrimiçi</text>
+    <text x="236" y="200" font-size="10.5" fill="#6b6b76">Son sinyal: 3 sn önce · Üyenin bilgisayarı</text>
+    <g font-size="11" fill="#333">
+      <text x="236" y="226">Kodlama</text>
+      <rect x="330" y="217" width="190" height="10" rx="5" fill="#eeeef2"/><rect x="330" y="217" width="133" height="10" rx="5" fill="#4f46e5"/>
+      <text x="530" y="226">70</text>
+      <text x="236" y="246">Akıl yürütme</text>
+      <rect x="330" y="237" width="190" height="10" rx="5" fill="#eeeef2"/><rect x="330" y="237" width="152" height="10" rx="5" fill="#4f46e5"/>
+      <text x="530" y="246">80</text>
+      <text x="236" y="266">Bağlam</text>
+      <rect x="330" y="257" width="190" height="10" rx="5" fill="#eeeef2"/><rect x="330" y="257" width="181" height="10" rx="5" fill="#4f46e5"/>
+      <text x="530" y="266">95</text>
+      <text x="236" y="286">Hız</text>
+      <rect x="330" y="277" width="190" height="10" rx="5" fill="#eeeef2"/><rect x="330" y="277" width="95" height="10" rx="5" fill="#4f46e5"/>
+      <text x="530" y="286">50</text>
+      <text x="236" y="306">JSON</text>
+      <rect x="330" y="297" width="190" height="10" rx="5" fill="#eeeef2"/><rect x="330" y="297" width="171" height="10" rx="5" fill="#4f46e5"/>
+      <text x="530" y="306">90</text>
+      <text x="236" y="326">Görsel</text>
+      <rect x="330" y="317" width="190" height="10" rx="5" fill="#eeeef2"/><rect x="330" y="317" width="114" height="10" rx="5" fill="#4f46e5"/>
+      <text x="530" y="326">60</text>
+    </g>
+    <rect x="236" y="338" width="130" height="24" rx="7" fill="#fff" stroke="#d4d4dc"/>
+    <text x="301" y="354" font-size="11" text-anchor="middle" fill="#333">↻ Yeniden değerlendir</text>
+    <text x="378" y="354" font-size="10.5" fill="#6b6b76">Ayrıntılar: geçmiş puanlar, donanım ▸</text>
+  </g>
+
+  <!-- second card (busy) -->
+  <rect x="606" y="138" width="372" height="232" rx="12" fill="#fff" stroke="#e2e2e8"/>
+  <text x="622" y="164" font-size="14" font-weight="700" fill="#1a1a1a">Işıl Karademir</text>
+  <text x="622" y="181" font-size="11" fill="#6b6b76" font-family="Consolas, monospace">uye5 · qwen2.5-coder:7b · bağlam 32.768</text>
+  <rect x="890" y="150" width="74" height="20" rx="10" fill="#fff6e5"/>
+  <circle cx="902" cy="160" r="4" fill="#d97706"/>
+  <text x="910" y="164" font-size="10.5" fill="#b45309">meşgul</text>
+  <text x="622" y="200" font-size="10.5" fill="#6b6b76">Görev: T3 Backend API (Kütüphane) · 1 dk 12 sn</text>
+  <g font-size="11" fill="#333">
+    <text x="622" y="226">Kodlama</text>
+    <rect x="716" y="217" width="190" height="10" rx="5" fill="#eeeef2"/><rect x="716" y="217" width="171" height="10" rx="5" fill="#4f46e5"/>
+    <text x="916" y="226">90</text>
+    <text x="622" y="246">Akıl yürütme</text>
+    <rect x="716" y="237" width="190" height="10" rx="5" fill="#eeeef2"/><rect x="716" y="237" width="133" height="10" rx="5" fill="#4f46e5"/>
+    <text x="916" y="246">70</text>
+    <text x="622" y="266">Bağlam</text>
+    <rect x="716" y="257" width="190" height="10" rx="5" fill="#eeeef2"/><rect x="716" y="257" width="57" height="10" rx="5" fill="#4f46e5"/>
+    <text x="916" y="266">30</text>
+    <text x="622" y="286">Hız</text>
+    <rect x="716" y="277" width="190" height="10" rx="5" fill="#eeeef2"/><rect x="716" y="277" width="76" height="10" rx="5" fill="#4f46e5"/>
+    <text x="916" y="286">40</text>
+    <text x="622" y="306">JSON</text>
+    <rect x="716" y="297" width="190" height="10" rx="5" fill="#eeeef2"/><rect x="716" y="297" width="171" height="10" rx="5" fill="#4f46e5"/>
+    <text x="916" y="306">90</text>
+    <text x="622" y="326">Görsel</text>
+    <text x="716" y="326" fill="#9a9aa5">desteklemiyor</text>
+  </g>
+  <rect x="622" y="338" width="130" height="24" rx="7" fill="#f3f3f5" stroke="#e2e2e8"/>
+  <text x="687" y="354" font-size="11" text-anchor="middle" fill="#9a9aa5">↻ Yeniden değerlendir</text>
+  <text x="764" y="354" font-size="10.5" fill="#9a9aa5">meşgulken devre dışı</text>
+
+  <!-- third card (offline) -->
+  <rect x="220" y="384" width="372" height="96" rx="12" fill="#fafafb" stroke="#e2e2e8"/>
+  <text x="236" y="410" font-size="14" font-weight="700" fill="#6b6b76">Berfin Yiğit</text>
+  <text x="236" y="427" font-size="11" fill="#9a9aa5" font-family="Consolas, monospace">uye6 · qwen3:1.7b · bağlam 40.960</text>
+  <rect x="490" y="396" width="88" height="20" rx="10" fill="#f3f3f5"/>
+  <circle cx="502" cy="406" r="4" fill="#9a9aa5"/>
+  <text x="510" y="410" font-size="10.5" fill="#6b6b76">çevrimdışı</text>
+  <text x="236" y="450" font-size="10.5" fill="#6b6b76">Son sinyal: 12 dk önce · görev atanmaz</text>
+  <text x="236" y="468" font-size="10.5" fill="#6b6b76">Puanlar soluk gösterilir (son ölçüm 8 Eki)</text>
+
+  <!-- annotations -->
+  <g font-size="11" fill="#b45309">
+    <text x="606" y="404">① Rozet: PB-20 heartbeat'ten gelir (≈10 sn); 3 sinyal kaçarsa çevrimdışı.</text>
+    <text x="606" y="424">② Çubuklar: PB-22'nin 0–100 puanları; renk tek (erişilebilir, sayı yanında).</text>
+    <text x="606" y="444">③ "Yeniden değerlendir": POST /api/agents/{id}/evaluate; meşgulken kapalı.</text>
+    <text x="606" y="464">④ Mobilde kartlar tek sütun; çubuk etiketleri üstte.</text>
+  </g>
+  <text x="220" y="620" font-size="10.5" fill="#9a9aa5">Taslak · Sprint 2 (PB-26) · Puanlar örnek değerdir, ölçüm değildir.</text>
+</svg>

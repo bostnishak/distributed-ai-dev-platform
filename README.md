@@ -31,9 +31,9 @@ Working now:
 - **Master agent prototype:** REST API, SQLite storage, agent registry.
 - **Agent registration:** each agent reads its model's capabilities from Ollama (context window, vision, thinking, tools) and registers with the master using a shared token. The master never connects to agents (pull model).
 - **Basic task decomposition:** the master's own model (Qwen3.5 4B) extracts a structured specification from a requirements document (entities, API endpoints, pages, non-functional requirements and **open questions** instead of guesses), then builds a dependency graph of tasks: requirements analysis → database / backend / frontend → testing + code review → integration → documentation. In Sprint 1 tasks are planned, not executed.
-- **Assistant tab:** the earlier chat assistant (automatic model routing, content moderation, PDF/DOCX/TXT upload, tables and diagrams).
+- **Assistant tab:** the earlier chat assistant (automatic model routing, content moderation, PDF/DOCX/TXT/CSV/XLSX upload, a built-in calculator, tables and diagrams, and an optional Run button for Python code that is off by default).
 
-Measured on the master's computer (CPU only, ~32 GB RAM): the sample requirements document (`docs/examples/kutuphane-yonetim-sistemi.md`) is decomposed in about 45–55 s into 7 entities, 11–15 endpoints, 9 pages and 16 tasks.
+Measured on the master's computer (Intel Core i7-13700H, 32 GB RAM; Ollama runs the models on its NVIDIA RTX 4060 Laptop GPU with 8 GB): the three sample requirements documents in [`docs/examples/`](docs/examples/) are decomposed in 44–117 s into 7–13 entities, 11–25 endpoints, 9–10 pages and 15–19 tasks. Details: [Sprint 1 test report](docs/scrum/sprint-1/test-report.md).
 
 Planned for Sprints 2–5 (see the [Product Backlog](docs/scrum/product-backlog.md)): capability evaluation and agent selection, task execution by agents, shared repository, integration, sandboxed automated testing, code-review agent, failure recovery and reassignment, dashboard and performance comparison.
 

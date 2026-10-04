@@ -65,7 +65,7 @@ Work so far is concentrated on one member. The team should discuss this at the R
 | Sprint 1 items (done / in review / in progress / to do) | 2 / 10 / 1 / 1 of 14 |
 | Pull request #1 | 69 files, +5,456 / −1,164 lines, 8 commits; CI `master`, `agent`, `docker-build` all passing; review pending |
 | Unit tests | 69 passing (master 56, agent 13) |
-| Decomposition of the sample document (Qwen3.5 4B, CPU only) | 52.1 s and 44.2 s in two runs; 7 entities, 15 / 11 endpoints, 9 pages, 3 open questions, 16 tasks |
+| Decomposition of the sample document (Qwen3.5 4B on the master computer; corrected on 4 Oct: Ollama ran it on the RTX 4060 laptop GPU, not on the CPU as first written) | 52.1 s and 44.2 s in two runs; 7 entities, 15 / 11 endpoints, 9 pages, 3 open questions, 16 tasks |
 | Registered agents | 6 of 6 (1 on its own computer, 5 staging) |
 | Context windows reported by the agents | 262,144 (Qwen3.5) · 131,072 (Phi-4-mini, Llama 3.2, Gemma 4) · 40,960 (Qwen3 1.7B) · 32,768 (Qwen2.5-Coder) tokens |
 | GitHub collaborators | 4 of 6 members (Işıl invited, Berfin pending) |

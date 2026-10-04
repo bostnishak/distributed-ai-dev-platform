@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/projects", tags=["projects"])
 
-# The master model runs on one CPU-only machine; parallel analyses would only slow each other.
+# The master model runs on one machine; parallel analyses would only slow each other.
 _analysis_slot = asyncio.Semaphore(1)
 
 # Indirection so tests can replace the model call with a fake.

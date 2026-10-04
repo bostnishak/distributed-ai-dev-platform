@@ -58,6 +58,10 @@ A small Python process (httpx, psutil, python-dotenv) on each member's computer.
 
 The chat assistant from before the pivot stays as a secondary tab. It reaches the models through a LiteLLM gateway. In Sprint 3 it moves onto the agent infrastructure and the gateway is removed (PB-36, PB-37).
 
+- A pure arithmetic question is answered by an AST-based calculator (no `eval`, bounded powers) without calling a model.
+- Attachments: PDF, DOCX, TXT, MD, CSV and XLSX are turned into text for the prompt.
+- Python code blocks in answers get a "Run" button. `POST /api/assistant/run-code` runs the code in a subprocess with a 5 s CPU limit, a 128 MB memory limit, a minimal environment and, inside Docker, the `nobody` user. It is off unless `CODE_RUN_ENABLED=true`; `GET /api/assistant/config` tells the UI whether to show the buttons.
+
 ## 3. Deployment
 
 | Where | What runs | How |
@@ -168,6 +172,7 @@ POST /api/agents/register
 - **Agents.** No listening ports. Members' Ollama listens on localhost only.
 - **Master computer.** Ollama currently listens on all interfaces so containers can reach it. PB-37 revisits this once LiteLLM is removed.
 - **Web UI.** No authentication in Sprint 1; it is reachable on the master's LAN and tailnet. Hardening is PB-56.
+- **Assistant's Run button.** Because the UI has no login, running code is off by default. When enabled, code runs without the master's environment variables and, inside Docker, as `nobody`, so it cannot read `AGENT_TOKEN` or the master's process environment. It still has network access, so it should only be enabled on a trusted network.
 - **Model output.** Treated as untrusted. The UI inserts it as text, and SVG in assistant answers is sanitised. Generated code will only be executed in a network-less sandbox (Sprint 4).
 
 ## 9. Decision records

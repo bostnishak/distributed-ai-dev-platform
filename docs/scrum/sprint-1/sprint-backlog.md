@@ -4,7 +4,7 @@
 |---|---|
 | Dates | 24 September – 7 October 2026 |
 | Sprint Review + Retrospective | 7 October 2026 |
-| Status | In progress (last updated 1 October 2026) |
+| Status | Sprint 1 tasks done; waiting for the team's approvals and the Sprint Review (last updated 4 October 2026) |
 
 ## Sprint Goal (draft — the team confirms it at its next meeting)
 
@@ -47,11 +47,24 @@ The instructor pointed out that Sprint 1 work sat with one member, and on 1 Octo
 | Semih Sarıca | LLM model selection | PB-01: model selection test and research on the six models · tests for PB-07 and PB-09 (additional responsibility) |
 | Işıl Karademir | GitHub processes | PB-04: SRS · PB-10: process documents · PB-11: GitHub invitation, PR #1 and PR #3 reviews, branch rules |
 
-## Verified so far (27 September 2026)
+## Sprint 1 tasks done by 4 October
 
-- Sample requirements document ([kutuphane-yonetim-sistemi.md](../../examples/kutuphane-yonetim-sistemi.md)) decomposed by Qwen3.5 4B on the master's CPU:
-  - 44–52 s per run
-  - 7 entities, 11–15 endpoints (varies between runs), 9 pages, 3 open questions
-  - 16 tasks
-- All six agents registered with their real context windows and capabilities: `uye1` on its own (master) computer, `uye2`–`uye6` as staging on the master computer until the members connect.
+| Card | Done |
+|---|---|
+| PB-01 | Model routing and moderation tested (AT-13 – AT-15); spot checks of the six models in [model-notes.md](../../research/model-notes.md) |
+| PB-02, PB-03, PB-06 | Phone (375 px), tablet and desktop checks of all tabs; tables and SVG rendering (AT-16, AT-17); no layout bug found. Agents tab design draft for PB-26: [agents-tab-sprint2.md](../../design/agents-tab-sprint2.md) |
+| PB-04 | SRS updated to version 1.1: Assistant requirements FR-25 – FR-28, measured analysis times, GPU note |
+| PB-05, PB-08, PB-13 | Architecture updated (Assistant tools and the Run button's security); agent code and the member setup guide reviewed, no change needed |
+| PB-07 | 20 acceptance tests written and run, all passing ([test-report.md](test-report.md)) |
+| PB-09 | Two more sample documents ([clinic](../../examples/klinik-randevu-sistemi.md), [club](../../examples/kulup-etkinlik-yonetimi.md)) decomposed. Two findings became [#5](https://github.com/bostnishak/distributed-ai-dev-platform/issues/5) and [#6](https://github.com/bostnishak/distributed-ai-dev-platform/issues/6) (PB-60, PB-61). The prompt was improved for spelling |
+| PB-10 | Scrum documents updated for the instructor's roles (no Product Owner) |
+| PB-11 | Işıl joined the repository. PRs #2, #3 and #4 merged with passing CI. They were merged by the repository owner without a teammate review, as the team decided |
+| PB-12 | Board updated: responsible member on every card, every member has work in every sprint |
+
+Still for the team: approve the Definition of Done, the Product Goal and the backlog order, and agree on the Daily Scrum time. Then hold the Sprint Review and the Retrospective on 7 October.
+
+## Measurements (4 October 2026)
+
+- Three sample requirements documents were decomposed by Qwen3.5 4B on the master computer, where Ollama runs it on the RTX 4060 laptop GPU. Each run took 44–117 s and gave 7–13 entities, 11–25 endpoints, 9–10 pages and 15–19 tasks ([test-report.md](test-report.md)).
+- All six agents are registered with their real context windows and capabilities: `uye1` on its own (master) computer, `uye2`–`uye6` as staging on the master computer until the members connect.
 - Master: 75 unit tests pass (56 plus 19 for the assistant's calculator, code-run and CSV/XLSX support). Agent: 13 unit tests pass. Lint is clean.
