@@ -4,8 +4,8 @@
 
 | | |
 |---|---|
-| Version | 1.0 (Sprint 1 draft; to be reviewed by the team) |
-| Date | 27 September 2026 |
+| Version | 1.1 (Sprint 1; the team approves it at the Sprint Review) |
+| Date | 4 October 2026 (1.0: 27 September 2026) |
 | Source | Course term project document (`term project_updated.pdf`) and decisions of the team |
 
 ## 1. Introduction
@@ -109,16 +109,18 @@ Status: **Done** = implemented and demonstrable, **Planned** = in the Product Ba
 
 | ID | Requirement | Sprint | Status |
 |---|---|---|---|
-| FR-25 | A chat assistant answers questions and writes code, routing each message automatically to a suitable model, blocking insulting messages and reading attached PDF/DOCX/TXT files. | before pivot | Done |
+| FR-25 | A chat assistant answers questions and writes code, routing each message automatically to a suitable model, blocking insulting messages and reading attached PDF/DOCX/TXT/CSV/XLSX files. | 1 | Done |
 | FR-26 | The assistant uses the agent infrastructure and vision-capable agents analyse attached images. | 3 | Planned |
+| FR-27 | A pure arithmetic question is answered by a built-in calculator without calling a model. | 1 | Done |
+| FR-28 | Python code in an answer can be run with a "Run" button. The feature is off unless the master's owner enables it (`CODE_RUN_ENABLED`). | 1 | Done |
 
 ## 4. Non-functional requirements
 
 | ID | Category | Requirement |
 |---|---|---|
 | NFR-1 | Privacy | No document, prompt or generated code is sent to a service outside the team's computers. Trello and GitHub hold planning data and source code only. |
-| NFR-2 | Security | Agents authenticate with a shared secret; secrets are never committed. Agents open no listening ports and Ollama listens on localhost only. Network traffic between computers is end-to-end encrypted (Tailscale). Generated code is executed only inside an isolated sandbox (Sprint 4). |
-| NFR-3 | Performance | On a CPU-only computer, analysing a requirements document of a few pages completes within minutes (measured: about 45–55 s for the sample document). The interface shows progress while it runs. |
+| NFR-2 | Security | Agents authenticate with a shared secret; secrets are never committed. Agents open no listening ports and Ollama listens on localhost only. Network traffic between computers is end-to-end encrypted (Tailscale). Generated code is executed only inside an isolated sandbox (Sprint 4). The Assistant's optional Run button (FR-28) is off by default; when enabled it runs code as an unprivileged user without the master's secrets, but it is not a sandbox. |
+| NFR-3 | Performance | On a CPU-only computer, analysing a requirements document of a few pages completes within minutes (measured on the master computer, where Ollama uses an RTX 4060 laptop GPU: 44–80 s for the library and clinic sample documents, 106–117 s for the club sample document; CPU-only computers will be slower and have not been measured yet). The interface shows progress while it runs. |
 | NFR-4 | Reliability | An agent retries registration until the master is reachable. A restart of the master marks interrupted analyses as failed so they can be re-run. |
 | NFR-5 | Usability | The interface is in Turkish and usable on desktop, tablet and mobile browsers. |
 | NFR-6 | Portability | The master runs with Docker Compose. Agents run with Python 3.10+ on Windows, macOS or Linux; Docker is not required on members' computers. |
