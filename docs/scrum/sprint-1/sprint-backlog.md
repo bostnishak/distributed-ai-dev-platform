@@ -18,19 +18,19 @@ No Sprint Planning record exists for this sprint in the repository. This backlog
 |---|---|---|---|
 | PB-01 | Chat assistant (now the Assistant tab) | Semih Sarıca | Done — 25 Sep |
 | PB-02 | Responsive layout | Berfin Yiğit | Done — 25 Sep |
-| PB-03 | Tables and SVG diagrams in answers | Berfin Yiğit | In review |
-| PB-04 | Software Requirements Specification | Işıl Karademir | In review |
-| PB-05 | Architecture document | Furkan Kaan Özbeyli | In review |
-| PB-06 | Platform web interface (4 tabs) | Berfin Yiğit | In review |
-| PB-07 | Master agent prototype (API, SQLite, background analysis) | Zeynep Duru Küçük; tests: Semih Sarıca | In review |
-| PB-08 | Agent service and registration, staging profile | Furkan Kaan Özbeyli | In review |
-| PB-09 | Basic task decomposition | İshak Bostan; tests: Semih Sarıca | In review |
-| PB-10 | Scrum artifacts | Zeynep Duru Küçük (DoD, Daily Scrum); Işıl Karademir (process documents) | In review |
-| PB-11 | GitHub collaboration and required CI | Işıl Karademir | In progress |
-| PB-12 | Trello board | Zeynep Duru Küçük | In review (all six members joined) |
-| PB-13 | Tailscale network and member setup scripts | Furkan Kaan Özbeyli | In review |
+| PB-03 | Tables and SVG diagrams in answers | Berfin Yiğit | Done (7 Oct) |
+| PB-04 | Software Requirements Specification | Işıl Karademir | Done (7 Oct) |
+| PB-05 | Architecture document | Furkan Kaan Özbeyli | Done (7 Oct) |
+| PB-06 | Platform web interface (4 tabs) | Berfin Yiğit | Done (7 Oct) |
+| PB-07 | Master agent prototype (API, SQLite, background analysis) | Zeynep Duru Küçük; tests: Semih Sarıca | Done (7 Oct) |
+| PB-08 | Agent service and registration, staging profile | Furkan Kaan Özbeyli | Done (7 Oct) |
+| PB-09 | Basic task decomposition | İshak Bostan; tests: Semih Sarıca | Done (7 Oct) |
+| PB-10 | Scrum artifacts | Zeynep Duru Küçük (DoD, Daily Scrum); Işıl Karademir (process documents) | Done (7 Oct) |
+| PB-11 | GitHub collaboration and required CI | Işıl Karademir | Done (7 Oct) |
+| PB-12 | Trello board | Zeynep Duru Küçük | Done (7 Oct) |
+| PB-13 | Tailscale network and member setup scripts | Furkan Kaan Özbeyli | Done (7 Oct) |
 | PB-14 | Each member installs and registers their own agent | Each member | Postponed by the team |
-| — | Sprint Review, Retrospective and progress report (7 Oct) | Zeynep Duru Küçük (SM) | Planned |
+| — | Sprint Review, Retrospective and progress report (7 Oct) | Zeynep Duru Küçük (SM) | Done (7 Oct) |
 
 "In review" means the work is on `main` (merged with the Sprint 1 pull request) and waits for the responsible member's checks.
 
@@ -61,7 +61,7 @@ The instructor pointed out that Sprint 1 work sat with one member, and on 1 Octo
 | PB-11 | Işıl joined the repository. PRs #2, #3 and #4 merged with passing CI. They were merged by the repository owner without a teammate review, as the team decided |
 | PB-12 | Board updated: responsible member on every card, every member has work in every sprint |
 
-Still for the team: approve the Definition of Done, the Product Goal and the backlog order, and agree on the Daily Scrum time. Then hold the Sprint Review and the Retrospective on 7 October.
+Sprint Review and Retrospective were held on 7 October 2026. All 13 Sprint 1 items accepted by the team.
 
 ## Measurements (4 October 2026)
 

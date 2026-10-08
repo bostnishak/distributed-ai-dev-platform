@@ -14,17 +14,17 @@ On 1 October, after the instructor's feedback that Sprint 1 work was not spread 
 |---|---|---|---|
 | PB-01 | Chat assistant with automatic model routing, content moderation and PDF/DOCX/TXT upload (built before the course document was received; now the Assistant tab) | Semih Sarıca (model selection test, model research) | Done (25 Sep) |
 | PB-02 | Responsive layout for desktop, tablet and mobile | Berfin Yiğit | Done (25 Sep) |
-| PB-03 | Markdown tables and SVG diagrams in assistant answers | Berfin Yiğit | In review |
-| PB-04 | Software Requirements Specification ([SRS.md](../SRS.md)) | Işıl Karademir | In review |
-| PB-05 | Architecture document ([architecture.md](../architecture.md)) | Furkan Kaan Özbeyli | In review |
-| PB-06 | Platform web interface: New Project, Projects, Agents, Assistant | Berfin Yiğit; also drafts the Sprint 2 Agents tab design | In review |
-| PB-07 | Master agent prototype: REST API, SQLite data model, background analysis | Zeynep Duru Küçük (backend); tests: Semih Sarıca | In review |
-| PB-08 | Agent service and registration of agents and models (plus staging profile) | Furkan Kaan Özbeyli | In review |
-| PB-09 | Basic task decomposition: specification + task graph with dependencies | İshak Bostan; tests with two more sample documents: Semih Sarıca | In review |
-| PB-10 | Scrum artifacts: Product Goal, Product Backlog, Definition of Done, templates | Zeynep Duru Küçük (Definition of Done, Daily Scrum); Işıl Karademir (process documents, Product Goal and order with the team) | In review |
-| PB-11 | GitHub collaboration: collaborators, protected `main`, required CI, PR review | Işıl Karademir (invitation, PR #1 and PR #3 reviews, branch rules) | In progress |
-| PB-12 | Trello board mirroring this backlog | Zeynep Duru Küçük | In review (all six members joined) |
-| PB-13 | Team network (Tailscale) and member setup scripts | Furkan Kaan Özbeyli | In review |
+| PB-03 | Markdown tables and SVG diagrams in assistant answers | Berfin Yiğit | Done (7 Oct) |
+| PB-04 | Software Requirements Specification ([SRS.md](../SRS.md)) | Işıl Karademir | Done (7 Oct) |
+| PB-05 | Architecture document ([architecture.md](../architecture.md)) | Furkan Kaan Özbeyli | Done (7 Oct) |
+| PB-06 | Platform web interface: New Project, Projects, Agents, Assistant | Berfin Yiğit; also drafts the Sprint 2 Agents tab design | Done (7 Oct) |
+| PB-07 | Master agent prototype: REST API, SQLite data model, background analysis | Zeynep Duru Küçük (backend); tests: Semih Sarıca | Done (7 Oct) |
+| PB-08 | Agent service and registration of agents and models (plus staging profile) | Furkan Kaan Özbeyli | Done (7 Oct) |
+| PB-09 | Basic task decomposition: specification + task graph with dependencies | İshak Bostan; tests with two more sample documents: Semih Sarıca | Done (7 Oct) |
+| PB-10 | Scrum artifacts: Product Goal, Product Backlog, Definition of Done, templates | Zeynep Duru Küçük (Definition of Done, Daily Scrum); Işıl Karademir (process documents, Product Goal and order with the team) | Done (7 Oct) |
+| PB-11 | GitHub collaboration: collaborators, protected `main`, required CI, PR review | Işıl Karademir (invitation, PR #1 and PR #3 reviews, branch rules) | Done (7 Oct) |
+| PB-12 | Trello board mirroring this backlog | Zeynep Duru Küçük | Done (7 Oct) |
+| PB-13 | Team network (Tailscale) and member setup scripts | Furkan Kaan Özbeyli | Done (7 Oct) |
 | PB-14 | Each member installs and registers their own agent node | Each member (suggested) | Postponed by the team |
 
 Acceptance for PB-14: the member's agent appears in the *Ajanlar* tab as "Üyenin bilgisayarı" with the right model and context window, and the matching staging container is stopped. If this is not done by the Sprint 1 Review, it returns to the Product Backlog.
