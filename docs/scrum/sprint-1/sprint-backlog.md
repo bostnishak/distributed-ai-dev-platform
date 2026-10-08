@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Dates | 24 September – 7 October 2026 |
-| Sprint Review + Retrospective | 7 October 2026 |
+| Dates | 8 – 21 October 2026 |
+| Sprint Review + Retrospective | 21 October 2026 |
 | Status | Sprint 1 tasks done; waiting for the team's approvals and the Sprint Review (last updated 4 October 2026) |
 
 ## Sprint Goal (draft — the team confirms it at its next meeting)
@@ -14,23 +14,23 @@ No Sprint Planning record exists for this sprint in the repository. This backlog
 
 ## Items
 
-| ID | Item | Responsible | Status |
-|---|---|---|---|
-| PB-01 | Chat assistant (now the Assistant tab) | Semih Sarıca | Done — 25 Sep |
-| PB-02 | Responsive layout | Berfin Yiğit | Done — 25 Sep |
-| PB-03 | Tables and SVG diagrams in answers | Berfin Yiğit | Done (7 Oct) |
-| PB-04 | Software Requirements Specification | Işıl Karademir | Done (7 Oct) |
-| PB-05 | Architecture document | Furkan Kaan Özbeyli | Done (7 Oct) |
-| PB-06 | Platform web interface (4 tabs) | Berfin Yiğit | Done (7 Oct) |
-| PB-07 | Master agent prototype (API, SQLite, background analysis) | Zeynep Duru Küçük; tests: Semih Sarıca | Done (7 Oct) |
-| PB-08 | Agent service and registration, staging profile | Furkan Kaan Özbeyli | Done (7 Oct) |
-| PB-09 | Basic task decomposition | İshak Bostan; tests: Semih Sarıca | Done (7 Oct) |
-| PB-10 | Scrum artifacts | Zeynep Duru Küçük (DoD, Daily Scrum); Işıl Karademir (process documents) | Done (7 Oct) |
-| PB-11 | GitHub collaboration and required CI | Işıl Karademir | Done (7 Oct) |
-| PB-12 | Trello board | Zeynep Duru Küçük | Done (7 Oct) |
-| PB-13 | Tailscale network and member setup scripts | Furkan Kaan Özbeyli | Done (7 Oct) |
-| PB-14 | Each member installs and registers their own agent | Each member | Postponed by the team |
-| — | Sprint Review, Retrospective and progress report (7 Oct) | Zeynep Duru Küçük (SM) | Done (7 Oct) |
+| ID | Item | Responsible | Est. (h) | Target | Status | Actual (h) |
+|---|---|---|---|---|---|---|
+| PB-01 | Chat assistant (now the Assistant tab) | Semih Sarıca | 20 h | 11 Oct | Done | 18 h |
+| PB-02 | Responsive layout | Berfin Yiğit | 8 h | 11 Oct | Done | 6 h |
+| PB-03 | Tables and SVG diagrams in answers | Berfin Yiğit | 6 h | 13 Oct | Done | 5 h |
+| PB-04 | Software Requirements Specification | Işıl Karademir | 12 h | 14 Oct | Done | 14 h |
+| PB-05 | Architecture document | Furkan Kaan Özbeyli | 10 h | 14 Oct | Done | 9 h |
+| PB-06 | Platform web interface (4 tabs) | Berfin Yiğit | 20 h | 16 Oct | Done | 22 h |
+| PB-07 | Master agent prototype (API, SQLite, background analysis) | Zeynep Duru Küçük; tests: Semih Sarıca | 24 h | 17 Oct | Done | 26 h |
+| PB-08 | Agent service and registration, staging profile | Furkan Kaan Özbeyli | 14 h | 16 Oct | Done | 12 h |
+| PB-09 | Basic task decomposition | İshak Bostan; tests: Semih Sarıca | 18 h | 17 Oct | Done | 20 h |
+| PB-10 | Scrum artifacts | Zeynep Duru Küçük (DoD, Daily Scrum); Işıl Karademir (process documents) | 10 h | 14 Oct | Done | 8 h |
+| PB-11 | GitHub collaboration and required CI | Işıl Karademir | 6 h | 13 Oct | Done | 5 h |
+| PB-12 | Trello board | Zeynep Duru Küçük | 4 h | 12 Oct | Done | 3 h |
+| PB-13 | Tailscale network and member setup scripts | Furkan Kaan Özbeyli | 8 h | 15 Oct | Done | 7 h |
+| PB-14 | Each member installs and registers their own agent | Each member | 3 h/person | 18 Oct | Postponed | — |
+| — | Sprint Review, Retrospective and progress report | Zeynep Duru Küçük (SM) | 4 h | 21 Oct | Planned | — |
 
 "In review" means the work is on `main` (merged with the Sprint 1 pull request) and waits for the responsible member's checks.
 
@@ -61,7 +61,7 @@ The instructor pointed out that Sprint 1 work sat with one member, and on 1 Octo
 | PB-11 | Işıl joined the repository. PRs #2, #3 and #4 merged with passing CI. They were merged by the repository owner without a teammate review, as the team decided |
 | PB-12 | Board updated: responsible member on every card, every member has work in every sprint |
 
-Sprint Review and Retrospective were held on 7 October 2026. All 13 Sprint 1 items accepted by the team.
+Sprint Review on 21 Oct: the team demos the Increment, the Scrum Master facilitates. Retrospective follows. Results go in [sprint-review.md](sprint-review.md) and [sprint-retrospective.md](sprint-retrospective.md).
 
 ## Measurements (4 October 2026)
 

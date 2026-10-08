@@ -2,9 +2,9 @@
 
 | | |
 |---|---|
-| Dates | 8 – 21 October 2026 |
-| Sprint Review + Retrospective | 21 October 2026 |
-| Status | In progress (started 8 October 2026) |
+| Dates | 22 October – 4 November 2026 |
+| Sprint Review + Retrospective | 4 November 2026 |
+| Status | Not started (starts 22 Oct 2026) |
 
 ## Sprint Goal
 
@@ -12,16 +12,18 @@
 
 ## Items
 
-| ID | Item | Responsible | Status |
-|---|---|---|---|
-| PB-20 | Agent heartbeat and status monitoring (online / busy / offline) | Furkan Kaan Özbeyli | Planned |
-| PB-21 | Capability benchmark sets: coding problems, reasoning questions, context tests | Semih Sarıca | Planned |
-| PB-22 | Capability evaluation runner: 0–100 scores per dimension, history, re-run from UI | Zeynep Duru Küçük | Planned |
-| PB-23 | Task classification: capability weights per task type | Işıl Karademir | Planned |
-| PB-24 | Agent selection algorithm with recorded reasons | İshak Bostan | Planned |
-| PB-25 | Task distribution: assignment queue and pull endpoint with leases | Furkan Kaan Özbeyli | Planned |
-| PB-26 | Agents tab: status badges, capability bars, re-evaluate button | Berfin Yiğit | Planned |
-| — | Sprint Review, Retrospective and progress report (21 Oct) | Zeynep Duru Küçük (SM) | Planned |
+| ID | Item | Responsible | Est. (h) | Target | Status |
+|---|---|---|---|---|---|
+| PB-20 | Agent heartbeat and status monitoring (online / busy / offline) | Furkan Kaan Özbeyli | 12 h | 27 Oct | Planned |
+| PB-21 | Capability benchmark sets: coding problems, reasoning questions, context tests | Semih Sarıca | 14 h | 28 Oct | Planned |
+| PB-22 | Capability evaluation runner: 0–100 scores per dimension, history, re-run from UI | Zeynep Duru Küçük | 20 h | 31 Oct | Planned |
+| PB-23 | Task classification: capability weights per task type | Işıl Karademir | 10 h | 29 Oct | Planned |
+| PB-24 | Agent selection algorithm with recorded reasons | İshak Bostan | 16 h | 1 Nov | Planned |
+| PB-25 | Task distribution: assignment queue and pull endpoint with leases | Furkan Kaan Özbeyli | 18 h | 2 Nov | Planned |
+| PB-26 | Agents tab: status badges, capability bars, re-evaluate button | Berfin Yiğit | 14 h | 3 Nov | Planned |
+| — | Sprint Review, Retrospective and progress report | Zeynep Duru Küçük (SM) | 4 h | 4 Nov | Planned |
+
+**Est.** = estimated hours at Sprint Planning. **Target** = planned completion date within the sprint (Sprint 2: 22 Oct–4 Nov). **Actual** column is added when items are completed.
 
 ## Acceptance criteria
 

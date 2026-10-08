@@ -23,9 +23,9 @@ A web-based platform where a **master agent** turns a long software requirements
 
 Every member is also a Developer. No Product Owner: the instructor asked the team not to have one, so the Developers agree on the Product Goal and the order of the Product Backlog together and accept work at the Sprint Review. Work outside a role title is listed as an additional responsibility in [docs/scrum/README.md](docs/scrum/README.md).
 
-## Status — Sprint 2 (8 – 21 Oct 2026)
+## Status — Sprint 1 (8 – 21 Oct 2026)
 
-**Sprint 1 complete** (24 Sep – 7 Oct 2026). Sprint Review and Retrospective held on 7 October. All 13 Sprint 1 items accepted.
+**Sprint 1 in progress** (8 – 21 Oct 2026, Week 1 of 2). Sprint Review and Retrospective scheduled for 21 October.
 
 Working now (Sprint 1 increment):
 
@@ -37,7 +37,7 @@ Working now (Sprint 1 increment):
 
 Measured on the master's computer (Intel Core i7-13700H, 32 GB RAM; Ollama runs the models on its NVIDIA RTX 4060 Laptop GPU with 8 GB): the three sample requirements documents in [`docs/examples/`](docs/examples/) are decomposed in 44–117 s into 7–13 entities, 11–25 endpoints, 9–10 pages and 15–19 tasks. Details: [Sprint 1 test report](docs/scrum/sprint-1/test-report.md).
 
-Sprint 2 focus: agent heartbeat and status monitoring, capability benchmark sets and evaluation, task classification, agent selection algorithm, task distribution queue, and the Agents tab with capability bars. See the [Product Backlog](docs/scrum/product-backlog.md) and [Sprint 2 backlog](docs/scrum/sprint-2/sprint-backlog.md).
+Sprint 1 focus: requirements and architecture documents, platform web interface (4 tabs), master-agent prototype with SQLite and background analysis, agent service and registration, basic task decomposition, GitHub CI and collaboration setup, Trello board, and Tailscale network. See the [Product Backlog](docs/scrum/product-backlog.md) and [Sprint 1 backlog](docs/scrum/sprint-1/sprint-backlog.md).
 
 ## Architecture (summary)
 
