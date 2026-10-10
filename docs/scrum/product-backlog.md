@@ -8,28 +8,28 @@ On 1 October, after the instructor's feedback that Sprint 1 work was not spread 
 
 > A team member uploads a long software requirements document and the platform delivers a working web application with its documentation. Along the way, the master agent decomposes the document into tasks, assigns every task to the team's local LLM agents according to their measured capabilities, and integrates, tests and reviews their results. No data leaves the team's computers.
 
-## Sprint 1 — foundation (24 Sep – 7 Oct 2026)
+## Sprint 1 — foundation (8 – 21 Oct 2026)
 
 | ID | Item | Responsible | Status |
 |---|---|---|---|
-| PB-01 | Chat assistant with automatic model routing, content moderation and PDF/DOCX/TXT upload (built before the course document was received; now the Assistant tab) | Semih Sarıca (model selection test, model research) | Done (25 Sep) |
-| PB-02 | Responsive layout for desktop, tablet and mobile | Berfin Yiğit | Done (25 Sep) |
-| PB-03 | Markdown tables and SVG diagrams in assistant answers | Berfin Yiğit | In review |
-| PB-04 | Software Requirements Specification ([SRS.md](../SRS.md)) | Işıl Karademir | In review |
-| PB-05 | Architecture document ([architecture.md](../architecture.md)) | Furkan Kaan Özbeyli | In review |
-| PB-06 | Platform web interface: New Project, Projects, Agents, Assistant | Berfin Yiğit; also drafts the Sprint 2 Agents tab design | In review |
-| PB-07 | Master agent prototype: REST API, SQLite data model, background analysis | Zeynep Duru Küçük (backend); tests: Semih Sarıca | In review |
-| PB-08 | Agent service and registration of agents and models (plus staging profile) | Furkan Kaan Özbeyli | In review |
-| PB-09 | Basic task decomposition: specification + task graph with dependencies | İshak Bostan; tests with two more sample documents: Semih Sarıca | In review |
-| PB-10 | Scrum artifacts: Product Goal, Product Backlog, Definition of Done, templates | Zeynep Duru Küçük (Definition of Done, Daily Scrum); Işıl Karademir (process documents, Product Goal and order with the team) | In review |
-| PB-11 | GitHub collaboration: collaborators, protected `main`, required CI, PR review | Işıl Karademir (invitation, PR #1 and PR #3 reviews, branch rules) | In progress |
-| PB-12 | Trello board mirroring this backlog | Zeynep Duru Küçük | In review (all six members joined) |
-| PB-13 | Team network (Tailscale) and member setup scripts | Furkan Kaan Özbeyli | In review |
+| PB-01 | Chat assistant with automatic model routing, content moderation and PDF/DOCX/TXT upload (built before the course document was received; now the Assistant tab) | Semih Sarıca (model selection test, model research) | Done |
+| PB-02 | Responsive layout for desktop, tablet and mobile | Berfin Yiğit | Done |
+| PB-03 | Markdown tables and SVG diagrams in assistant answers | Berfin Yiğit | Done |
+| PB-04 | Software Requirements Specification ([SRS.md](../SRS.md)) | Işıl Karademir | Done |
+| PB-05 | Architecture document ([architecture.md](../architecture.md)) | Furkan Kaan Özbeyli | Done |
+| PB-06 | Platform web interface: New Project, Projects, Agents, Assistant | Berfin Yiğit; also drafts the Sprint 2 Agents tab design | Done |
+| PB-07 | Master agent prototype: REST API, SQLite data model, background analysis | Zeynep Duru Küçük (backend); tests: Semih Sarıca | Done |
+| PB-08 | Agent service and registration of agents and models (plus staging profile) | Furkan Kaan Özbeyli | Done |
+| PB-09 | Basic task decomposition: specification + task graph with dependencies | İshak Bostan; tests with two more sample documents: Semih Sarıca | Done |
+| PB-10 | Scrum artifacts: Product Goal, Product Backlog, Definition of Done, templates | Zeynep Duru Küçük (Definition of Done, Daily Scrum); Işıl Karademir (process documents, Product Goal and order with the team) | Done |
+| PB-11 | GitHub collaboration: collaborators, protected `main`, required CI, PR review | Işıl Karademir (invitation, PR #1 and PR #3 reviews, branch rules) | Done |
+| PB-12 | Trello board mirroring this backlog | Zeynep Duru Küçük | Done |
+| PB-13 | Team network (Tailscale) and member setup scripts | Furkan Kaan Özbeyli | Done |
 | PB-14 | Each member installs and registers their own agent node | Each member (suggested) | Postponed by the team |
 
 Acceptance for PB-14: the member's agent appears in the *Ajanlar* tab as "Üyenin bilgisayarı" with the right model and context window, and the matching staging container is stopped. If this is not done by the Sprint 1 Review, it returns to the Product Backlog.
 
-## Sprint 2 — capabilities and assignment (8 – 21 Oct)
+## Sprint 2 — capabilities and assignment (22 Oct – 4 Nov 2026)
 
 | ID | Item | Suggested owner | Acceptance criteria |
 |---|---|---|---|
@@ -41,7 +41,7 @@ Acceptance for PB-14: the member's agent appears in the *Ajanlar* tab as "Üyeni
 | PB-25 | Task distribution: assignment queue and pull endpoint with leases | Furkan Kaan Özbeyli | Ready tasks are assigned to the best available agent; an agent receives only its own tasks |
 | PB-26 | Agents tab: status badges, capability bars, re-evaluate button | Berfin Yiğit | Works on desktop and mobile; matches the API data |
 
-## Sprint 3 — execution (22 Oct – 4 Nov)
+## Sprint 3 — execution (5 – 18 Nov 2026)
 
 | ID | Item | Suggested owner | Acceptance criteria |
 |---|---|---|---|
@@ -54,7 +54,7 @@ Acceptance for PB-14: the member's agent appears in the *Ajanlar* tab as "Üyeni
 | PB-36 | Assistant on the agent infrastructure; images analysed by vision-capable agents | İshak Bostan | Assistant answers come from agents; an attached image gets a real description |
 | PB-37 | Remove the LiteLLM gateway; Ollama on the master computer back to localhost only | Zeynep Duru Küçük | Gateway gone from Compose; everything still works |
 
-## Sprint 4 — integration and quality (5 – 18 Nov)
+## Sprint 4 — integration and quality (19 Nov – 2 Dec 2026)
 
 | ID | Item | Suggested owner | Acceptance criteria |
 |---|---|---|---|
@@ -67,7 +67,7 @@ Acceptance for PB-14: the member's agent appears in the *Ajanlar* tab as "Üyeni
 | PB-46 | Scheduler and selection tests with fake agents | Zeynep Duru Küçük | Failure scenarios covered in CI |
 | PB-47 | Project page: test results, code-review findings and reassignment history | Berfin Yiğit | Each task shows its test result, review findings and reassignment history; works on desktop and mobile |
 
-## Sprint 5 — end-to-end and demo (19 Nov – 2 Dec)
+## Sprint 5 — end-to-end and demo (3 – 16 Dec 2026)
 
 | ID | Item | Suggested owner | Acceptance criteria |
 |---|---|---|---|
