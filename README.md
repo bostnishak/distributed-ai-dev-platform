@@ -23,9 +23,11 @@ A web-based platform where a **master agent** turns a long software requirements
 
 Every member is also a Developer. No Product Owner: the instructor asked the team not to have one, so the Developers agree on the Product Goal and the order of the Product Backlog together and accept work at the Sprint Review. Work outside a role title is listed as an additional responsibility in [docs/scrum/README.md](docs/scrum/README.md).
 
-## Status — Sprint 1 (24 Sep – 7 Oct 2026)
+## Status — Sprint 1 (8 – 21 Oct 2026)
 
-Working now:
+**Sprint 1 in progress** (8 – 21 Oct 2026, Week 1 of 2). Sprint Review and Retrospective scheduled for 21 October.
+
+Working now (Sprint 1 increment):
 
 - **Web interface** (Turkish) with four tabs: *Yeni Proje* (new project), *Projeler* (projects), *Ajanlar* (agents), *Asistan* (assistant).
 - **Master agent prototype:** REST API, SQLite storage, agent registry.
@@ -35,7 +37,7 @@ Working now:
 
 Measured on the master's computer (Intel Core i7-13700H, 32 GB RAM; Ollama runs the models on its NVIDIA RTX 4060 Laptop GPU with 8 GB): the three sample requirements documents in [`docs/examples/`](docs/examples/) are decomposed in 44–117 s into 7–13 entities, 11–25 endpoints, 9–10 pages and 15–19 tasks. Details: [Sprint 1 test report](docs/scrum/sprint-1/test-report.md).
 
-Planned for Sprints 2–5 (see the [Product Backlog](docs/scrum/product-backlog.md)): capability evaluation and agent selection, task execution by agents, shared repository, integration, sandboxed automated testing, code-review agent, failure recovery and reassignment, dashboard and performance comparison.
+Sprint 1 focus: requirements and architecture documents, platform web interface (4 tabs), master-agent prototype with SQLite and background analysis, agent service and registration, basic task decomposition, GitHub CI and collaboration setup, Trello board, and Tailscale network. See the [Product Backlog](docs/scrum/product-backlog.md) and [Sprint 1 backlog](docs/scrum/sprint-1/sprint-backlog.md).
 
 ## Architecture (summary)
 

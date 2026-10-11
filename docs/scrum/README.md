@@ -39,13 +39,13 @@ Sprints are two weeks long. Timeboxes are scaled from the Scrum Guide's one-mont
 | Sprint Review | ≤ 2 h | Last day of the sprint: demo of the Increment to stakeholders, backlog adapted |
 | Sprint Retrospective | ≤ 1.5 h | After the Review: what went well, what to improve, one or two concrete actions |
 
-| Sprint | Dates (2026) | Course focus |
-|---|---|---|
-| 1 | 24 Sep – 7 Oct | Requirements, architecture, web interface, master prototype, agent registration, basic decomposition |
-| 2 | 8 – 21 Oct | Capability profiles, model evaluation, task classification, agent selection, distribution, status monitoring |
-| 3 | 22 Oct – 4 Nov | Agents execute tasks, master–agent communication, shared repository, result collection, dependencies |
-| 4 | 5 – 18 Nov | Integration, automated testing, code-review agent, error recovery, conflict resolution, reassignment |
-| 5 | 19 Nov – 2 Dec | End-to-end workflow, dashboard, performance measurement, agent/model comparison, documentation, final demo |
+| Sprint | Dates (2026) | Sprint Review | Course focus |
+|---|---|---|---|
+| 1 | 8 – 21 Oct | 21 Oct | Requirements, architecture, web interface, master prototype, agent registration, basic decomposition |
+| 2 | 22 Oct – 4 Nov | 4 Nov | Capability profiles, model evaluation, task classification, agent selection, distribution, status monitoring |
+| 3 | 5 – 18 Nov | 18 Nov | Agents execute tasks, master–agent communication, shared repository, result collection, dependencies |
+| 4 | 19 Nov – 2 Dec | 2 Dec | Integration, automated testing, code-review agent, error recovery, conflict resolution, reassignment |
+| 5 | 3 – 16 Dec | 16 Dec | End-to-end workflow, dashboard, performance measurement, agent/model comparison, documentation, final demo |
 
 ## Artifacts and commitments
 
@@ -73,4 +73,4 @@ For every sprint, a `sprint-N/` folder is created from [templates/](templates/):
 - `sprint-retrospective.md`: observations and improvement actions (at the Retrospective)
 - `progress-report.md`: the progress report the course asks for at the end of each sprint
 
-Current: [sprint-1/sprint-backlog.md](sprint-1/sprint-backlog.md).
+Current sprint: [sprint-1/](sprint-1/) (8–21 Oct 2026).

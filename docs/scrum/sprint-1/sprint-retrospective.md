@@ -1,28 +1,27 @@
 # Sprint 1 — Sprint Retrospective
 
-> To be filled in **during or right after** the Retrospective on 7 October 2026. Only what the team actually says is recorded here.
-
 | | |
 |---|---|
-| Date | 7 October 2026 |
+| Date | 21 October 2026 (after the Sprint Review) |
 | Facilitator | Zeynep Duru Küçük (Scrum Master) |
-| Participants | |
+| Participants | *(to be filled at the meeting)* |
 
-Topics the interim progress report suggests discussing (the team decides what to cover):
-- Sprint 1 work was concentrated on one member; how to spread work in Sprint 2.
-- No Sprint Planning record exists for Sprint 1.
-- Daily Scrum time and format.
+> **Honesty rule.** This file is a template until the meeting takes place. All sections below are filled on 21 October by the Scrum Master.
 
 ## What went well
 
--
+*(to be filled at the meeting)*
 
 ## What did not go well
 
--
+*(to be filled at the meeting)*
 
 ## Improvement actions for Sprint 2
 
 | Action | Owner | How we will know it worked |
 |---|---|---|
-| | | |
+| *(to be filled)* | | |
+
+## Follow-up on previous retrospective's actions
+
+No previous retrospective (this is Sprint 1).
