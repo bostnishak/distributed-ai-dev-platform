@@ -12,12 +12,14 @@ import config
 import db
 import llm
 import projects_api
+import tasks_api
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     db.init_db()
     projects_api.recover_interrupted()
+    tasks_api.start_lease_expiry()
     yield
 
 
@@ -25,6 +27,7 @@ app = FastAPI(title="Distributed AI Software Development Platform - Master", lif
 app.include_router(agents_api.router)
 app.include_router(projects_api.router)
 app.include_router(assistant.router)
+app.include_router(tasks_api.router)
 app.mount("/static", StaticFiles(directory=config.STATIC_DIR), name="static")
 
 
