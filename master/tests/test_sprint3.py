@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "agent"))
 
 import db
 import validation as val_module
-from agent import _build_task_prompt  # type: ignore[import]
+from task_prompts import _build_task_prompt  # type: ignore[import]
 
 
 @pytest.fixture()
