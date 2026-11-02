@@ -104,7 +104,14 @@ class TestTaskPlan:
         types = [t["type"] for t in tasks]
         assert types[0] == "requirements"
         assert tasks[0]["status"] == "done" and tasks[0]["performed_by"] == "master"
-        assert all(t["status"] == "planned" for t in tasks[1:])
+        # Sprint 3 DAG: tasks with unmet deps start as blocked, others as planned.
+        for t in tasks[1:]:
+            all_deps_done = all(
+                next(d for d in tasks if d["key"] == dep)["status"] == "done"
+                for dep in t["depends_on"]
+            )
+            expected = "planned" if all_deps_done else "blocked"
+            assert t["status"] == expected, f"{t['key']}: expected {expected}, got {t['status']}"
         assert types.count("database") == 1
         # 3 entities in groups of 2 -> 2 backend tasks, plus one for the unmatched /api/rapor.
         assert types.count("backend") == 3

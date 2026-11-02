@@ -16,13 +16,12 @@ STATIC_DIR = BASE_DIR / "static"
 # The single .env file lives at the repo root (one level above this service).
 load_dotenv(BASE_DIR.parent / ".env")
 
-# --- Assistant tab (still served through the LiteLLM gateway until Sprint 3) ---
-GATEWAY_BASE_URL = os.environ.get("GATEWAY_BASE_URL", "http://localhost:4000")
-LITELLM_MASTER_KEY = os.environ.get("LITELLM_MASTER_KEY")
-
 # The Assistant's "Run" button executes Python on the master. The web UI has no login yet
 # (PB-56), so anyone who can reach the master could use it; it stays off unless enabled here.
 CODE_RUN_ENABLED = os.environ.get("CODE_RUN_ENABLED", "false").strip().lower() in ("1", "true", "yes")
+
+# Maximum tokens generated for the assistant tab (separate from requirements analysis).
+ASSISTANT_NUM_PREDICT = int(os.environ.get("ASSISTANT_NUM_PREDICT", "2048"))
 
 # --- Master agent's own local model (used for requirements analysis) ---
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")

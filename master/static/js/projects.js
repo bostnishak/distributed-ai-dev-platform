@@ -22,6 +22,7 @@ const PROJECT_STATUS = {
 const TASK_STATUS = {
   done: { label: 'Tamamlandı', cls: 'ok' },
   planned: { label: 'Planlandı', cls: 'gray' },
+  blocked: { label: 'Bekliyor', cls: 'warn' },
 };
 
 function statusBadge(map, status) {
@@ -42,6 +43,16 @@ function masterStatusLine(status) {
     return h('span', { class: 'badge danger' }, `${status.model} modeli yüklü değil`);
   }
   return h('span', { class: 'badge ok' }, `Master modeli hazır: ${status.model}`);
+}
+
+// Friendly short name for an agent id ("uye1" → "İshak", otherwise the raw id).
+function agentLabel(agentId) {
+  const MAP = {
+    uye1: 'İshak', uye2: 'Duru', uye3: 'Furkan',
+    uye4: 'Semih', uye5: 'Işıl', uye6: 'Berfin',
+  };
+  const base = agentId ? agentId.replace(/-.*/, '') : '';
+  return MAP[base] || agentId || '?';
 }
 
 // --- New project ---------------------------------------------------------------------------
@@ -148,8 +159,7 @@ export function renderNewProject(root) {
         'Yazılım gereksinim dokümanını yapıştırın veya yükleyin. Master ajan dokümanı analiz eder, ' +
         'yapılandırılmış bir spesifikasyon çıkarır ve işi bağımlılıklarıyla birlikte görevlere ayırır.'))),
     h('div', { class: 'card note' },
-      'Sprint 1: görevler şimdilik yalnızca planlanır. Görevlerin ajanların ölçülen yeteneklerine göre ' +
-      'dağıtılması Sprint 2\'de, ajanların görevleri yürütmesi Sprint 3\'te eklenecek.'),
+      'Gereksinim dokümanını gönder. Master analiz eder, görevlere böler ve ajanlar kendi modelleriyle çalıştırır.'),
     form));
   if (isDesktop()) nameInput.focus();
 }
@@ -274,25 +284,46 @@ function taskDetails(task) {
   return h('details', null, h('summary', null, `Kapsam (${items.length})`), h('ul', null, items.map((i) => h('li', null, i))));
 }
 
+function taskOutput(task) {
+  if (task.status !== 'done' || !task.result) return null;
+  const preview = task.result.length > 400 ? `${task.result.slice(0, 400)}…` : task.result;
+  return h('details', { class: 'task-output' },
+    h('summary', null, `Çıktı (${task.result.length} karakter)`),
+    h('pre', { class: 'task-result-pre' }, preview));
+}
+
 function renderTaskList(tasks) {
   const stages = [...new Set(tasks.map((t) => t.stage))].sort((a, b) => a - b);
   return stages.map((stage) => [
     h('div', { class: 'stage-title' }, `Aşama ${stage}`),
-    tasks.filter((t) => t.stage === stage).map((task) => h('div', {
-      class: 'task', id: `task-${task.key}`, style: { borderLeftColor: (TASK_TYPES[task.type] || {}).color || '#555' },
-    },
-      h('div', { class: 'task-head' },
-        h('span', { class: 'task-key' }, task.key),
-        h('span', { class: 'task-title' }, task.title),
-        typeBadge(task.type),
-        statusBadge(TASK_STATUS, task.status),
-        task.performed_by === 'master' ? h('span', { class: 'badge' }, 'master ajan yaptı') : null),
-      h('div', { class: 'task-desc' }, task.description),
-      task.depends_on.length
-        ? h('div', { class: 'task-deps' }, 'Bağımlı olduğu görevler: ',
-          task.depends_on.map((k) => h('span', { class: 'chip chip-link', onclick: () => scrollToTask(k) }, k)))
-        : h('div', { class: 'task-deps' }, 'Bağımlılık yok (başlangıç görevi)'),
-      taskDetails(task))),
+    tasks.filter((t) => t.stage === stage).map((task) => {
+      const inProgress = task.assigned_to && task.status === 'planned';
+      return h('div', {
+        class: `task${inProgress ? ' task-inprogress' : ''}`,
+        id: `task-${task.key}`,
+        style: { borderLeftColor: (TASK_TYPES[task.type] || {}).color || '#555' },
+      },
+        h('div', { class: 'task-head' },
+          h('span', { class: 'task-key' }, task.key),
+          h('span', { class: 'task-title' }, task.title),
+          typeBadge(task.type),
+          inProgress
+            ? h('span', { class: 'badge warn' }, `⟳ ${agentLabel(task.assigned_to)} çalışıyor`)
+            : statusBadge(TASK_STATUS, task.status),
+          task.performed_by === 'master' ? h('span', { class: 'badge' }, 'master ajan') : null,
+          task.status === 'done' && task.performed_by && task.performed_by !== 'master'
+            ? h('span', { class: 'badge' }, agentLabel(task.performed_by))
+            : null,
+          task.validation_status === 'failed'
+            ? h('span', { class: 'badge danger', title: task.validation_message }, '! doğrulama hatası') : null),
+        h('div', { class: 'task-desc' }, task.description),
+        task.depends_on.length
+          ? h('div', { class: 'task-deps' }, 'Bağımlılık: ',
+            task.depends_on.map((k) => h('span', { class: 'chip chip-link', onclick: () => scrollToTask(k) }, k)))
+          : h('div', { class: 'task-deps' }, 'Bağımlılık yok'),
+        taskDetails(task),
+        taskOutput(task));
+    }),
   ]);
 }
 
@@ -442,17 +473,58 @@ export async function renderProjectDetail(root, id, ctx) {
           ? h('ul', { class: 'plain' }, spec.open_questions.map((q) => h('li', null, q)))
           : h('p', { class: 'small' }, 'Model belirsiz bir nokta bildirmedi.')));
 
+      // Task progress summary (PB-35)
+      const nonReq = p.tasks.filter((t) => t.type !== 'requirements');
+      const doneCount = nonReq.filter((t) => t.status === 'done').length;
+      const inProgressCount = nonReq.filter((t) => t.assigned_to && t.status === 'planned').length;
+      const blockedCount = nonReq.filter((t) => t.status === 'blocked').length;
+      const hasOutput = doneCount > 0;
+      const allDone = doneCount === nonReq.length;
+
+      const progressBar = nonReq.length > 0 ? h('div', { class: 'task-progress' },
+        h('div', { class: 'task-progress-bar-wrap' },
+          h('div', { class: 'task-progress-bar', style: { width: `${Math.round(doneCount / nonReq.length * 100)}%` } })),
+        h('span', { class: 'task-progress-label' },
+          `${doneCount}/${nonReq.length} tamamlandı` +
+          (inProgressCount ? ` · ${inProgressCount} çalışıyor` : '') +
+          (blockedCount ? ` · ${blockedCount} bekliyor` : ''))) : null;
+
+      const downloadBtn = hasOutput
+        ? h('a', {
+          class: 'btn btn-primary',
+          href: `/api/projects/${p.id}/output.zip`,
+          download: '',
+          style: { textDecoration: 'none' },
+        }, '⬇ Çıktıları indir (.zip)') : null;
+
       const legendTypes = [...new Set(p.tasks.map((t) => t.type))];
       body.push(h('div', { class: 'card' },
-        h('h2', null, `Görev planı (${p.tasks.length} görev)`),
+        h('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' } },
+          h('h2', null, `Görev planı (${p.tasks.length} görev)`),
+          downloadBtn),
+        progressBar,
         h('p', { class: 'muted small', style: { marginTop: 0 } },
-          'Oklar bağımlılıkları gösterir: bir görev, ok aldığı görevler bitmeden başlayamaz. ' +
-          'Aynı sütundaki görevler paralel yürütülebilir. Bir kutuya tıklayınca görevin ayrıntısına gidilir.'),
+          'Oklar bağımlılıkları gösterir. Aynı sütundaki görevler paralel yürütülebilir. ' +
+          'Bir kutuya tıklayınca ayrıntıya gidilir.'),
         h('div', { class: 'legend' }, legendTypes.map(typeBadge)),
         renderDag(p.tasks),
         renderTaskList(p.tasks)));
 
       body.push(renderSpec(spec));
+
+      // Auto-refresh while tasks are in progress (PB-35)
+      if (!allDone && inProgressCount > 0) {
+        ctx.poll(async () => {
+          const latest = await api(`/api/projects/${id}`);
+          if (!ctx.isCurrent()) { ctx.stopPoll(); return; }
+          const latestInProgress = (latest.tasks || []).filter((t) => t.assigned_to && t.status === 'planned').length;
+          const latestDone = (latest.tasks || []).filter((t) => t.status === 'done').length;
+          if (latestDone !== doneCount || latestInProgress !== inProgressCount) {
+            ctx.stopPoll();
+            draw(latest);
+          }
+        }, 5000);
+      }
     }
     body.push(sourceDocument(p));
     root.replaceChildren(h('div', { class: 'page-inner' }, head, body));

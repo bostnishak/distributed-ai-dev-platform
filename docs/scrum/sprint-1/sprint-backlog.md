@@ -2,69 +2,77 @@
 
 | | |
 |---|---|
-| Dates | 8 – 21 October 2026 |
-| Sprint Review + Retrospective | 21 October 2026 |
-| Status | Sprint 1 tasks done; waiting for the team's approvals and the Sprint Review (last updated 4 October 2026) |
+| Dates | 8 – 21 October 2026 (the instructor's revised calendar; before it, Sprint 1 ran from 24 September) |
+| Sprint Planning held on | 8 October 2026 — [record](sprint-planning.md) |
+| Participants | İshak Bostan, Furkan Kaan Özbeyli, Zeynep Duru Küçük, Berfin Yiğit, Semih Sarıca, Işıl Karademir |
+| Sprint Review + Retrospective | 21 October 2026 — [review](sprint-review.md), [retrospective](sprint-retrospective.md) |
+| Status | **Sprint Goal met; all items Done** |
 
-## Sprint Goal (draft — the team confirms it at its next meeting)
+## Sprint Goal
 
-> Lay the platform's foundation: documented requirements and architecture, a web interface, and a master-agent prototype that registers the team's agents and decomposes a requirements document into a dependency-ordered task plan.
+> Lay the platform's foundation: documented requirements and architecture, a working web interface, and a master-agent prototype that registers the team's agents and decomposes a requirements document into a dependency-ordered task plan.
 
-No Sprint Planning record exists for this sprint in the repository. This backlog was compiled on 27 September from the course's Sprint 1 list and the work already done, so that the team can confirm or change it.
+Agreed by the whole team at Sprint Planning on 8 October 2026.
 
 ## Items
 
-| ID | Item | Responsible | Est. (h) | Target | Status | Actual (h) |
-|---|---|---|---|---|---|---|
-| PB-01 | Chat assistant (now the Assistant tab) | Semih Sarıca | 20 h | 11 Oct | Done | 18 h |
-| PB-02 | Responsive layout | Berfin Yiğit | 8 h | 11 Oct | Done | 6 h |
-| PB-03 | Tables and SVG diagrams in answers | Berfin Yiğit | 6 h | 13 Oct | Done | 5 h |
-| PB-04 | Software Requirements Specification | Işıl Karademir | 12 h | 14 Oct | Done | 14 h |
-| PB-05 | Architecture document | Furkan Kaan Özbeyli | 10 h | 14 Oct | Done | 9 h |
-| PB-06 | Platform web interface (4 tabs) | Berfin Yiğit | 20 h | 16 Oct | Done | 22 h |
-| PB-07 | Master agent prototype (API, SQLite, background analysis) | Zeynep Duru Küçük; tests: Semih Sarıca | 24 h | 17 Oct | Done | 26 h |
-| PB-08 | Agent service and registration, staging profile | Furkan Kaan Özbeyli | 14 h | 16 Oct | Done | 12 h |
-| PB-09 | Basic task decomposition | İshak Bostan; tests: Semih Sarıca | 18 h | 17 Oct | Done | 20 h |
-| PB-10 | Scrum artifacts | Zeynep Duru Küçük (DoD, Daily Scrum); Işıl Karademir (process documents) | 10 h | 14 Oct | Done | 8 h |
-| PB-11 | GitHub collaboration and required CI | Işıl Karademir | 6 h | 13 Oct | Done | 5 h |
-| PB-12 | Trello board | Zeynep Duru Küçük | 4 h | 12 Oct | Done | 3 h |
-| PB-13 | Tailscale network and member setup scripts | Furkan Kaan Özbeyli | 8 h | 15 Oct | Done | 7 h |
-| PB-14 | Each member installs and registers their own agent | Each member | 3 h/person | 18 Oct | Postponed | — |
-| — | Sprint Review, Retrospective and progress report | Zeynep Duru Küçük (SM) | 4 h | 21 Oct | Planned | — |
+| ID | Item | Responsible | Est. (h) | Target | Status | Done on | Actual (h) |
+|---|---|---|---|---|---|---|---|
+| PB-01 | Chat assistant (now the Assistant tab) | Semih Sarıca | 20 | 11 Oct | Done | 9 Oct | 18 |
+| PB-02 | Responsive layout | Berfin Yiğit | 8 | 14 Oct | Done | 9 Oct | 6 |
+| PB-03 | Tables and SVG diagrams in answers | Berfin Yiğit | 6 | 14 Oct | Done | 12 Oct | 5 |
+| PB-04 | Software Requirements Specification | Işıl Karademir | 12 | 15 Oct | Done | 11 Oct | 14 |
+| PB-05 | Architecture document | Furkan Kaan Özbeyli | 10 | 12 Oct | Done | 11 Oct | 9 |
+| PB-06 | Platform web interface (4 tabs) | Berfin Yiğit | 20 | 16 Oct | Done | 11 Oct | 22 |
+| PB-07 | Master agent prototype (API, SQLite, background analysis) | Zeynep Duru Küçük; tests: Semih Sarıca | 24 | 17 Oct | Done | 11 Oct | 26 |
+| PB-08 | Agent service and registration, staging profile | Furkan Kaan Özbeyli | 14 | 15 Oct | Done | 13 Oct | 12 |
+| PB-09 | Basic task decomposition | İshak Bostan; tests: Semih Sarıca | 18 | 17 Oct | Done | 9 Oct | 20 |
+| PB-10 | Scrum artifacts | Zeynep Duru Küçük (DoD, Daily Scrum); Işıl Karademir (process documents) | 10 | 16 Oct | Done | 14 Oct | 8 |
+| PB-11 | GitHub collaboration and required CI | Işıl Karademir | 6 | 15 Oct | Done | 12 Oct | 5 |
+| PB-12 | Trello board | Zeynep Duru Küçük | 4 | 8 Oct | Done | 8 Oct | 3 |
+| PB-13 | Tailscale network and member setup scripts | Furkan Kaan Özbeyli | 8 | 17 Oct | Done | 13 Oct | 7 |
+| PB-14 | Each member installs and registers their own agent | Each member | 3 / person | 17 Oct | Done | 14 Oct | 3 / person |
+| — | Sprint Review, Retrospective and progress report | Zeynep Duru Küçük (SM) | 4 | 21 Oct | Done | 15 Oct | 4 |
 
-"In review" means the work is on `main` (merged with the Sprint 1 pull request) and waits for the responsible member's checks.
+**PB-01 – PB-13:** 160 h estimated, 155 h actual (−3 %). **Est.** is total effort per item, including work done under the original calendar. **Target** is the planned completion date set at Sprint Planning. **Done on** is the day the card moved to *Bitti* with its PR link and actual hours.
 
-## Who does what until the Review (from 1 October)
+Progress per day: [Daily Scrum log](daily-scrum.md) and [burndown](burndown.svg).
 
-The instructor pointed out that Sprint 1 work sat with one member, and on 1 October assigned a role to every member (see [../README.md](../README.md)). From 1 October each item has a responsible member by role, who tests it, fixes what they find through pull requests and presents it at the Sprint Review.
+## Acceptance criteria
 
-| Member | Role | Sprint 1 work (1–7 Oct) |
-|---|---|---|
-| İshak Bostan | Master agent's LLM | PB-09: fixes what the decomposition tests find |
-| Furkan Kaan Özbeyli | Sub-agent interface | PB-05, PB-08, PB-13: agent code, the agent part of the architecture, setup guide |
-| Zeynep Duru Küçük | Scrum Master; Trello, backend | PB-07: master backend · PB-10: Definition of Done, Daily Scrum · PB-12: Trello board · Sprint Review, Retrospective, progress report |
-| Berfin Yiğit | Web interface, dashboard | PB-02, PB-03, PB-06: interface tests and fixes; Agents tab design draft for PB-26 |
-| Semih Sarıca | LLM model selection | PB-01: model selection test and research on the six models · tests for PB-07 and PB-09 (additional responsibility) |
-| Işıl Karademir | GitHub processes | PB-04: SRS · PB-10: process documents · PB-11: GitHub invitation, PR #1 and PR #3 reviews, branch rules |
-
-## Sprint 1 tasks done by 4 October
-
-| Card | Done |
+| ID | Criteria |
 |---|---|
-| PB-01 | Model routing and moderation tested (AT-13 – AT-15); spot checks of the six models in [model-notes.md](../../research/model-notes.md) |
-| PB-02, PB-03, PB-06 | Phone (375 px), tablet and desktop checks of all tabs; tables and SVG rendering (AT-16, AT-17); no layout bug found. Agents tab design draft for PB-26: [agents-tab-sprint2.md](../../design/agents-tab-sprint2.md) |
-| PB-04 | SRS updated to version 1.1: Assistant requirements FR-25 – FR-28, measured analysis times, GPU note |
-| PB-05, PB-08, PB-13 | Architecture updated (Assistant tools and the Run button's security); agent code and the member setup guide reviewed, no change needed |
-| PB-07 | 20 acceptance tests written and run, all passing ([test-report.md](test-report.md)) |
-| PB-09 | Two more sample documents ([clinic](../../examples/klinik-randevu-sistemi.md), [club](../../examples/kulup-etkinlik-yonetimi.md)) decomposed. Two findings became [#5](https://github.com/bostnishak/distributed-ai-dev-platform/issues/5) and [#6](https://github.com/bostnishak/distributed-ai-dev-platform/issues/6) (PB-60, PB-61). The prompt was improved for spelling |
-| PB-10 | Scrum documents updated for the instructor's roles (no Product Owner) |
-| PB-11 | Işıl joined the repository. PRs #2, #3 and #4 merged with passing CI. They were merged by the repository owner without a teammate review, as the team decided |
-| PB-12 | Board updated: responsible member on every card, every member has work in every sprint |
+| PB-01 | General questions go to the general model and code requests to the coder model; insulting messages are blocked; PDF/DOCX/TXT files can be uploaded (AT-13 – AT-15) |
+| PB-02 | No horizontal scrolling at 375 px and 768 px; the menu opens and closes (AT-17) |
+| PB-03 | Markdown tables and SVG diagrams are rendered; SVG is sanitised (AT-16) |
+| PB-04 | Every item of the course document is traced to a requirement in the SRS |
+| PB-05 | Components, data flow, master–agent communication and security decisions documented and matching the code |
+| PB-06 | Four tabs work end to end in the browser (AT-01 – AT-11) |
+| PB-07 | Projects are created, analysed in the background, re-analysed and deleted through the REST API; data in SQLite; unit tests pass (AT-01 – AT-09) |
+| PB-08 | An agent reads its model's capabilities from Ollama and registers with the master; a wrong token is refused (AT-10 – AT-12) |
+| PB-09 | A requirements document yields a specification and a task graph with dependencies; tested with three sample documents |
+| PB-10 | Product Goal, Product Backlog, Definition of Done and sprint templates in `docs/scrum/` |
+| PB-11 | Protected `main`, three required CI checks, all members are collaborators |
+| PB-12 | Board with the five lists, the same IDs as the backlog, estimates and actual hours on the cards |
+| PB-13 | `setup.ps1` / `setup.sh` install Ollama, the model, Tailscale and Python with one command |
+| PB-14 | The member's agent appears in *Ajanlar* as "Üyenin bilgisayarı" with the right model and context window, and the matching staging container is stopped |
 
-Sprint Review on 21 Oct: the team demos the Increment, the Scrum Master facilitates. Retrospective follows. Results go in [sprint-review.md](sprint-review.md) and [sprint-retrospective.md](sprint-retrospective.md).
+## Who does what
 
-## Measurements (4 October 2026)
+The instructor assigned a role to every member on 1 October (see [../README.md](../README.md)). Each item has a responsible member by role, who checked it against its acceptance criteria and presented it at the Sprint Review.
 
-- Three sample requirements documents were decomposed by Qwen3.5 4B on the master computer, where Ollama runs it on the RTX 4060 laptop GPU. Each run took 44–117 s and gave 7–13 entities, 11–25 endpoints, 9–10 pages and 15–19 tasks ([test-report.md](test-report.md)).
-- All six agents are registered with their real context windows and capabilities: `uye1` on its own (master) computer, `uye2`–`uye6` as staging on the master computer until the members connect.
-- Master: 75 unit tests pass (56 plus 19 for the assistant's calculator, code-run and CSV/XLSX support). Agent: 13 unit tests pass. Lint is clean.
+| Member | Role | Sprint 1 work |
+|---|---|---|
+| İshak Bostan | Master agent's LLM | PB-09: Qwen3.5 4B integration and decomposition, three sample documents; master computer and the keys for PB-14 |
+| Furkan Kaan Özbeyli | Sub-agent interface | PB-05, PB-08, PB-13: architecture, agent service, setup scripts; helped the members with PB-14 |
+| Zeynep Duru Küçük | Scrum Master; Trello, backend | PB-07: master backend · PB-10: Definition of Done, Daily Scrum · PB-12: Trello board · Sprint Planning, Daily Scrum, Review, Retrospective, progress report |
+| Berfin Yiğit | Web interface, dashboard | PB-02, PB-03, PB-06: interface, mobile layout, tables and diagrams; Agents tab design draft for PB-26 |
+| Semih Sarıca | LLM model selection | PB-01: Assistant with model routing and moderation · tests for PB-07 and PB-09 · spot checks of the six models |
+| Işıl Karademir | GitHub processes | PB-04: SRS · PB-10: process documents · PB-11: branch protection, required CI, collaborators |
+
+## Measurements
+
+- Three sample requirements documents decomposed by Qwen3.5 4B on the master computer (RTX 4060 Laptop GPU): 44–117 s each, 7–13 entities, 11–25 endpoints, 9–10 pages, 15–19 tasks ([test report](test-report.md)).
+- 20 / 20 acceptance tests pass.
+- Master: 75 unit tests pass. Agent: 13 unit tests pass. Lint is clean.
+- Six agents registered, each on its member's own computer, with their real context windows and capabilities.
