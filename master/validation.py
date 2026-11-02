@@ -5,7 +5,6 @@ validation_status to 'failed' and the task is requeued for a different agent.
 """
 
 import ast
-import json
 import re
 
 

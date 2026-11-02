@@ -156,7 +156,7 @@ class TestValidation:
         assert msg
 
     def test_short_output_fails(self):
-        ok, msg = val_module.validate_result("backend", "hi")
+        ok, _msg = val_module.validate_result("backend", "hi")
         assert not ok
 
     def test_valid_python_passes(self):

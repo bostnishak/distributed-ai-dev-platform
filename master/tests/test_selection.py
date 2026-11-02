@@ -2,8 +2,6 @@
 
 from datetime import UTC, datetime, timedelta
 
-import pytest
-
 from selection import _is_online, score_agent, select_agent
 
 
@@ -100,7 +98,7 @@ class TestSelectAgent:
             "a1": _fresh_scores(coding=90),
             "a2": _fresh_scores(coding=10),
         }
-        selected, reason = select_agent("backend", 0, agents, all_scores)
+        selected, _reason = select_agent("backend", 0, agents, all_scores)
         assert selected == "a1"
 
     def test_no_online_agents_returns_none(self):
@@ -110,7 +108,7 @@ class TestSelectAgent:
         assert "No online agents" in reason["reason"]
 
     def test_empty_agent_list_returns_none(self):
-        selected, reason = select_agent("backend", 0, [], {})
+        selected, _reason = select_agent("backend", 0, [], {})
         assert selected is None
 
     def test_offline_agent_excluded(self):

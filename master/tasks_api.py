@@ -24,6 +24,7 @@ router = APIRouter(tags=["tasks"])
 log = logging.getLogger("tasks_api")
 
 _lease_task_running = False
+_lease_task: asyncio.Task | None = None
 
 
 async def _expire_leases_loop() -> None:
@@ -42,7 +43,8 @@ async def _expire_leases_loop() -> None:
 
 
 def start_lease_expiry() -> None:
-    asyncio.create_task(_expire_leases_loop())
+    global _lease_task
+    _lease_task = asyncio.create_task(_expire_leases_loop())
 
 
 # ---------------------------------------------------------------------------
@@ -226,7 +228,6 @@ def start_eval(request: EvalStartRequest):
     if not target_agents:
         raise HTTPException(status_code=400, detail="Çevrimiçi ajan yok.")
 
-    from benchmarks import BENCHMARKS
 
     session_id = db.create_eval_session()
 

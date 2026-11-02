@@ -8,7 +8,7 @@ Selects the best available agent for a task based on:
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 
 from task_weights import get_weights
 

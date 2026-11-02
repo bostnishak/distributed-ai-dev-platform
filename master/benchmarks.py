@@ -6,7 +6,6 @@ Dimensions: coding, reasoning, context, structured_output, speed.
 
 from __future__ import annotations
 
-import ast
 import json
 import textwrap
 
@@ -384,14 +383,14 @@ def _score_coding(benchmark: dict, response: str, max_score: float, details: dic
     code = _strip_code_fences(response)
     namespace: dict = {}
     try:
-        exec(code, namespace)  # noqa: S102
+        exec(code, namespace)
     except Exception as exc:
         details["error"] = f"Code failed to execute: {exc}"
         return 0.0, details
 
     test_code = benchmark.get("test_code", "")
     try:
-        exec(test_code, namespace)  # noqa: S102
+        exec(test_code, namespace)
         details["passed"] = True
         return float(max_score), details
     except AssertionError as exc:

@@ -301,7 +301,7 @@ async def execute_task(settings: Settings, task: dict) -> tuple[str, float | Non
     details = task.get("details") or {}
 
     if task_type == "benchmark":
-        from benchmarks import BENCHMARK_BY_ID, BENCHMARKS_BY_DIMENSION  # type: ignore[import]
+        from benchmarks import BENCHMARK_BY_ID  # type: ignore[import]
         benchmark_ids = details.get("benchmark_ids", [])
         if not benchmark_ids:
             bid = details.get("benchmark_id")

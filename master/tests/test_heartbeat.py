@@ -1,6 +1,5 @@
 """Tests for PB-20: Agent heartbeat and online status."""
 
-import time
 
 import db
 

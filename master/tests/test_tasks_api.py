@@ -61,7 +61,7 @@ class TestNextTask:
 
     def test_returns_assigned_task(self, client, auth_headers):
         agent = _register_agent(client, auth_headers)
-        project_id, task_id = _create_project_and_task()
+        _project_id, task_id = _create_project_and_task()
         # Manually assign task to this agent
         db.assign_task(task_id, agent["agent_id"], {"reason": "test"})
 
@@ -77,7 +77,7 @@ class TestNextTask:
 class TestSubmitResult:
     def test_submit_result_done(self, client, auth_headers):
         agent = _register_agent(client, auth_headers)
-        project_id, task_id = _create_project_and_task()
+        _project_id, task_id = _create_project_and_task()
         db.assign_task(task_id, agent["agent_id"], {"reason": "test"})
 
         long_output = "Hello world " * 5  # >20 chars so validation passes
@@ -95,7 +95,7 @@ class TestSubmitResult:
         assert task["tokens_per_second"] == 25.0
 
     def test_submit_result_requires_auth(self, client, auth_headers):
-        project_id, task_id = _create_project_and_task()
+        _project_id, task_id = _create_project_and_task()
         resp = client.post(
             f"/api/tasks/{task_id}/result",
             json={"status": "done", "output": "x"},
@@ -112,7 +112,7 @@ class TestSubmitResult:
 
     def test_submit_result_failed(self, client, auth_headers):
         agent = _register_agent(client, auth_headers)
-        project_id, task_id = _create_project_and_task()
+        _project_id, task_id = _create_project_and_task()
         db.assign_task(task_id, agent["agent_id"], {"reason": "test"})
 
         resp = client.post(
@@ -165,7 +165,7 @@ class TestLeaseExpiry:
         from datetime import UTC, datetime, timedelta
         # Register an agent first so FK constraint is satisfied
         agent = _register_agent(client, auth_headers)
-        project_id, task_id = _create_project_and_task()
+        _project_id, task_id = _create_project_and_task()
         # Assign with an already-expired lease
         import json
         stale_expires = (datetime.now(UTC) - timedelta(minutes=10)).isoformat(timespec="seconds")

@@ -37,5 +37,9 @@ async def _dag_loop() -> None:
         await asyncio.sleep(60)
 
 
+_dag_task: asyncio.Task | None = None
+
+
 def start_dag_scheduler() -> None:
-    asyncio.create_task(_dag_loop())
+    global _dag_task
+    _dag_task = asyncio.create_task(_dag_loop())

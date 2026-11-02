@@ -62,8 +62,7 @@ def _find_vision_agent() -> dict | None:
             continue
         ts = datetime.fromisoformat(last_seen.replace("Z", "+00:00"))
         if ts.tzinfo is None:
-            from datetime import timezone
-            ts = ts.replace(tzinfo=timezone.utc)
+            ts = ts.replace(tzinfo=UTC)
         if (datetime.now(UTC) - ts).total_seconds() < 30:
             return agent
     return None
