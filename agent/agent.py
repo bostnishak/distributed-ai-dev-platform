@@ -9,11 +9,9 @@ accept incoming connections, and Ollama keeps listening on localhost only.
 """
 
 import asyncio
-import json
 import logging
 import os
 import sys
-import textwrap
 import time
 from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass
