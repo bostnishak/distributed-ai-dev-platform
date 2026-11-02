@@ -14,6 +14,8 @@ from fastapi.responses import Response
 from pydantic import BaseModel
 
 import db
+import scheduler
+import validation as val_module
 from agents_api import require_agent_token
 from benchmarks import BENCHMARK_BY_ID, aggregate_dimension_scores, score_response
 from selection import select_agent
@@ -93,9 +95,15 @@ def next_task(agent_id: str, background_tasks: BackgroundTasks):
 # POST /api/tasks/{id}/result
 # ---------------------------------------------------------------------------
 
+class FileResult(BaseModel):
+    path: str
+    content: str
+
+
 class TaskResultRequest(BaseModel):
     status: str  # "done" | "failed"
     output: str
+    files: list[FileResult] | None = None
     tokens_per_second: float | None = None
 
 
@@ -106,17 +114,49 @@ def submit_result(task_id: int, request: TaskResultRequest):
     if not task:
         raise HTTPException(status_code=404, detail="Görev bulunamadı.")
 
-    db.submit_task_result(
+    files = [f.model_dump() for f in request.files] if request.files else None
+
+    # If no explicit files, try to extract them from the output text (PB-33)
+    task_type = task.get("type", "")
+    if not files and request.status == "done" and task_type != "benchmark":
+        files = val_module.extract_files_from_output(task_type, request.output) or None
+
+    db.submit_task_result_with_files(
         task_id=task_id,
         status=request.status,
         output=request.output,
+        files=files,
         tokens_per_second=request.tokens_per_second,
     )
 
-    # If this is a benchmark task, score it
-    if task.get("type") == "benchmark":
+    # Benchmark scoring
+    if task_type == "benchmark":
         _score_benchmark_task(task, request.output, request.tokens_per_second)
+        return {"ok": True}
 
+    # Validation for non-benchmark tasks (PB-33)
+    if request.status == "done":
+        ok, msg = val_module.validate_result(task_type, request.output, files)
+        db.update_task_validation(task_id, "ok" if ok else "failed", msg)
+        if not ok:
+            log.warning("Task %d validation failed (%s): %s — requeuing.", task_id, task_type, msg)
+            db.requeue_task(task_id)
+            return {"ok": True, "validation": "failed", "message": msg}
+
+        # Release any newly unblocked tasks (PB-34)
+        scheduler.release_after_completion(task_id)
+
+    return {"ok": True, "validation": "ok" if request.status == "done" else "skipped"}
+
+
+@router.post("/api/tasks/{task_id}/cancel", dependencies=[Depends(require_agent_token)])
+def cancel_task(task_id: int):
+    """Agent cancels a task it can no longer complete; task is requeued."""
+    task = db.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Görev bulunamadı.")
+    db.requeue_task(task_id)
+    log.info("Task %d cancelled and requeued.", task_id)
     return {"ok": True}
 
 

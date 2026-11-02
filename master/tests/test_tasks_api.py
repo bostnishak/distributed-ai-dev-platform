@@ -80,9 +80,10 @@ class TestSubmitResult:
         project_id, task_id = _create_project_and_task()
         db.assign_task(task_id, agent["agent_id"], {"reason": "test"})
 
+        long_output = "Hello world " * 5  # >20 chars so validation passes
         resp = client.post(
             f"/api/tasks/{task_id}/result",
-            json={"status": "done", "output": "Hello world", "tokens_per_second": 25.0},
+            json={"status": "done", "output": long_output, "tokens_per_second": 25.0},
             headers=auth_headers,
         )
         assert resp.status_code == 200
@@ -90,7 +91,7 @@ class TestSubmitResult:
 
         task = db.get_task(task_id)
         assert task["status"] == "done"
-        assert task["result"] == "Hello world"
+        assert task["result"] == long_output
         assert task["tokens_per_second"] == 25.0
 
     def test_submit_result_requires_auth(self, client, auth_headers):

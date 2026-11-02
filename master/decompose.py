@@ -346,15 +346,21 @@ def _join_names(names: list[str], limit: int = 70) -> str:
 def build_task_plan(spec: RequirementsSpec) -> list[dict]:
     """Turn a spec into tasks with dependencies. Tasks are appended after their dependencies."""
     tasks: list[dict] = []
+    done_keys: set[str] = set()
 
     def add(task_type: str, title: str, description: str, details: dict, depends_on: list[str],
-            status: str = "planned", performed_by: str | None = None) -> str:
+            status: str | None = None, performed_by: str | None = None) -> str:
         key = f"T{len(tasks) + 1}"
+        if status is None:
+            # Sprint 3: tasks whose dependencies are not yet done start as blocked.
+            status = "planned" if all(d in done_keys for d in depends_on) else "blocked"
         tasks.append({
             "key": key, "type": task_type, "title": title, "description": description,
             "details": details, "depends_on": depends_on, "status": status,
             "performed_by": performed_by,
         })
+        if status == "done":
+            done_keys.add(key)
         return key
 
     analysis = add(

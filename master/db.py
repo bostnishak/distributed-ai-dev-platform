@@ -11,7 +11,7 @@ from datetime import UTC, datetime
 
 import config
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 
 # SCHEMA always describes the latest version (used for new databases). Existing databases are
 # brought up to date by the statements in MIGRATIONS, keyed by the version they produce.
@@ -41,6 +41,12 @@ MIGRATIONS = {
             evaluated_at    TEXT NOT NULL,
             details         TEXT
         )""",
+    ],
+    4: [
+        "ALTER TABLE tasks ADD COLUMN files TEXT",
+        "ALTER TABLE tasks ADD COLUMN validation_status TEXT DEFAULT 'pending'",
+        "ALTER TABLE tasks ADD COLUMN validation_message TEXT",
+        "ALTER TABLE tasks ADD COLUMN attempt INTEGER DEFAULT 0",
     ],
 }
 
@@ -111,15 +117,19 @@ CREATE TABLE IF NOT EXISTS tasks (
     title             TEXT NOT NULL,
     description       TEXT NOT NULL,
     details           TEXT NOT NULL,             -- JSON slice of the spec this task covers
-    status            TEXT NOT NULL,             -- done | planned
+    status            TEXT NOT NULL,             -- done | planned | blocked
     performed_by      TEXT,                      -- 'master' for the analysis task; agent id from Sprint 3
     assigned_to       TEXT REFERENCES agents(agent_id),
     assigned_at       TEXT,
     lease_expires_at  TEXT,                      -- ISO 8601; 5 minutes from assignment
     assignment_reason TEXT,                      -- JSON score breakdown
-    result            TEXT,                      -- agent's output
+    result            TEXT,                      -- agent's output (plain text)
     result_at         TEXT,
     tokens_per_second REAL,
+    files             TEXT,                      -- JSON array of {path, content}
+    validation_status TEXT DEFAULT 'pending',    -- pending | ok | failed
+    validation_message TEXT,
+    attempt           INTEGER DEFAULT 0,         -- how many times this task has been attempted
     UNIQUE (project_id, key)
 );
 
@@ -347,6 +357,70 @@ def list_unassigned_planned_tasks() -> list[dict]:
         task["details"] = json.loads(task["details"])
         result.append(task)
     return result
+
+
+def submit_task_result_with_files(
+    task_id: int,
+    status: str,
+    output: str,
+    files: list[dict] | None,
+    tokens_per_second: float | None,
+) -> None:
+    """Submit task result including optional files list."""
+    with connect() as conn:
+        conn.execute(
+            "UPDATE tasks SET status = ?, result = ?, result_at = ?, tokens_per_second = ?, "
+            "files = ?, attempt = attempt + 1 WHERE id = ?",
+            (
+                status,
+                output,
+                utc_now(),
+                tokens_per_second,
+                json.dumps(files, ensure_ascii=False) if files else None,
+                task_id,
+            ),
+        )
+
+
+def update_task_validation(task_id: int, validation_status: str, message: str) -> None:
+    with connect() as conn:
+        conn.execute(
+            "UPDATE tasks SET validation_status = ?, validation_message = ? WHERE id = ?",
+            (validation_status, message, task_id),
+        )
+
+
+def requeue_task(task_id: int) -> None:
+    """Reset a task back to planned (unassigned) for reassignment."""
+    with connect() as conn:
+        conn.execute(
+            "UPDATE tasks SET status = 'planned', assigned_to = NULL, assigned_at = NULL, "
+            "lease_expires_at = NULL, assignment_reason = NULL, result = NULL, result_at = NULL, "
+            "tokens_per_second = NULL, files = NULL, validation_status = 'pending', "
+            "validation_message = NULL WHERE id = ?",
+            (task_id,),
+        )
+
+
+def release_all_ready_tasks() -> int:
+    """Flip blocked tasks to planned when all their dependencies are done (DAG scheduler)."""
+    with connect() as conn:
+        blocked = conn.execute(
+            "SELECT id FROM tasks WHERE status = 'blocked'"
+        ).fetchall()
+        released = 0
+        for row in blocked:
+            task_id = row[0]
+            deps = conn.execute(
+                "SELECT dep.status FROM task_dependencies td "
+                "JOIN tasks dep ON dep.id = td.depends_on_task_id "
+                "WHERE td.task_id = ?",
+                (task_id,),
+            ).fetchall()
+            if all(d[0] == "done" for d in deps):
+                conn.execute("UPDATE tasks SET status = 'planned' WHERE id = ?", (task_id,))
+                released += 1
+        return released
 
 
 # --- Projects -----------------------------------------------------------------------------

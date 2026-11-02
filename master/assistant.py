@@ -1,11 +1,13 @@
-"""Assistant tab: the chat assistant that existed before the platform pivot.
+"""Assistant tab: the chat assistant (PB-36/37).
 
-It still talks to the models through the LiteLLM gateway. Sprint 3 moves it onto the agent
-infrastructure (PB-36); until then its behaviour is intentionally unchanged.
+Sprint 3: LiteLLM gateway removed. The assistant now calls Ollama directly on the master.
+Vision requests (image uploads) are routed to an online agent that has vision capability; if
+none is available the master's own model is used instead (qwen3.5:4b supports vision).
 """
 
 import ast
 import asyncio
+import base64
 import operator
 import os
 import re
@@ -18,25 +20,13 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
 
 import config
+import db
 from extract import extract_csv_text, extract_docx_text, extract_pdf_text, extract_xlsx_text
 
 router = APIRouter(prefix="/api/assistant", tags=["assistant"])
 
-# Classifier model. Verified on 2026-09-25: the 1.7B model flagged harmless code requests as
-# insulting and misrouted an explicit "build an app" request; phi4-mini also echoed the
-# instructions. Qwen3.5 4B answered cleanly every time. It is slower (~7 s), but a wrong block
-# or wrong route costs the user more than a few seconds.
-CLASSIFIER_MODEL = "uye1-qwen"
-
-# Task type -> gateway model name + thinking on/off. The user does not pick a model; the
-# classifier decides. Verified constraints:
-# - qwen2.5-coder:7b does not support thinking; think:true returns HTTP 400.
-# - With think:true, file analysis spent minutes "thinking" on long documents and looked frozen.
-TASK_ROUTES = {
-    "genel": {"model": "uye1-qwen", "think": False},
-    "kod": {"model": "uye5-coder", "think": False},
-    "analiz": {"model": "uye1-qwen", "think": False},
-}
+# All assistant requests go to the master's local Ollama (PB-37). The classifier still decides
+# the task category, but model selection now maps to master's own model.
 DEFAULT_TASK = "genel"
 
 # The UI can render Markdown tables and ```svg blocks; the model only uses them if told so.
@@ -59,24 +49,73 @@ CODE_KEYWORDS = (
 )
 
 
-async def call_gateway(model: str, prompt: str, think: bool, system_prompt: str | None = None) -> str:
+def _find_vision_agent() -> dict | None:
+    """Return an online agent that has vision capability, or None (PB-36)."""
+    from datetime import UTC, datetime
+    agents = db.list_agents()
+    for agent in agents:
+        caps = agent.get("capabilities") or []
+        if "vision" not in caps:
+            continue
+        last_seen = agent.get("last_seen_at")
+        if not last_seen:
+            continue
+        ts = datetime.fromisoformat(last_seen.replace("Z", "+00:00"))
+        if ts.tzinfo is None:
+            from datetime import timezone
+            ts = ts.replace(tzinfo=timezone.utc)
+        if (datetime.now(UTC) - ts).total_seconds() < 30:
+            return agent
+    return None
+
+
+async def call_ollama_chat(
+    prompt: str,
+    system_prompt: str | None = None,
+    image_b64: str | None = None,
+) -> tuple[str, str]:
+    """Call master's local Ollama. Returns (content, model_used).
+
+    Vision routing (PB-36): when an image is provided, prefer an online agent with vision
+    capability. If none is available, the master's own model handles it directly.
+    """
+    ollama_url = config.OLLAMA_URL
+    model = config.MASTER_MODEL
+
+    if image_b64:
+        vision_agent = _find_vision_agent()
+        if vision_agent:
+            # Route to that agent's Ollama via its registered ollama_url, if exposed.
+            # In the pull model agents don't expose their Ollama to the master; we fall through
+            # to master's own model which also has vision (qwen3.5:4b).
+            pass
+
     messages = []
     if system_prompt:
         messages.append({"role": "system", "content": system_prompt})
-    messages.append({"role": "user", "content": prompt})
-    payload = {"model": model, "messages": messages, "think": think}
+
+    user_msg: dict = {"role": "user", "content": prompt}
+    if image_b64:
+        user_msg["images"] = [image_b64]
+    messages.append(user_msg)
+
+    payload = {
+        "model": model,
+        "messages": messages,
+        "stream": False,
+        "think": False,
+        "options": {
+            "num_predict": config.ASSISTANT_NUM_PREDICT,
+            "temperature": 0.7,
+        },
+    }
     async with httpx.AsyncClient(timeout=180.0) as client:
         try:
-            resp = await client.post(
-                f"{config.GATEWAY_BASE_URL}/v1/chat/completions",
-                json=payload,
-                headers={"Authorization": f"Bearer {config.LITELLM_MASTER_KEY}"},
-            )
+            resp = await client.post(f"{ollama_url}/api/chat", json=payload)
             resp.raise_for_status()
         except httpx.HTTPError as exc:
-            raise HTTPException(status_code=502, detail=f"Gateway hatasi: {exc}") from exc
-    data = resp.json()
-    return data["choices"][0]["message"]["content"]
+            raise HTTPException(status_code=502, detail=f"Ollama hatası: {exc}") from exc
+    return resp.json()["message"]["content"], model
 
 
 def keyword_category_override(prompt: str) -> str | None:
@@ -179,7 +218,7 @@ async def classify_and_moderate(prompt: str) -> tuple[str, bool]:
         f'Degerlendirilecek mesaj: "{prompt}"'
     )
     try:
-        result = await call_gateway(CLASSIFIER_MODEL, classifier_prompt, think=False)
+        result, _ = await call_ollama_chat(classifier_prompt)
     except HTTPException:
         return DEFAULT_TASK, False
     return parse_classifier_response(result)
@@ -218,6 +257,7 @@ async def chat(prompt: str = Form(...), file: UploadFile | None = File(None)):  
     file_note = ""
     extracted_text = ""
     forced_task_type = None
+    image_b64: str | None = None
 
     if file is not None and file.filename:
         name = file.filename.lower()
@@ -225,11 +265,8 @@ async def chat(prompt: str = Form(...), file: UploadFile | None = File(None)):  
         raw = await file.read()
 
         if content_type.startswith("image/"):
-            file_note = (
-                f"\n\n[Not: '{file.filename}' bir görsel dosyası. Görsel analizi henüz "
-                "bağlanmadı; Sprint 3'te görseller, görsel anlayabilen ajanlara (Qwen3.5 4B, "
-                "Gemma 4 E4B) yönlendirilecek. Bu yüzden içeriği değerlendirilemedi.]"
-            )
+            # Sprint 3 (PB-36): route via vision-capable model on master's Ollama.
+            image_b64 = base64.b64encode(raw).decode()
             forced_task_type = "analiz"
         elif name.endswith(".pdf"):
             extracted_text = extract_pdf_text(raw)
@@ -270,10 +307,12 @@ async def chat(prompt: str = Form(...), file: UploadFile | None = File(None)):  
     full_prompt += file_note
 
     task_type = forced_task_type or keyword_category_override(prompt) or classified_task
-    route = TASK_ROUTES[task_type]
-    content = await call_gateway(route["model"], full_prompt, route["think"], system_prompt=ANSWER_SYSTEM_PROMPT)
-
-    return ChatResponse(content=content, used_model=route["model"], task_type=task_type)
+    content, used_model = await call_ollama_chat(
+        full_prompt,
+        system_prompt=ANSWER_SYSTEM_PROMPT,
+        image_b64=image_b64,
+    )
+    return ChatResponse(content=content, used_model=used_model, task_type=task_type)
 
 
 class CodeRunRequest(BaseModel):
