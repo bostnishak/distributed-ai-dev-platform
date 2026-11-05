@@ -31,15 +31,15 @@ class TestIsOnline:
         assert _is_online(agent) is True
 
     def test_stale_agent_is_offline(self):
-        agent = _make_agent("a1", last_seen_delta_seconds=60)
+        agent = _make_agent("a1", last_seen_delta_seconds=400)
         assert _is_online(agent) is False
 
     def test_missing_last_seen_is_offline(self):
         assert _is_online({"agent_id": "a1", "last_seen_at": None}) is False
 
     def test_exactly_at_threshold_is_offline(self):
-        # 30 seconds ago is exactly at the boundary — should be offline (not < 30)
-        agent = _make_agent("a1", last_seen_delta_seconds=30)
+        # exactly at the boundary (300 s) — should be offline (not < 300)
+        agent = _make_agent("a1", last_seen_delta_seconds=300)
         assert _is_online(agent) is False
 
 
@@ -102,7 +102,7 @@ class TestSelectAgent:
         assert selected == "a1"
 
     def test_no_online_agents_returns_none(self):
-        agents = [_make_agent("a1", last_seen_delta_seconds=120)]
+        agents = [_make_agent("a1", last_seen_delta_seconds=400)]
         selected, reason = select_agent("backend", 0, agents, {})
         assert selected is None
         assert "No online agents" in reason["reason"]
@@ -113,7 +113,7 @@ class TestSelectAgent:
 
     def test_offline_agent_excluded(self):
         online = _make_agent("online", last_seen_delta_seconds=5)
-        offline = _make_agent("offline", last_seen_delta_seconds=120)
+        offline = _make_agent("offline", last_seen_delta_seconds=400)
         all_scores = {
             "online": _fresh_scores(coding=50),
             "offline": _fresh_scores(coding=99),
