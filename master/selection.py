@@ -8,6 +8,7 @@ Selects the best available agent for a task based on:
 
 from __future__ import annotations
 
+import hashlib
 from datetime import UTC, datetime
 
 from task_weights import get_weights
@@ -20,7 +21,7 @@ LOAD_PENALTY = 20.0
 CONTEXT_PENALTY_BASE = 30.0
 
 # Agents are considered offline if last_seen_at is older than this
-ONLINE_THRESHOLD_SECONDS = 30
+ONLINE_THRESHOLD_SECONDS = 300  # 5 minutes
 
 
 def _is_online(agent: dict) -> bool:
@@ -124,6 +125,17 @@ def select_agent(
         return None, {"reason": "No scoreable candidates"}
 
     candidates.sort(key=lambda x: x[0], reverse=True)
+
+    # Among tied candidates, use task_type hash to distribute work across agents.
+    # Same task type always routes to the same agent (deterministic), but
+    # different task types prefer different agents — visible diversity in the UI.
+    top_score = candidates[0][0]
+    tied = [c for c in candidates if abs(c[0] - top_score) < 0.001]
+    if len(tied) > 1:
+        type_hash = int(hashlib.md5(task_type.encode()).hexdigest(), 16)
+        tied.sort(key=lambda c: (int(hashlib.md5((task_type + c[1]).encode()).hexdigest(), 16) + type_hash) % (2 ** 128))
+        candidates = tied + [c for c in candidates if c not in tied]
+
     best_score, best_agent_id, best_breakdown = candidates[0]
 
     reason = {

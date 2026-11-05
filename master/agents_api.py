@@ -12,7 +12,7 @@ import db
 
 router = APIRouter(prefix="/api/agents", tags=["agents"])
 
-ONLINE_THRESHOLD_SECONDS = 30
+ONLINE_THRESHOLD_SECONDS = 300  # 5 minutes — covers demo restarts
 
 
 class RegisterRequest(BaseModel):
