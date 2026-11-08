@@ -1,6 +1,7 @@
 // Shell: hash router, navigation and the mobile sidebar drawer.
 import { renderAgents } from './agents.js';
 import { focusAssistant, initAssistant } from './assistant.js';
+import { renderDashboard } from './dashboard.js';
 import { renderNewProject, renderProjectDetail, renderProjects } from './projects.js';
 import { closeSidebar, isDesktop, openSidebar } from './util.js';
 
@@ -13,6 +14,7 @@ const ROUTES = [
   { pattern: /^#\/projects$/, nav: 'projects', render: (root) => renderProjects(root) },
   { pattern: /^#\/projects\/(\d+)$/, nav: 'projects', render: (root, m, ctx) => renderProjectDetail(root, Number(m[1]), ctx) },
   { pattern: /^#\/agents$/, nav: 'agents', render: (root) => renderAgents(root) },
+  { pattern: /^#\/dashboard$/, nav: 'dashboard', render: (root, _m, ctx) => renderDashboard(root, ctx) },
   { pattern: /^#\/assistant$/, nav: 'assistant', render: null },
 ];
 

@@ -375,3 +375,21 @@ ul.plain { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.6; }
   #attachBtn, #sendBtn { width: 30px; height: 30px; }
   .stat { min-width: calc(50% - 5px); }
 }
+
+/* ---- Dashboard (PB-51) ---- */
+.dash-root h2 { margin: 0 0 16px; font-size: 20px; }
+.dash-root h3 { margin: 24px 0 10px; font-size: 15px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.stat-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; }
+.dash-stat { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px 20px; min-width: 110px; }
+.dash-stat-value { font-size: 28px; font-weight: 700; line-height: 1; }
+.dash-stat-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+.dash-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.dash-table th { text-align: left; padding: 6px 10px; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); }
+.dash-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+.event-list { display: flex; flex-direction: column; gap: 6px; }
+.event-row { display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 7px; font-size: 13px; }
+.event-icon { font-size: 15px; width: 20px; text-align: center; }
+.event-type { font-weight: 500; }
+.perf-row { display: flex; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.perf-type { font-weight: 500; min-width: 120px; }
+.section-label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }

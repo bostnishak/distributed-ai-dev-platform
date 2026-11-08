@@ -13,7 +13,9 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel
 
+import conflict_detector
 import db
+import review_scheduler
 import scheduler
 import validation as val_module
 from agents_api import require_agent_token
@@ -80,14 +82,19 @@ def next_task(agent_id: str, background_tasks: BackgroundTasks):
     # Try each unassigned task until one can be assigned
     for candidate_task in unassigned:
         task_type = candidate_task.get("type", "")
+        # PB-43: review tasks must not go to the task's original author
+        exclude = candidate_task.get("performed_by") if task_type == "review" else None
         selected_id, reason = select_agent(
             task_type=task_type,
             task_context_tokens=0,
             available_agents=all_agents,
             all_scores=all_scores,
+            exclude_agent_id=exclude,
         )
         if selected_id == agent_id:
             db.assign_task(candidate_task["id"], agent_id, reason)
+            db.log_event("task_assigned", project_id=candidate_task.get("project_id"), agent_id=agent_id,
+                         payload={"task_id": candidate_task["id"], "task_type": task_type})
             return db.get_task(candidate_task["id"])
 
     return Response(status_code=204)
@@ -142,13 +149,48 @@ def submit_result(task_id: int, request: TaskResultRequest):
         db.update_task_validation(task_id, "ok" if ok else "failed", msg)
         if not ok:
             log.warning("Task %d validation failed (%s): %s — requeuing.", task_id, task_type, msg)
-            db.requeue_task(task_id)
-            return {"ok": True, "validation": "failed", "message": msg}
+            outcome = db.requeue_task(task_id)
+            db.log_event("task_validation_failed", project_id=task.get("project_id"),
+                         agent_id=task.get("assigned_to"),
+                         payload={"task_id": task_id, "outcome": outcome, "message": msg})
+            return {"ok": True, "validation": "failed", "message": msg, "requeue_outcome": outcome}
+
+        # Conflict detection (PB-45)
+        if files:
+            project_id = task.get("project_id")
+            if project_id:
+                conflicts = conflict_detector.detect_and_save(project_id, task_id, files)
+                if conflicts:
+                    db.log_event("conflict_detected", project_id=project_id,
+                                 agent_id=task.get("assigned_to"),
+                                 payload={"task_id": task_id, "conflicts": conflicts})
 
         # Release any newly unblocked tasks (PB-34)
         scheduler.release_after_completion(task_id)
+        db.log_event("task_done", project_id=task.get("project_id"),
+                     agent_id=task.get("assigned_to"),
+                     payload={"task_id": task_id, "task_type": task_type})
+
+        # Auto-create sibling review task for code tasks (PB-43)
+        full_task = db.get_task(task_id)
+        if full_task:
+            review_scheduler.schedule_review(full_task)
 
     return {"ok": True, "validation": "ok" if request.status == "done" else "skipped"}
+
+
+class FixTaskRequest(BaseModel):
+    findings: list[str]
+
+
+@router.post("/api/tasks/{task_id}/fix-tasks", dependencies=[Depends(require_agent_token)])
+def create_fix_tasks(task_id: int, request: FixTaskRequest):
+    """Spawn fix tasks from a review task's critical findings (PB-42)."""
+    task = db.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Görev bulunamadı.")
+    new_ids = review_scheduler.schedule_fix_tasks(task, request.findings)
+    return {"ok": True, "created": new_ids}
 
 
 @router.post("/api/tasks/{task_id}/cancel", dependencies=[Depends(require_agent_token)])
