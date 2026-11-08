@@ -11,7 +11,9 @@ from datetime import UTC, datetime
 
 import config
 
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 6
+
+MAX_ATTEMPTS = 3  # PB-44: tasks fail permanently after this many attempts
 
 # SCHEMA always describes the latest version (used for new databases). Existing databases are
 # brought up to date by the statements in MIGRATIONS, keyed by the version they produce.
@@ -47,6 +49,29 @@ MIGRATIONS = {
         "ALTER TABLE tasks ADD COLUMN validation_status TEXT DEFAULT 'pending'",
         "ALTER TABLE tasks ADD COLUMN validation_message TEXT",
         "ALTER TABLE tasks ADD COLUMN attempt INTEGER DEFAULT 0",
+    ],
+    5: [
+        """CREATE TABLE IF NOT EXISTS conflicts (
+            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_id   INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+            task_id_a    INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+            task_id_b    INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+            file_path    TEXT NOT NULL,
+            detected_at  TEXT NOT NULL,
+            resolved_at  TEXT,
+            resolution   TEXT
+        )""",
+        """CREATE TABLE IF NOT EXISTS events (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_id  INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+            agent_id    TEXT REFERENCES agents(agent_id) ON DELETE SET NULL,
+            event_type  TEXT NOT NULL,
+            payload     TEXT,
+            created_at  TEXT NOT NULL
+        )""",
+    ],
+    6: [
+        "ALTER TABLE tasks ADD COLUMN perf_ms INTEGER",
     ],
 }
 
@@ -130,6 +155,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     validation_status TEXT DEFAULT 'pending',    -- pending | ok | failed
     validation_message TEXT,
     attempt           INTEGER DEFAULT 0,         -- how many times this task has been attempted
+    perf_ms           INTEGER,                   -- wall-clock ms from assignment to result (PB-52)
     UNIQUE (project_id, key)
 );
 
@@ -137,6 +163,26 @@ CREATE TABLE IF NOT EXISTS task_dependencies (
     task_id            INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
     depends_on_task_id INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
     PRIMARY KEY (task_id, depends_on_task_id)
+);
+
+CREATE TABLE IF NOT EXISTS conflicts (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id   INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    task_id_a    INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    task_id_b    INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    file_path    TEXT NOT NULL,
+    detected_at  TEXT NOT NULL,
+    resolved_at  TEXT,
+    resolution   TEXT
+);
+
+CREATE TABLE IF NOT EXISTS events (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id  INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+    agent_id    TEXT REFERENCES agents(agent_id) ON DELETE SET NULL,
+    event_type  TEXT NOT NULL,
+    payload     TEXT,
+    created_at  TEXT NOT NULL
 );
 """
 
@@ -366,17 +412,28 @@ def submit_task_result_with_files(
     files: list[dict] | None,
     tokens_per_second: float | None,
 ) -> None:
-    """Submit task result including optional files list."""
+    """Submit task result including optional files list. Records perf_ms from assignment."""
     with connect() as conn:
+        row = conn.execute("SELECT assigned_at FROM tasks WHERE id = ?", (task_id,)).fetchone()
+        perf_ms: int | None = None
+        if row and row["assigned_at"]:
+            try:
+                assigned = datetime.fromisoformat(row["assigned_at"].replace("Z", "+00:00"))
+                if assigned.tzinfo is None:
+                    assigned = assigned.replace(tzinfo=UTC)
+                perf_ms = int((datetime.now(UTC) - assigned).total_seconds() * 1000)
+            except (ValueError, TypeError):
+                pass
         conn.execute(
             "UPDATE tasks SET status = ?, result = ?, result_at = ?, tokens_per_second = ?, "
-            "files = ?, attempt = attempt + 1 WHERE id = ?",
+            "files = ?, attempt = attempt + 1, perf_ms = ? WHERE id = ?",
             (
                 status,
                 output,
                 utc_now(),
                 tokens_per_second,
                 json.dumps(files, ensure_ascii=False) if files else None,
+                perf_ms,
                 task_id,
             ),
         )
@@ -390,9 +447,21 @@ def update_task_validation(task_id: int, validation_status: str, message: str) -
         )
 
 
-def requeue_task(task_id: int) -> None:
-    """Reset a task back to planned (unassigned) for reassignment."""
+def requeue_task(task_id: int) -> str:
+    """Reset a task to planned, or mark it permanently failed if MAX_ATTEMPTS reached.
+
+    Returns 'requeued' or 'failed'.
+    """
     with connect() as conn:
+        row = conn.execute("SELECT attempt FROM tasks WHERE id = ?", (task_id,)).fetchone()
+        current_attempt = (row["attempt"] or 0) if row else 0
+        if current_attempt >= MAX_ATTEMPTS:
+            conn.execute(
+                "UPDATE tasks SET status = 'failed', assigned_to = NULL, assigned_at = NULL, "
+                "lease_expires_at = NULL WHERE id = ?",
+                (task_id,),
+            )
+            return "failed"
         conn.execute(
             "UPDATE tasks SET status = 'planned', assigned_to = NULL, assigned_at = NULL, "
             "lease_expires_at = NULL, assignment_reason = NULL, result = NULL, result_at = NULL, "
@@ -400,6 +469,7 @@ def requeue_task(task_id: int) -> None:
             "validation_message = NULL WHERE id = ?",
             (task_id,),
         )
+        return "requeued"
 
 
 def release_all_ready_tasks() -> int:
@@ -554,3 +624,94 @@ def delete_project(project_id: int) -> bool:
     with connect() as conn:
         cursor = conn.execute("DELETE FROM projects WHERE id = ?", (project_id,))
         return cursor.rowcount > 0
+
+
+# --- Conflicts (PB-45) --------------------------------------------------------------------
+
+def save_conflict(project_id: int, task_id_a: int, task_id_b: int, file_path: str) -> int:
+    with connect() as conn:
+        cursor = conn.execute(
+            "INSERT OR IGNORE INTO conflicts (project_id, task_id_a, task_id_b, file_path, detected_at) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (project_id, task_id_a, task_id_b, file_path, utc_now()),
+        )
+        return cursor.lastrowid or 0
+
+
+def list_conflicts(project_id: int) -> list[dict]:
+    with connect() as conn:
+        rows = conn.execute(
+            "SELECT * FROM conflicts WHERE project_id = ? ORDER BY detected_at DESC",
+            (project_id,),
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def resolve_conflict(conflict_id: int, resolution: str) -> bool:
+    with connect() as conn:
+        cursor = conn.execute(
+            "UPDATE conflicts SET resolved_at = ?, resolution = ? WHERE id = ? AND resolved_at IS NULL",
+            (utc_now(), resolution, conflict_id),
+        )
+        return cursor.rowcount > 0
+
+
+# --- Events (PB-51) -----------------------------------------------------------------------
+
+def log_event(event_type: str, project_id: int | None = None, agent_id: str | None = None, payload: dict | None = None) -> None:
+    with connect() as conn:
+        conn.execute(
+            "INSERT INTO events (project_id, agent_id, event_type, payload, created_at) VALUES (?, ?, ?, ?, ?)",
+            (project_id, agent_id, event_type, json.dumps(payload, ensure_ascii=False) if payload else None, utc_now()),
+        )
+
+
+def list_events(limit: int = 50, project_id: int | None = None) -> list[dict]:
+    with connect() as conn:
+        if project_id is not None:
+            rows = conn.execute(
+                "SELECT * FROM events WHERE project_id = ? ORDER BY id DESC LIMIT ?",
+                (project_id, limit),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT * FROM events ORDER BY id DESC LIMIT ?", (limit,)
+            ).fetchall()
+    result = []
+    for row in rows:
+        e = dict(row)
+        e["payload"] = json.loads(e["payload"]) if e["payload"] else None
+        result.append(e)
+    return result
+
+
+# --- Performance stats (PB-52) ------------------------------------------------------------
+
+def get_perf_stats(project_id: int | None = None) -> dict:
+    """Return aggregate performance metrics for tasks."""
+    with connect() as conn:
+        base = "FROM tasks WHERE perf_ms IS NOT NULL AND status = 'done'"
+        params: list = []
+        if project_id is not None:
+            base += " AND project_id = ?"
+            params.append(project_id)
+        row = conn.execute(
+            f"SELECT COUNT(*) as cnt, AVG(perf_ms) as avg_ms, MIN(perf_ms) as min_ms, MAX(perf_ms) as max_ms {base}",
+            params,
+        ).fetchone()
+        by_type = conn.execute(
+            f"SELECT type, COUNT(*) as cnt, AVG(perf_ms) as avg_ms {base} GROUP BY type ORDER BY avg_ms DESC",
+            params,
+        ).fetchall()
+        by_agent = conn.execute(
+            f"SELECT assigned_to, COUNT(*) as cnt, AVG(perf_ms) as avg_ms {base} GROUP BY assigned_to ORDER BY cnt DESC",
+            params,
+        ).fetchall()
+    return {
+        "total_tasks": row["cnt"] if row else 0,
+        "avg_ms": round(row["avg_ms"] or 0) if row else 0,
+        "min_ms": row["min_ms"] if row else None,
+        "max_ms": row["max_ms"] if row else None,
+        "by_type": [dict(r) for r in by_type],
+        "by_agent": [dict(r) for r in by_agent],
+    }

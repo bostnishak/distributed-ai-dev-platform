@@ -9,9 +9,11 @@ from fastapi.staticfiles import StaticFiles
 import agents_api
 import assistant
 import config
+import contract_check
 import db
 import llm
 import output_api
+import perf_api
 import projects_api
 import scheduler
 import tasks_api
@@ -32,6 +34,13 @@ app.include_router(projects_api.router)
 app.include_router(assistant.router)
 app.include_router(tasks_api.router)
 app.include_router(output_api.router)
+app.include_router(perf_api.router)
+
+
+@app.get("/api/admin/contract-check")
+async def api_contract_check():
+    """PB-40: Check frontend fetch() calls against backend routes."""
+    return contract_check.run_check(app)
 app.mount("/static", StaticFiles(directory=config.STATIC_DIR), name="static")
 
 

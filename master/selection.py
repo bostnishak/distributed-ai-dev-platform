@@ -94,6 +94,7 @@ def select_agent(
     task_context_tokens: int,
     available_agents: list[dict],
     all_scores: dict[str, dict[str, float]],
+    exclude_agent_id: str | None = None,
 ) -> tuple[str | None, dict]:
     """
     Select the best agent for a task.
@@ -107,8 +108,10 @@ def select_agent(
     Returns:
         (agent_id, reason_dict) or (None, reason_dict) if no agent is available.
     """
-    # Filter to online agents only
+    # Filter to online agents only; optionally exclude the task's original author (PB-43)
     online = [a for a in available_agents if _is_online(a)]
+    if exclude_agent_id:
+        online = [a for a in online if a["agent_id"] != exclude_agent_id]
     if not online:
         return None, {"reason": "No online agents", "candidates": []}
 
