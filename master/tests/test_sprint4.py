@@ -4,14 +4,11 @@ from __future__ import annotations
 
 import json
 from datetime import UTC, datetime, timedelta
-from unittest.mock import patch
-
-import pytest
+from typing import ClassVar
 
 import db
 from conflict_detector import detect_and_save
 from selection import select_agent
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -104,25 +101,25 @@ class TestConflictDetection:
         assert conflicts[0]["task_id_b"] == t2
 
     def test_no_conflict_for_different_paths(self, tmp_path, monkeypatch):
-        pid, t1, t2 = self._setup_project_with_tasks(tmp_path, monkeypatch)
+        pid, _t1, t2 = self._setup_project_with_tasks(tmp_path, monkeypatch)
         new_files = [{"path": "frontend/index.html", "content": "<html>"}]
         conflicts = detect_and_save(pid, t2, new_files)
         assert conflicts == []
 
     def test_no_conflict_for_empty_files(self, tmp_path, monkeypatch):
-        pid, t1, t2 = self._setup_project_with_tasks(tmp_path, monkeypatch)
+        pid, _t1, t2 = self._setup_project_with_tasks(tmp_path, monkeypatch)
         conflicts = detect_and_save(pid, t2, [])
         assert conflicts == []
 
     def test_conflict_saved_to_db(self, tmp_path, monkeypatch):
-        pid, t1, t2 = self._setup_project_with_tasks(tmp_path, monkeypatch)
+        pid, _t1, t2 = self._setup_project_with_tasks(tmp_path, monkeypatch)
         detect_and_save(pid, t2, [{"path": "backend/main.py", "content": "# v2"}])
         rows = db.list_conflicts(pid)
         assert len(rows) >= 1
         assert rows[0]["file_path"] == "backend/main.py"
 
     def test_resolve_conflict(self, tmp_path, monkeypatch):
-        pid, t1, t2 = self._setup_project_with_tasks(tmp_path, monkeypatch)
+        pid, _t1, t2 = self._setup_project_with_tasks(tmp_path, monkeypatch)
         detect_and_save(pid, t2, [{"path": "backend/main.py", "content": "# v2"}])
         rows = db.list_conflicts(pid)
         ok = db.resolve_conflict(rows[0]["id"], "kept_latest")
@@ -160,7 +157,7 @@ class TestReviewExclusion:
     def test_exclude_all_agents_returns_none(self):
         agents = [_make_agent("a1")]
         scores = {"a1": _scores()}
-        selected, reason = select_agent("review", 0, agents, scores, exclude_agent_id="a1")
+        selected, _reason = select_agent("review", 0, agents, scores, exclude_agent_id="a1")
         assert selected is None
 
 
@@ -177,7 +174,7 @@ class TestContractCheck:
                 self.path = path
 
         class FakeApp:
-            routes = [FakeRoute("/api/agents"), FakeRoute("/health"), FakeRoute("/api/projects")]
+            routes: ClassVar = [FakeRoute("/api/agents"), FakeRoute("/health"), FakeRoute("/api/projects")]
 
         result = run_check(FakeApp())
         assert "frontend_routes" in result
@@ -189,12 +186,13 @@ class TestContractCheck:
         assert "/health" not in result["backend_routes"]  # only /api/ routes
 
     def test_ok_false_when_frontend_calls_missing_endpoint(self):
-        from contract_check import run_check
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import patch
+
         import contract_check as cc
+        from contract_check import run_check
 
         class FakeApp:
-            routes = []
+            routes: ClassVar = []
 
         with patch.object(cc, "_extract_frontend_routes", return_value={"/api/missing"}):
             result = run_check(FakeApp())

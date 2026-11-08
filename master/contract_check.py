@@ -11,7 +11,6 @@ from pathlib import Path
 
 import config
 
-
 _FETCH_RE = re.compile(r"""fetch\s*\(\s*[`'"](\/api\/[^`'"?\s]+)""")
 _TEMPLATE_RE = re.compile(r"""\$\{[^}]+\}""")
 
