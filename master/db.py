@@ -597,6 +597,40 @@ def save_decomposition(
         )
 
 
+def create_task(
+    project_id: int,
+    key: str,
+    title: str,
+    description: str,
+    task_type: str,
+    depends_on: list[str] | None = None,
+    details: dict | None = None,
+    stage: int = 2,
+) -> int:
+    """Insert a single dynamic task (e.g. review or fix task) and return its id."""
+    with connect() as conn:
+        cursor = conn.execute(
+            "INSERT INTO tasks (project_id, key, stage, type, title, description, details, status)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, 'planned')",
+            (
+                project_id, key, stage, task_type, title, description,
+                json.dumps(details or {}, ensure_ascii=False),
+            ),
+        )
+        new_id = cursor.lastrowid
+        # Wire up dependencies by key
+        for dep_key in (depends_on or []):
+            dep_row = conn.execute(
+                "SELECT id FROM tasks WHERE project_id = ? AND key = ?", (project_id, dep_key)
+            ).fetchone()
+            if dep_row:
+                conn.execute(
+                    "INSERT OR IGNORE INTO task_dependencies (task_id, depends_on_task_id) VALUES (?, ?)",
+                    (new_id, dep_row["id"]),
+                )
+    return new_id
+
+
 def list_tasks(project_id: int) -> list[dict]:
     with connect() as conn:
         rows = conn.execute(
@@ -608,6 +642,13 @@ def list_tasks(project_id: int) -> list[dict]:
             "WHERE t.project_id = ? ORDER BY d.id",
             (project_id,),
         ).fetchall()
+        conflict_rows = conn.execute(
+            "SELECT task_id_a, task_id_b FROM conflicts WHERE project_id = ?", (project_id,)
+        ).fetchall()
+    tasks_with_conflicts: set[int] = set()
+    for c in conflict_rows:
+        tasks_with_conflicts.add(c["task_id_a"])
+        tasks_with_conflicts.add(c["task_id_b"])
     depends_on: dict[str, list[str]] = {}
     for dep in deps:
         depends_on.setdefault(dep["task_key"], []).append(dep["dep_key"])
@@ -616,6 +657,7 @@ def list_tasks(project_id: int) -> list[dict]:
         task = dict(row)
         task["details"] = json.loads(task["details"])
         task["depends_on"] = depends_on.get(task["key"], [])
+        task["has_conflict"] = task["id"] in tasks_with_conflicts
         result.append(task)
     return result
 

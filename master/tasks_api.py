@@ -15,6 +15,7 @@ from pydantic import BaseModel
 
 import conflict_detector
 import db
+import review_scheduler
 import scheduler
 import validation as val_module
 from agents_api import require_agent_token
@@ -170,7 +171,26 @@ def submit_result(task_id: int, request: TaskResultRequest):
                      agent_id=task.get("assigned_to"),
                      payload={"task_id": task_id, "task_type": task_type})
 
+        # Auto-create sibling review task for code tasks (PB-43)
+        full_task = db.get_task(task_id)
+        if full_task:
+            review_scheduler.schedule_review(full_task)
+
     return {"ok": True, "validation": "ok" if request.status == "done" else "skipped"}
+
+
+class FixTaskRequest(BaseModel):
+    findings: list[str]
+
+
+@router.post("/api/tasks/{task_id}/fix-tasks", dependencies=[Depends(require_agent_token)])
+def create_fix_tasks(task_id: int, request: FixTaskRequest):
+    """Spawn fix tasks from a review task's critical findings (PB-42)."""
+    task = db.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Görev bulunamadı.")
+    new_ids = review_scheduler.schedule_fix_tasks(task, request.findings)
+    return {"ok": True, "created": new_ids}
 
 
 @router.post("/api/tasks/{task_id}/cancel", dependencies=[Depends(require_agent_token)])

@@ -315,7 +315,11 @@ function renderTaskList(tasks) {
             ? h('span', { class: 'badge' }, agentLabel(task.performed_by))
             : null,
           task.validation_status === 'failed'
-            ? h('span', { class: 'badge danger', title: task.validation_message }, '! doğrulama hatası') : null),
+            ? h('span', { class: 'badge danger', title: task.validation_message }, '! doğrulama hatası') : null,
+          task.attempt > 0
+            ? h('span', { class: 'badge warn', title: `${task.attempt}. deneme` }, `↻${task.attempt}`) : null,
+          task.has_conflict
+            ? h('span', { class: 'badge danger', title: 'Çıktı dosyasında çakışma tespit edildi' }, '⚡ çakışma') : null),
         h('div', { class: 'task-desc' }, task.description),
         task.depends_on.length
           ? h('div', { class: 'task-deps' }, 'Bağımlılık: ',
