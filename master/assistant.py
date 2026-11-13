@@ -8,6 +8,7 @@ none is available the master's own model is used instead (qwen3.5:4b supports vi
 import ast
 import asyncio
 import base64
+import json
 import operator
 import os
 import re
@@ -17,6 +18,7 @@ import tempfile
 
 import httpx
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 import config
@@ -243,16 +245,14 @@ class ChatResponse(BaseModel):
     task_type: str
 
 
-@router.post("/chat", response_model=ChatResponse)
-async def chat(prompt: str = Form(...), file: UploadFile | None = File(None)):  # noqa: B008 (standard FastAPI pattern)
-    # Tool use + accuracy: answer a pure arithmetic prompt instantly and correctly without
-    # calling any model (see try_calculate). Only when no file is attached -- a file means
-    # the intent is analysis, not calculation.
-    if file is None or not file.filename:
-        calc_result = try_calculate(prompt)
-        if calc_result is not None:
-            return ChatResponse(content=calc_result, used_model="hesaplama", task_type="hesaplama")
+async def _prepare_chat_request(
+    prompt: str, file: UploadFile | None
+) -> tuple[str, str | None, str | None, str, bool]:
+    """Shared pre-processing for both /chat and /chat/stream.
 
+    Returns (full_prompt, image_b64, forced_task_type, keyword_task, inappropriate).
+    When keyword_task is non-None, the classifier call can be skipped.
+    """
     file_note = ""
     extracted_text = ""
     forced_task_type = None
@@ -264,7 +264,6 @@ async def chat(prompt: str = Form(...), file: UploadFile | None = File(None)):  
         raw = await file.read()
 
         if content_type.startswith("image/"):
-            # Sprint 3 (PB-36): route via vision-capable model on master's Ollama.
             image_b64 = base64.b64encode(raw).decode()
             forced_task_type = "analiz"
         elif name.endswith(".pdf"):
@@ -276,9 +275,6 @@ async def chat(prompt: str = Form(...), file: UploadFile | None = File(None)):  
         elif name.endswith((".xlsx", ".xlsm")):
             extracted_text = extract_xlsx_text(raw)
             forced_task_type = "analiz"
-        # .csv must be checked before the generic "text/" branch below -- browsers usually
-        # tag CSV uploads as content_type="text/csv", which would otherwise be swallowed as
-        # plain text and lose the row/column parsing.
         elif name.endswith(".csv"):
             extracted_text = extract_csv_text(raw)
             forced_task_type = "analiz"
@@ -288,7 +284,28 @@ async def chat(prompt: str = Form(...), file: UploadFile | None = File(None)):  
         else:
             file_note = f"\n\n[Not: '{file.filename}' desteklenmeyen bir dosya türü.]"
 
-    classified_task, inappropriate = await classify_and_moderate(prompt)
+    full_prompt = prompt
+    if extracted_text:
+        full_prompt = f"{prompt}\n\n--- Eklenen dosya içeriği ---\n{extracted_text[:8000]}"
+    full_prompt += file_note
+
+    # Skip the classifier call when a keyword match already determines the category.
+    keyword_task = forced_task_type or keyword_category_override(prompt)
+    inappropriate = False
+    if not keyword_task:
+        _, inappropriate = await classify_and_moderate(prompt)
+
+    return full_prompt, image_b64, forced_task_type, keyword_task or "", inappropriate
+
+
+@router.post("/chat", response_model=ChatResponse)
+async def chat(prompt: str = Form(...), file: UploadFile | None = File(None)):  # noqa: B008
+    if file is None or not file.filename:
+        calc_result = try_calculate(prompt)
+        if calc_result is not None:
+            return ChatResponse(content=calc_result, used_model="hesaplama", task_type="hesaplama")
+
+    full_prompt, image_b64, forced_task_type, keyword_task, inappropriate = await _prepare_chat_request(prompt, file)
 
     if inappropriate:
         return ChatResponse(
@@ -300,18 +317,74 @@ async def chat(prompt: str = Form(...), file: UploadFile | None = File(None)):  
             task_type="engellendi",
         )
 
-    full_prompt = prompt
-    if extracted_text:
-        full_prompt = f"{prompt}\n\n--- Eklenen dosya içeriği ---\n{extracted_text[:8000]}"
-    full_prompt += file_note
-
-    task_type = forced_task_type or keyword_category_override(prompt) or classified_task
-    content, used_model = await call_ollama_chat(
-        full_prompt,
-        system_prompt=ANSWER_SYSTEM_PROMPT,
-        image_b64=image_b64,
-    )
+    task_type = keyword_task or DEFAULT_TASK
+    content, used_model = await call_ollama_chat(full_prompt, system_prompt=ANSWER_SYSTEM_PROMPT, image_b64=image_b64)
     return ChatResponse(content=content, used_model=used_model, task_type=task_type)
+
+
+@router.post("/chat/stream")
+async def chat_stream(prompt: str = Form(...), file: UploadFile | None = File(None)):  # noqa: B008
+    """Streaming chat endpoint: tokens arrive as Server-Sent Events."""
+    if file is None or not file.filename:
+        calc_result = try_calculate(prompt)
+        if calc_result is not None:
+            async def _calc_gen():
+                yield f"data: {json.dumps({'type': 'token', 'content': calc_result})}\n\n"
+                yield f"data: {json.dumps({'type': 'done', 'model': 'hesaplama', 'task_type': 'hesaplama'})}\n\n"
+            return StreamingResponse(_calc_gen(), media_type="text/event-stream")
+
+    full_prompt, image_b64, forced_task_type, keyword_task, inappropriate = await _prepare_chat_request(prompt, file)
+
+    if inappropriate:
+        msg = (
+            "Bu mesaj hakaret/uygunsuz ifade içerebilecek şekilde değerlendirildi, "
+            "bu yüzden bir modele iletilmedi. Lütfen sorunu farklı bir şekilde ifade et."
+        )
+        async def _mod_gen():
+            yield f"data: {json.dumps({'type': 'token', 'content': msg})}\n\n"
+            yield f"data: {json.dumps({'type': 'done', 'model': 'moderation', 'task_type': 'engellendi'})}\n\n"
+        return StreamingResponse(_mod_gen(), media_type="text/event-stream")
+
+    task_type = keyword_task or DEFAULT_TASK
+    model = config.MASTER_MODEL
+    ollama_url = config.OLLAMA_URL
+
+    messages = []
+    if ANSWER_SYSTEM_PROMPT:
+        messages.append({"role": "system", "content": ANSWER_SYSTEM_PROMPT})
+    user_msg: dict = {"role": "user", "content": full_prompt}
+    if image_b64:
+        user_msg["images"] = [image_b64]
+    messages.append(user_msg)
+
+    payload = {
+        "model": model,
+        "messages": messages,
+        "stream": True,
+        "think": False,
+        "options": {"num_predict": config.ASSISTANT_NUM_PREDICT, "temperature": 0.7},
+    }
+
+    async def _stream_gen():
+        try:
+            async with httpx.AsyncClient(timeout=180.0) as client:
+                async with client.stream("POST", f"{ollama_url}/api/chat", json=payload) as resp:
+                    async for line in resp.aiter_lines():
+                        if not line:
+                            continue
+                        try:
+                            chunk = json.loads(line)
+                        except json.JSONDecodeError:
+                            continue
+                        content_piece = chunk.get("message", {}).get("content", "")
+                        if content_piece:
+                            yield f"data: {json.dumps({'type': 'token', 'content': content_piece})}\n\n"
+                        if chunk.get("done"):
+                            yield f"data: {json.dumps({'type': 'done', 'model': model, 'task_type': task_type})}\n\n"
+        except Exception as exc:
+            yield f"data: {json.dumps({'type': 'error', 'content': str(exc)})}\n\n"
+
+    return StreamingResponse(_stream_gen(), media_type="text/event-stream")
 
 
 class CodeRunRequest(BaseModel):

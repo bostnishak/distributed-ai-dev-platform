@@ -221,25 +221,96 @@ async function sendMessage() {
   els.sendBtn.disabled = true;
   updateSendState();
 
-  const thinkingRow = addAssistantMessage('düşünüyor...', null, false, true);
+  // Create a streaming bubble
+  const row = document.createElement('div');
+  row.className = 'msg-row assistant';
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-wrap';
+  const bubble = document.createElement('div');
+  bubble.className = 'msg assistant thinking';
+  bubble.textContent = 'düşünüyor...';
+  wrap.appendChild(bubble);
+  row.appendChild(wrap);
+  els.messages.appendChild(row);
+  els.messages.scrollTop = els.messages.scrollHeight;
+
+  let fullText = '';
+  let usedModel = '';
+  let taskType = '';
+  let streaming = false;
 
   try {
     const formData = new FormData();
     formData.append('prompt', prompt);
     if (fileToSend) formData.append('file', fileToSend);
 
-    const resp = await fetch('/api/assistant/chat', { method: 'POST', body: formData });
-    const data = await resp.json();
-    thinkingRow.remove();
-
+    const resp = await fetch('/api/assistant/chat/stream', { method: 'POST', body: formData });
     if (!resp.ok) {
+      const data = await resp.json().catch(() => ({}));
+      row.remove();
       addAssistantMessage(data.detail || 'Bilinmeyen hata', null, true, false);
-    } else {
-      const label = MODEL_LABELS[data.used_model] || data.used_model;
-      addAssistantMessage(data.content, label, false, false);
+      return;
+    }
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop(); // keep incomplete line
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        let evt;
+        try { evt = JSON.parse(line.slice(6)); } catch { continue; }
+
+        if (evt.type === 'token') {
+          if (!streaming) {
+            streaming = true;
+            bubble.classList.remove('thinking');
+            bubble.textContent = '';
+          }
+          fullText += evt.content;
+          bubble.innerHTML = renderMarkdown(fullText);
+          els.messages.scrollTop = els.messages.scrollHeight;
+        } else if (evt.type === 'done') {
+          usedModel = evt.model || '';
+          taskType = evt.task_type || '';
+        } else if (evt.type === 'error') {
+          row.remove();
+          addAssistantMessage('Model hatası: ' + evt.content, null, true, false);
+          return;
+        }
+      }
+    }
+
+    // Finalise the bubble: add badge and download link
+    if (fullText) {
+      bubble.innerHTML = renderMarkdown(fullText);
+      const label = MODEL_LABELS[usedModel] || usedModel;
+      if (label) {
+        const badgeRow = document.createElement('div');
+        badgeRow.className = 'badge-row';
+        const badge = document.createElement('span');
+        badge.className = 'badge';
+        badge.textContent = label;
+        badgeRow.appendChild(badge);
+        wrap.insertBefore(badgeRow, bubble);
+      }
+      const dl = document.createElement('span');
+      dl.className = 'download-link';
+      dl.textContent = 'Dosya olarak indir';
+      dl.style.marginTop = '4px';
+      dl.addEventListener('click', () => downloadAsFile(fullText));
+      wrap.appendChild(dl);
+      currentMessages.push({ role: 'assistant', text: fullText, modelBadge: MODEL_LABELS[usedModel] || usedModel, isError: false });
     }
   } catch (err) {
-    thinkingRow.remove();
+    row.remove();
     addAssistantMessage('Bağlantı hatası: ' + err.message, null, true, false);
   } finally {
     els.sendBtn.disabled = false;
