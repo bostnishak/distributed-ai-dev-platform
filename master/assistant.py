@@ -305,7 +305,7 @@ async def chat(prompt: str = Form(...), file: UploadFile | None = File(None)):  
         if calc_result is not None:
             return ChatResponse(content=calc_result, used_model="hesaplama", task_type="hesaplama")
 
-    full_prompt, image_b64, forced_task_type, keyword_task, inappropriate = await _prepare_chat_request(prompt, file)
+    full_prompt, image_b64, _forced_task_type, keyword_task, inappropriate = await _prepare_chat_request(prompt, file)
 
     if inappropriate:
         return ChatResponse(
@@ -333,7 +333,7 @@ async def chat_stream(prompt: str = Form(...), file: UploadFile | None = File(No
                 yield f"data: {json.dumps({'type': 'done', 'model': 'hesaplama', 'task_type': 'hesaplama'})}\n\n"
             return StreamingResponse(_calc_gen(), media_type="text/event-stream")
 
-    full_prompt, image_b64, forced_task_type, keyword_task, inappropriate = await _prepare_chat_request(prompt, file)
+    full_prompt, image_b64, _forced_task_type, keyword_task, inappropriate = await _prepare_chat_request(prompt, file)
 
     if inappropriate:
         msg = (
