@@ -41,27 +41,51 @@ TOKEN = _read_token()
 AUTH = {"Authorization": f"Bearer {TOKEN}"}
 
 MEMBERS = [
-    # model = what this person runs on their laptop (shown in UI)
-    # execution_model = what's actually installed on THIS machine (used for Ollama)
-    {"agent_id": "uye1", "member_name": "İshak Bostan",        "model": "qwen3.5:4b",  "execution_model": "qwen3.5:4b"},
-    {"agent_id": "uye2", "member_name": "Zeynep Duru Küçük",   "model": "phi4-mini",   "execution_model": "qwen3.5:4b"},
-    {"agent_id": "uye3", "member_name": "Furkan Kaan Özbeyli", "model": "llama3.2:3b", "execution_model": "qwen3.5:4b"},
-    {"agent_id": "uye4", "member_name": "Semih Sarıca",        "model": "gemma2:9b",   "execution_model": "qwen3.5:4b"},
-    {"agent_id": "uye5", "member_name": "Işıl Karademir",      "model": "qwen2.5:7b",  "execution_model": "qwen3.5:4b"},
-    {"agent_id": "uye6", "member_name": "Berfin Yiğit",        "model": "qwen3.1:7b",  "execution_model": "qwen3.5:4b"},
+    # model = display model shown in UI (team member's "declared" model)
+    # execution_model = actually installed model used for Ollama calls
+    # capabilities = task types this agent prefers (affects routing scores)
+    {
+        "agent_id": "uye1", "member_name": "İshak Bostan",
+        "model": "qwen3.5:4b", "execution_model": "qwen3.5:4b",
+        "capabilities": ["backend", "integration", "coding"],
+    },
+    {
+        "agent_id": "uye2", "member_name": "Zeynep Duru Küçük",
+        "model": "phi4-mini", "execution_model": "phi4-mini",
+        "capabilities": ["frontend", "documentation", "ui"],
+    },
+    {
+        "agent_id": "uye3", "member_name": "Furkan Kaan Özbeyli",
+        "model": "llama3.2:3b", "execution_model": "llama3.2:3b",
+        "capabilities": ["testing", "documentation", "review"],
+    },
+    {
+        "agent_id": "uye4", "member_name": "Semih Sarıca",
+        "model": "qwen2.5-coder:7b", "execution_model": "qwen2.5-coder:7b",
+        "capabilities": ["backend", "database_schema", "coding"],
+    },
+    {
+        "agent_id": "uye5", "member_name": "Işıl Karademir",
+        "model": "qwen3.5:9b", "execution_model": "qwen3.5:9b",
+        "capabilities": ["documentation", "review", "integration"],
+    },
+    {
+        "agent_id": "uye6", "member_name": "Berfin Yiğit",
+        "model": "qwen3:1.7b", "execution_model": "qwen3:1.7b",
+        "capabilities": ["frontend", "testing", "documentation"],
+    },
 ]
 
 MODEL_META = {
-    "qwen3.5:4b":  {"model_family": "qwen",   "parameter_size": "3.5B", "quantization": "Q4_K_M", "context_length": 32768},
-    "phi4-mini":   {"model_family": "phi",    "parameter_size": "3.8B", "quantization": "Q4_K_M", "context_length": 16384},
-    "llama3.2:3b": {"model_family": "llama",  "parameter_size": "3B",   "quantization": "Q4_K_M", "context_length": 8192},
-    "gemma2:9b":   {"model_family": "gemma",  "parameter_size": "9B",   "quantization": "Q4_K_M", "context_length": 8192},
-    "qwen2.5:7b":  {"model_family": "qwen",   "parameter_size": "7B",   "quantization": "Q4_K_M", "context_length": 32768},
-    "qwen3.1:7b":  {"model_family": "qwen",   "parameter_size": "7B",   "quantization": "Q4_K_M", "context_length": 32768},
+    "qwen3.5:4b":        {"model_family": "qwen",   "parameter_size": "3.5B", "quantization": "Q4_K_M", "context_length": 32768},
+    "phi4-mini":         {"model_family": "phi",    "parameter_size": "3.8B", "quantization": "Q4_K_M", "context_length": 16384},
+    "llama3.2:3b":       {"model_family": "llama",  "parameter_size": "3B",   "quantization": "Q4_K_M", "context_length": 8192},
+    "qwen2.5-coder:7b":  {"model_family": "qwen",   "parameter_size": "7B",   "quantization": "Q4_K_M", "context_length": 32768},
+    "qwen3.5:9b":        {"model_family": "qwen",   "parameter_size": "9B",   "quantization": "Q4_K_M", "context_length": 32768},
+    "qwen3:1.7b":        {"model_family": "qwen",   "parameter_size": "1.7B", "quantization": "Q4_K_M", "context_length": 32768},
 }
 
 BASE_EXTRAS = {
-    "capabilities": ["completion", "tools", "thinking"],
     "ram_gb": 16.0,
     "cpu_count": 8,
     "os": "Windows 11",
@@ -213,7 +237,7 @@ async def run_member(member: dict) -> None:
     async with httpx.AsyncClient(timeout=10.0) as client:
         # Register with display model name + per-model metadata
         meta = MODEL_META.get(member["model"], MODEL_META["qwen3.5:4b"])
-        reg_member = {k: v for k, v in member.items() if k != "execution_model"}
+        reg_member = {k: v for k, v in member.items() if k not in ("execution_model",)}
         payload = {**BASE_EXTRAS, **meta, **reg_member, "mode": "node"}
         resp = await client.post(f"{MASTER_URL}/api/agents/register", json=payload, headers=AUTH)
         if resp.status_code in (200, 201):
@@ -228,9 +252,18 @@ async def run_member(member: dict) -> None:
 
 
 async def main() -> None:
-    print("=" * 55)
+    print("=" * 60)
     print("  Dağıtık YZ Platformu — Ajan Başlatıcı")
-    print("=" * 55)
+    print("=" * 60)
+    print(f"  Master : {MASTER_URL}")
+    print(f"  Ollama : {OLLAMA_URL}")
+    print("-" * 60)
+    for m in MEMBERS:
+        caps = ", ".join(m.get("capabilities", []))
+        print(f"  {m['member_name']:<24} model={m['execution_model']:<20} caps=[{caps}]")
+    print("=" * 60)
+    print("  NOT: Tailscale gerekmez — tüm ajanlar bu makinede çalışır.")
+    print("=" * 60)
     await asyncio.gather(*(run_member(m) for m in MEMBERS))
 
 
