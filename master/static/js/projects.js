@@ -55,6 +55,15 @@ function agentLabel(agentId) {
   return MAP[base] || agentId || '?';
 }
 
+const AGENT_INFO = {
+  uye1: { name: 'İshak Bostan', model: 'qwen3.5:4b' },
+  uye2: { name: 'Zeynep Duru Küçük', model: 'phi4-mini' },
+  uye3: { name: 'Furkan Kaan Özbeyli', model: 'llama3.2:3b' },
+  uye4: { name: 'Semih Sarıca', model: 'qwen2.5-coder:7b' },
+  uye5: { name: 'Işıl Karademir', model: 'qwen3.5:9b' },
+  uye6: { name: 'Berfin Yiğit', model: 'qwen3:1.7b' },
+};
+
 // --- New project ---------------------------------------------------------------------------
 
 export function renderNewProject(root) {
@@ -287,8 +296,19 @@ function taskDetails(task) {
 function taskOutput(task) {
   if (task.status !== 'done' || !task.result) return null;
   const preview = task.result.length > 400 ? `${task.result.slice(0, 400)}…` : task.result;
+  const info = task.performed_by && AGENT_INFO[task.performed_by.replace(/-.*/, '')];
+  const attribution = info
+    ? h('div', { class: 'task-output-attribution' },
+        h('span', { class: 'muted small' }, 'Üreten:'),
+        h('span', { class: 'badge ok', style: { fontSize: '11px' } }, info.name),
+        h('span', { class: 'badge', style: { fontSize: '11px' } }, info.model),
+        task.tokens_per_second
+          ? h('span', { class: 'muted small' }, `${Math.round(task.tokens_per_second)} tok/s`)
+          : null)
+    : null;
   return h('details', { class: 'task-output' },
     h('summary', null, `Çıktı (${task.result.length} karakter)`),
+    attribution,
     h('pre', { class: 'task-result-pre' }, preview));
 }
 

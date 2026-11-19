@@ -411,6 +411,7 @@ def submit_task_result_with_files(
     output: str,
     files: list[dict] | None,
     tokens_per_second: float | None,
+    performed_by: str | None = None,
 ) -> None:
     """Submit task result including optional files list. Records perf_ms from assignment."""
     with connect() as conn:
@@ -426,7 +427,7 @@ def submit_task_result_with_files(
                 pass
         conn.execute(
             "UPDATE tasks SET status = ?, result = ?, result_at = ?, tokens_per_second = ?, "
-            "files = ?, attempt = attempt + 1, perf_ms = ? WHERE id = ?",
+            "files = ?, attempt = attempt + 1, perf_ms = ?, performed_by = COALESCE(?, performed_by) WHERE id = ?",
             (
                 status,
                 output,
@@ -434,6 +435,7 @@ def submit_task_result_with_files(
                 tokens_per_second,
                 json.dumps(files, ensure_ascii=False) if files else None,
                 perf_ms,
+                performed_by,
                 task_id,
             ),
         )

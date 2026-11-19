@@ -136,6 +136,7 @@ def submit_result(task_id: int, request: TaskResultRequest):
         output=request.output,
         files=files,
         tokens_per_second=request.tokens_per_second,
+        performed_by=task.get("assigned_to"),
     )
 
     # Benchmark scoring
