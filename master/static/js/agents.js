@@ -22,9 +22,9 @@ const DIMENSION_LABELS = {
 function statusBadge(agent) {
   const online = agent.online;
   const busy = agent.heartbeat_status === 'busy';
-  if (!online) return h('span', { class: 'badge offline' }, 'Çevrimdışı');
-  if (busy) return h('span', { class: 'badge busy' }, 'Meşgul');
-  return h('span', { class: 'badge ok' }, 'Çevrimiçi');
+  if (!online) return h('span', { class: 'badge offline agent-status-badge' }, 'Çevrimdışı');
+  if (busy) return h('span', { class: 'badge busy agent-status-badge' }, 'Meşgul');
+  return h('span', { class: 'badge ok agent-status-badge' }, 'Çevrimiçi');
 }
 
 function modeBadge(agent) {
@@ -69,7 +69,12 @@ async function fetchScores(agentId) {
 
 async function agentCard(agent) {
   const latestScores = await fetchScores(agent.agent_id);
-  const rows = [
+
+  // These elements are updated in-place by the live-poll loop
+  const statusEl = statusBadge(agent);
+  const lastSeenDd = h('dd', { class: 'agent-lastseen' }, formatDateTime(agent.last_seen_at));
+
+  const staticRows = [
     ['Çalışma ortamı', runtimeLabel(agent)],
     ['Model ailesi', agent.model_family],
     ['Parametre', agent.parameter_size],
@@ -80,7 +85,6 @@ async function agentCard(agent) {
     ['İşletim sistemi', agent.os],
     ['Bilgisayar adı', agent.hostname],
     ['İlk kayıt', formatDateTime(agent.registered_at)],
-    ['Son görülme', formatDateTime(agent.last_seen_at)],
   ];
 
   const barsEl = scoreBars(latestScores);
@@ -101,20 +105,25 @@ async function agentCard(agent) {
     },
   }, 'Yeniden Değerlendir');
 
-  return h('div', { class: 'agent-card' },
+  const dl = h('dl', { class: 'kv' },
+    ...staticRows.map(([k, v]) => [h('dt', null, k), h('dd', null, v ?? '—')]),
+    h('dt', null, 'Son görülme'), lastSeenDd,
+  );
+
+  return h('div', { class: 'agent-card', 'data-agent-id': agent.agent_id },
     h('div', { class: 'who' }, agent.member_name),
     h('div', { class: 'sub' }, h('span', { class: 'mono' }, agent.agent_id), ' · ', h('span', { class: 'mono' }, agent.model)),
     h('div', { style: { display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '4px' } },
-      statusBadge(agent),
+      statusEl,
       modeBadge(agent)),
     h('div', { style: { marginTop: '8px' } },
       agent.capabilities.map((c) => h('span', { class: 'chip' }, CAPABILITY_LABELS[c] || c))),
     barsEl,
-    h('dl', { class: 'kv' }, rows.map(([k, v]) => [h('dt', null, k), h('dd', null, v ?? '—')])),
+    dl,
     evalBtn);
 }
 
-export async function renderAgents(root) {
+export async function renderAgents(root, ctx) {
   root.replaceChildren(h('div', { class: 'page-inner' }, loading()));
   let agents;
   let status;
@@ -140,15 +149,21 @@ export async function renderAgents(root) {
     },
   }, 'Tümünü Değerlendir');
 
+  const liveIndicator = h('span', {
+    class: 'badge ok',
+    style: { fontSize: '11px', padding: '2px 7px', alignSelf: 'center' },
+  }, '● Canlı');
+
   const head = h('div', { class: 'page-head' },
     h('div', null,
       h('h1', { class: 'page-title' }, 'Ajanlar'),
       h('p', { class: 'page-lead' },
         'Her ekip üyesinin bilgisayarında çalışan ajan, açılışta master\'a kaydolur ve modelinin ' +
         'yeteneklerini (bağlam penceresi, görsel/düşünme desteği) ve donanımını bildirir.')),
-    h('div', { style: { display: 'flex', gap: '8px' } },
+    h('div', { style: { display: 'flex', gap: '8px', alignItems: 'center' } },
       evalAllBtn,
-      h('button', { class: 'btn', onclick: () => renderAgents(root) }, '↻ Yenile')));
+      h('button', { class: 'btn', onclick: () => renderAgents(root, ctx) }, '↻ Yenile'),
+      liveIndicator));
 
   const masterCard = h('div', { class: 'card' },
     h('h2', null, 'Master ajan'),
@@ -179,5 +194,29 @@ export async function renderAgents(root) {
       const card = await agentCard(agent);
       cardContainer.appendChild(card);
     }
+  }
+
+  // Live status poll: re-fetch agents every 10 s and update only the status badge
+  // and last_seen_at text — no full re-render needed.
+  if (ctx) {
+    ctx.poll(async () => {
+      const fresh = await api('/api/agents');
+      for (const a of fresh) {
+        const card = root.querySelector(`[data-agent-id="${a.agent_id}"]`);
+        if (!card) continue;
+        const badgeEl = card.querySelector('.agent-status-badge');
+        if (badgeEl) {
+          const online = a.online;
+          const busy = a.heartbeat_status === 'busy';
+          badgeEl.className = 'badge ' + (online ? (busy ? 'busy' : 'ok') : 'offline') + ' agent-status-badge';
+          badgeEl.textContent = online ? (busy ? 'Meşgul' : 'Çevrimiçi') : 'Çevrimdışı';
+        }
+        const lastSeenEl = card.querySelector('.agent-lastseen');
+        if (lastSeenEl) lastSeenEl.textContent = formatDateTime(a.last_seen_at);
+      }
+      // Pulse the live indicator briefly on each refresh
+      liveIndicator.style.opacity = '0.4';
+      setTimeout(() => { liveIndicator.style.opacity = '1'; }, 300);
+    }, 10_000);
   }
 }

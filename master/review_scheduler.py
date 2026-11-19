@@ -39,9 +39,13 @@ def schedule_review(completed_task: dict) -> int | None:
         return None
 
     title = f"{completed_task.get('title', task_key)} — kod incelemesi"
+    # Include the reviewed task's output so the reviewer agent has actual code to inspect
+    code_output = (completed_task.get("output") or "").strip()
+    code_snippet = code_output[:3000] + ("…" if len(code_output) > 3000 else "")
     description = (
         f"T{completed_task.get('id', '?')} görevinin çıktısını incele. "
-        "Kritik bulguları fix görevi olarak listele."
+        "Kritik bulguları fix görevi olarak listele.\n\n"
+        f"=== İncelenecek Kod ===\n{code_snippet}"
     )
     # depends_on the completed task
     depends_on = [task_key] if task_key else []

@@ -196,6 +196,7 @@ async def task_loop(client: httpx.AsyncClient, member: dict, log: logging.Logger
             # Execute via Ollama (always use the locally installed model)
             exec_model = member.get("execution_model", model)
             prompt = _build_prompt(task)
+            ollama_ok = True
             try:
                 output, tps = await call_ollama(exec_model, prompt)
                 log.info("Görev tamamlandı: id=%s (%.0f token/s)", task_id, tps or 0)
@@ -203,12 +204,14 @@ async def task_loop(client: httpx.AsyncClient, member: dict, log: logging.Logger
                 log.warning("Ollama hatası: %s", exc)
                 output = f"HATA: {exc}"
                 tps = None
+                ollama_ok = False
 
-            # Submit result
+            # Submit result — use "failed" on Ollama errors so the master requeues the task
+            task_status = "done" if ollama_ok else "failed"
             try:
                 await client.post(
                     f"{MASTER_URL}/api/tasks/{task_id}/result",
-                    json={"status": "done", "output": output, "tokens_per_second": tps},
+                    json={"status": task_status, "output": output, "tokens_per_second": tps},
                     headers=AUTH,
                     timeout=10.0,
                 )

@@ -2,12 +2,13 @@
 
 import csv
 import io
+import zipfile
 
 from docx import Document
 from openpyxl import load_workbook
 from pypdf import PdfReader
 
-REQUIREMENT_EXTENSIONS = (".pdf", ".docx", ".txt", ".md")
+REQUIREMENT_EXTENSIONS = (".pdf", ".docx", ".txt", ".md", ".zip")
 
 
 class UnsupportedFileError(ValueError):
@@ -47,8 +48,42 @@ def extract_xlsx_text(raw: bytes) -> str:
     return "\n".join(parts)
 
 
+def extract_zip_text(raw: bytes) -> str:
+    """Extract and concatenate text from all readable files inside a ZIP archive."""
+    parts = []
+    try:
+        with zipfile.ZipFile(io.BytesIO(raw)) as zf:
+            for info in zf.infolist():
+                if info.is_dir():
+                    continue
+                name = info.filename.lower()
+                # Skip common binary/noise files
+                if any(name.endswith(ext) for ext in (
+                    ".pyc", ".pyo", ".class", ".exe", ".dll", ".so", ".png",
+                    ".jpg", ".jpeg", ".gif", ".ico", ".svg", ".woff", ".ttf",
+                )):
+                    continue
+                try:
+                    file_raw = zf.read(info.filename)
+                    if name.endswith(".pdf"):
+                        content = extract_pdf_text(file_raw)
+                    elif name.endswith(".docx"):
+                        content = extract_docx_text(file_raw)
+                    else:
+                        content = file_raw.decode("utf-8", errors="replace")
+                    if content.strip():
+                        parts.append(f"=== {info.filename} ===\n{content.strip()}")
+                except Exception:
+                    continue  # skip unreadable files silently
+    except zipfile.BadZipFile as exc:
+        raise UnsupportedFileError(f"Geçersiz ZIP dosyası: {exc}") from exc
+    if not parts:
+        raise UnsupportedFileError("ZIP içinde okunabilir metin bulunamadı.")
+    return "\n\n".join(parts)
+
+
 def extract_text(filename: str, raw: bytes) -> str:
-    """Return the text of a PDF, DOCX, TXT or Markdown file; raise UnsupportedFileError otherwise."""
+    """Return the text of a PDF, DOCX, TXT, Markdown or ZIP file; raise UnsupportedFileError otherwise."""
     name = filename.lower()
     if name.endswith(".pdf"):
         return extract_pdf_text(raw)
@@ -56,4 +91,6 @@ def extract_text(filename: str, raw: bytes) -> str:
         return extract_docx_text(raw)
     if name.endswith((".txt", ".md")):
         return raw.decode("utf-8", errors="replace")
+    if name.endswith(".zip"):
+        return extract_zip_text(raw)
     raise UnsupportedFileError(filename)

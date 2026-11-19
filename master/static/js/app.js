@@ -13,7 +13,7 @@ const ROUTES = [
   { pattern: /^#\/new$/, nav: 'new', render: (root) => renderNewProject(root) },
   { pattern: /^#\/projects$/, nav: 'projects', render: (root) => renderProjects(root) },
   { pattern: /^#\/projects\/(\d+)$/, nav: 'projects', render: (root, m, ctx) => renderProjectDetail(root, Number(m[1]), ctx) },
-  { pattern: /^#\/agents$/, nav: 'agents', render: (root) => renderAgents(root) },
+  { pattern: /^#\/agents$/, nav: 'agents', render: (root, _m, ctx) => renderAgents(root, ctx) },
   { pattern: /^#\/dashboard$/, nav: 'dashboard', render: (root, _m, ctx) => renderDashboard(root, ctx) },
   { pattern: /^#\/assistant$/, nav: 'assistant', render: null },
 ];

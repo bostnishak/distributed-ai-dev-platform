@@ -75,11 +75,11 @@ export function renderNewProject(root) {
     counter.textContent = `${formatNumber(textArea.value.length)} karakter`;
   });
 
-  const fileInput = h('input', { type: 'file', accept: '.pdf,.docx,.txt,.md', hidden: true });
+  const fileInput = h('input', { type: 'file', accept: '.pdf,.docx,.txt,.md,.zip', hidden: true });
   const fileNameEl = h('div', { class: 'file-name' });
   const dropzone = h('div', { class: 'dropzone', tabindex: 0, role: 'button' },
     h('div', null, 'Dosya seçmek için tıklayın veya buraya sürükleyin'),
-    h('div', { class: 'muted small' }, 'PDF, DOCX, TXT veya MD · en fazla 5 MB'),
+    h('div', { class: 'muted small' }, 'PDF, DOCX, TXT, MD veya ZIP · en fazla 5 MB'),
     fileNameEl);
   const pickFile = (f) => {
     file = f || null;
