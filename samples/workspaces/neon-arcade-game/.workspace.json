@@ -1,0 +1,12 @@
+{
+  "id": "neon-arcade-game",
+  "name": "Neon Arcade Game",
+  "project_type": "game",
+  "description": "Modüler Python Tkinter uzay savunma oyunu — tek dosyalık Windows .EXE olarak derlenebilir.",
+  "entry_point": "main.py",
+  "model": "qwen2.5-coder:7b",
+  "created_at": "2026-11-23T07:03:28.959881+00:00",
+  "updated_at": "2026-11-23T07:04:05.939194+00:00",
+  "exe_name": "NeonArcadeGame.exe",
+  "exe_size": 11220003
+}

@@ -11,9 +11,717 @@ const MODEL_LABELS = {
   'uye4-gemma': 'Üye-4 (Semih Sarıca) · Gemma 4',
   'uye5-coder': 'Üye-5 (Işıl Karademir) · Qwen2.5-Coder',
   'uye6-qwen-light': 'Üye-6 (Berfin Yiğit) · Qwen3 1.7B',
-  'moderation': '⚠️ İçerik denetimi',
-  'hesaplama': '🧮 Hesap makinesi (anında, model kullanılmadı)',
+  'cnc-ballooner': 'CNC Balonlama Motoru (AS9102 / ISO 2768)',
+  'qwen2.5-coder:7b': 'Proje Üretici · Qwen2.5-Coder 7B',
+  'moderation': 'İçerik denetimi',
+  'hesaplama': 'Hesap makinesi (anında, model kullanılmadı)',
 };
+
+function wsSvgIcon(name, isDir, isOpen = true) {
+  if (isDir) {
+    const color = isOpen ? '#dcb67a' : '#c09553';
+    return `<svg class="ide-svg-icon" viewBox="0 0 16 16" fill="${color}"><path d="M1.5 2A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 14.5 4H7.71l-1.85-1.85A.5.5 0 0 0 5.5 2h-4z"/></svg>`;
+  }
+  const ext = (name.split('.').pop() || '').toLowerCase();
+  const badges = {
+    html: { bg: '#e44d26', fg: '#fff', txt: '<>' },
+    htm:  { bg: '#e44d26', fg: '#fff', txt: '<>' },
+    css:  { bg: '#264de4', fg: '#fff', txt: '#' },
+    js:   { bg: '#f7df1e', fg: '#111', txt: 'JS' },
+    ts:   { bg: '#3178c6', fg: '#fff', txt: 'TS' },
+    py:   { bg: '#3776ab', fg: '#ffd43b', txt: 'PY' },
+    json: { bg: '#292929', fg: '#cbcb41', txt: '{}' },
+    md:   { bg: '#1f6feb', fg: '#fff', txt: 'M↓' },
+    svg:  { bg: '#ffb13b', fg: '#111', txt: 'SV' },
+    exe:  { bg: '#16a34a', fg: '#fff', txt: 'EX' },
+  };
+  const b = badges[ext];
+  if (b) {
+    return `<span class="ide-ext-badge" style="background:${b.bg};color:${b.fg}">${b.txt}</span>`;
+  }
+  return `<svg class="ide-svg-icon" viewBox="0 0 16 16" fill="#9cdcfe"><path d="M4 1h5.5L13 4.5V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zm5 1.5V5h2.5L9 2.5z"/></svg>`;
+}
+
+function detectLangLabel(path) {
+  const ext = ((path || '').split('.').pop() || '').toLowerCase();
+  const map = {
+    html: 'HTML5', css: 'CSS3', js: 'JavaScript (ES6)', py: 'Python 3',
+    json: 'JSON', md: 'Markdown', svg: 'SVG XML', exe: 'Windows Binary',
+  };
+  return map[ext] || 'Plain Text';
+}
+
+function highlightCodeHtml(code, path) {
+  const esc = (s) => s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  const ext = ((path || '').split('.').pop() || '').toLowerCase();
+  let html = esc(code || '');
+
+  // Tokenize strings & comments first into placeholders so regexes don't collide
+  const tokens = [];
+  const stash = (cls, text) => {
+    const id = `\u0000T${tokens.length}\u0000`;
+    tokens.push(`<span class="${cls}">${text}</span>`);
+    return id;
+  };
+
+  if (ext === 'html' || ext === 'htm' || ext === 'svg') {
+    html = html.replace(/(&lt;!--[\s\S]*?--&gt;)/g, (m) => stash('hl-comment', m));
+    html = html.replace(/("[^"\n]*"|'[^'\n]*')/g, (m) => stash('hl-str', m));
+    html = html.replace(/(&lt;\/?[a-zA-Z0-9:-]+)/g, '<span class="hl-tag">$1</span>');
+    html = html.replace(/\b([a-zA-Z-]+)(?==)/g, '<span class="hl-attr">$1</span>');
+  } else {
+    html = html.replace(/(\/\/[^\n]*|#[^\n]*|\/\*[\s\S]*?\*\/)/g, (m) => stash('hl-comment', m));
+    html = html.replace(/("[^"\n]*"|'[^'\n]*'|`[^`\n]*`)/g, (m) => stash('hl-str', m));
+    html = html.replace(
+      /\b(def|class|import|from|return|if|elif|else|for|while|try|except|finally|with|as|async|await|True|False|None|self|function|const|let|var|export|default|new|this|document|window|console)\b/g,
+      '<span class="hl-kw">$1</span>',
+    );
+    html = html.replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="hl-num">$1</span>');
+  }
+
+  return html.replace(/\u0000T(\d+)\u0000/g, (_, i) => tokens[Number(i)]);
+}
+
+function buildInlineWorkspaceCard(wsMeta, wsTree) {
+  const wsId = wsMeta.id;
+  const card = document.createElement('div');
+  card.className = 'ide-workbench';
+
+  // State
+  let currentTree = wsTree || [];
+  let viewMode = 'code'; // 'code' | 'preview' | 'split'
+  let editMode = false;
+  let activePath = null;
+  let activeContent = '';
+  const openTabs = []; // array of file paths
+  const fileCache = new Map();
+  const collapsedFolders = new Set();
+
+  // --- 1. TOP WINDOW TITLEBAR ---
+  const titlebar = document.createElement('div');
+  titlebar.className = 'ide-titlebar';
+
+  const titleLeft = document.createElement('div');
+  titleLeft.className = 'ide-title-left';
+  const dots = document.createElement('div');
+  dots.className = 'ide-window-dots';
+  dots.innerHTML = '<span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span>';
+
+  const projTitle = document.createElement('span');
+  projTitle.className = 'ide-proj-name';
+  projTitle.textContent = wsMeta.name || wsId;
+
+  const typeBadge = document.createElement('span');
+  typeBadge.className = 'ide-type-badge';
+  typeBadge.textContent = wsMeta.has_exe ? 'WINDOWS .EXE' : (wsMeta.has_web_preview ? 'WEB APP' : (wsMeta.project_type || 'PROJECT').toUpperCase());
+  titleLeft.append(dots, projTitle, typeBadge);
+
+  // Center Segmented Switcher (Code | Preview | Split)
+  const modeGroup = document.createElement('div');
+  modeGroup.className = 'ide-mode-group';
+  const btnModeCode = document.createElement('button');
+  btnModeCode.type = 'button';
+  btnModeCode.className = 'ide-mode-btn active';
+  btnModeCode.textContent = '</> Kod';
+
+  const btnModePrev = document.createElement('button');
+  btnModePrev.type = 'button';
+  btnModePrev.className = 'ide-mode-btn';
+  btnModePrev.textContent = '▶ Önizleme';
+
+  const btnModeSplit = document.createElement('button');
+  btnModeSplit.type = 'button';
+  btnModeSplit.className = 'ide-mode-btn';
+  btnModeSplit.textContent = '◫ Bölünmüş';
+
+  if (wsMeta.has_web_preview) {
+    modeGroup.append(btnModeCode, btnModePrev, btnModeSplit);
+  }
+
+  // Right Actions (EXE, ZIP, Fullscreen)
+  const actions = document.createElement('div');
+  actions.className = 'ide-actions';
+
+  function appendExeButtons(exeName) {
+    const launchBtn = document.createElement('button');
+    launchBtn.type = 'button';
+    launchBtn.className = 'ide-btn exe';
+    launchBtn.textContent = 'EXE Çalıştır';
+    launchBtn.addEventListener('click', async () => {
+      launchBtn.disabled = true;
+      launchBtn.textContent = 'Açılıyor...';
+      try {
+        const r = await fetch(`/api/studio/workspaces/${wsId}/launch-exe`, { method: 'POST' });
+        launchBtn.textContent = r.ok ? 'Açıldı' : 'Açılamadı';
+      } catch {
+        launchBtn.textContent = 'Hata';
+      } finally {
+        setTimeout(() => { launchBtn.disabled = false; launchBtn.textContent = 'EXE Çalıştır'; }, 1800);
+      }
+    });
+
+    const dlExe = document.createElement('a');
+    dlExe.className = 'ide-btn';
+    dlExe.href = `/api/studio/workspaces/${wsId}/download-exe`;
+    dlExe.download = '';
+    dlExe.textContent = `${exeName || 'App.exe'} İndir`;
+
+    actions.prepend(dlExe);
+    actions.prepend(launchBtn);
+  }
+
+  const hasPy = currentTree.some((n) => n.name && n.name.endsWith('.py')) || wsMeta.project_type === 'game' || wsMeta.project_type === 'desktop';
+  if (hasPy && !wsMeta.has_exe) {
+    const exeBtn = document.createElement('button');
+    exeBtn.type = 'button';
+    exeBtn.className = 'ide-btn primary';
+    exeBtn.textContent = 'EXE Derle';
+    exeBtn.addEventListener('click', async () => {
+      exeBtn.disabled = true;
+      exeBtn.textContent = 'Derleniyor...';
+      try {
+        const resp = await fetch(`/api/studio/workspaces/${wsId}/build-exe`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: '{}',
+        });
+        const res = await resp.json();
+        if (res.ok) {
+          exeBtn.remove();
+          typeBadge.textContent = 'WINDOWS .EXE';
+          appendExeButtons(res.exe_name);
+        } else {
+          exeBtn.textContent = 'Hata';
+        }
+      } catch {
+        exeBtn.textContent = 'Hata';
+      }
+    });
+    actions.appendChild(exeBtn);
+  }
+  if (wsMeta.has_exe) {
+    appendExeButtons(wsMeta.exe_name);
+  }
+
+  const zipLink = document.createElement('a');
+  zipLink.className = 'ide-btn';
+  zipLink.href = `/api/studio/workspaces/${wsId}/download.zip`;
+  zipLink.download = '';
+  zipLink.textContent = 'ZIP İndir';
+  actions.appendChild(zipLink);
+
+  // Version History (v1, v2, v3...) Rollback Selector
+  const verSelect = document.createElement('select');
+  verSelect.className = 'ide-btn';
+  verSelect.title = 'Sürüm Geçmişi (Geri Al)';
+  verSelect.hidden = true;
+
+  async function refreshVersions() {
+    try {
+      const r = await fetch(`/api/studio/workspaces/${wsId}/history`);
+      if (!r.ok) return;
+      const d = await r.json();
+      const vers = d.versions || [];
+      if (vers.length > 0) {
+        verSelect.innerHTML = '';
+        for (const v of vers) {
+          const opt = document.createElement('option');
+          opt.value = v.version;
+          opt.textContent = `${v.version}: ${(v.label || '').slice(0, 22)}`;
+          verSelect.appendChild(opt);
+        }
+        verSelect.hidden = false;
+      }
+    } catch { /* ignore */ }
+  }
+  verSelect.addEventListener('change', async () => {
+    const v = verSelect.value;
+    if (!v) return;
+    const r = await fetch(`/api/studio/workspaces/${wsId}/restore/${v}`, { method: 'POST' });
+    if (r.ok) {
+      const d = await r.json();
+      currentTree = d.tree || currentTree;
+      fileCache.clear();
+      renderTree();
+      if (activePath) selectFile(activePath);
+    }
+  });
+  actions.appendChild(verSelect);
+  refreshVersions();
+
+  // Live Backend Server Runner for Full-Stack / Python Web Apps
+  if (hasPy && !wsMeta.has_web_preview) {
+    const srvBtn = document.createElement('button');
+    srvBtn.type = 'button';
+    srvBtn.className = 'ide-btn';
+    srvBtn.textContent = 'Canlı Sunucu';
+    srvBtn.addEventListener('click', async () => {
+      srvBtn.disabled = true;
+      srvBtn.textContent = 'Başlatılıyor...';
+      try {
+        const r = await fetch(`/api/studio/workspaces/${wsId}/start-server`, { method: 'POST' });
+        const d = await r.json();
+        if (d.ok && d.url) {
+          modeGroup.innerHTML = '';
+          modeGroup.append(btnModeCode, btnModePrev, btnModeSplit);
+          urlPill.textContent = d.url;
+          extLink.href = d.url;
+          iframe.src = d.url;
+          setViewMode('split');
+          srvBtn.textContent = `Port :${d.port}`;
+        } else {
+          srvBtn.textContent = 'Hata';
+        }
+      } catch {
+        srvBtn.textContent = 'Hata';
+      } finally {
+        srvBtn.disabled = false;
+      }
+    });
+    actions.appendChild(srvBtn);
+  }
+
+  const expandBtn = document.createElement('button');
+  expandBtn.type = 'button';
+  expandBtn.className = 'ide-btn icon-only';
+  expandBtn.title = 'Tam Ekran IDE Görünümü';
+  expandBtn.textContent = '⤢';
+  expandBtn.addEventListener('click', () => {
+    const isMax = card.classList.toggle('ide-fullscreen');
+    expandBtn.textContent = isMax ? '✕ Kapat' : '⤢';
+  });
+  actions.appendChild(expandBtn);
+
+  titlebar.append(titleLeft, modeGroup, actions);
+  card.appendChild(titlebar);
+
+  // --- 2. MAIN WORKBENCH GRID (Explorer + Editor/Preview) ---
+  const mainGrid = document.createElement('div');
+  mainGrid.className = 'ide-main';
+
+  // Left: Explorer Sidebar
+  const sidebar = document.createElement('aside');
+  sidebar.className = 'ide-sidebar';
+  const sideHeader = document.createElement('div');
+  sideHeader.className = 'ide-side-header';
+  const sideTitle = document.createElement('span');
+  sideTitle.textContent = 'EXPLORER';
+  const newFileBtn = document.createElement('button');
+  newFileBtn.type = 'button';
+  newFileBtn.className = 'ide-icon-btn';
+  newFileBtn.title = 'Yeni Dosya Oluştur';
+  newFileBtn.textContent = '＋';
+  sideHeader.append(sideTitle, newFileBtn);
+
+  const rootHeader = document.createElement('div');
+  rootHeader.className = 'ide-root-label';
+  rootHeader.innerHTML = `<span class="ide-chev">▾</span> <span>${(wsMeta.name || wsId).toUpperCase()}</span>`;
+
+  const treeContainer = document.createElement('div');
+  treeContainer.className = 'ide-tree';
+  sidebar.append(sideHeader, rootHeader, treeContainer);
+
+  // Center/Right: Editor & Preview Panes
+  const surface = document.createElement('div');
+  surface.className = 'ide-surface';
+
+  // Code Pane
+  const codePane = document.createElement('div');
+  codePane.className = 'ide-code-pane';
+
+  const tabBar = document.createElement('div');
+  tabBar.className = 'ide-tabbar';
+
+  const subBar = document.createElement('div');
+  subBar.className = 'ide-subbar';
+  const breadcrumb = document.createElement('div');
+  breadcrumb.className = 'ide-breadcrumb';
+  const editorTools = document.createElement('div');
+  editorTools.className = 'ide-editor-tools';
+
+  const copyCodeBtn = document.createElement('button');
+  copyCodeBtn.type = 'button';
+  copyCodeBtn.className = 'ide-tool-btn';
+  copyCodeBtn.textContent = 'Kopyala';
+  copyCodeBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(editMode ? rawTextarea.value : activeContent);
+      copyCodeBtn.textContent = 'Kopyalandı';
+      setTimeout(() => { copyCodeBtn.textContent = 'Kopyala'; }, 1400);
+    } catch { /* clipboard unavailable */ }
+  });
+
+  const diffToggleBtn = document.createElement('button');
+  diffToggleBtn.type = 'button';
+  diffToggleBtn.className = 'ide-tool-btn';
+  diffToggleBtn.textContent = 'Diff';
+
+  const editToggleBtn = document.createElement('button');
+  editToggleBtn.type = 'button';
+  editToggleBtn.className = 'ide-tool-btn';
+  editToggleBtn.textContent = 'Düzenle';
+
+  const saveFileBtn = document.createElement('button');
+  saveFileBtn.type = 'button';
+  saveFileBtn.className = 'ide-tool-btn primary';
+  saveFileBtn.hidden = true;
+  saveFileBtn.textContent = 'Kaydet';
+
+  editorTools.append(copyCodeBtn, diffToggleBtn, editToggleBtn, saveFileBtn);
+  subBar.append(breadcrumb, editorTools);
+
+  // Code Viewport (Gutter + Highlighted Code / Editable Textarea)
+  const codeScroll = document.createElement('div');
+  codeScroll.className = 'ide-code-scroll';
+  const gutter = document.createElement('div');
+  gutter.className = 'ide-gutter';
+  const codeBlock = document.createElement('pre');
+  codeBlock.className = 'ide-code-content';
+  const rawTextarea = document.createElement('textarea');
+  rawTextarea.className = 'ide-raw-editor';
+  rawTextarea.spellcheck = false;
+  rawTextarea.hidden = true;
+
+  codeScroll.append(gutter, codeBlock, rawTextarea);
+  codePane.append(tabBar, subBar, codeScroll);
+
+  // Live Preview Pane (with Mini Browser Chrome!)
+  const previewPane = document.createElement('div');
+  previewPane.className = 'ide-preview-pane';
+  previewPane.hidden = true;
+
+  const browserBar = document.createElement('div');
+  browserBar.className = 'ide-browser-bar';
+  const refreshBtn = document.createElement('button');
+  refreshBtn.type = 'button';
+  refreshBtn.className = 'ide-browser-btn';
+  refreshBtn.title = 'Önizlemeyi Yenile';
+  refreshBtn.textContent = '↻';
+  const urlPill = document.createElement('div');
+  urlPill.className = 'ide-url-pill';
+  urlPill.textContent = `localhost:8000/workspaces/${wsId}/preview/index.html`;
+  const extLink = document.createElement('a');
+  extLink.className = 'ide-browser-btn';
+  extLink.href = `/api/studio/workspaces/${wsId}/preview/index.html`;
+  extLink.target = '_blank';
+  extLink.title = 'Yeni Sekmede Aç';
+  extLink.textContent = '↗';
+  browserBar.append(refreshBtn, urlPill, extLink);
+
+  const iframe = document.createElement('iframe');
+  iframe.className = 'ide-preview-iframe';
+  iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-modals');
+  refreshBtn.addEventListener('click', () => {
+    iframe.src = `/api/studio/workspaces/${wsId}/preview/index.html?t=${Date.now()}`;
+  });
+  previewPane.append(browserBar, iframe);
+
+  surface.append(codePane, previewPane);
+  mainGrid.append(sidebar, surface);
+  card.appendChild(mainGrid);
+
+  // --- 3. AI ITERATION BAR & VS CODE STATUS BAR ---
+  const iterBar = document.createElement('div');
+  iterBar.className = 'ide-iter-bar';
+  const iterIn = document.createElement('input');
+  iterIn.type = 'text';
+  iterIn.placeholder = 'AI ile bu projeyi geliştir (ör. "Karanlık mod ekle", "Yeni sayfa/özellik ekle")...';
+  const iterBtn = document.createElement('button');
+  iterBtn.type = 'button';
+  iterBtn.className = 'ide-btn primary';
+  iterBtn.textContent = 'Geliştir';
+  iterBar.append(iterIn, iterBtn);
+
+  const statusBar = document.createElement('div');
+  statusBar.className = 'ide-statusbar';
+  const statusLeft = document.createElement('div');
+  statusLeft.className = 'ide-status-side';
+  statusLeft.innerHTML = '<span>⎇ main</span><span>✓ 0 hata</span>';
+  const statusRight = document.createElement('div');
+  statusRight.className = 'ide-status-side';
+  const statusLines = document.createElement('span');
+  statusLines.textContent = '0 satır';
+  const statusLang = document.createElement('span');
+  statusLang.textContent = 'UTF-8';
+  statusRight.append(statusLines, statusLang);
+  statusBar.append(statusLeft, statusRight);
+
+  card.append(iterBar, statusBar);
+
+  // --- LOGIC FUNCTIONS ---
+  function setViewMode(mode) {
+    viewMode = mode;
+    btnModeCode.classList.toggle('active', mode === 'code');
+    btnModePrev.classList.toggle('active', mode === 'preview');
+    btnModeSplit.classList.toggle('active', mode === 'split');
+
+    surface.classList.toggle('split-view', mode === 'split');
+    codePane.hidden = mode === 'preview';
+    previewPane.hidden = mode === 'code';
+
+    if ((mode === 'preview' || mode === 'split') && !iframe.getAttribute('src')) {
+      iframe.src = `/api/studio/workspaces/${wsId}/preview/index.html?t=${Date.now()}`;
+    }
+  }
+
+  btnModeCode.addEventListener('click', () => setViewMode('code'));
+  btnModePrev.addEventListener('click', () => {
+    iframe.src = `/api/studio/workspaces/${wsId}/preview/index.html?t=${Date.now()}`;
+    setViewMode('preview');
+  });
+  btnModeSplit.addEventListener('click', () => {
+    iframe.src = `/api/studio/workspaces/${wsId}/preview/index.html?t=${Date.now()}`;
+    setViewMode('split');
+  });
+
+  function renderCodeView(content, path) {
+    activeContent = content || '';
+    const lines = activeContent.split('\n');
+    gutter.innerHTML = lines.map((_, i) => `<div>${i + 1}</div>`).join('');
+    codeBlock.innerHTML = highlightCodeHtml(activeContent, path);
+    rawTextarea.value = activeContent;
+    statusLines.textContent = `${lines.length} satır`;
+    statusLang.textContent = `${detectLangLabel(path)} · UTF-8`;
+    breadcrumb.innerHTML = `<span class="bc-root">${wsMeta.name || wsId}</span> › ` +
+      (path || '').split('/').map((p) => `<span>${p}</span>`).join(' › ');
+  }
+
+  function renderTabs() {
+    tabBar.innerHTML = '';
+    for (const p of openTabs) {
+      const fname = p.split('/').pop();
+      const tab = document.createElement('div');
+      tab.className = 'ide-tab' + (p === activePath ? ' active' : '');
+      const iconSpan = document.createElement('span');
+      iconSpan.innerHTML = wsSvgIcon(fname, false);
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = fname;
+      const closeSpan = document.createElement('span');
+      closeSpan.className = 'ide-tab-close';
+      closeSpan.textContent = '×';
+      closeSpan.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const idx = openTabs.indexOf(p);
+        if (idx >= 0) openTabs.splice(idx, 1);
+        if (activePath === p) {
+          const next = openTabs[openTabs.length - 1];
+          if (next) selectFile(next);
+          else {
+            activePath = null;
+            renderTabs();
+            renderCodeView('', '');
+          }
+        } else {
+          renderTabs();
+        }
+      });
+      tab.append(iconSpan, nameSpan, closeSpan);
+      tab.addEventListener('click', () => selectFile(p));
+      tabBar.appendChild(tab);
+    }
+  }
+
+  async function selectFile(path) {
+    activePath = path;
+    if (!openTabs.includes(path)) openTabs.push(path);
+    if (viewMode === 'preview') setViewMode('code');
+    renderTabs();
+    renderTree();
+
+    if (fileCache.has(path)) {
+      renderCodeView(fileCache.get(path), path);
+      return;
+    }
+    renderCodeView('// Yükleniyor...', path);
+    try {
+      const resp = await fetch(`/api/studio/workspaces/${wsId}/file?path=${encodeURIComponent(path)}`);
+      const data = await resp.json();
+      const text = data.content || '';
+      fileCache.set(path, text);
+      if (activePath === path) renderCodeView(text, path);
+    } catch (err) {
+      renderCodeView(`// Dosya okunamadı: ${err.message}`, path);
+    }
+  }
+
+  function renderTree() {
+    treeContainer.innerHTML = '';
+    function walk(nodes, depth = 0) {
+      for (const node of nodes || []) {
+        const isDir = node.type === 'dir';
+        const isCollapsed = collapsedFolders.has(node.path);
+        const row = document.createElement('div');
+        row.className = 'ide-tree-row' + (!isDir && node.path === activePath ? ' active' : '');
+        row.style.paddingLeft = `${10 + depth * 14}px`;
+
+        const chev = isDir ? `<span class="ide-chev">${isCollapsed ? '▸' : '▾'}</span>` : '<span class="ide-chev"></span>';
+        row.innerHTML = `${chev}${wsSvgIcon(node.name, isDir, !isCollapsed)}<span class="ide-node-name">${node.name}</span>`;
+
+        row.addEventListener('click', () => {
+          if (isDir) {
+            if (isCollapsed) collapsedFolders.delete(node.path);
+            else collapsedFolders.add(node.path);
+            renderTree();
+          } else {
+            selectFile(node.path);
+          }
+        });
+        treeContainer.appendChild(row);
+        if (isDir && !isCollapsed && node.children) {
+          walk(node.children, depth + 1);
+        }
+      }
+    }
+    walk(currentTree, 0);
+  }
+
+  let diffMode = false;
+  diffToggleBtn.addEventListener('click', async () => {
+    if (!activePath) return;
+    diffMode = !diffMode;
+    diffToggleBtn.classList.toggle('primary', diffMode);
+    if (!diffMode) {
+      renderCodeView(activeContent, activePath);
+      return;
+    }
+    try {
+      const r = await fetch(`/api/studio/workspaces/${wsId}/diff?path=${encodeURIComponent(activePath)}`);
+      const d = await r.json();
+      const lines = (d.diff || '').split('\n');
+      gutter.innerHTML = lines.map((_, i) => `<div>${i + 1}</div>`).join('');
+      codeBlock.innerHTML = lines.map((ln) => {
+        const esc = ln.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        if (ln.startsWith('+') && !ln.startsWith('+++')) return `<div class="diff-add">${esc}</div>`;
+        if (ln.startsWith('-') && !ln.startsWith('---')) return `<div class="diff-del">${esc}</div>`;
+        if (ln.startsWith('@@')) return `<div class="diff-hunk">${esc}</div>`;
+        return `<div>${esc}</div>`;
+      }).join('');
+    } catch {
+      diffMode = false;
+    }
+  });
+
+  editToggleBtn.addEventListener('click', () => {
+    if (!activePath) return;
+    editMode = !editMode;
+    codeBlock.hidden = editMode;
+    rawTextarea.hidden = !editMode;
+    saveFileBtn.hidden = !editMode;
+    editToggleBtn.textContent = editMode ? 'Görünüm' : 'Düzenle';
+  });
+
+  saveFileBtn.addEventListener('click', async () => {
+    if (!activePath) return;
+    saveFileBtn.disabled = true;
+    saveFileBtn.textContent = 'Kaydediliyor...';
+    try {
+      await fetch(`/api/studio/workspaces/${wsId}/file`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: activePath, content: rawTextarea.value }),
+      });
+      fileCache.set(activePath, rawTextarea.value);
+      editMode = false;
+      codeBlock.hidden = false;
+      rawTextarea.hidden = true;
+      saveFileBtn.hidden = true;
+      editToggleBtn.textContent = 'Düzenle';
+      renderCodeView(rawTextarea.value, activePath);
+      if (viewMode === 'split') {
+        iframe.src = `/api/studio/workspaces/${wsId}/preview/index.html?t=${Date.now()}`;
+      }
+    } finally {
+      saveFileBtn.disabled = false;
+      saveFileBtn.textContent = 'Kaydet';
+    }
+  });
+
+  newFileBtn.addEventListener('click', async () => {
+    const rel = prompt('Yeni dosya yolu (ör. css/theme.css veya js/modal.js):');
+    if (!rel || !rel.trim()) return;
+    const clean = rel.trim();
+    await fetch(`/api/studio/workspaces/${wsId}/file`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: clean, content: '' }),
+    });
+    const tResp = await fetch(`/api/studio/workspaces/${wsId}/tree`);
+    const tData = await tResp.json();
+    currentTree = tData.tree || currentTree;
+    fileCache.set(clean, '');
+    await selectFile(clean);
+  });
+
+  iterBtn.addEventListener('click', async () => {
+    const instr = iterIn.value.trim();
+    if (!instr) return;
+    iterBtn.disabled = true;
+    iterBtn.textContent = 'Güncelleniyor...';
+    try {
+      const resp = await fetch(`/api/studio/workspaces/${wsId}/iterate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ instruction: instr }),
+      });
+      const reader = resp.body.getReader();
+      const dec = new TextDecoder();
+      let buf = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split('\n');
+        buf = lines.pop();
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          let evt;
+          try { evt = JSON.parse(line.slice(6)); } catch { continue; }
+          if (evt.type === 'file_done') {
+            fileCache.delete(evt.path);
+          } else if (evt.type === 'done' && evt.tree) {
+            currentTree = evt.tree;
+            renderTree();
+            if (activePath) {
+              fileCache.delete(activePath);
+              await selectFile(activePath);
+            }
+            if (viewMode === 'preview' || viewMode === 'split') {
+              iframe.src = `/api/studio/workspaces/${wsId}/preview/index.html?t=${Date.now()}`;
+            }
+            refreshVersions();
+          }
+        }
+      }
+      iterIn.value = '';
+    } finally {
+      iterBtn.disabled = false;
+      iterBtn.textContent = 'Geliştir';
+    }
+  });
+  iterIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') iterBtn.click(); });
+
+  // Auto-open entry point (index.html / main.py) or first text file
+  const flatPaths = [];
+  function collectFiles(nodes) {
+    for (const n of nodes || []) {
+      if (n.type === 'file' && !n.name.endsWith('.exe')) flatPaths.push(n.path);
+      else if (n.children) collectFiles(n.children);
+    }
+  }
+  collectFiles(currentTree);
+  renderTree();
+  const entry = (wsMeta.entry_point && flatPaths.includes(wsMeta.entry_point))
+    ? wsMeta.entry_point
+    : (flatPaths.find((p) => p === 'index.html' || p === 'main.py') || flatPaths[0]);
+  if (entry) {
+    selectFile(entry);
+  }
+
+  return card;
+}
 
 let els;
 let selectedFile = null;
@@ -113,7 +821,12 @@ function openChat(id) {
   ensureStarted();
   for (const m of currentMessages) {
     if (m.role === 'user') addUserMessage(m.text, m.fileName, false);
-    else addAssistantMessage(m.text, m.modelBadge, m.isError, false, false);
+    else {
+      const row = addAssistantMessage(m.text, m.modelBadge, m.isError, false, false);
+      if (m.workspace) {
+        row.querySelector('.msg-wrap').appendChild(buildInlineWorkspaceCard(m.workspace.workspace, m.workspace.tree));
+      }
+    }
   }
   renderChatList();
   closeSidebar();
@@ -147,7 +860,7 @@ function addUserMessage(text, fileName, record = true) {
   row.className = 'msg-row user';
   const bubble = document.createElement('div');
   bubble.className = 'msg user';
-  bubble.textContent = fileName ? `📎 ${fileName}\n${text}` : text;
+  bubble.textContent = fileName ? `[Dosya: ${fileName}]\n${text}` : text;
   row.appendChild(bubble);
   els.messages.appendChild(row);
   els.messages.scrollTop = els.messages.scrollHeight;
@@ -180,12 +893,7 @@ function addAssistantMessage(text, modelBadge, isError, isThinking, record = tru
   wrap.appendChild(bubble);
 
   if (!isError && !isThinking) {
-    const dl = document.createElement('span');
-    dl.className = 'download-link';
-    dl.textContent = 'Dosya olarak indir';
-    dl.style.marginTop = '4px';
-    dl.addEventListener('click', () => downloadAsFile(text));
-    wrap.appendChild(dl);
+    wrap.appendChild(createMessageActions(text));
   }
 
   row.appendChild(wrap);
@@ -193,6 +901,34 @@ function addAssistantMessage(text, modelBadge, isError, isThinking, record = tru
   els.messages.scrollTop = els.messages.scrollHeight;
   if (record && !isThinking) currentMessages.push({ role: 'assistant', text, modelBadge, isError });
   return row;
+}
+
+function createMessageActions(text) {
+  const bar = document.createElement('div');
+  bar.style.display = 'flex';
+  bar.style.gap = '12px';
+  bar.style.marginTop = '5px';
+
+  const copyBtn = document.createElement('span');
+  copyBtn.className = 'download-link';
+  copyBtn.textContent = 'Kopyala';
+  copyBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      copyBtn.textContent = 'Kopyalandı';
+      setTimeout(() => { copyBtn.textContent = 'Kopyala'; }, 1600);
+    } catch {
+      copyBtn.textContent = 'Kopyalanamadı';
+    }
+  });
+
+  const dl = document.createElement('span');
+  dl.className = 'download-link';
+  dl.textContent = 'Dosya olarak indir';
+  dl.addEventListener('click', () => downloadAsFile(text));
+
+  bar.append(copyBtn, dl);
+  return bar;
 }
 
 function downloadAsFile(text) {
@@ -238,6 +974,7 @@ async function sendMessage() {
   let usedModel = '';
   let taskType = '';
   let streaming = false;
+  let builtWorkspace = null;
 
   try {
     const formData = new FormData();
@@ -277,6 +1014,8 @@ async function sendMessage() {
           fullText += evt.content;
           bubble.innerHTML = renderMarkdown(fullText);
           els.messages.scrollTop = els.messages.scrollHeight;
+        } else if (evt.type === 'workspace') {
+          builtWorkspace = { workspace: evt.workspace, tree: evt.tree };
         } else if (evt.type === 'done') {
           usedModel = evt.model || '';
           taskType = evt.task_type || '';
@@ -288,9 +1027,12 @@ async function sendMessage() {
       }
     }
 
-    // Finalise the bubble: add badge and download link
-    if (fullText) {
+    // Finalise the bubble: add badge, inline workspace explorer (if built), and download link
+    if (fullText || builtWorkspace) {
       bubble.innerHTML = renderMarkdown(fullText);
+      if (builtWorkspace) {
+        wrap.appendChild(buildInlineWorkspaceCard(builtWorkspace.workspace, builtWorkspace.tree));
+      }
       const label = MODEL_LABELS[usedModel] || usedModel;
       if (label) {
         const badgeRow = document.createElement('div');
@@ -301,13 +1043,9 @@ async function sendMessage() {
         badgeRow.appendChild(badge);
         wrap.insertBefore(badgeRow, bubble);
       }
-      const dl = document.createElement('span');
-      dl.className = 'download-link';
-      dl.textContent = 'Dosya olarak indir';
-      dl.style.marginTop = '4px';
-      dl.addEventListener('click', () => downloadAsFile(fullText));
-      wrap.appendChild(dl);
-      currentMessages.push({ role: 'assistant', text: fullText, modelBadge: MODEL_LABELS[usedModel] || usedModel, isError: false });
+      wrap.appendChild(createMessageActions(fullText));
+
+      currentMessages.push({ role: 'assistant', text: fullText, modelBadge: MODEL_LABELS[usedModel] || usedModel, isError: false, workspace: builtWorkspace });
     }
   } catch (err) {
     row.remove();
@@ -344,7 +1082,7 @@ export function initAssistant() {
   els.fileInput.addEventListener('change', () => {
     if (els.fileInput.files.length > 0) {
       selectedFile = els.fileInput.files[0];
-      els.fileChipName.textContent = '📎 ' + selectedFile.name;
+      els.fileChipName.textContent = selectedFile.name;
       els.fileChip.classList.add('active');
     }
   });
@@ -394,7 +1132,7 @@ async function handleRunCodeClick(e) {
   const outputEl = block.querySelector('.run-output');
 
   btn.disabled = true;
-  btn.textContent = '⏳ Çalışıyor...';
+  btn.textContent = 'Çalışıyor...';
   outputEl.hidden = false;
   outputEl.classList.remove('run-error');
   outputEl.textContent = '';

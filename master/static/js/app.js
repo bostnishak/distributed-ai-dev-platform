@@ -61,6 +61,7 @@ function route() {
       }, ms);
     },
   };
+  pageView.classList.toggle('full-bleed', Boolean(r.fullBleed));
   pageView.scrollTop = 0;
   r.render(pageView, m, ctx);
 }

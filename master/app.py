@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 
 import agents_api
 import assistant
+import cnc_api
 import config
 import contract_check
 import db
@@ -16,6 +17,7 @@ import output_api
 import perf_api
 import projects_api
 import scheduler
+import studio_api
 import tasks_api
 
 
@@ -35,6 +37,8 @@ app.include_router(assistant.router)
 app.include_router(tasks_api.router)
 app.include_router(output_api.router)
 app.include_router(perf_api.router)
+app.include_router(cnc_api.router)
+app.include_router(studio_api.router)
 
 
 @app.get("/api/admin/contract-check")

@@ -394,3 +394,419 @@ ul.plain { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.6; }
 .perf-row { display: flex; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
 .perf-type { font-weight: 500; min-width: 120px; }
 .section-label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+
+/* --- Full-bleed IDE page mode --- */
+.view.page.full-bleed {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- CNC Technical Drawing Ballooning --- */
+.cnc-page { max-width: 1360px; }
+.cnc-upload-card { display: flex; flex-direction: column; gap: 12px; }
+.cnc-upload-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.cnc-meta-grid { display: grid; grid-template-columns: 1fr 1fr 180px auto; gap: 10px; align-items: center; }
+.cnc-input {
+  border: 1px solid #d9d9e0; border-radius: 8px; padding: 8px 10px;
+  font-size: 13.5px; font-family: inherit; width: 100%;
+}
+.cnc-jobs-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.cnc-job-pill {
+  border: 1px solid var(--border); background: #fff; border-radius: 999px;
+  padding: 6px 12px; font-size: 12.5px; cursor: pointer; color: var(--text);
+}
+.cnc-job-pill:hover { background: #f2f2f7; }
+.cnc-job-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+
+.cnc-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.cnc-toolbar-left, .cnc-export-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cnc-meta-summary {
+  display: flex; gap: 14px; flex-wrap: wrap; padding: 8px 12px;
+  background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px;
+}
+.cnc-canvas-wrap {
+  border: 1px solid var(--border); border-radius: 10px; background: #0f172a;
+  overflow: auto; max-height: 620px; padding: 10px; text-align: center;
+}
+.cnc-drawing-img { display: inline-block; max-width: none; border-radius: 4px; box-shadow: 0 4px 18px rgba(0,0,0,0.35); }
+.cnc-table-scroll { overflow-x: auto; }
+.cnc-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.cnc-table th {
+  text-align: left; padding: 8px 10px; background: #f1f5f9; color: #334155;
+  border-bottom: 1px solid #cbd5e1; font-weight: 600; white-space: nowrap;
+}
+.cnc-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.cnc-num-cell { text-align: center; }
+.cnc-balloon-dot {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; border-radius: 50%; background: #dc2626;
+  color: #fff; font-weight: 700; font-size: 12px;
+}
+.cnc-cell-in {
+  border: 1px solid transparent; background: transparent; padding: 4px 6px;
+  border-radius: 6px; font-size: 13px; width: 100%; min-width: 90px; font-family: inherit;
+}
+.cnc-cell-in:focus { border-color: var(--accent); background: #fff; outline: none; }
+.cnc-del-btn { padding: 3px 8px; font-size: 12px; }
+.cnc-badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 600; }
+.cnc-crit { background: #fee2e2; color: #991b1b; }
+.cnc-major { background: #fef3c7; color: #92400e; }
+.cnc-minor { background: #e0f2fe; color: #075985; }
+
+/* --- AI Project Studio (VS Code / Antigravity IDE) --- */
+.studio-shell {
+  display: flex; flex-direction: column; height: 100%; width: 100%;
+  background: #1e1e1e; color: #d4d4d4;
+}
+.studio-topbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  padding: 8px 14px; background: #252526; border-bottom: 1px solid #333;
+}
+.studio-topbar-left, .studio-topbar-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.studio-brand { font-weight: 700; color: #a5b4fc; font-size: 14px; margin-right: 6px; }
+.studio-select {
+  background: #3c3c3c; color: #f3f3f3; border: 1px solid #555; border-radius: 7px;
+  padding: 6px 10px; font-size: 13px; font-family: inherit;
+}
+.studio-btn-sm { padding: 5px 10px; font-size: 12.5px; background: #333; color: #eee; border-color: #4b4b4b; }
+.studio-btn-sm:hover { background: #444; }
+.studio-btn-sm.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.studio-btn-exe { background: #15803d !important; border-color: #16a34a !important; color: #fff !important; font-weight: 600; }
+
+.studio-body {
+  flex: 1; min-height: 0; display: grid;
+  grid-template-columns: 245px 1fr 340px;
+}
+.studio-explorer {
+  background: #181818; border-right: 1px solid #2d2d2d;
+  display: flex; flex-direction: column; min-height: 0;
+}
+.studio-pane-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: #9ca3af;
+  padding: 10px 12px 6px; text-transform: uppercase;
+}
+.studio-tree { flex: 1; overflow-y: auto; padding-bottom: 16px; }
+.studio-ws-root {
+  font-size: 12.5px; font-weight: 700; color: #e5e7eb; padding: 6px 10px;
+  border-bottom: 1px solid #262626; margin-bottom: 4px;
+}
+.studio-tree-item {
+  display: flex; align-items: center; gap: 6px; padding: 4px 10px;
+  font-size: 13px; color: #cbd5e1; cursor: pointer; user-select: none;
+}
+.studio-tree-item:hover { background: #2a2d2e; }
+.studio-tree-item.active { background: #37373d; color: #ffffff; font-weight: 600; }
+.tree-chevron { width: 12px; font-size: 11px; color: #9ca3af; }
+.tree-icon { font-size: 13px; }
+.tree-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.tree-size { font-size: 10.5px; color: #6b7280; }
+.studio-empty-tree { padding: 14px; font-size: 12.5px; color: #6b7280; }
+
+.studio-center {
+  display: flex; flex-direction: column; min-height: 0; min-width: 0;
+  background: #1e1e1e;
+}
+.studio-editor-bar {
+  padding: 6px 14px; background: #252526; border-bottom: 1px solid #2d2d2d;
+  font-size: 12.5px; color: #9cdcfe; font-family: Consolas, "Courier New", monospace;
+}
+.studio-editor {
+  flex: 1; width: 100%; border: none; resize: none; outline: none;
+  background: #1e1e1e; color: #d4d4d4; padding: 14px 16px;
+  font-family: Consolas, "Cascadia Code", "Courier New", monospace;
+  font-size: 13.5px; line-height: 1.55; tab-size: 4;
+}
+.studio-preview-frame { flex: 1; width: 100%; border: none; background: #ffffff; }
+
+.studio-ai-pane {
+  background: #181818; border-left: 1px solid #2d2d2d;
+  display: flex; flex-direction: column; min-height: 0;
+}
+.studio-ai-body {
+  flex: 1; display: flex; flex-direction: column; gap: 8px;
+  padding: 0 12px 12px; min-height: 0;
+}
+.studio-presets { display: flex; gap: 6px; flex-wrap: wrap; }
+.studio-preset-chip {
+  background: #27272a; color: #c7d2fe; border: 1px solid #3f3f46; border-radius: 999px;
+  padding: 4px 10px; font-size: 11.5px; cursor: pointer;
+}
+.studio-preset-chip:hover { background: #312e81; color: #fff; }
+.studio-prompt {
+  width: 100%; background: #252526; color: #f3f4f6; border: 1px solid #3f3f46;
+  border-radius: 8px; padding: 10px; font-size: 13px; font-family: inherit; resize: vertical;
+}
+.studio-prompt:focus { border-color: var(--accent); outline: none; }
+.studio-ai-actions { display: flex; gap: 8px; }
+.studio-console {
+  flex: 1; min-height: 120px; overflow-y: auto; background: #0f1115;
+  border: 1px solid #2d2d2d; border-radius: 8px; padding: 10px;
+  font-family: Consolas, "Courier New", monospace; font-size: 12px; line-height: 1.5;
+  color: #cbd5e1; white-space: pre-wrap;
+}
+.studio-log-line.log-ok { color: #4ade80; }
+.studio-log-line.log-err { color: #f87171; }
+
+@media (max-width: 1020px) {
+  .studio-body { grid-template-columns: 200px 1fr; grid-template-rows: 1fr 280px; }
+  .studio-ai-pane { grid-column: 1 / -1; border-left: none; border-top: 1px solid #2d2d2d; }
+  .cnc-meta-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* --- VS Code / Antigravity / Claude Artifacts IDE Workbench inside Chat --- */
+.msg-wrap:has(.ide-workbench) {
+  max-width: 100% !important;
+  width: 100%;
+}
+.msg-wrap:has(.ide-workbench) > .msg.assistant {
+  max-width: 100%;
+}
+
+.ide-workbench {
+  margin-top: 12px;
+  border: 1px solid #2b2d31;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #1e1e1e;
+  color: #cccccc;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28), 0 2px 8px rgba(0, 0, 0, 0.16);
+  display: flex;
+  flex-direction: column;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+.ide-workbench.ide-fullscreen {
+  position: fixed;
+  inset: 14px;
+  z-index: 9999;
+  margin: 0;
+  border-radius: 14px;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.65);
+}
+.ide-workbench.ide-fullscreen .ide-main {
+  height: calc(100vh - 140px);
+}
+
+/* Custom sleek dark scrollbars inside the IDE */
+.ide-workbench *::-webkit-scrollbar { width: 8px; height: 8px; }
+.ide-workbench *::-webkit-scrollbar-track { background: #181818; }
+.ide-workbench *::-webkit-scrollbar-thumb { background: #3a3d41; border-radius: 4px; }
+.ide-workbench *::-webkit-scrollbar-thumb:hover { background: #4f5359; }
+
+/* 1. Top Window Titlebar */
+.ide-titlebar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding: 8px 14px; background: #18181b; border-bottom: 1px solid #2b2b2f;
+}
+.ide-title-left { display: flex; align-items: center; gap: 10px; }
+.ide-window-dots { display: flex; gap: 6px; margin-right: 4px; }
+.ide-window-dots span { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+.ide-window-dots .dot-r { background: #ff5f56; }
+.ide-window-dots .dot-y { background: #ffbd2e; }
+.ide-window-dots .dot-g { background: #27c93f; }
+.ide-proj-name { font-weight: 600; font-size: 13.5px; color: #f4f4f5; letter-spacing: -0.01em; }
+.ide-type-badge {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+  padding: 2px 7px; border-radius: 4px; background: #27272a; color: #a5b4fc; border: 1px solid #3f3f46;
+}
+
+/* Segmented Mode Pill (Code | Preview | Split) */
+.ide-mode-group {
+  display: inline-flex; background: #27272a; padding: 2px; border-radius: 8px; border: 1px solid #38383d;
+}
+.ide-mode-btn {
+  border: none; background: transparent; color: #a1a1aa; font-size: 12px; font-weight: 600;
+  padding: 4px 12px; border-radius: 6px; cursor: pointer; font-family: inherit; transition: all 0.12s;
+}
+.ide-mode-btn:hover { color: #f4f4f5; }
+.ide-mode-btn.active { background: #4f46e5; color: #ffffff; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+
+.ide-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ide-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 11px; border-radius: 7px; border: 1px solid #38383d;
+  background: #27272a; color: #e4e4e7; font-size: 12px; font-weight: 600;
+  cursor: pointer; text-decoration: none; font-family: inherit; transition: background 0.12s;
+}
+.ide-btn:hover { background: #3f3f46; color: #fff; }
+.ide-btn.primary { background: #4f46e5; border-color: #6366f1; color: #fff; }
+.ide-btn.primary:hover { background: #4338ca; }
+.ide-btn.exe { background: #16a34a; border-color: #22c55e; color: #fff; }
+.ide-btn.exe:hover { background: #15803d; }
+.ide-btn.icon-only { padding: 4px 9px; font-size: 13px; }
+
+/* 2. Main Grid (Explorer Sidebar + Surface) */
+.ide-main {
+  display: grid; grid-template-columns: 230px 1fr; height: 440px; min-height: 0;
+}
+.ide-sidebar {
+  background: #181818; border-right: 1px solid #2b2b2b;
+  display: flex; flex-direction: column; min-height: 0; user-select: none;
+}
+.ide-side-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px 6px; font-size: 10.5px; font-weight: 700;
+  letter-spacing: 0.08em; color: #8e8e93;
+}
+.ide-icon-btn {
+  border: none; background: transparent; color: #a1a1aa; font-size: 14px;
+  cursor: pointer; padding: 0 5px; border-radius: 4px;
+}
+.ide-icon-btn:hover { background: #2d2d30; color: #fff; }
+.ide-root-label {
+  padding: 5px 10px; font-size: 11.5px; font-weight: 700; color: #e4e4e7;
+  background: #202022; border-top: 1px solid #28282c; border-bottom: 1px solid #28282c;
+  display: flex; align-items: center; gap: 4px;
+}
+.ide-tree { flex: 1; overflow-y: auto; padding: 4px 0 12px; }
+.ide-tree-row {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 10px; font-size: 12.5px; color: #cccccc;
+  cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  border-left: 2px solid transparent;
+}
+.ide-tree-row:hover { background: #2a2d2e; color: #fff; }
+.ide-tree-row.active {
+  background: #37373d; color: #ffffff; font-weight: 500;
+  border-left-color: #6366f1;
+}
+.ide-chev { width: 12px; display: inline-block; text-align: center; font-size: 11px; color: #8e8e93; flex-shrink: 0; }
+.ide-svg-icon { width: 15px; height: 15px; flex-shrink: 0; vertical-align: middle; }
+.ide-ext-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 17px; height: 15px; border-radius: 3px;
+  font-size: 9px; font-weight: 800; font-family: Consolas, monospace;
+  flex-shrink: 0; letter-spacing: -0.04em;
+}
+.ide-node-name { overflow: hidden; text-overflow: ellipsis; }
+
+/* Surface (Code + Preview) */
+.ide-surface {
+  display: flex; flex-direction: column; min-width: 0; min-height: 0; background: #1e1e1e;
+}
+.ide-surface.split-view {
+  display: grid; grid-template-columns: 1fr 1fr;
+}
+.ide-surface.split-view .ide-code-pane { border-right: 1px solid #2b2b2b; }
+
+.ide-code-pane {
+  flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0;
+}
+
+/* VS Code Multi-Tab Bar */
+.ide-tabbar {
+  display: flex; align-items: stretch; overflow-x: auto;
+  background: #181818; border-bottom: 1px solid #252526; height: 34px; flex-shrink: 0;
+}
+.ide-tab {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 0 12px; font-size: 12.5px; color: #969696;
+  background: #202021; border-right: 1px solid #252526;
+  border-top: 2px solid transparent; cursor: pointer; user-select: none; white-space: nowrap;
+}
+.ide-tab:hover { background: #262627; color: #d4d4d4; }
+.ide-tab.active {
+  background: #1e1e1e; color: #ffffff;
+  border-top-color: #6366f1;
+}
+.ide-tab-close {
+  font-size: 14px; color: #71717a; padding: 0 3px; border-radius: 4px; line-height: 1;
+}
+.ide-tab-close:hover { background: #3f3f46; color: #fff; }
+
+/* Subbar: Breadcrumb + Copy/Edit/Save */
+.ide-subbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 4px 12px; background: #1e1e1e; border-bottom: 1px solid #282828;
+  font-size: 11.5px; color: #8e8e93; flex-shrink: 0;
+}
+.ide-breadcrumb { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ide-breadcrumb .bc-root { color: #a5b4fc; font-weight: 500; }
+.ide-editor-tools { display: flex; gap: 6px; flex-shrink: 0; }
+.ide-tool-btn {
+  border: 1px solid #333; background: #252526; color: #d4d4d4;
+  font-size: 11px; padding: 2px 8px; border-radius: 5px; cursor: pointer; font-family: inherit;
+}
+.ide-tool-btn:hover { background: #333; color: #fff; }
+.ide-tool-btn.primary { background: #4f46e5; border-color: #6366f1; color: #fff; }
+
+/* Code Viewport with Line Numbers Gutter */
+.ide-code-scroll {
+  flex: 1; display: flex; overflow: auto; min-height: 0; position: relative;
+  font-family: "Cascadia Code", Consolas, "JetBrains Mono", "Courier New", monospace;
+  font-size: 13px; line-height: 1.55;
+}
+.ide-gutter {
+  padding: 12px 10px 12px 12px; text-align: right; color: #5a5a5e;
+  background: #1e1e1e; border-right: 1px solid #282828;
+  user-select: none; flex-shrink: 0; min-width: 42px;
+}
+.ide-code-content {
+  flex: 1; margin: 0 !important; padding: 12px 16px !important;
+  background: transparent !important; color: #d4d4d4 !important;
+  border-radius: 0 !important; overflow: visible !important;
+  white-space: pre; tab-size: 2;
+}
+.ide-raw-editor {
+  flex: 1; background: #1e1e1e; color: #e4e4e7; border: none; outline: none;
+  padding: 12px 16px; font-family: inherit; font-size: 13px; line-height: 1.55;
+  resize: none; white-space: pre; tab-size: 2;
+}
+
+/* VS Code Dark+ Syntax Highlighting Colors */
+.hl-kw { color: #c586c0; font-weight: 500; }
+.hl-str { color: #ce9178; }
+.hl-comment { color: #6a9955; font-style: italic; }
+.hl-num { color: #b5cea8; }
+.hl-tag { color: #569cd6; }
+.hl-attr { color: #9cdcfe; }
+
+/* Browser-Style Live Preview Pane */
+.ide-preview-pane {
+  flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; background: #fff;
+}
+.ide-browser-bar {
+  display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+  background: #252529; border-bottom: 1px solid #333; flex-shrink: 0;
+}
+.ide-browser-btn {
+  border: 1px solid #3f3f46; background: #18181b; color: #e4e4e7;
+  width: 26px; height: 26px; border-radius: 6px; display: inline-flex;
+  align-items: center; justify-content: center; cursor: pointer; text-decoration: none; font-size: 13px;
+}
+.ide-browser-btn:hover { background: #3f3f46; color: #fff; }
+.ide-url-pill {
+  flex: 1; background: #141417; border: 1px solid #333; border-radius: 6px;
+  padding: 4px 10px; font-size: 11.5px; color: #a1a1aa;
+  font-family: Consolas, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ide-preview-iframe { flex: 1; width: 100%; border: none; background: #ffffff; }
+
+/* AI Follow-up Bar & VS Code Status Bar */
+.ide-iter-bar {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+  background: #1c1c1f; border-top: 1px solid #2b2b2f;
+}
+.ide-iter-spark { font-size: 14px; }
+.ide-iter-bar input {
+  flex: 1; background: #121214; border: 1px solid #34343a; border-radius: 7px;
+  color: #f4f4f5; padding: 6px 11px; font-size: 12.5px; font-family: inherit;
+}
+.ide-iter-bar input:focus { border-color: #6366f1; outline: none; }
+
+.ide-statusbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 3px 12px; background: #007acc; color: #ffffff;
+  font-size: 11px; font-weight: 500; user-select: none;
+}
+.ide-status-side { display: flex; align-items: center; gap: 14px; }
+
+@media (max-width: 760px) {
+  .ide-main { grid-template-columns: 1fr; height: 500px; }
+  .ide-sidebar { max-height: 150px; border-right: none; border-bottom: 1px solid #2b2b2b; }
+  .ide-surface.split-view { grid-template-columns: 1fr; }
+}
+.diff-add { background: rgba(34, 197, 94, 0.18); color: #86efac; display: block; padding: 0 6px; }
+.diff-del { background: rgba(239, 68, 68, 0.18); color: #fca5a5; display: block; padding: 0 6px; }
+.diff-hunk { color: #93c5fd; font-weight: 600; display: block; }

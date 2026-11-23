@@ -39,5 +39,14 @@ AGENT_TOKEN = os.environ.get("AGENT_TOKEN", "")
 
 # --- Storage and limits ---
 DB_PATH = Path(os.environ.get("DB_PATH", str(BASE_DIR / "data" / "platform.db")))
-MAX_UPLOAD_BYTES = 5 * 1024 * 1024
+DATA_DIR = DB_PATH.parent
+CNC_JOBS_DIR = Path(os.environ.get("CNC_JOBS_DIR", str(DATA_DIR / "cnc_jobs")))
+WORKSPACES_DIR = Path(os.environ.get("WORKSPACES_DIR", str(DATA_DIR / "workspaces")))
+SAMPLES_DIR = BASE_DIR.parent / "samples"
+
+# --- Enterprise AI Models (CNC Ballooning & Project Studio) ---
+CNC_VISION_MODEL = os.environ.get("CNC_VISION_MODEL", "cnc-ballooner")
+STUDIO_CODER_MODEL = os.environ.get("STUDIO_CODER_MODEL", "qwen2.5-coder:7b")
+
+MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 MAX_DOCUMENT_CHARS = 300_000

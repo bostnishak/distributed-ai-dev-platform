@@ -52,6 +52,15 @@ export function renderMarkdown(raw) {
   text = text.replace(/^### (.*)$/gm, '<h3>$1</h3>');
   text = text.replace(/^## (.*)$/gm, '<h2>$1</h2>');
   text = text.replace(/^# (.*)$/gm, '<h1>$1</h1>');
+  // Safe local images (![alt](/api/...)) and local/hash links ([label](/api/...) or [label](#/...))
+  text = text.replace(
+    /!\[([^\]]*)\]\((\/api\/[a-zA-Z0-9_./?=&%-]+)\)/g,
+    '<img src="$2" alt="$1" style="max-width:100%;border-radius:8px;border:1px solid #e2e8f0;margin:8px 0;">'
+  );
+  text = text.replace(
+    /\[([^\]]+)\]\(((?:\/api\/|#\/)[a-zA-Z0-9_./?=&%-]+)\)/g,
+    '<a href="$2" style="font-weight:600;">$1</a>'
+  );
   text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   text = text.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<em>$1</em>');
   text = text.replace(/`([^`\n]+)`/g, '<code>$1</code>');

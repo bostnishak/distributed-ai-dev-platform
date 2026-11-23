@@ -27,8 +27,11 @@ node_modules/
 .DS_Store
 Thumbs.db
 
-# Distribution archives (generated from the sources)
+# Distribution archives and compiled binaries (generated from the sources)
 *.zip
+*.exe
+training/cnc_ballooning/data/
+training/cnc_ballooning/lora_adapter/
 
 # IDE / tool state
 .idea/

@@ -147,3 +147,26 @@ class TestRunCode:
         monkeypatch.setattr(assistant, "CODE_RUN_TIMEOUT_SECONDS", 1)
         resp = client.post("/api/assistant/run-code", json={"code": "import time; time.sleep(5)"})
         assert resp.json()["timed_out"] is True
+
+
+class TestEnterpriseBackgroundRouting:
+    def test_detects_project_build_requests(self):
+        from assistant import _detect_project_type, _is_project_build_request
+
+        assert _is_project_build_request("Bana modern bir e-ticaret sitesi yap", None) is True
+        assert _is_project_build_request("Python ile uzay oyunu yap exe olsun", None) is True
+        assert _is_project_build_request("Dosyalarıyla birlikte bir web sitesi oluştur", None) is True
+        assert _is_project_build_request("bana bilgisayarda çalışacak hesap makinesi uygulaması yapabilir misin", None) is True
+
+        ptype, wants_exe = _detect_project_type("bana bilgisayarda çalışacak hesap makinesi uygulaması yapabilir misin")
+        assert ptype == "desktop"
+        assert wants_exe is True
+
+    def test_ignores_code_only_and_conceptual_questions(self):
+        from assistant import _is_project_build_request
+
+        assert _is_project_build_request("Bana hesap makinesi kodunu ver", None) is False
+        assert _is_project_build_request("Bu oyunun kod halini ver", None) is False
+        assert _is_project_build_request("E-ticaret nedir?", None) is False
+        assert _is_project_build_request("Oyun motoru ne demek açıkla", None) is False
+        assert _is_project_build_request("Merhaba nasılsın", None) is False

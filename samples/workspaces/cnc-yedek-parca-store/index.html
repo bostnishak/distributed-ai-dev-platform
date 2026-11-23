@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ProCNC Store — Endüstriyel CNC Parça & Takım E-Ticaret</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="navbar">
+    <div class="container nav-inner">
+      <div class="logo">⚙️ ProCNC <span>Store</span></div>
+      <input id="searchInput" type="search" placeholder="Rulman, freze, pens, kumpas ara..." />
+      <button id="cartToggle" class="cart-btn">🛒 Sepet (<span id="cartCount">0</span>)</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <h1>Hassas CNC Parçaları & Kalite Kontrol Ekipmanları</h1>
+      <p>ISO 2768-mK sertifikalı talaşlı imalat bileşenleri, karbür kesici takımlar ve ölçüm cihazları aynı gün kargoda.</p>
+      <div class="filters" id="categoryFilters"></div>
+    </div>
+  </section>
+
+  <main class="container">
+    <div id="productGrid" class="product-grid"></div>
+  </main>
+
+  <aside id="cartDrawer" class="cart-drawer" hidden>
+    <div class="cart-head">
+      <h2>Sepetim</h2>
+      <button id="closeCart" class="icon-btn">✕</button>
+    </div>
+    <div id="cartItems" class="cart-items"></div>
+    <div class="cart-foot">
+      <div class="coupon-row">
+        <input id="couponInput" placeholder="Kupon kodu (CNC10)" />
+        <button id="applyCoupon" class="btn-secondary">Uygula</button>
+      </div>
+      <div class="total-row"><span>Toplam:</span><strong id="cartTotal">0 ₺</strong></div>
+      <button id="checkoutBtn" class="btn-primary full">Siparişi Tamamla</button>
+    </div>
+  </aside>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="js/products.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

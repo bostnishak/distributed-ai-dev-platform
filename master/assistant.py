@@ -25,6 +25,165 @@ import config
 import db
 from extract import extract_csv_text, extract_docx_text, extract_pdf_text, extract_xlsx_text
 
+CNC_BALLOON_KEYWORDS = (
+    "balonla", "balonlama", "teknik çizim", "teknik cizim", "as9102", "fai",
+    "tolerans tablosu", "cnc parça", "cnc parca", "cnc çizim", "cnc cizim",
+    "ölçüleri çıkar", "olculeri cikar", "kalite kontrol formu",
+)
+
+CODE_ONLY_RE = re.compile(
+    r"(kodunu\s*(ver|yaz|göster|goster|at)|kod\s*halini|sadece\s*kod|kodu\s*(ver|yaz))",
+    re.IGNORECASE,
+)
+
+PROJECT_NOUN_RE = re.compile(
+    r"(web\s*site\w*|e-?ticaret|oyun\w*|masaüstü|masaustu|bilgisayarda\s*çalış\w*|bilgisayarda\s*calis\w*|"
+    r"\.exe|\bexe\b|uygulama\w*|program\w*|proje\w*|site\w*|dosyalar\w*)",
+    re.IGNORECASE,
+)
+
+PROJECT_ACTION_RE = re.compile(
+    r"(yap\w*|oluştur\w*|olustur\w*|hazırla\w*|hazirla\w*|geliştir\w*|gelistir\w*|tasarla\w*|kur\w*|üret\w*|uret\w*)",
+    re.IGNORECASE,
+)
+
+
+def _is_cnc_balloon_request(prompt: str, file: UploadFile | None) -> bool:
+    if file is None or not file.filename:
+        return False
+    if file.filename.lower().endswith(".dxf"):
+        return True
+    lower = prompt.lower()
+    return any(kw in lower for kw in CNC_BALLOON_KEYWORDS)
+
+
+def _is_zip_workspace_request(prompt: str, file: UploadFile | None) -> bool:
+    if file is None or not file.filename or not file.filename.lower().endswith(".zip"):
+        return False
+    lower = prompt.lower()
+    return any(
+        k in lower
+        for k in ("proje", "aç", "ac", "geliştir", "gelistir", "düzenle", "duzenle", "exe", "çalıştır", "calistir", "kod", "ekle")
+    )
+
+
+def _is_project_build_request(prompt: str, file: UploadFile | None) -> bool:
+    if file is not None and file.filename:
+        return False
+    lower = prompt.lower().strip()
+    if CODE_ONLY_RE.search(lower):
+        return False
+    if any(q in lower for q in ("nedir", "ne demek", "açıkla", "acikla", "farkı ne", "farki ne")):
+        return False
+    return bool(PROJECT_NOUN_RE.search(lower) and PROJECT_ACTION_RE.search(lower))
+
+
+def _detect_project_type(prompt: str) -> tuple[str, bool]:
+    """Return (project_type, wants_exe) for a project build prompt."""
+    lower = prompt.lower()
+    is_web = any(k in lower for k in ("web", "site", "e-ticaret", "eticaret", "html", "tarayıcı", "tarayici"))
+    is_game = any(k in lower for k in ("oyun", "game", "arcade", "snake", "yılan", "tetris"))
+    is_desktop = any(k in lower for k in ("bilgisayarda", "masaüstü", "masaustu", "exe", "uygulama", "program"))
+    if is_web and not any(k in lower for k in ("exe", "bilgisayarda", "masaüstü")):
+        return "web", False
+    if is_game:
+        return "game", True
+    if is_desktop:
+        return "desktop", True
+    return "auto", False
+
+
+async def _run_cnc_balloon_from_chat(file: UploadFile) -> str:
+    """Execute the full Senior Mechanical Engineer CNC ballooning pipeline directly from Chat."""
+    import cnc_api
+
+    job = await cnc_api.create_balloon_job(
+        file=file,
+        part_number="",
+        part_name="",
+        material="",
+        revision="",
+        standard="",
+        model="",
+    )
+    jid = job["id"]
+    meta = job.get("metadata", {})
+    balloons = job.get("balloons", [])
+    plan = job.get("manufacturing_plan", {})
+    summary = plan.get("summary", {})
+    cp = plan.get("cutting_parameters", {})
+
+    lines = [
+        f"## CNC Teknik Çizim Balonlama ve İmalat Raporu ({meta.get('part_number') or job['filename']})",
+        f"- **Parça:** {meta.get('part_name') or job['filename']} · **Malzeme:** {meta.get('material') or '-'} · **Standart:** {meta.get('standard') or 'ISO 2768-mK'}",
+        f"- **Tespit Edilen Karakteristik:** {len(balloons)} adet (**Kritik:** {summary.get('critical', 0)} · **Majör:** {summary.get('major', 0)} · **Minör:** {summary.get('minor', 0)}) · **Motor:** `{job.get('engine_used', '')}`",
+        "",
+        f"![Balonlanmış Teknik Çizim](/api/cnc/jobs/{jid}/file/ballooned.png)",
+        "",
+        "### Raporları İndir (AS9102 / FAI Paketi)",
+        f"- [AS9102 Excel Raporu (3 Sekmeli · Form 1-2-3 + Proses Planı .xlsx)](/api/cnc/jobs/{jid}/file/report.xlsx)",
+        f"- [Mühendislik Word Raporu (Gömülü Çizim + OP10-OP50 .docx)](/api/cnc/jobs/{jid}/file/report.docx)",
+        f"- [Balonlu PDF Çizim + Tablo (.pdf)](/api/cnc/jobs/{jid}/file/ballooned.pdf)",
+        f"- [Yüksek Çözünürlüklü Balonlu PNG](/api/cnc/jobs/{jid}/file/ballooned.png)",
+        "",
+        "### AS9102 Form 3 - Karakteristik, Operasyon ve Ölçüm Tablosu",
+        "| No | Bölge | Ölçü | Kategori | Min / Max | Operasyon | Kesici Takım | Ölçüm Ekipmanı | Sıklık | Kritiklik |",
+        "|---|---|---|---|---|---|---|---|---|---|",
+    ]
+    for b in balloons:
+        mm = f"{b['min_limit']} / {b['max_limit']}" if (b.get("min_limit") is not None and b.get("max_limit") is not None) else "-"
+        lines.append(
+            f"| **{b['balloon_no']}** | {b.get('zone', '-')} | `{b['raw_text']}` | {b['category']} | {mm} | "
+            f"{b.get('operation', '-')} | {b.get('tooling', '-')} | {b.get('gage', '-')} | "
+            f"{b.get('inspection_freq', '-')} | {b.get('criticality', 'Majör')} |"
+        )
+
+    ops = plan.get("operations") or []
+    if ops:
+        lines.append("")
+        lines.append("### CNC İmalat Proses Rotası (OP10-OP50) ve Kesme Parametreleri")
+        if cp:
+            lines.append(
+                f"- **Malzeme Grubu:** {cp.get('group', '-')} · **Torna Vc:** {cp.get('vc_turn', '-')} · "
+                f"**Freze Vc:** {cp.get('vc_mill', '-')} · **İlerleme:** {cp.get('feed', '-')} · **Soğutma:** {cp.get('coolant', '-')}"
+            )
+            lines.append("")
+        lines.append("| OP | Operasyon | Tezgâh | Bağlama / Fikstür | Balonlar |")
+        lines.append("|---|---|---|---|---|")
+        for op in ops:
+            blist = ", ".join(f"#{n}" for n in (op.get("balloons") or [])) or "Genel"
+            lines.append(f"| **{op['op']}** | {op['name']} | {op['machine']} | {op['fixture']} | {blist} |")
+
+    risks = plan.get("dfm_risks") or []
+    if risks:
+        lines.append("")
+        lines.append("### DFM ve Kritik Kalite Risk Uyarıları")
+        for r in risks:
+            lines.append(f"- {r}")
+
+    ce = plan.get("cost_estimate") or {}
+    if ce:
+        bd = ce.get("breakdown_min") or {}
+        lines.extend([
+            "",
+            "### Otomatik Maliyet, İşleme Süresi ve Teklif Özeti",
+            "| Kütük Boyutu | Ham / Net Ağırlık | Parça Başı Süre (Cycle) | 1 Adet (Prototip) | 10 Adet Birim | 100 Adet (Seri) |",
+            "|---|---|---|---|---|---|",
+            f"| `{ce.get('stock_dimensions', '-')}` | {ce.get('raw_weight_kg', 0)} kg / {ce.get('net_weight_kg', 0)} kg | "
+            f"**{ce.get('cycle_time_min', 0)} dk** (Torna/Freze: {bd.get('turn_mill', 0)} dk, Delik/Diş: {bd.get('drill_tap', 0)} dk, Kalite: {bd.get('quality_cmm', 0)} dk) | "
+            f"**{ce.get('unit_quote_1_tl', 0)} TL** | **{ce.get('unit_quote_10_tl', 0)} TL** | **{ce.get('unit_quote_100_tl', 0)} TL** |",
+        ])
+
+    gcode = plan.get("gcode_template") or ""
+    if gcode:
+        lines.extend([
+            "",
+            "### Başlangıç Fanuc ISO G-Kodu Taslağı",
+            f"```gcode\n{gcode}\n```",
+        ])
+
+    return "\n".join(lines)
+
 router = APIRouter(prefix="/api/assistant", tags=["assistant"])
 
 # All assistant requests go to the master's local Ollama (PB-37). The classifier still decides
@@ -287,6 +446,13 @@ async def _prepare_chat_request(
     full_prompt = prompt
     if extracted_text:
         full_prompt = f"{prompt}\n\n--- Eklenen dosya içeriği ---\n{extracted_text[:8000]}"
+    else:
+        import company_rag
+
+        kb_docs = company_rag.search_company_kb_sync(prompt, top_k=2)
+        if kb_docs:
+            kb_text = "\n".join(f"- {d['title']}: {d['content']}" for d in kb_docs)
+            full_prompt = f"{prompt}\n\n--- Şirket Mühendislik Bilgi Bankası (RAG) ---\n{kb_text}"
     full_prompt += file_note
 
     # Skip the classifier call when a keyword match already determines the category.
@@ -325,6 +491,101 @@ async def chat(prompt: str = Form(...), file: UploadFile | None = File(None)):  
 @router.post("/chat/stream")
 async def chat_stream(prompt: str = Form(...), file: UploadFile | None = File(None)):  # noqa: B008
     """Streaming chat endpoint: tokens arrive as Server-Sent Events."""
+    if _is_cnc_balloon_request(prompt, file):
+        report_md = await _run_cnc_balloon_from_chat(file)  # type: ignore[arg-type]
+
+        async def _cnc_gen():
+            yield f"data: {json.dumps({'type': 'token', 'content': report_md}, ensure_ascii=False)}\n\n"
+            yield f"data: {json.dumps({'type': 'done', 'model': 'cnc-ballooner', 'task_type': 'cnc'})}\n\n"
+
+        return StreamingResponse(_cnc_gen(), media_type="text/event-stream")
+
+    if _is_zip_workspace_request(prompt, file):
+        import workspace_builder as wb
+
+        raw_zip = await file.read()  # type: ignore[union-attr]
+        zname = file.filename or "proje.zip"  # type: ignore[union-attr]
+        wants_exe = any(k in prompt.lower() for k in ("exe", "derle"))
+
+        async def _zip_gen():
+            try:
+                ws_meta, ws_tree = wb.import_zip_workspace(zname, raw_zip)
+                msg = f"### ZIP Projesi İçe Aktarıldı: **{ws_meta['name']}**\n- Çalışma alanı kimliği: `{ws_meta['id']}`\n"
+                yield f"data: {json.dumps({'type': 'token', 'content': msg}, ensure_ascii=False)}\n\n"
+                if wants_exe:
+                    yield f"data: {json.dumps({'type': 'token', 'content': '**PyInstaller ile Windows .EXE derleniyor...**\\n'}, ensure_ascii=False)}\n\n"
+                    res = await wb.build_workspace_exe(ws_meta["id"])
+                    if res.get("ok"):
+                        ws_dir = wb.safe_workspace_dir(ws_meta["id"])
+                        ws_meta = wb.load_workspace_meta(ws_dir)
+                        ws_meta["has_exe"] = True
+                        ws_meta["exe_name"] = res["exe_name"]
+                        ws_tree = wb.build_file_tree(ws_dir)
+                yield f"data: {json.dumps({'type': 'workspace', 'workspace': ws_meta, 'tree': ws_tree}, ensure_ascii=False)}\n\n"
+                yield f"data: {json.dumps({'type': 'done', 'model': 'workspace-importer', 'task_type': 'proje'})}\n\n"
+            except Exception as exc:
+                yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
+
+        return StreamingResponse(_zip_gen(), media_type="text/event-stream")
+
+    if _is_project_build_request(prompt, file):
+        import workspace_builder as wb
+
+        detected_type, wants_exe = _detect_project_type(prompt)
+
+        async def _project_gen():
+            ws_meta = None
+            ws_tree = None
+            used_model = config.STUDIO_CODER_MODEL
+            try:
+                async for evt in wb.stream_generate_project(prompt.strip(), project_type=detected_type):
+                    et = evt.get("type")
+                    if et == "status":
+                        status_msg = f"{evt['message']}\n\n"
+                        yield f"data: {json.dumps({'type': 'token', 'content': status_msg}, ensure_ascii=False)}\n\n"
+                    elif et == "plan":
+                        ws_meta = evt["workspace"]
+                        used_model = ws_meta.get("model") or used_model
+                        flist = "\n".join(f"- `{f['path']}` - {f['purpose']}" for f in evt["files"])
+                        chunk = f"### Proje Planı: **{ws_meta['name']}** ({len(evt['files'])} dosya)\n{flist}\n\n"
+                        yield f"data: {json.dumps({'type': 'token', 'content': chunk}, ensure_ascii=False)}\n\n"
+                    elif et == "file_done":
+                        kb = round(evt["size"] / 1024, 1)
+                        chunk = f"- `{evt['path']}` ({kb} KB)\n"
+                        yield f"data: {json.dumps({'type': 'token', 'content': chunk}, ensure_ascii=False)}\n\n"
+                    elif et == "done":
+                        ws_meta = evt["workspace"]
+                        ws_tree = evt["tree"]
+
+                if ws_meta and wants_exe and ws_meta.get("project_type") in ("game", "desktop", "cli"):
+                    exe_start_msg = "\n**PyInstaller ile Windows .EXE derleniyor...**\n"
+                    yield f"data: {json.dumps({'type': 'token', 'content': exe_start_msg}, ensure_ascii=False)}\n\n"
+                    build_res = await wb.build_workspace_exe(ws_meta["id"])
+                    if build_res.get("ok"):
+                        ws_dir = wb.safe_workspace_dir(ws_meta["id"])
+                        ws_meta = wb.load_workspace_meta(ws_dir)
+                        ws_meta["has_exe"] = True
+                        ws_tree = wb.build_file_tree(ws_dir)
+                        mb = round(build_res.get("exe_size", 0) / (1024 * 1024), 2)
+                        exe_ok_msg = f"**EXE hazır:** `dist/{build_res['exe_name']}` ({mb} MB)\n"
+                        yield f"data: {json.dumps({'type': 'token', 'content': exe_ok_msg}, ensure_ascii=False)}\n\n"
+                    else:
+                        exe_err_msg = f"EXE derleme notu: {build_res.get('error')}\n"
+                        yield f"data: {json.dumps({'type': 'token', 'content': exe_err_msg}, ensure_ascii=False)}\n\n"
+
+                if ws_meta:
+                    ws_dir = wb.safe_workspace_dir(ws_meta["id"])
+                    ws_meta["has_web_preview"] = (ws_dir / "index.html").is_file() or (ws_dir / "public" / "index.html").is_file()
+                    exe_files = list((ws_dir / "dist").glob("*.exe")) if (ws_dir / "dist").is_dir() else []
+                    ws_meta["has_exe"] = len(exe_files) > 0
+                    ws_meta["exe_name"] = exe_files[0].name if exe_files else ""
+                    yield f"data: {json.dumps({'type': 'workspace', 'workspace': ws_meta, 'tree': ws_tree or wb.build_file_tree(ws_dir)}, ensure_ascii=False)}\n\n"
+                yield f"data: {json.dumps({'type': 'done', 'model': used_model, 'task_type': 'proje'})}\n\n"
+            except Exception as exc:
+                yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
+
+        return StreamingResponse(_project_gen(), media_type="text/event-stream")
+
     if file is None or not file.filename:
         calc_result = try_calculate(prompt)
         if calc_result is not None:
