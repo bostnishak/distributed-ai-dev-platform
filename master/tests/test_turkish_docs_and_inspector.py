@@ -95,7 +95,7 @@ def test_file_inspector_catches_real_bugs_without_hallucination():
     assert "MISMATCHED_TAG" in types_html
 
     # 4. CSV column mismatch
-    r_csv = fi.inspect_uploaded_file("veri.csv", "ad,deger\nA,10\nB,20,FAZLA\n".encode())
+    r_csv = fi.inspect_uploaded_file("veri.csv", b"ad,deger\nA,10\nB,20,FAZLA\n")
     assert any(i["type"] == "CSV_COLUMN_MISMATCH" and i["line"] == 3 for i in r_csv["issues"])
 
     # 5. Excel formula error (#DIV/0! and #REF!)
