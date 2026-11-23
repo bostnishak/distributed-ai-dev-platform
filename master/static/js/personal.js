@@ -493,7 +493,15 @@ async function sectionMemory(body) {
   }
   async function renderConvs() {
     const { conversations } = await api(`/api/user/${activeUserId}/conversations`);
-    convBox.replaceChildren(...(conversations.length ? conversations.slice(0, 12).map((c) => h('div', { class: 'sp-list-item' },
+    convBox.replaceChildren(...(conversations.length ? conversations.slice(0, 12).map((c) => h('div', {
+      class: 'sp-list-item',
+      style: { cursor: 'pointer' },
+      title: 'Bu sohbeti aç',
+      onClick: () => {
+        closePanel();
+        document.dispatchEvent(new CustomEvent('open-saved-chat', { detail: { chatId: c.id } }));
+      },
+    },
       h('div', { class: 'sp-list-main' }, h('div', { class: 'sp-list-title' }, c.title), h('div', { class: 'sp-list-sub' }, `${c.message_count} mesaj · ${formatDateTime(c.updated_at)}`)))) : [h('div', { class: 'sp-empty' }, 'Kayıtlı sohbet yok.')]));
   }
 
@@ -534,6 +542,7 @@ function sectionData(body) {
   const wipe = (scope, label, desc) => settingRow(label, desc, confirmButton('Sil', async () => {
     await api(`/api/user/${activeUserId}/data?scope=${scope}`, { method: 'DELETE' });
     if (scope === 'usage' || scope === 'all') { monthTokens = 0; renderCard(); }
+    if (scope === 'conversations' || scope === 'all') { document.dispatchEvent(new CustomEvent('chats-wiped')); }
     setStatus('Silindi', true);
   }));
   body.replaceChildren(

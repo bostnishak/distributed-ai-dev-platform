@@ -606,7 +606,21 @@ def list_conversations(user_id: str, limit: int = 50) -> list[dict[str, Any]]:
         ).fetchall()
     finally:
         conn.close()
-    return [dict(r) for r in rows]
+    by_id: dict[str, dict[str, Any]] = {r["id"]: dict(r) for r in rows}
+    # Merge full UI saved_chats so Personal Space -> Hafiza always displays every saved chat
+    for cid, rec in list_saved_chats(uid).items():
+        ts_ms = int(rec.get("updatedAt") or 0)
+        iso_ts = datetime.fromtimestamp(ts_ms / 1000.0, tz=UTC).isoformat() if ts_ms else datetime.now(UTC).isoformat()
+        msgs = rec.get("messages") or []
+        if cid not in by_id or len(msgs) > int(by_id[cid].get("message_count") or 0):
+            by_id[cid] = {
+                "id": cid,
+                "title": rec.get("title") or "Sohbet",
+                "updated_at": iso_ts,
+                "message_count": len(msgs),
+            }
+    merged = sorted(by_id.values(), key=lambda x: str(x.get("updated_at") or ""), reverse=True)
+    return merged[: max(1, min(limit, 200))]
 
 
 def list_saved_chats(user_id: str) -> dict[str, dict[str, Any]]:

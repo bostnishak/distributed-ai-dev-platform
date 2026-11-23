@@ -314,12 +314,50 @@ DEFAULT_TASK = "genel"
 # The UI can render Markdown tables and ```svg blocks; the model only uses them if told so.
 # Kept out of the classifier call so it cannot disturb the classifier's strict output format.
 ANSWER_SYSTEM_PROMPT = (
-    "Yanit verirken uygun oldugunda bicimlendirme kullan: karsilastirma/liste gibi "
-    "yapili bilgiler icin Markdown tablosu (| basli | basli |\\n|---|---|\\n| hucre | hucre |), "
-    "kume/diyagram/sema gibi gorsel bir anlatim daha faydali olacaksa ```svg ile baslayan "
-    "bir SVG kod blogu (basit sekiller, dogrudan cizim olarak gosterilecek). Zorunlu degil, "
-    "sadece gercekten faydali oldugunda kullan."
+    "Sen yuksek dogruluk odakli, guvenilir ve kanita dayali bir yerel yapay zeka asistanisin.\n"
+    "HALUSINASYON ONLEME VE DOGRULUK KURALLARI (ZORUNLU):\n"
+    "1. Bilmedigin, emin olmadigin veya kaynakta yer almayan tarih, sayi, URL, alinti, kutuphane metodu, "
+    "dosya satiri veya olguyu ASLA uydurma. Emin degilsen acikca 'Bu konuda kesin bilgiye sahip degilim' "
+    "veya 'Verilen belgede bu bilgi yer almiyor' de.\n"
+    "2. Kullanici bir dosya, belge, kod veya gorsel yuklediyse SADECE cikarilan gercek icerige ve deterministik "
+    "denetim raporuna dayan; dosyada olmayan satir veya hata uydurma.\n"
+    "3. Matematik, algoritma, derleyici (compiler), kodlama ve mantik sorularinda adim adim tutarli kontrol yap; "
+    "yanitin ortasinda kendinle celisme ve yanlis/yarim tahmin yurutme.\n"
+    "4. Kullanicinin sordugu dilde (Turkce ise temiz Turkce, Ingilizce ise Ingilizce) yanit ver; emoji kullanma.\n"
+    "5. Karsilastirma veya yapili veri icin Markdown tablosu kullan; ayri kod dosyalari veya kod parcalari "
+    "veriyorsan her birini uygun dil etiketiyle ayri kod blogu (```python, ```js vb.) icinde yaz."
 )
+
+_OLLAMA_TAGS_CACHE: dict = {"ts": 0.0, "models": set()}
+
+
+async def _select_grounded_model(task_type: str, has_image: bool = False) -> str:
+    """Pick the strongest installed local Ollama model for the task to minimize hallucinations."""
+    import time
+
+    now = time.monotonic()
+    if now - _OLLAMA_TAGS_CACHE["ts"] > 30.0 or not _OLLAMA_TAGS_CACHE["models"]:
+        try:
+            async with httpx.AsyncClient(timeout=2.5) as client:
+                r = await client.get(f"{config.OLLAMA_URL}/api/tags")
+                if r.status_code == 200:
+                    _OLLAMA_TAGS_CACHE["models"] = {m.get("name", "") for m in r.json().get("models", [])}
+                    _OLLAMA_TAGS_CACHE["ts"] = now
+        except Exception:
+            pass
+
+    installed = _OLLAMA_TAGS_CACHE["models"]
+    if has_image:
+        prefs = ("qwen3.5:9b", "gemma4:e4b", "qwen3.5:4b", config.MASTER_MODEL)
+    elif task_type == "kod":
+        prefs = ("qwen2.5-coder:7b", "qwen3.5:9b", "qwen3.5:4b", config.MASTER_MODEL)
+    else:
+        prefs = ("qwen3.5:9b", "qwen2.5-coder:7b", "qwen3.5:4b", config.MASTER_MODEL)
+
+    for cand in prefs:
+        if cand in installed:
+            return cand
+    return config.MASTER_MODEL
 
 # The LLM classifier occasionally routed explicit code requests to "genel". These keywords
 # act as a safety net that overrides the classifier for obvious cases only.
@@ -1262,7 +1300,7 @@ async def _chat_stream_impl(
         return StreamingResponse(_mod_gen(), media_type="text/event-stream")
 
     task_type = keyword_task or DEFAULT_TASK
-    model = config.MASTER_MODEL
+    model = await _select_grounded_model(task_type, has_image=bool(image_b64))
     ollama_url = config.OLLAMA_URL
 
     messages = []
@@ -1311,12 +1349,19 @@ async def _chat_stream_impl(
         user_msg["images"] = [image_b64]
     messages.append(user_msg)
 
+    is_strict_factual = has_file or is_prompt_conv or task_type in ("kod", "analiz")
     payload = {
         "model": model,
         "messages": messages,
         "stream": True,
         "think": False,
-        "options": {"num_predict": config.ASSISTANT_NUM_PREDICT, "temperature": 0.7},
+        "options": {
+            "num_predict": config.ASSISTANT_NUM_PREDICT,
+            "num_ctx": 8192,
+            "temperature": 0.15 if is_strict_factual else 0.3,
+            "top_p": 0.85,
+            "repeat_penalty": 1.08,
+        },
     }
 
     async def _stream_gen():

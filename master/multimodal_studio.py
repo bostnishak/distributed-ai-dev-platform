@@ -798,6 +798,53 @@ def _get_whisper_model():
     return _WHISPER_MODEL_CACHE
 
 
+def _decode_audio_to_float32_16k(raw_bytes: bytes, tmp_path: Path, suffix: str) -> tuple[np.ndarray | None, float]:
+    """Decode WAV (stdlib wave) or WebM/MP3/OGG/M4A (PyAV without metadata_errors) to 16kHz mono float32."""
+    if suffix == ".wav":
+        try:
+            with wave.open(io.BytesIO(raw_bytes), "rb") as wf:
+                nch = wf.getnchannels() or 1
+                sw = wf.getsampwidth()
+                rate = wf.getframerate() or 16000
+                frames = wf.readframes(wf.getnframes())
+                duration = round(wf.getnframes() / float(rate), 2)
+                if sw == 2:
+                    arr = np.frombuffer(frames, dtype=np.int16).astype(np.float32) / 32768.0
+                elif sw == 4:
+                    arr = np.frombuffer(frames, dtype=np.int32).astype(np.float32) / 2147483648.0
+                else:
+                    arr = (np.frombuffer(frames, dtype=np.uint8).astype(np.float32) - 128.0) / 128.0
+                if nch > 1:
+                    arr = arr.reshape(-1, nch).mean(axis=1)
+                if rate != 16000 and len(arr) > 0:
+                    target_len = max(1, round(len(arr) * 16000.0 / rate))
+                    x_old = np.linspace(0.0, 1.0, len(arr), dtype=np.float32)
+                    x_new = np.linspace(0.0, 1.0, target_len, dtype=np.float32)
+                    arr = np.interp(x_new, x_old, arr).astype(np.float32)
+                return arr, duration
+        except Exception:
+            pass
+
+    try:
+        import av  # type: ignore[import-not-found]
+
+        with av.open(str(tmp_path), mode="r") as container:
+            stream = next((s for s in container.streams if s.type == "audio"), None)
+            if stream is None:
+                return None, 0.0
+            resampler = av.AudioResampler(format="fltp", layout="mono", rate=16000)
+            chunks: list[np.ndarray] = []
+            for frame in container.decode(stream):
+                for resampled in resampler.resample(frame):
+                    chunks.append(resampled.to_ndarray().reshape(-1).astype(np.float32))
+            if not chunks:
+                return None, 0.0
+            arr = np.concatenate(chunks)
+            return arr, round(len(arr) / 16000.0, 2)
+    except Exception:
+        return None, 0.0
+
+
 def transcribe_audio_bytes(filename: str, raw_bytes: bytes) -> dict[str, Any]:
     """Transcribe an uploaded or microphone-recorded voice message (.wav, .mp3, .m4a, .ogg, .webm) to Turkish text."""
     suffix = Path(filename).suffix.lower() or ".wav"
@@ -805,27 +852,19 @@ def transcribe_audio_bytes(filename: str, raw_bytes: bytes) -> dict[str, Any]:
         tmp.write(raw_bytes)
         tmp_path = Path(tmp.name)
 
-    duration_sec = 0.0
-    if suffix == ".wav":
-        try:
-            with wave.open(io.BytesIO(raw_bytes), "rb") as wf:
-                frames = wf.getnframes()
-                rate = wf.getframerate() or 16000
-                duration_sec = round(frames / float(rate), 2)
-        except Exception:
-            pass
-
+    audio_np, duration_sec = _decode_audio_to_float32_16k(raw_bytes, tmp_path, suffix)
     transcript = ""
     engine = "audio-metadata"
 
-    # 1. Try local faster_whisper (cached singleton, fast int8 CPU Turkish STT)
-    try:
-        wmodel = _get_whisper_model()
-        segments, _ = wmodel.transcribe(str(tmp_path), language="tr", vad_filter=True)
-        transcript = " ".join(seg.text.strip() for seg in segments).strip()
-        engine = "faster-whisper-base (local)"
-    except Exception:
-        pass
+    # 1. Try local faster_whisper with pre-decoded 16kHz float32 numpy array (bypasses PyAV metadata_errors bug)
+    if audio_np is not None and len(audio_np) > 0:
+        try:
+            wmodel = _get_whisper_model()
+            segments, _ = wmodel.transcribe(audio_np, language="tr", vad_filter=False)
+            transcript = " ".join(seg.text.strip() for seg in segments).strip()
+            engine = "faster-whisper-base (local)"
+        except Exception:
+            pass
 
     # 2. Try Windows System.Speech Recognition (built into Windows, 100% offline for WAV files)
     if not transcript and sys.platform == "win32" and suffix == ".wav":

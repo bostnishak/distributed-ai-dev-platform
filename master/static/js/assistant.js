@@ -1618,6 +1618,18 @@ export function initAssistant() {
   initVoiceRecognition();
   showRunButtonsIfEnabled();
 
+  document.addEventListener('open-saved-chat', (e) => {
+    const cid = e.detail && e.detail.chatId;
+    if (!cid) return;
+    if (location.hash !== '#/assistant') location.hash = '#/assistant';
+    openChat(cid);
+  });
+  document.addEventListener('chats-wiped', () => {
+    saveChats({});
+    try { localStorage.removeItem(LAST_CHAT_KEY); } catch { /* ignore */ }
+    startNewChat(true);
+  });
+
   startNewChat(false);
   syncChatsWithServer();
 }
@@ -1732,6 +1744,56 @@ function initVoiceRecognition() {
   const inputWrap = document.getElementById('inputWrap');
   if (inputWrap) inputWrap.insertBefore(statusPill, document.getElementById('inputPill'));
 
+  const audioPicker = document.createElement('input');
+  audioPicker.type = 'file';
+  audioPicker.accept = 'audio/*,.wav,.mp3,.m4a,.ogg,.webm';
+  audioPicker.style.display = 'none';
+  document.body.appendChild(audioPicker);
+
+  async function transcribeBlob(blob, filename) {
+    showVoiceStatus('Ses metne çevriliyor (yerel Whisper STT)...', false);
+    try {
+      const fd = new FormData();
+      fd.append('file', blob, filename);
+      const resp = await fetch('/api/assistant/transcribe', { method: 'POST', body: fd });
+      const data = await resp.json();
+      if (resp.ok && data.transcript) {
+        const prefix = els.promptInput.value.trim() ? els.promptInput.value.trim() + ' ' : '';
+        els.promptInput.value = prefix + data.transcript;
+        els.promptInput.style.height = 'auto';
+        els.promptInput.style.height = Math.min(els.promptInput.scrollHeight, 160) + 'px';
+        updateSendState();
+        els.promptInput.focus();
+        showVoiceStatus(`Metne çevrildi (${data.duration_sec || 0} sn)`, false);
+        hideVoiceStatus(2400);
+      } else {
+        showVoiceStatus('Konuşma algılanamadı, mikrofona biraz daha yakın konuşup tekrar deneyin.', false);
+        hideVoiceStatus(3200);
+      }
+    } catch (err) {
+      showVoiceStatus(`Ses çevirme hatası: ${err.message}`, false);
+      hideVoiceStatus(3400);
+    }
+  }
+
+  audioPicker.addEventListener('change', () => {
+    const f = audioPicker.files && audioPicker.files[0];
+    audioPicker.value = '';
+    if (f) transcribeBlob(f, f.name);
+  });
+
+  function showMicErrorWithUpload(msg) {
+    statusPill.hidden = false;
+    statusPill.innerHTML = '';
+    const span = document.createElement('span');
+    span.textContent = msg;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = 'Ses Dosyası Seç';
+    btn.addEventListener('click', () => audioPicker.click());
+    statusPill.append(span, btn);
+  }
+
   let recording = false;
   let mediaStream = null;
   let audioCtx = null;
@@ -1739,6 +1801,7 @@ function initVoiceRecognition() {
   let pcmChunks = [];
   let recTimer = null;
   let recStart = 0;
+  let heardVoice = false;
 
   function showVoiceStatus(text, isLive = false) {
     statusPill.hidden = false;
@@ -1765,54 +1828,42 @@ function initVoiceRecognition() {
     mediaStream = null; audioCtx = null; processor = null;
 
     if (!pcmChunks.length) {
-      hideVoiceStatus();
+      showVoiceStatus('Ses kaydı alınamadı, lütfen mikrofonu kontrol edip tekrar deneyin.', false);
+      hideVoiceStatus(3000);
       return;
     }
 
-    showVoiceStatus('Ses metne çevriliyor (yerel STT)...', false);
     const wavBlob = encodeMonoWav16k(pcmChunks, sampleRate);
     pcmChunks = [];
-
-    try {
-      const fd = new FormData();
-      fd.append('file', wavBlob, 'mikrofon.wav');
-      const resp = await fetch('/api/assistant/transcribe', { method: 'POST', body: fd });
-      const data = await resp.json();
-      if (resp.ok && data.transcript) {
-        const prefix = els.promptInput.value.trim() ? els.promptInput.value.trim() + ' ' : '';
-        els.promptInput.value = prefix + data.transcript;
-        els.promptInput.style.height = 'auto';
-        els.promptInput.style.height = Math.min(els.promptInput.scrollHeight, 160) + 'px';
-        updateSendState();
-        els.promptInput.focus();
-        showVoiceStatus(`Metne çevrildi (${data.duration_sec || 0} sn)`, false);
-        hideVoiceStatus(2200);
-      } else {
-        showVoiceStatus('Konuşma algılanamadı, tekrar deneyin.', false);
-        hideVoiceStatus(2800);
-      }
-    } catch (err) {
-      showVoiceStatus(`Ses çevirme hatası: ${err.message}`, false);
-      hideVoiceStatus(3200);
-    }
+    await transcribeBlob(wavBlob, 'mikrofon.wav');
   }
 
   async function startRecording() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      showVoiceStatus('Tarayıcı mikrofon erişimini desteklemiyor.', false);
-      hideVoiceStatus(3200);
+      showMicErrorWithUpload('Tarayıcı canlı mikrofon erişimine izin vermiyor (localhost kullanın veya ses dosyası yükleyin).');
       return;
     }
+    showVoiceStatus('Mikrofon açılıyor...', false);
     try {
       mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       audioCtx = new AudioCtx();
+      if (audioCtx.state === 'suspended') {
+        await audioCtx.resume();
+      }
       const source = audioCtx.createMediaStreamSource(mediaStream);
       processor = audioCtx.createScriptProcessor(4096, 1, 1);
       pcmChunks = [];
+      heardVoice = false;
       processor.onaudioprocess = (e) => {
         if (!recording) return;
-        pcmChunks.push(new Float32Array(e.inputBuffer.getChannelData(0)));
+        const ch = new Float32Array(e.inputBuffer.getChannelData(0));
+        pcmChunks.push(ch);
+        if (!heardVoice) {
+          for (let i = 0; i < ch.length; i += 64) {
+            if (Math.abs(ch[i]) > 0.015) { heardVoice = true; break; }
+          }
+        }
       };
       source.connect(processor);
       processor.connect(audioCtx.destination);
@@ -1824,11 +1875,14 @@ function initVoiceRecognition() {
       showVoiceStatus('Dinleniyor · 0 sn (Bitirmek için mikrofona tekrar basın)', true);
       recTimer = setInterval(() => {
         const sec = Math.floor((Date.now() - recStart) / 1000);
-        showVoiceStatus(`Dinleniyor · ${sec} sn (Bitirmek için mikrofona tekrar basın)`, true);
+        const levelTxt = heardVoice ? ' · Ses algılandı' : '';
+        showVoiceStatus(`Dinleniyor · ${sec} sn${levelTxt} (Bitirmek için tekrar basın)`, true);
       }, 400);
     } catch (err) {
-      showVoiceStatus(`Mikrofon izni alınamadı: ${err.name === 'NotAllowedError' ? 'Adres çubuğundan mikrofon iznini açın.' : err.message}`, false);
-      hideVoiceStatus(4000);
+      const reason = err.name === 'NotAllowedError'
+        ? 'Mikrofon izni kapalı. Adres çubuğundan izin verin veya:'
+        : `Mikrofon açılamadı (${err.name || err.message}).`;
+      showMicErrorWithUpload(reason);
     }
   }
 
