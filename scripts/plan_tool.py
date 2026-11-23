@@ -17,6 +17,7 @@ import argparse
 import ast
 import json
 import re
+import subprocess
 import sys
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -411,6 +412,21 @@ def apply_blocks(text: str, blocks: dict[str, str]) -> str:
     return BLOCK.sub(lambda m: m.group(1) + blocks.get(m.group(2), m.group(3)) + m.group(4), text)
 
 
+def verify_evidence(item_id: str, evidence: dict) -> list[str]:
+    """A 'done' claim must point at test files that exist and a commit that exists in this repository."""
+    root = Path(__file__).resolve().parents[1]
+    problems = []
+    for test in evidence.get("tests", []):
+        if not (root / test.split("::")[0]).is_file():
+            problems.append(f"{item_id}: kanıt test dosyası yok: {test}")
+    commit = evidence.get("commit", "")
+    if commit:
+        found = subprocess.run(["git", "cat-file", "-e", f"{commit}^{{commit}}"], cwd=root, capture_output=True, check=False)
+        if found.returncode != 0:
+            problems.append(f"{item_id}: kanıt commit'i depoda yok: {commit}")
+    return problems
+
+
 def merge_progress(items: list[Item], existing: dict) -> tuple[dict, list[str]]:
     errors: list[str] = []
     known = existing.get("items", {})
@@ -421,6 +437,8 @@ def merge_progress(items: list[Item], existing: dict) -> tuple[dict, list[str]]:
         if entry.get("status") == "done" and not (evidence.get("tests") and evidence.get("commit")):
             errors.append(f"{item.id}: 'done' için evidence.tests ve evidence.commit zorunlu")
             entry["status"] = "claimed_without_evidence"
+        if entry.get("status") == "done":
+            errors += verify_evidence(item.id, evidence)
         merged[item.id] = entry
     result = {"generated_at": datetime.now(UTC).isoformat(timespec="seconds"), "items": merged}
     return result, errors

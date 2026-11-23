@@ -92,7 +92,7 @@ def test_done_status_needs_tests_and_commit_evidence(tmp_path):
     assert merged["items"]["AA-01"]["status"] == "claimed_without_evidence"
     assert merged["items"]["AA-02"]["status"] == "open"
     assert errors
-    proven = {"items": {"AA-01": {"status": "done", "evidence": {"tests": ["t::x"], "commit": "abc1234"}}}}
+    proven = {"items": {"AA-01": {"status": "done", "evidence": {"tests": ["master/tests/test_plan_tool.py::x"], "commit": "HEAD"}}}}
     merged, errors = pt.merge_progress(items, proven)
     assert merged["items"]["AA-01"]["status"] == "done" and errors == []
 
@@ -161,3 +161,12 @@ def test_command_line_exit_codes(tmp_path):
     assert pt.main(["--plan-dir", str(plan), "status"]) == 0
     write_plan(tmp_path, item("AA-01", deps="AA-01"))
     assert pt.main(["--plan-dir", str(plan), "check"]) == 1
+
+
+def test_verify_evidence_rejects_missing_test_file_and_unknown_commit():
+    import plan_tool
+
+    good = plan_tool.verify_evidence("X-01", {"tests": ["master/tests/test_plan_tool.py"], "commit": "HEAD"})
+    assert good == []
+    bad = plan_tool.verify_evidence("X-02", {"tests": ["master/tests/yok_dosya.py"], "commit": "0000000"})
+    assert len(bad) == 2
