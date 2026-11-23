@@ -8,7 +8,7 @@ A local-first, privacy-preserving web platform where a **master agent** decompos
 
 - **100% local and private by default.** Models run on the team's own computers with [Ollama](https://ollama.com). External cloud LLM escalation is disabled by default (`CLOUD_PROVIDERS_ENABLED=false`, [ADR-0001](docs/adr/0001-cloud-providers.md)).
 - **No external LiteLLM proxy.** Inference is managed by an in-process Python LLM Gateway (`master/gateway/`) supporting Ollama and distributed team agents.
-- **Evidence-driven reliability.** Hallucinations are controlled architecturally via hybrid FTS5 + vector RAG, web citations, deterministic tools (SymPy/pandas), Docker sandbox verification, confidence calibration, and explicit abstention ([docs/plan-v2/halusinasyon-tanim-ve-sinirlar.md](docs/plan-v2/halusinasyon-tanim-ve-sinirlar.md)).
+- **Evidence-driven reliability.** Hallucinations are controlled architecturally via hybrid FTS5 + vector RAG, web citations, deterministic tools (SymPy/pandas), Docker sandbox verification, confidence calibration, and explicit abstention ([docs/plan-v2/halusinasyon-mimarisi.md](docs/plan-v2/halusinasyon-mimarisi.md)).
 - **Different open-source model per member.** Six open models across four vendors so capability-based routing and empirical comparison are meaningful ([docs/plan-v2/model-licenses-ethics.md](docs/plan-v2/model-licenses-ethics.md)).
 
 ## Team
@@ -29,7 +29,7 @@ A local-first, privacy-preserving web platform where a **master agent** decompos
 - **Grounded RAG, Hallucination Control & ML Ops (`master/rag/`, `master/hallucination/`, `master/ml_ops/`, `eval/`):** Turkish FTS5 + versioned vector search, relevance gating, SearXNG + SSRF-safe web fetch, citation resolution, NLI & numeric verification, confidence calibration, abstention policy, and a 650-sample eval suite (`eval/run.py`).
 - **Studios, Software Factory & Domain Engines (`master/studios/`, `master/factory/`, `master/games/`, `master/domains/`):** Multi-step cited Deep Research, quality-gated PPTX/DOCX/XLSX/PDF generation, statistical Data Science sandbox, signed Media pipeline, unified autonomous Software Factory (plan -> scaffold -> generate -> verify -> repair -> package), Game Studio, and strict no-fabricated-defaults domain engines.
 - **Distributed Agent Orchestration (`master/distributed/`, `agent/`):** Versioned capability profiles, Thompson/UCB bandit assignment with explanations, pull-based task leasing & failover, per-agent tokens & result ownership, provenance tags, conflict resolution, performance comparison, and chaos scripts (`scripts/chaos/chaos_scenarios.ps1`).
-- **Security, Unified Data & Operations (`master/auth/`, `master/sandbox/`, `master/dbconn.py`, `master/ops.py`):** Local session auth + RBAC + `owner_id` isolation, Fernet secret store, AES-encrypted backups, isolated Docker Python sandbox, shared SQLite WAL with versioned SQL migrations (`master/migrate.py`), content-addressed blobstore, structured JSON logging with `request_id`, Prometheus `/metrics`, deep `/ready` with runbook links (`docs/runbooks/`), and OpenAPI security matrix (`pytest -m security`).
+- **Security, Unified Data & Operations (`master/access_control.py`, `master/sandbox/`, `master/dbconn.py`, `master/ops.py`):** Local session auth + RBAC + `owner_id` isolation, Fernet secret store, AES-encrypted backups, isolated Docker Python sandbox, shared SQLite WAL with versioned SQL migrations (`master/migrate.py`), content-addressed blobstore, structured JSON logging with `request_id`, Prometheus `/metrics`, deep `/ready` with runbook links (`docs/runbooks/`), and OpenAPI security matrix (`pytest -m security`).
 
 ## Architecture (Summary)
 
@@ -103,7 +103,7 @@ Team members configure remote agents using [agent-node/README.md](agent-node/REA
 
 | Path | Contents |
 |---|---|
-| `master/` | FastAPI Master: `gateway/`, `orchestrator/`, `rag/`, `hallucination/`, `ml_ops/`, `studios/`, `factory/`, `games/`, `domains/`, `distributed/`, `auth/`, `sandbox/`, `migrations/`, `static/`, `tests/` |
+| `master/` | FastAPI Master: `gateway/`, `orchestrator/`, `rag/`, `hallucination/`, `ml_ops/`, `studios/`, `factory/`, `games/`, `domains/`, `distributed/`, `sandbox/`, `migrations/`, `static/`, `tests/` |
 | `agent/` | Distributed agent service running on each member's computer + tests |
 | `agent-node/` | Setup and startup scripts for team members (Windows / macOS / Linux) |
 | `docker/` | Isolated execution sandbox Dockerfile (`docker/sandbox/`) |

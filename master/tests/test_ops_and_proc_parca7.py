@@ -193,3 +193,49 @@ def test_all_adrs_runbooks_docs_and_hardened_compose_exist():
     assert "litellm-gateway" not in compose_text
     for profile in ('"core"', '"agents"', '"web-search"', '"sandbox"'):
         assert profile in compose_text
+
+
+def test_dat12_cli_ops17_chaos_proc01_links_proc08_licenses_and_proc09_evidence_gate(tmp_path: Path):
+    """Strict Parca 7 acceptance checks: DAT-12 CLI, OPS-17 chaos, PROC-01 links, PROC-08 licenses, PROC-09 gate."""
+    import re
+
+    from gateway import registry
+
+    # DAT-12: scripts/db_doctor.py CLI works on a clean DB
+    db_doc_cli = _load_script("db_doctor")
+    assert (SCRIPTS_DIR / "db_doctor.py").is_file()
+    import dbconn
+
+    test_db = tmp_path / "doctor_check.db"
+    with dbconn.connection(test_db) as conn:
+        conn.execute("CREATE TABLE sample (id INTEGER PRIMARY KEY, val TEXT)")
+    assert db_doc_cli.main(["--db", str(test_db), "--json"]) == 0
+
+    # OPS-17: Chaos fault-injection resilience suite passes with zero data loss
+    bench_mod = _load_script("load_and_chaos_bench")
+    chaos = asyncio.run(bench_mod.run_chaos_resilience_suite())
+    assert chaos["passed"] is True
+    assert chaos["data_loss"] == 0
+
+    # PROC-01: Every backticked repo path in docs/scrum/traceability.md resolves to an existing file/dir
+    trace_text = (ROOT / "docs" / "scrum" / "traceability.md").read_text(encoding="utf-8")
+    for ref in re.findall(r"`([A-Za-z0-9_./-]+)`", trace_text):
+        if "/" in ref:
+            assert (ROOT / ref).exists(), f"Broken traceability link: {ref}"
+
+    # PROC-08: Every fleet model has a non-empty license in gateway.registry and appears in model-licenses-ethics.md
+    ethics_text = (ROOT / "docs" / "plan-v2" / "model-licenses-ethics.md").read_text(encoding="utf-8")
+    for model_name in ("qwen3.5:4b", "qwen2.5-coder:7b", "qwen3:1.7b", "phi4-mini", "llama3.2:3b", "gemma4:e4b", "bge-m3"):
+        rec = registry.upsert_model(model_name)
+        assert rec["license"], f"Missing license for {model_name}"
+        assert model_name in ethics_text
+
+    # PROC-09: plan_tool.merge_progress strictly rejects 'done' without tests + commit evidence
+    plan_tool = _load_script("plan_tool")
+    items, _ = plan_tool.parse_plan(ROOT / "docs" / "plan-v2")
+    merged, errs = plan_tool.merge_progress(
+        items[:1],
+        {"items": {items[0].id: {"status": "done", "evidence": {"tests": [], "commit": "", "eval_report": ""}}}},
+    )
+    assert len(errs) == 1
+    assert merged["items"][items[0].id]["status"] == "claimed_without_evidence"

@@ -172,7 +172,7 @@ Gösterimden önce `OPS-23` kontrol listesi çalıştırılır (Tailscale, Ollam
 | R10 | Docker/sandbox kullanılamayan makineler | Orta | Orta | **Azaltıldı:** `master/sandbox/runner.py` imaj ve daemon kontrolü yapar; yoksa açık gerekçe ile kapatır (`ADR-0007`, DEF-15) |
 | R11 | Web erişiminin etik/hukuki/robots sorunları | Orta | Orta | **Kontrol altında:** SearXNG + `safe_fetch` SSRF/robots koruması (`ADR-0002`, `RES-11`) ve kaynak gösterme zorunluluğu |
 | R12 | Takvim: ders teslimi ile plan çakışır | Düşük | Yüksek | **Azaltıldı:** Tüm 21 MVP maddesi ve 8 ADR / 8 runbook / demo kiti tamamlanıp test edildi |
-| R13 | "Halüsinasyon biter" beklentisi yanlış yönlendirir | Orta | Orta | **Azaltıldı:** `halusinasyon-tanim-ve-sinirlar.md` (`HAL-30`) ve `ince-ayar-sinirlari.md` (`ML-14`) şeffaflık belgeleri yayında |
+| R13 | "Halüsinasyon biter" beklentisi yanlış yönlendirir | Orta | Orta | **Azaltıldı:** `halusinasyon-mimarisi.md` (`HAL-30`) ve `ince-ayar-sinirlari.md` (`ML-14`) şeffaflık belgeleri yayında |
 | R14 | Eski planın "DONE" iddialarına güvenmek | Düşük | Yüksek | **Azaltıldı:** `plan_tool.py status` kanıtsız `done` kaydını reddeder (`PROC-09`); tüm ilerleme `PROGRESS.json` + test + commit kanıtlıdır |
 
 ## 6. Kapsam dışı (bu planda yapılmayacaklar)

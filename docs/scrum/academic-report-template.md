@@ -23,7 +23,7 @@ Summarize the local-first, privacy-preserving Distributed AI Software Developmen
 - Figure 2: Sprint Burndown Chart
 
 ## 5. Limitations & Honest Boundaries
-Reference `docs/plan-v2/halusinasyon-tanim-ve-sinirlar.md` and `docs/plan-v2/ince-ayar-sinirlari.md`: 4B-9B local models cannot eliminate hallucination completely; reliability comes from retrieval grounding, deterministic tools, sandbox verification, and transparent abstention.
+Reference `docs/plan-v2/halusinasyon-mimarisi.md` and `docs/plan-v2/ince-ayar-sinirlari.md`: 4B-9B local models cannot eliminate hallucination completely; reliability comes from retrieval grounding, deterministic tools, sandbox verification, and transparent abstention.
 
 ## 6. Ethics, Privacy & Licensing
 Reference `docs/plan-v2/model-licenses-ethics.md`: 100% local processing by default (KVKK friendly), explicit open model licenses, zero unauthorized external API transmission.

@@ -13,8 +13,30 @@ from typing import Any
 
 import config
 import db
+import dbconn
 
 _CTX_BUCKETS = (4096, 8192, 16384, 32768)
+
+# PROC-08: Explicit license mapping mirrored with docs/plan-v2/model-licenses-ethics.md
+KNOWN_MODEL_LICENSES: dict[str, str] = {
+    "qwen": "Apache-2.0",
+    "phi4": "MIT",
+    "phi-4": "MIT",
+    "llama3.2": "Llama 3.2 Community License",
+    "llama3": "Llama 3 Community License",
+    "gemma": "Gemma Terms of Use",
+    "bge-m3": "MIT",
+    "nomic-embed": "Apache-2.0",
+    "mistral": "Apache-2.0",
+}
+
+
+def infer_model_license(name: str) -> str:
+    low = (name or "").lower()
+    for prefix, lic in KNOWN_MODEL_LICENSES.items():
+        if prefix in low:
+            return lic
+    return "Open-Weights (Verify Upstream License)"
 
 # Task dimension weights (mirrors task_weights.py for unified scoring across chat, studio & agents)
 TASK_DIMENSION_WEIGHTS: dict[str, dict[str, float]] = {
@@ -47,9 +69,7 @@ def _db_path() -> Path:
 
 
 def _connect() -> sqlite3.Connection:
-    conn = sqlite3.connect(str(_db_path()), timeout=10.0)
-    conn.row_factory = sqlite3.Row
-    return conn
+    return dbconn.open_db(_db_path())
 
 
 def init_registry_db() -> None:
@@ -70,10 +90,14 @@ def init_registry_db() -> None:
                 status TEXT NOT NULL DEFAULT 'ready',
                 warm INTEGER NOT NULL DEFAULT 0,
                 override_json TEXT NOT NULL DEFAULT '{}',
+                license TEXT NOT NULL DEFAULT '',
                 updated_at TEXT NOT NULL
             );
             """
         )
+        cols = {row[1] for row in conn.execute("PRAGMA table_info(model_registry)")}
+        if "license" not in cols:
+            conn.execute("ALTER TABLE model_registry ADD COLUMN license TEXT NOT NULL DEFAULT ''")
 
 
 def _infer_model_metadata(name: str, show_info: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -138,17 +162,19 @@ def upsert_model(
     hallucination_penalty: float = 0.0,
     status: str = "ready",
     warm: bool = False,
+    license_name: str = "",
 ) -> dict[str, Any]:
     init_registry_db()
     inferred = _infer_model_metadata(name)
+    resolved_license = license_name.strip() or infer_model_license(name)
     now = datetime.now(UTC).isoformat()
     with _connect() as conn:
         conn.execute(
             """
             INSERT INTO model_registry
                 (name, provider, node_id, param_size, quantization, context_length, capabilities_json,
-                 est_vram_gb, scores_json, hallucination_penalty, status, warm, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 est_vram_gb, scores_json, hallucination_penalty, status, warm, license, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(name) DO UPDATE SET
                 provider = excluded.provider,
                 node_id = excluded.node_id,
@@ -161,6 +187,7 @@ def upsert_model(
                 hallucination_penalty = excluded.hallucination_penalty,
                 status = excluded.status,
                 warm = excluded.warm,
+                license = CASE WHEN excluded.license != '' THEN excluded.license ELSE model_registry.license END,
                 updated_at = excluded.updated_at
             """,
             (
@@ -176,6 +203,7 @@ def upsert_model(
                 float(hallucination_penalty),
                 status,
                 int(bool(warm)),
+                resolved_license,
                 now,
             ),
         )
@@ -184,6 +212,9 @@ def upsert_model(
 
 
 def _row_to_model(row: sqlite3.Row) -> dict[str, Any]:
+    lic = ""
+    if "license" in row.keys():
+        lic = str(row["license"] or "")
     return {
         "name": row["name"],
         "provider": row["provider"],
@@ -197,6 +228,7 @@ def _row_to_model(row: sqlite3.Row) -> dict[str, Any]:
         "hallucination_penalty": float(row["hallucination_penalty"]),
         "status": row["status"],
         "warm": bool(row["warm"]),
+        "license": lic or infer_model_license(row["name"]),
         "updated_at": row["updated_at"],
     }
 
