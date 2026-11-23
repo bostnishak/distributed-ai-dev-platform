@@ -313,6 +313,22 @@ DEFAULT_TASK = "genel"
 
 # The UI can render Markdown tables and ```svg blocks; the model only uses them if told so.
 # Kept out of the classifier call so it cannot disturb the classifier's strict output format.
+_EMOJI_STRIP_RE = re.compile(
+    "["
+    "\U0001F300-\U0001FAFF"
+    "\U00002600-\U000027BF"
+    "\U0001F1E0-\U0001F1FF"
+    "\u200d\ufe0f"
+    "]+",
+    flags=re.UNICODE,
+)
+
+
+def _strip_emojis(text: str) -> str:
+    """Deterministically remove any emoji emitted by the LLM so zero emojis ever reach the UI."""
+    return _EMOJI_STRIP_RE.sub("", text)
+
+
 ANSWER_SYSTEM_PROMPT = (
     "Sen yuksek dogruluk odakli, guvenilir ve kanita dayali bir yerel yapay zeka asistanisin.\n"
     "HALUSINASYON ONLEME VE DOGRULUK KURALLARI (ZORUNLU):\n"
@@ -323,8 +339,10 @@ ANSWER_SYSTEM_PROMPT = (
     "denetim raporuna dayan; dosyada olmayan satir veya hata uydurma.\n"
     "3. Matematik, algoritma, derleyici (compiler), kodlama ve mantik sorularinda adim adim tutarli kontrol yap; "
     "yanitin ortasinda kendinle celisme ve yanlis/yarim tahmin yurutme.\n"
-    "4. Kullanicinin sordugu dilde (Turkce ise temiz Turkce, Ingilizce ise Ingilizce) yanit ver; emoji kullanma.\n"
-    "5. Karsilastirma veya yapili veri icin Markdown tablosu kullan; ayri kod dosyalari veya kod parcalari "
+    "4. Kullanicinin sordugu dilde (Turkce ise dogal, akici ve imla/ek hatasiz Turkce; Ingilizce ise temiz "
+    "Ingilizce) yanit ver. Yarim kelime, bozuk ek veya ceviriden bozma ifade kullanma. ASLA emoji kullanma.\n"
+    "5. Kullanici baska bir sohbeti sormadikca diger sohbetlerden gereksiz yere bahsetme.\n"
+    "6. Karsilastirma veya yapili veri icin Markdown tablosu kullan; ayri kod dosyalari veya kod parcalari "
     "veriyorsan her birini uygun dil etiketiyle ayri kod blogu (```python, ```js vb.) icinde yaz."
 )
 
@@ -1387,7 +1405,7 @@ async def _chat_stream_impl(
                             chunk = json.loads(line)
                         except json.JSONDecodeError:
                             continue
-                        content_piece = chunk.get("message", {}).get("content", "")
+                        content_piece = _strip_emojis(chunk.get("message", {}).get("content", ""))
                         if content_piece:
                             yield f"data: {json.dumps({'type': 'token', 'content': content_piece})}\n\n"
                         if chunk.get("done"):

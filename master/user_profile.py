@@ -502,8 +502,32 @@ def _token_root_match(q_tok: str, t_tok: str) -> bool:
     return False
 
 
+_TRIVIAL_GREETINGS = {
+    "selam",
+    "merhaba",
+    "hey",
+    "hi",
+    "hello",
+    "nasilsin",
+    "naber",
+    "gunaydin",
+    "iyi aksamlar",
+    "iyi geceler",
+    "test",
+    "deneme",
+    "tesekkurler",
+    "sag ol",
+    "tamam",
+    "ok",
+}
+
+
 def cross_chat_context_block(user_id: str, query: str, exclude_conversation: str = "") -> str:
     """Provide a directory of saved chats and inject full transcripts of referenced/matched chats."""
+    q_folded = _fold_tr(query or "").strip(" ?!.,")
+    if not q_folded or q_folded in _TRIVIAL_GREETINGS:
+        return ""
+
     uid = valid_user_id(user_id)
     saved = list_saved_chats(uid)
     other_chats = [
@@ -512,7 +536,6 @@ def cross_chat_context_block(user_id: str, query: str, exclude_conversation: str
         if cid != (exclude_conversation or "") and (rec.get("messages") or [])
     ]
 
-    q_folded = _fold_tr(query or "")
     q_tokens = _tr_tokens(query or "")
     explicit_ref = any(cue in q_folded for cue in _CROSS_CHAT_CUES)
     generic_recent = any(cue in q_folded for cue in _GENERIC_RECENT_CUES)
