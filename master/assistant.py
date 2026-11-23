@@ -771,9 +771,14 @@ async def get_assistant_media(filename: str):
     if not target.is_file():
         raise HTTPException(status_code=404, detail="Dosya bulunamadı.")
     headers = {"Cache-Control": "no-cache"}
-    if safe.endswith((".xlsx", ".docx", ".pptx", ".pdf")):
+    media_type = None
+    if safe.endswith(".svg"):
+        media_type = "image/svg+xml"
+    elif safe.endswith(".png"):
+        media_type = "image/png"
+    elif safe.endswith((".xlsx", ".docx", ".pptx", ".pdf")):
         headers["Content-Disposition"] = f'attachment; filename="{safe}"'
-    return FileResponse(target, headers=headers)
+    return FileResponse(target, headers=headers, media_type=media_type)
 
 
 async def _tracked_stream(source, prompt: str, user_id: str, conversation_id: str):
@@ -1119,16 +1124,29 @@ async def _chat_stream_impl(
     import multimodal_studio as mms
 
     if not is_prompt_conv and mms.is_image_generation_request(prompt, has_file):
+        try:
+            hist_for_img = json.loads(history) if history else []
+            if not isinstance(hist_for_img, list):
+                hist_for_img = []
+        except Exception:
+            hist_for_img = []
+
         async def _img_gen():
             try:
-                res = await mms.generate_ai_image(prompt)
+                res = await mms.generate_ai_image(prompt, history=hist_for_img)
+                preview_url = res.get("svg_url") or res["png_url"]
+                meta_parts = [f"**Motor:** `{res['engine']}`"]
+                if res.get("brand_name"):
+                    meta_parts.append(f"**Konsept:** {res['brand_name']}")
+                if res.get("palette_name"):
+                    meta_parts.append(f"**Palet:** {res['palette_name']}")
                 md_lines = [
                     "## Üretilen Görsel Tasarım",
-                    f"- **Motor:** `{res['engine']}`",
+                    "- " + " · ".join(meta_parts),
                     f"- [Yüksek Çözünürlüklü PNG İndir]({res['png_url']})"
                     + (f" · [Vektörel SVG İndir]({res['svg_url']})" if res.get("svg_url") else ""),
                     "",
-                    f"![Üretilen Görsel]({res['png_url']})",
+                    f"![Üretilen Görsel]({preview_url})",
                 ]
                 yield f"data: {json.dumps({'type': 'token', 'content': '\n'.join(md_lines)}, ensure_ascii=False)}\n\n"
                 yield f"data: {json.dumps({'type': 'done', 'model': res['engine'], 'task_type': 'gorsel'})}\n\n"
