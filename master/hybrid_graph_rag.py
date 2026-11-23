@@ -295,8 +295,10 @@ class HybridGraphRAG:
                 emb = prov.embed_sync("bge-m3:latest", text, timeout=1.2)
                 if len(emb) >= 64:
                     return emb
-            except Exception:
-                pass
+            except Exception as _exc:
+                import logging
+
+                logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
         return deterministic_ngram_embedding(text, dim=FALLBACK_EMBED_DIM)
 
     def add_document(

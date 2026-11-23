@@ -814,8 +814,10 @@ async def _pick_vision_model(preferred: str | None = None) -> str:
             for cand in candidates:
                 if cand in installed or cand in installed_base:
                     return cand
-    except Exception:
-        pass
+    except Exception as _exc:
+        import logging
+
+        logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
     return config.MASTER_MODEL
 
 
@@ -1130,7 +1132,10 @@ def _extract_largest_zip_image(raw: bytes, prefix: str) -> Image.Image | None:
                     if area > best_area:
                         best_area = area
                         best_img = im
-                except Exception:
+                except Exception as _exc:
+                    import logging
+
+                    logging.getLogger(__name__).debug("Recoverable error skipped in loop: %s", _exc)
                     continue
     except zipfile.BadZipFile:
         return None

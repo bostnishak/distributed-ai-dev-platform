@@ -76,8 +76,10 @@ def _decode_input_to_text(text_or_bytes: str | bytes) -> str:
             pages = [page.get_text("text") for page in doc]
             doc.close()
             return "\n".join(pages)
-        except Exception:
-            pass
+        except Exception as _exc:
+            import logging
+
+            logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
     return text_or_bytes.decode("utf-8", errors="replace")
 
 

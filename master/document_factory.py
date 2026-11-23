@@ -154,9 +154,10 @@ async def generate_document_deliverable(prompt: str, fmt: str, context_text: str
             parsed = json.loads(cleaned_json)
             if isinstance(parsed, dict) and parsed.get("title"):
                 spec.update(parsed)
-    except Exception:
-        pass
+    except Exception as _exc:
+        import logging
 
+        logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
     title = str(spec.get("title") or "Kurumsal Rapor")
     summary = str(spec.get("summary") or "")
     sections = spec.get("sections") or []

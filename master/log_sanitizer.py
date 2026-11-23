@@ -83,8 +83,10 @@ class SecretAndPIIRedactingFilter(logging.Filter):
             scrubbed = redact_sensitive_text(rendered)
             record.msg = scrubbed
             record.args = ()
-        except Exception:
-            pass
+        except Exception as _exc:
+            import logging
+
+            logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
         return True
 
 

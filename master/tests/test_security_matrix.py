@@ -24,11 +24,16 @@ _AUTH_DEP_NAMES = frozenset({
     "require_local_or_admin",
     "require_agent_auth",
     "require_agent_token",
+    "require_authenticated_user",
+    "require_admin_session",
 })
 
 # Explicitly audited same-origin interactive user routes (protected by SEC-16 CSRF + Same-Origin middleware).
 # Any NEW mutating route added without an auth dependency will FAIL test_no_unprotected_mutating_routes!
 _AUDITED_USER_SESSION_MUTATIONS = frozenset({
+    ("POST", "/api/auth/setup"),
+    ("POST", "/api/auth/login"),
+    ("POST", "/api/auth/logout"),
     ("POST", "/api/projects"),
     ("POST", "/api/projects/{project_id}/reanalyze"),
     ("DELETE", "/api/projects/{project_id}"),

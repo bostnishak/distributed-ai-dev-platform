@@ -74,7 +74,10 @@ async def list_cnc_jobs():
                     "metadata": data.get("metadata", {}),
                     "balloon_count": len(data.get("balloons", [])),
                 })
-            except Exception:
+            except Exception as _exc:
+                import logging
+
+                logging.getLogger(__name__).debug("Recoverable error skipped in loop: %s", _exc)
                 continue
     jobs.sort(key=lambda x: x.get("created_at", ""), reverse=True)
     return {"jobs": jobs}

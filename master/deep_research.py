@@ -385,9 +385,10 @@ async def generate_ai_pptx_presentation(prompt: str) -> dict[str, Any]:
             parsed = json.loads(cleaned)
             if isinstance(parsed, dict) and parsed.get("slides"):
                 spec.update(parsed)
-    except Exception:
-        pass
+    except Exception as _exc:
+        import logging
 
+        logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
     if not spec.get("slides"):
         spec["slides"] = [
             {

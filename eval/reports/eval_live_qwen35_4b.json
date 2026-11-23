@@ -1,0 +1,14 @@
+{
+  "config_name": "live_qwen35_4b",
+  "judge_version": "2.0.0",
+  "dataset_hash": "547bc7a76c1fa71e",
+  "total_examples": 10,
+  "overall_score": 0.9,
+  "category_scores": {
+    "answerable_factual": 0.9
+  },
+  "hallucination_rates": {
+    "fabricated_fact": 0.1
+  },
+  "timestamp": "2026-11-23T19:46:42.871655+00:00"
+}

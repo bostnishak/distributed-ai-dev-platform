@@ -500,8 +500,10 @@ def cross_chat_snippets(
                     results.append(d)
                     if len(results) >= cap:
                         break
-        except Exception:
-            pass
+        except Exception as _exc:
+            import logging
+
+            logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
         finally:
             conn.close()
     return results
@@ -908,6 +910,8 @@ def wipe_data(user_id: str, scope: str) -> dict[str, int]:
             action="USER_DATA_WIPED",
             payload={"user_id": uid, "scope": scope, "removed": removed},
         )
-    except Exception:
-        pass
+    except Exception as _exc:
+        import logging
+
+        logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
     return removed

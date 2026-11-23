@@ -166,8 +166,10 @@ async def pick_coder_model(preferred: str | None = None) -> str:
             for cand in candidates:
                 if cand in installed:
                     return cand
-    except Exception:
-        pass
+    except Exception as _exc:
+        import logging
+
+        logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
     return config.MASTER_MODEL
 
 
@@ -624,7 +626,10 @@ def list_snapshots(ws_dir: Path) -> list[dict[str, Any]]:
         if meta_f.is_file():
             try:
                 out.append(json.loads(meta_f.read_text(encoding="utf-8")))
-            except Exception:
+            except Exception as _exc:
+                import logging
+
+                logging.getLogger(__name__).debug("Recoverable error skipped in loop: %s", _exc)
                 continue
     return out
 

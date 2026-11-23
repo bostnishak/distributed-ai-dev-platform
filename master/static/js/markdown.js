@@ -4,6 +4,7 @@
 // ```mindmap blocks, LaTeX math ($...$ / $$...$$), and a "Run" button under Python code blocks.
 
 import { renderChartSvg, renderDiagramSvg, renderLatexMath, renderMindmapHtml } from './canvas_widgets.js';
+import { sanitizeHtmlOrSvg } from './sanitizer.js';
 
 function looksLikePython(lang, code) {
   if (lang === 'python' || lang === 'py') return true;
@@ -28,12 +29,7 @@ function ensureSvgViewBox(svgText) {
 }
 
 export function sanitizeSvg(svgText) {
-  return ensureSvgViewBox(svgText
-    .replace(/<script[\s\S]*?<\/script>/gi, '')
-    .replace(/\son\w+\s*=\s*"[^"]*"/gi, '')
-    .replace(/\son\w+\s*=\s*'[^']*'/gi, '')
-    .replace(/(xlink:href|href)\s*=\s*"javascript:[^"]*"/gi, '')
-    .replace(/(xlink:href|href)\s*=\s*'javascript:[^']*'/gi, ''));
+  return ensureSvgViewBox(sanitizeHtmlOrSvg(svgText));
 }
 
 export function renderMarkdown(raw) {

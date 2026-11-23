@@ -7,19 +7,25 @@
   "syscalls": [
     {
       "names": [
-        "read", "write", "open", "openat", "close", "stat", "fstat", "lstat", "newfstatat",
-        "poll", "lseek", "mmap", "mprotect", "munmap", "brk", "rt_sigaction", "rt_sigprocmask",
-        "rt_sigreturn", "ioctl", "pread64", "pwrite64", "readv", "writev", "access", "pipe",
-        "pipe2", "select", "sched_yield", "mremap", "madvise", "dup", "dup2", "dup3",
-        "nanosleep", "clock_nanosleep", "getpid", "getppid", "getuid", "getgid", "geteuid",
-        "getegid", "gettid", "clone", "clone3", "vfork", "fork", "execve", "exit", "exit_group",
-        "wait4", "waitid", "uname", "fcntl", "flock", "fsync", "getcwd", "chdir", "fchdir",
-        "mkdir", "rmdir", "unlink", "unlinkat", "rename", "renameat", "readlink", "readlinkat",
-        "chmod", "umask", "gettimeofday", "getrlimit", "prlimit64", "getrusage", "sysinfo",
-        "times", "getdents", "getdents64", "futex", "set_tid_address", "set_robust_list",
-        "clock_gettime", "clock_getres", "arch_prctl", "getrandom", "rseq", "epoll_create1",
-        "epoll_ctl", "epoll_wait", "epoll_pwait", "eventfd2", "sigaltstack", "statx", "faccessat",
-        "faccessat2", "prctl", "tgkill", "kill"
+        "read", "write", "open", "openat", "openat2", "close", "close_range", "stat", "fstat",
+        "lstat", "newfstatat", "statfs", "fstatfs", "statx", "poll", "ppoll", "lseek", "mmap",
+        "mprotect", "munmap", "brk", "rt_sigaction", "rt_sigprocmask", "rt_sigreturn",
+        "rt_sigpending", "rt_sigtimedwait", "ioctl", "pread64", "pwrite64", "readv", "writev",
+        "access", "faccessat", "faccessat2", "pipe", "pipe2", "select", "pselect6", "sched_yield",
+        "sched_getaffinity", "mremap", "madvise", "dup", "dup2", "dup3", "nanosleep",
+        "clock_nanosleep", "getpid", "getppid", "getuid", "getgid", "geteuid", "getegid",
+        "gettid", "getgroups", "getresuid", "getresgid", "setuid", "setgid", "setgroups",
+        "capget", "capset", "clone", "clone3", "vfork", "fork", "execve", "execveat", "exit",
+        "exit_group", "wait4", "waitid", "uname", "fcntl", "flock", "fsync", "fdatasync",
+        "getcwd", "chdir", "fchdir", "mkdir", "mkdirat", "rmdir", "unlink", "unlinkat",
+        "rename", "renameat", "renameat2", "readlink", "readlinkat", "symlink", "symlinkat",
+        "chmod", "fchmod", "fchmodat", "umask", "gettimeofday", "getrlimit", "prlimit64",
+        "getrusage", "sysinfo", "times", "getdents", "getdents64", "futex", "set_tid_address",
+        "set_robust_list", "clock_gettime", "clock_getres", "arch_prctl", "getrandom", "rseq",
+        "epoll_create1", "epoll_ctl", "epoll_wait", "epoll_pwait", "eventfd2", "sigaltstack",
+        "prctl", "tgkill", "kill", "ftruncate", "truncate", "utimensat", "copy_file_range",
+        "sendfile", "splice", "memfd_create", "fsopen", "fsconfig", "fsmount", "move_mount",
+        "open_tree", "socketpair", "recvfrom", "sendto", "recvmsg", "sendmsg", "shutdown"
       ],
       "action": "SCMP_ACT_ALLOW"
     }

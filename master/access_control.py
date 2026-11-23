@@ -32,8 +32,10 @@ def require_local_or_admin(request: Request) -> None:
             action="ACCESS_DENIED",
             payload={"path": str(request.url.path), "method": request.method},
         )
-    except Exception:
-        pass
+    except Exception as _exc:
+        import logging
+
+        logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
     raise HTTPException(
         status_code=403,
         detail="Bu işlem yalnızca sunucu bilgisayarından veya yönetici anahtarıyla (X-Admin-Token) yapılabilir.",

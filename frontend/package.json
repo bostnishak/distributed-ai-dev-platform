@@ -3,11 +3,12 @@
   "version": "2.0.0",
   "private": true,
   "type": "module",
-  "description": "UX-01, UX-19, UX-28: Offline-first frontend build, lint, typecheck, unit & Playwright E2E toolchain (zero CDN).",
+  "description": "UX-01, UX-19, UX-28: Offline-first frontend test, syntax-check, typecheck & Playwright E2E toolchain (zero CDN).",
   "scripts": {
+    "test": "node --test tests/ui_modules.test.mjs",
+    "check-syntax": "node -e \"import('node:fs').then(async fs => { for (const f of fs.readdirSync('../master/static/js').filter(x => x.endsWith('.js'))) { await import('node:child_process').then(cp => cp.execFileSync(process.execPath, ['--check', '../master/static/js/' + f])); } console.log('All JS modules syntax-checked OK'); })\"",
     "lint": "eslint ../master/static/js",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
     "build": "vite build --outDir ../master/static/dist",
     "e2e": "playwright test"
   },

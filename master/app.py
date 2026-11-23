@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 import agents_api
 import assistant
 import audit_log
+import auth
 import backup_manager
 import cnc_api
 import config
@@ -45,6 +46,7 @@ import ux_api
 async def lifespan(_app: FastAPI):
     log_sanitizer.install_log_redaction()
     db.init_db()
+    auth.init_auth_db()
     gateway.init_gateway_db()
     orchestrator.init_orchestrator_db()
     hallucination.init_hallucination_db()
@@ -63,6 +65,7 @@ app = FastAPI(title="Distributed AI Software Development Platform - Master", lif
 app.add_middleware(security_middleware.SecurityHeadersAndCSRFMiddleware)
 ops.install(app)
 app.include_router(agents_api.router)
+app.include_router(auth.router)
 app.include_router(projects_api.router)
 app.include_router(assistant.router)
 app.include_router(tasks_api.router)

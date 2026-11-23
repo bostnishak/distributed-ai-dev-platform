@@ -4,7 +4,16 @@ import { focusAssistant, initAssistant } from './assistant.js';
 import { renderDashboard } from './dashboard.js';
 import { initPersonalSpace } from './personal.js';
 import { renderNewProject, renderProjectDetail, renderProjects } from './projects.js';
+import { createReactiveStore } from './store.js';
 import { closeSidebar, isDesktop, openSidebar } from './util.js';
+import { announceAriaLive, fetchHealthWizardStatus } from './ux_shell.js';
+
+const appStore = createReactiveStore();
+window.__DADP_STORE__ = appStore;
+
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === '127.0.0.1' || location.hostname === 'localhost')) {
+  navigator.serviceWorker.register('/static/sw.js').catch(() => {});
+}
 
 const pageView = document.getElementById('view-page');
 const assistantView = document.getElementById('view-assistant');
@@ -64,6 +73,7 @@ function route() {
   };
   pageView.classList.toggle('full-bleed', Boolean(r.fullBleed));
   pageView.scrollTop = 0;
+  announceAriaLive(`Sayfa açıldı: ${r.nav}`);
   r.render(pageView, m, ctx);
 }
 
@@ -75,4 +85,5 @@ window.addEventListener('hashchange', route);
 
 initAssistant();
 initPersonalSpace();
+fetchHealthWizardStatus().then((hw) => { if (hw) window.__DADP_HEALTH_WIZARD__ = hw; }).catch(() => {});
 route();

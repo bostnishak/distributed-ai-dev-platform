@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-23T18:49:10+00:00",
+ "generated_at": "2026-11-23T19:46:43+00:00",
  "items": {
   "DEF-01": {
    "status": "done",
@@ -22,10 +22,13 @@
    }
   },
   "DEF-03": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_full_implementation_plan.py",
+     "master/tests/test_def_foundation_parca1.py"
+    ],
+    "commit": "576f277",
     "eval_report": ""
    }
   },
@@ -243,10 +246,9 @@
    "status": "done",
    "evidence": {
     "tests": [
-     "master/tests/test_access_control.py",
-     "master/tests/test_security_matrix.py"
+     "master/tests/test_auth.py"
     ],
-    "commit": "fd32d3e",
+    "commit": "576f277",
     "eval_report": ""
    }
   },
@@ -254,10 +256,9 @@
    "status": "done",
    "evidence": {
     "tests": [
-     "master/tests/test_access_control.py",
-     "master/tests/test_security_matrix.py"
+     "master/tests/test_auth.py"
     ],
-    "commit": "fd32d3e",
+    "commit": "576f277",
     "eval_report": ""
    }
   },
@@ -1340,7 +1341,7 @@
      "master/tests/test_rag_hallucination_ml.py"
     ],
     "commit": "6e838fc",
-    "eval_report": "eval/reports/baseline.json"
+    "eval_report": "eval/reports/eval_live_qwen35_4b.json"
    }
   },
   "HAL-03": {
@@ -1350,7 +1351,7 @@
      "master/tests/test_rag_hallucination_ml.py"
     ],
     "commit": "6e838fc",
-    "eval_report": "eval/reports/baseline.json"
+    "eval_report": "eval/reports/eval_live_qwen35_4b.json"
    }
   },
   "HAL-04": {
@@ -1370,7 +1371,7 @@
      "master/tests/test_rag_hallucination_ml.py"
     ],
     "commit": "6e838fc",
-    "eval_report": "eval/reports/baseline.json"
+    "eval_report": "eval/reports/eval_live_qwen35_4b.json"
    }
   },
   "HAL-06": {

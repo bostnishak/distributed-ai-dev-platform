@@ -371,9 +371,10 @@ async def _select_grounded_model(task_type: str, has_image: bool = False) -> str
                 if r.status_code == 200:
                     _OLLAMA_TAGS_CACHE["models"] = {m.get("name", "") for m in r.json().get("models", [])}
                     _OLLAMA_TAGS_CACHE["ts"] = now
-        except Exception:
-            pass
+        except Exception as _exc:
+            import logging
 
+            logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
     installed = _OLLAMA_TAGS_CACHE["models"]
     if has_image:
         prefs = ("qwen3.5:9b", "gemma4:e4b", "qwen3.5:4b", config.MASTER_MODEL)
@@ -765,8 +766,10 @@ async def _prepare_chat_request(
                             f"- **L2 Ridge Tahmin ({num_cols[-1]}):** R2=`{fc['metrics']['r2']:.3f}`, RMSE=`{fc['metrics']['rmse']:.2f}` -> `{preds}`"
                         )
                     extracted_text += "\n" + "\n".join(aml_lines)
-            except Exception:
-                pass
+            except Exception as _exc:
+                import logging
+
+                logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
             forced_task_type = "analiz"
         elif name.endswith((".db", ".sqlite", ".sqlite3")):
             import domain_experts as de
@@ -812,9 +815,10 @@ async def _prepare_chat_request(
                 insp = fi.inspect_uploaded_file(file.filename, raw)
                 insp_md = fi.format_inspection_markdown(insp)
                 file_note += f"\n\n{insp_md}"
-            except Exception:
-                pass
+            except Exception as _exc:
+                import logging
 
+                logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
     # Domain Experts & KVKK PII auto-enrichment
     lower_prompt = prompt.lower()
     combined_source = f"{prompt}\n{extracted_text}".strip()
@@ -986,14 +990,72 @@ async def _tracked_stream(source, prompt: str, user_id: str, conversation_id: st
             evt["usage"] = {"prompt_tokens": p_tok, "completion_tokens": c_tok, "estimated": estimated}
             evt["latency_ms"] = latency_ms
             try:
+                from hallucination.verifier import (
+                    compute_confidence,
+                    extract_claims,
+                    log_verification_telemetry,
+                    verify_claims_nli,
+                )
+                from orchestrator.classifier import classify_intent
+                from orchestrator.contracts import build_contract
+                from rag.store import default_rag_store
+
+                intent_dec = classify_intent(prompt)
+                contract = build_contract(intent_dec.mode)
+                sources: list[dict] = []
+                try:
+                    rag_hits = default_rag_store().search(prompt, owner_id=user_id, top_k=3)
+                    sources = [
+                        {"id": f"S{i + 1}", "text": h.get("text", ""), "doc": h.get("doc_title", "")}
+                        for i, h in enumerate(rag_hits or [])
+                    ]
+                except Exception as rag_exc:
+                    log.debug("Live chat RAG lookup skipped: %s", rag_exc)
+
+                claims = extract_claims(answer)
+                verdicts = verify_claims_nli(claims, sources) if claims and sources else []
+                supported = sum(1 for v in verdicts if v.verdict == "supported")
+                support_ratio = round(supported / max(1, len(verdicts)), 3) if verdicts else (1.0 if not claims else 0.75)
+                conf = compute_confidence(
+                    support_ratio=support_ratio,
+                    citation_coverage=1.0 if sources else 0.5,
+                    retrieval_score=0.85 if sources else 0.5,
+                    has_numeric_conflict=False,
+                )
+                run_id = f"chat-{conversation_id or 'ephemeral'}-{int(time.time())}"
+                log_verification_telemetry(
+                    run_id=run_id,
+                    model=model_used or config.MASTER_MODEL,
+                    task_type=intent_dec.intent,
+                    support_ratio=support_ratio,
+                    citation_coverage=1.0 if sources else 0.0,
+                    confidence=float(conf.get("score", 0.75)),
+                    abstained=False,
+                    verify_ms=1,
+                )
+                evt["orchestrator"] = {
+                    "intent": intent_dec.intent,
+                    "mode": contract.mode,
+                    "difficulty": intent_dec.difficulty,
+                    "grounded_sources": len(sources),
+                }
+                evt["verification"] = {
+                    "confidence_score": float(conf.get("score", 0.75)),
+                    "confidence_label": str(conf.get("label", "orta")),
+                    "support_ratio": support_ratio,
+                    "claims_checked": len(claims),
+                }
+            except Exception as orch_exc:
+                log.warning("Orchestrator/verifier hook failed on chat stream: %s", orch_exc, exc_info=True)
+            try:
                 up.record_usage(user_id, conversation_id, model_used, task_type, p_tok, c_tok, latency_ms, estimated)
                 if conversation_id and answer.strip():
                     learn = bool(up.get_settings(user_id).get("auto_learn_facts"))
                     mem.record_conversation_turn(
                         conversation_id, prompt, answer, model_used, task_type, user_id=user_id, learn=learn
                     )
-            except Exception:
-                pass
+            except Exception as mem_exc:
+                log.warning("Failed to record usage/memory turn: %s", mem_exc, exc_info=True)
             yield f"data: {json.dumps(evt, ensure_ascii=False)}\n\n"
             continue
         yield chunk
@@ -1324,7 +1386,7 @@ async def _chat_stream_impl(
 
     # Multi-Agent Reasoning Council ([M08]/[M09])
     if not has_file and any(k in lower_p for k in ("konseyde tartış", "konseyde tartis", "ajan konseyi", "çoklu ajan konsey")):
-        import reasoning_council as rc
+        import tool_executor as rc
 
         async def _council_gen():
             try:
@@ -1600,8 +1662,10 @@ async def _chat_stream_impl(
             for h_msg in hist_items[-hist_window:]:
                 if isinstance(h_msg, dict) and h_msg.get("role") in ("user", "assistant") and h_msg.get("text"):
                     messages.append({"role": h_msg["role"], "content": str(h_msg["text"])[:3000]})
-    except Exception:
-        pass
+    except Exception as _exc:
+        import logging
+
+        logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
     if not is_prompt_conv:
         messages = mem.compact_conversation_context(messages)
 

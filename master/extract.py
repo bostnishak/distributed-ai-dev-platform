@@ -39,8 +39,10 @@ def extract_pdf_text(raw: bytes) -> str:
         text = "\n".join(pages).strip()
         if text:
             return text
-    except Exception:
-        pass
+    except Exception as _exc:
+        import logging
+
+        logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
     reader = PdfReader(io.BytesIO(raw))
     return "\n".join(page.extract_text() or "" for page in reader.pages)
 
@@ -102,7 +104,10 @@ def extract_zip_text(raw: bytes) -> str:
                         content = _decode_bytes(file_raw)
                     if content.strip():
                         parts.append(f"=== {info.filename} ===\n{content.strip()}")
-                except Exception:
+                except Exception as _exc:
+                    import logging
+
+                    logging.getLogger(__name__).debug("Recoverable error skipped in loop: %s", _exc)
                     continue
     except zipfile.BadZipFile as exc:
         raise UnsupportedFileError(f"Geçersiz ZIP dosyası: {exc}") from exc

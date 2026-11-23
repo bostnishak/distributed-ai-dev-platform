@@ -41,8 +41,10 @@ async def _embed_text(text: str) -> list[float] | None:
         emb = await gateway.default_client.embed(text, model="bge-m3:latest")
         if isinstance(emb, list) and emb:
             return emb
-    except Exception:
-        pass
+    except Exception as _exc:
+        import logging
+
+        logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
     return None
 
 

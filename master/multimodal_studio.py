@@ -66,8 +66,10 @@ async def pick_best_model(task: str = "general") -> str:
                 for cand in prefs:
                     if cand in installed:
                         return cand
-    except Exception:
-        pass
+    except Exception as _exc:
+        import logging
+
+        logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
     return config.MASTER_MODEL
 
 
@@ -509,9 +511,10 @@ async def _design_spec_from_llm(combined_prompt: str, seed: int) -> dict[str, st
                     default_spec["palette"] = parsed["palette"]
                 if parsed.get("layout") in LAYOUT_ORDER and seed == 0:
                     default_spec["layout"] = parsed["layout"]
-    except Exception:
-        pass
+    except Exception as _exc:
+        import logging
 
+        logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
     # If user explicitly requested a revision (seed > 0), guarantee layout & palette freshness
     if seed > 0:
         default_spec["layout"] = LAYOUT_ORDER[seed % len(LAYOUT_ORDER)]
@@ -758,9 +761,10 @@ async def generate_ai_image(prompt: str, history: list[dict[str, Any]] | None = 
                     "png_url": f"/api/assistant/media/{file_id}.png",
                     "svg_url": "",
                 }
-    except Exception:
-        pass
+    except Exception as _exc:
+        import logging
 
+        logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
     # 2. Studio-Grade Parametric Brand & Visual Design Engine guided by local LLM Creative Director
     spec = await _design_spec_from_llm(combined_prompt, variation_seed)
     svg_code = _render_studio_svg(spec, use_solid=False)
@@ -821,9 +825,10 @@ def _decode_audio_to_float32_16k(raw_bytes: bytes, tmp_path: Path, suffix: str) 
                     x_new = np.linspace(0.0, 1.0, target_len, dtype=np.float32)
                     arr = np.interp(x_new, x_old, arr).astype(np.float32)
                 return arr, duration
-        except Exception:
-            pass
+        except Exception as _exc:
+            import logging
 
+            logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
     try:
         import av  # type: ignore[import-not-found]
 
@@ -862,9 +867,10 @@ def transcribe_audio_bytes(filename: str, raw_bytes: bytes) -> dict[str, Any]:
             segments, _ = wmodel.transcribe(audio_np, language="tr", vad_filter=False)
             transcript = " ".join(seg.text.strip() for seg in segments).strip()
             engine = "faster-whisper-base (local)"
-        except Exception:
-            pass
+        except Exception as _exc:
+            import logging
 
+            logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
     # 2. Try Windows System.Speech Recognition (built into Windows, 100% offline for WAV files)
     if not transcript and sys.platform == "win32" and suffix == ".wav":
         ps_script = (
@@ -886,9 +892,10 @@ def transcribe_audio_bytes(filename: str, raw_bytes: bytes) -> dict[str, Any]:
             if proc.returncode == 0 and proc.stdout.strip():
                 transcript = proc.stdout.strip()
                 engine = "windows-system-speech"
-        except Exception:
-            pass
+        except Exception as _exc:
+            import logging
 
+            logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
     try:
         tmp_path.unlink(missing_ok=True)
     except OSError:
