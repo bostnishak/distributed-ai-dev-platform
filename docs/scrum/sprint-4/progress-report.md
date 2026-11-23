@@ -16,7 +16,7 @@ Sprint 4 delivered error recovery, automated code quality gates, and conflict re
 | Member | Role | Items | Est. (h) | Actual (h) | Key files |
 |---|---|---|---|---|---|
 | İshak Bostan | Master agent's LLM | PB-40, PB-44 | 22 | 22 | `master/contract_check.py`, `master/db.py` (MAX_ATTEMPTS, requeue_task) |
-| Furkan Kaan Özbeyli | Sub-agent interface | PB-41 | 18 | 18 | `master/sandbox.py`, `docker/sandbox/Dockerfile` |
+| Furkan Kaan Özbeyli | Sub-agent interface | PB-41 | 18 | 18 | `master/sandbox/`, `docker/sandbox/Dockerfile` |
 | Zeynep Duru Küçük | Scrum Master; backend | PB-46 | 18 | 18 | `master/tests/test_sprint4.py` |
 | Berfin Yiğit | Web interface | PB-47 | 14 | 14 | `master/static/js/projects.js` (attempt/conflict badges) |
 | Semih Sarıca | LLM model selection | PB-42, PB-43 | 30 | 30 | `master/review_scheduler.py`, `master/tasks_api.py` |
@@ -27,7 +27,7 @@ Sprint 4 delivered error recovery, automated code quality gates, and conflict re
 
 - **İshak Bostan — API contract check + max attempts (PB-40, PB-44).** Added `contract_check.py` which scans `static/js/*.js` for `fetch('/api/...')` calls and compares against FastAPI registered routes. Endpoint: `GET /api/admin/contract-check`. Updated `requeue_task()` in `db.py`: increments `attempt` counter; when `attempt >= MAX_ATTEMPTS (3)`, marks task permanently `failed` instead of requeuing. Added `MAX_ATTEMPTS = 3` constant.
 
-- **Furkan Kaan Özbeyli — sandboxed test runner (PB-41).** Created `master/sandbox.py`: runs Python code blocks in a network-isolated Docker container (`--network none`, `--memory 256m`, `--cpus 0.5`, 30 s timeout). Container image pre-built from `docker/sandbox/Dockerfile`. Results: `{exit_code, stdout, stderr, timed_out}`. Integrated into validation pipeline.
+- **Furkan Kaan Özbeyli — sandboxed test runner (PB-41).** Created `master/sandbox/`: runs Python code blocks in a network-isolated Docker container (`--network none`, `--memory 256m`, `--cpus 0.5`, 30 s timeout). Container image pre-built from `docker/sandbox/Dockerfile`. Results: `{exit_code, stdout, stderr, timed_out}`. Integrated into validation pipeline.
 
 - **Zeynep Duru Küçük — fake-agent tests (PB-46).** Wrote `tests/test_sprint4.py` with 16 tests: max attempts (3), conflict detection (5), review exclusion (4), contract check (2), DAG scheduler with fake agents (2). All 150 tests pass.
 

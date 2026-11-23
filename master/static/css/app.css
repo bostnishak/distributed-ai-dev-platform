@@ -823,3 +823,33 @@ ul.plain { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.6; }
   background: #dc2626; color: #ffffff;
   box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.22);
 }
+
+/* Stüdyolar ve yönetim (hub.js) */
+.hub-toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.hub-filter, .hub-token { flex: 1 1 240px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface, #fff); color: inherit; }
+.hub-group h2 { margin: 22px 0 8px; font-size: 15px; }
+.hub-count { font-weight: 400; opacity: .6; }
+.hub-endpoint { padding: 10px 14px; margin-bottom: 8px; }
+.hub-endpoint summary { cursor: pointer; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.hub-method { font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 5px; background: var(--accent-soft); }
+.hub-method.m-delete { background: var(--danger-soft); }
+.hub-sum { opacity: .7; font-size: 12.5px; }
+.hub-desc { font-size: 12.5px; opacity: .75; }
+.hub-form { display: grid; gap: 10px; margin-top: 10px; }
+.hub-field { display: grid; gap: 4px; }
+.hub-label { font-size: 12.5px; font-weight: 600; }
+.hub-req { color: #dc2626; }
+.hub-field input:not([type=checkbox]), .hub-field textarea, .hub-field select { width: 100%; box-sizing: border-box; padding: 7px 9px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface, #fff); color: inherit; font: inherit; }
+.hub-result { max-height: 360px; overflow: auto; padding: 10px; border-radius: 8px; background: var(--bg-soft, #f8fafc); border: 1px solid var(--border); font-size: 12px; white-space: pre-wrap; word-break: break-word; }
+.hub-status { font-size: 12.5px; align-self: center; }
+.hub-status.ok { color: #059669; }
+.hub-status.err { color: #dc2626; }
+
+/* Komut paleti (palette.js) */
+.pal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.5); display: flex; justify-content: center; align-items: flex-start; padding-top: 14vh; z-index: 9998; }
+.pal-box { width: min(560px, 92vw); background: var(--surface, #fff); color: inherit; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 20px 45px rgba(0,0,0,.28); overflow: hidden; }
+.pal-input { width: 100%; box-sizing: border-box; padding: 14px 16px; border: 0; border-bottom: 1px solid var(--border); background: transparent; color: inherit; font: inherit; outline: none; }
+.pal-list { list-style: none; margin: 0; padding: 6px; max-height: 50vh; overflow: auto; }
+.pal-item { display: flex; justify-content: space-between; padding: 9px 12px; border-radius: 8px; cursor: pointer; }
+.pal-item.active, .pal-item:hover { background: var(--accent-soft); }
+.pal-hint, .pal-empty { font-size: 12px; opacity: .65; padding: 4px 8px; }

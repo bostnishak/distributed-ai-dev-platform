@@ -2,7 +2,7 @@
 // usage statistics, personalization, cross-chat memory and data controls. No framework, no CDN.
 import { renderSectionAppearance, renderSectionAssistant, renderSectionOverview, renderSectionProfile } from './personal_charts.js';
 import { renderSectionData, renderSectionMcp, renderSectionMemory } from './personal_sections.js';
-import { api, formatNumber, h } from './util.js';
+import { api, formatNumber, h, svg } from './util.js';
 
 const LS_USER = 'cm6453_user_id';
 const LS_PREFS = 'cm6453_prefs';

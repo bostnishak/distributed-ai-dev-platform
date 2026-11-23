@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-23T20:34:56+00:00",
+ "generated_at": "2026-11-23T20:43:28+00:00",
  "items": {
   "DEF-01": {
    "status": "done",
@@ -3076,14 +3076,13 @@
    }
   },
   "UX-08": {
-   "status": "done",
+   "status": "open",
    "evidence": {
-    "tests": [
-     "master/tests/test_distributed_and_ux.py"
-    ],
-    "commit": "d87a69b",
+    "tests": [],
+    "commit": "",
     "eval_report": ""
-   }
+   },
+   "note": "yeniden üret / dallan / paylaş / dışa aktar arayüzü yok"
   },
   "UX-09": {
    "status": "done",
@@ -3106,24 +3105,22 @@
    }
   },
   "UX-11": {
-   "status": "done",
+   "status": "open",
    "evidence": {
-    "tests": [
-     "master/tests/test_distributed_and_ux.py"
-    ],
-    "commit": "d87a69b",
+    "tests": [],
+    "commit": "",
     "eval_report": ""
-   }
+   },
+   "note": "artefakt paneli yok"
   },
   "UX-12": {
-   "status": "done",
+   "status": "open",
    "evidence": {
-    "tests": [
-     "master/tests/test_distributed_and_ux.py"
-    ],
-    "commit": "d87a69b",
+    "tests": [],
+    "commit": "",
     "eval_report": ""
-   }
+   },
+   "note": "dosya ve bilgi yöneticisi yok (yalnız Stüdyolar formu)"
   },
   "UX-13": {
    "status": "done",
@@ -3246,24 +3243,22 @@
    }
   },
   "UX-25": {
-   "status": "done",
+   "status": "open",
    "evidence": {
-    "tests": [
-     "master/tests/test_distributed_and_ux.py"
-    ],
-    "commit": "d87a69b",
+    "tests": [],
+    "commit": "",
     "eval_report": ""
-   }
+   },
+   "note": "tarayıcı bildirimi yok"
   },
   "UX-26": {
-   "status": "done",
+   "status": "open",
    "evidence": {
-    "tests": [
-     "master/tests/test_distributed_and_ux.py"
-    ],
-    "commit": "d87a69b",
+    "tests": [],
+    "commit": "",
     "eval_report": ""
-   }
+   },
+   "note": "paylaşım arayüzü yok (yalnız Stüdyolar formu)"
   },
   "UX-27": {
    "status": "done",

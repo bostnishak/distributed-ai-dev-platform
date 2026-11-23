@@ -21,5 +21,5 @@ Pre-demo check (run 10 minutes before presenting):
 ## Offline / Network Fallback Plan
 If campus Wi-Fi blocks Tailscale UDP relays:
 1. Run `.\scripts\dev.ps1 -StagingAgents` to launch local staging nodes against the local Ollama daemon.
-2. Run deterministic replay via `master/fake_ollama.py` if GPU thermal throttling occurs.
+2. Run deterministic replay via `master/gateway/fake_ollama.py` if GPU thermal throttling occurs.
 3. Keep pre-recorded backup capture and generated report artifacts in `docs/scrum/reports/`.

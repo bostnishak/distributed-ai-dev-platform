@@ -3,6 +3,8 @@ import { renderAgents } from './agents.js';
 import { focusAssistant, initAssistant } from './assistant.js';
 import { initAuthUi } from './auth_modal.js';
 import { renderDashboard } from './dashboard.js';
+import { renderHub } from './hub.js';
+import { initPalette } from './palette.js';
 import { initPersonalSpace } from './personal.js';
 import { renderNewProject, renderProjectDetail, renderProjects } from './projects.js';
 import { createReactiveStore } from './store.js';
@@ -26,6 +28,7 @@ const ROUTES = [
   { pattern: /^#\/projects\/(\d+)$/, nav: 'projects', render: (root, m, ctx) => renderProjectDetail(root, Number(m[1]), ctx) },
   { pattern: /^#\/agents$/, nav: 'agents', render: (root, _m, ctx) => renderAgents(root, ctx) },
   { pattern: /^#\/dashboard$/, nav: 'dashboard', render: (root, _m, ctx) => renderDashboard(root, ctx) },
+  { pattern: /^#\/studios$/, nav: 'studios', render: (root, _m, ctx) => renderHub(root, ctx) },
   { pattern: /^#\/assistant$/, nav: 'assistant', render: null },
 ];
 
@@ -87,5 +90,6 @@ window.addEventListener('hashchange', route);
 initAssistant();
 initPersonalSpace();
 initAuthUi();
+initPalette();
 fetchHealthWizardStatus().then((hw) => { if (hw) window.__DADP_HEALTH_WIZARD__ = hw; }).catch(() => {});
 route();

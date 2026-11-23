@@ -15,4 +15,4 @@
 ## Resolution
 1. Start the Ollama desktop app or run `ollama serve` in a terminal.
 2. Re-check `GET http://127.0.0.1:8000/ready` until `components.ollama.status == "ok"`.
-3. If VRAM is exhausted by stale models, unload idle models via `ollama stop <model>` or `master/power_manager.py`.
+3. If VRAM is exhausted by stale models, unload idle models via `ollama stop <model>` or `master/gateway/power_manager.py`.
