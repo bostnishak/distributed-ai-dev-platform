@@ -48,7 +48,7 @@ jobs:
       - name: Security test suite & route auth matrix (SEC-22)
         run: pytest -m security tests/ -v
       - name: Upload coverage report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: master-coverage-${{ matrix.python-version }}
           path: master/coverage.xml
@@ -82,7 +82,7 @@ jobs:
       - name: Fast offline hallucination & grounding eval gate (HAL-05)
         run: python eval/run.py --limit 50 --config ci_latest
       - name: Upload eval report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: eval-report
           path: eval/reports/
@@ -114,7 +114,7 @@ jobs:
           pip-audit -r master/requirements.txt --strict --progress-spinner off
           python scripts/generate_sbom.py --output sbom-master.json
       - name: Upload CycloneDX SBOM artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sbom-cyclonedx
           path: sbom-master.json
