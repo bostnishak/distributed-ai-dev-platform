@@ -1,0 +1,42 @@
+[
+  {
+    "id": "iso-2768-mk",
+    "title": "ISO 2768-mK Genel Tolerans Standardı",
+    "source_label": "örnek",
+    "is_sample": true,
+    "keywords": ["iso 2768", "genel tolerans", "tolerans", "lineer", "pah", "radyüs", "mk"],
+    "content": "Örnek CNC Standartları - ISO 2768-m (Orta) Lineer Toleranslar: 0.5-3 mm: +-0.1 mm | 3-6 mm: +-0.1 mm | 6-30 mm: +-0.2 mm | 30-120 mm: +-0.3 mm | 120-400 mm: +-0.5 mm | 400-1000 mm: +-0.8 mm. Pah ve radyüslerde 0.5-3 mm: +-0.2 mm, 3-6 mm: +-0.5 mm."
+  },
+  {
+    "id": "iso-286-fits",
+    "title": "ISO 286 Rulman ve Mil-Delik Geçme Toleransları (H7, h6, g6)",
+    "source_label": "örnek",
+    "is_sample": true,
+    "keywords": ["h7", "h6", "g6", "h8", "k6", "geçme", "gecme", "rulman", "iso 286", "bara", "rayba"],
+    "content": "ISO 286 Hassas Geçmeler (Örnek): 30-50 mm aralığında H7 delik: +0.025 / 0.000 mm; h6 mil: 0.000 / -0.016 mm; g6 mil: -0.009 / -0.025 mm. 50-80 mm aralığında H7: +0.030 / 0 mm; h6: 0 / -0.019 mm."
+  },
+  {
+    "id": "cnc-cutting-speeds",
+    "title": "CNC Kesme Hızları (Vc), İlerleme (f) ve Takım Seçim Rehberi",
+    "source_label": "örnek",
+    "is_sample": true,
+    "keywords": ["4140", "6061", "7075", "304", "316", "kesme hızı", "kesme hizi", "vc", "ilerleme", "devir", "torna", "freze"],
+    "content": "Örnek Tezgah Kesme Parametreleri: 1) AISI 4140 Islah Çeliği: Torna Vc = 160-210 m/dk, Freze Vc = 120-160 m/dk, f = 0.12-0.25 mm/dev. 2) Alüminyum 6061-T6 / 7075: Torna Vc = 350-600 m/dk, Freze Vc = 300-500 m/dk. 3) AISI 304/316 Paslanmaz: Torna Vc = 110-150 m/dk, Freze Vc = 80-120 m/dk."
+  },
+  {
+    "id": "as9102-fai-quality",
+    "title": "AS9102 İlk Parça Onayı (FAI) ve SPC (Cp/Cpk) Kalite Prosedürü",
+    "source_label": "örnek",
+    "is_sample": true,
+    "keywords": ["as9102", "fai", "ilk parça", "kalite", "cmm", "cpk", "spc", "balonlama", "rapor"],
+    "content": "AS9102 FAI Prosedürü (Örnek): Form 1 (Parça Tanımlama), Form 2 (Malzeme 3.1 Sertifikası ve Özel Prosesler), Form 3 (Balonlanmış tüm karakteristiklerin ölçüm tablosu). Kritik ölçülerde %100 CMM ölçümü ve seri üretimde Cp/Cpk >= 1.33 şartı aranır."
+  },
+  {
+    "id": "threads-predrill",
+    "title": "Metrik Kılavuz Ön Delik Çapları ve Diş Kontrolü",
+    "source_label": "örnek",
+    "is_sample": true,
+    "keywords": ["kılavuz", "kilavuz", "diş", "dis", "vida", "m6", "m8", "m10", "m12", "6h", "ön delik"],
+    "content": "Metrik Diş (6H) Ön Delik Standartları (Örnek): M6x1.0 -> 5.0 mm | M8x1.25 -> 6.8 mm | M10x1.5 -> 8.5 mm | M12x1.75 -> 10.2 mm | M16x2.0 -> 14.0 mm."
+  }
+]
