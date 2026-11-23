@@ -179,7 +179,7 @@ def test_agent_vram_heartbeat_and_assistant_new_routes(client, auth_headers):
     )
     assert hb.status_code == 200
     agents = client.get("/api/agents").json()
-    found = [a for a in agents if a["agent_id"] == "uye1-vram"][0]
+    found = next(a for a in agents if a["agent_id"] == "uye1-vram")
     assert found["loaded_models"] == ["qwen3.5:9b"]
     assert found["vram_used_gb"] == 6.4
 
