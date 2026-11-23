@@ -15,6 +15,8 @@ from pathlib import Path
 from typing import Any
 
 import config
+import dbconn
+import dbindexes
 import memory_engine
 
 DEFAULT_USER_ID = "default"
@@ -72,16 +74,13 @@ _LEVEL_TEXT = {
 
 
 def _db_path() -> Path:
-    p = Path(config.DATA_DIR) / "user_profile.db"
+    p = dbconn.database_file("user_profile.db")
     p.parent.mkdir(parents=True, exist_ok=True)
     return p
 
 
 def _connect() -> sqlite3.Connection:
-    conn = sqlite3.connect(_db_path())
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
-    return conn
+    return dbconn.open_db(_db_path())
 
 
 def init_db() -> None:
@@ -122,6 +121,8 @@ def init_db() -> None:
             CREATE INDEX IF NOT EXISTS idx_saved_chats_user_updated ON saved_chats(user_id, updated_at DESC);
             """
         )
+    with _connect() as conn:
+        dbindexes.ensure_indexes(conn)
 
 
 def valid_user_id(user_id: str) -> str:
@@ -897,7 +898,7 @@ def wipe_data(user_id: str, scope: str) -> dict[str, int]:
 
     # Physical WAL truncation + VACUUM so deleted user strings cannot be recovered from DB/WAL files
     _compact_sqlite_physical(_db_path())
-    _compact_sqlite_physical(Path(config.DATA_DIR) / "cognitive_memory.db")
+    _compact_sqlite_physical(dbconn.database_file("cognitive_memory.db"))
 
     try:
         from audit_log import AuditTrail

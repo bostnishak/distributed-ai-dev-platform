@@ -21,6 +21,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 import config
+import dbconn
 import secret_store
 from access_control import require_local_or_admin
 from audit_log import AuditTrail
@@ -29,10 +30,7 @@ router = APIRouter(prefix="/api/mcp", tags=["mcp"])
 
 
 def _connect() -> sqlite3.Connection:
-    config.DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(config.DB_PATH), timeout=10.0)
-    conn.row_factory = sqlite3.Row
-    return conn
+    return dbconn.open_db(config.DB_PATH)
 
 
 def _secret_name(connector_id: str) -> str:

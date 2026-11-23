@@ -15,21 +15,18 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-import config
+import dbconn
+import dbindexes
 
 
 def _memory_db_path() -> Path:
-    p = config.DATA_DIR / "cognitive_memory.db"
+    p = dbconn.database_file("cognitive_memory.db")
     p.parent.mkdir(parents=True, exist_ok=True)
     return p
 
 
 def _connect() -> sqlite3.Connection:
-    conn = sqlite3.connect(_memory_db_path())
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA foreign_keys=ON")
-    return conn
+    return dbconn.open_db(_memory_db_path())
 
 
 def init_memory_db() -> None:
@@ -86,6 +83,8 @@ def init_memory_db() -> None:
             );
             """
         )
+    with _connect() as conn:
+        dbindexes.ensure_indexes(conn)
 
 
 def record_conversation_turn(

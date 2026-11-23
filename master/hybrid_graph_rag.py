@@ -24,6 +24,8 @@ import numpy as np
 from PIL import Image
 
 import config
+import dbconn
+import vector_meta
 
 FALLBACK_EMBED_DIM = 256
 IMAGE_FINGERPRINT_DIM = 64
@@ -234,12 +236,10 @@ class HybridGraphRAG:
         if self._explicit_db_path is not None:
             self._explicit_db_path.parent.mkdir(parents=True, exist_ok=True)
             return self._explicit_db_path
-        return _data_dir() / "graph_rag.db"
+        return dbconn.database_file("graph_rag.db")
 
     def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(str(self.db_path))
-        conn.row_factory = sqlite3.Row
-        return conn
+        return dbconn.open_db(self.db_path)
 
     def _init_db(self) -> None:
         with self._connect() as conn:
@@ -283,6 +283,8 @@ class HybridGraphRAG:
                 );
                 """
             )
+        with self._connect() as conn:
+            vector_meta.ensure_columns(conn)
 
     def _embed(self, text: str) -> list[float]:
         if self.use_ollama_embeddings:
@@ -661,7 +663,7 @@ _DEFAULT_RAG: HybridGraphRAG | None = None
 
 def _get_default_rag() -> HybridGraphRAG:
     global _DEFAULT_RAG
-    target_db = _data_dir() / "graph_rag.db"
+    target_db = dbconn.database_file("graph_rag.db")
     if _DEFAULT_RAG is None or _DEFAULT_RAG.db_path != target_db:
         _DEFAULT_RAG = HybridGraphRAG(db_path=target_db)
     return _DEFAULT_RAG

@@ -49,6 +49,10 @@ PREVIEW_PORT = int(os.environ.get("PREVIEW_PORT", "8001"))
 
 # --- Storage and limits ---
 DB_PATH = Path(os.environ.get("DB_PATH", str(BASE_DIR / "data" / "platform.db")))
+# DAT-01: one SQLite file for every module instead of platform.db + four legacy files (see dbunify.py).
+UNIFIED_DB = os.environ.get("UNIFIED_DB", "false").strip().lower() in ("1", "true", "yes")
+# DAT-07: take an encrypted, verified backup every N hours (0 = off).
+BACKUP_INTERVAL_HOURS = float(os.environ.get("BACKUP_INTERVAL_HOURS", "0"))
 DATA_DIR = DB_PATH.parent
 CNC_JOBS_DIR = Path(os.environ.get("CNC_JOBS_DIR", str(DATA_DIR / "cnc_jobs")))
 WORKSPACES_DIR = Path(os.environ.get("WORKSPACES_DIR", str(DATA_DIR / "workspaces")))
