@@ -648,10 +648,23 @@ async def _prepare_chat_request(
             name.endswith((".txt", ".md", ".json", ".xml", ".yaml", ".yml", ".html", ".css", ".js", ".ts", ".py", ".sql", ".log", ".ini"))
             or content_type.startswith("text/")
         ):
-            extracted_text = raw.decode("utf-8", errors="ignore")
+            import file_inspector as fi
+
+            extracted_text, _enc = fi.decode_text_turkish_safe(raw)
             forced_task_type = "analiz"
         else:
             file_note = f"\n\n[Not: '{file.filename}' desteklenmeyen bir dosya türü.]"
+
+        # Deterministic zero-hallucination error/syntax/formula/encoding inspection for uploaded files
+        if not (content_type.startswith("image/") or content_type.startswith("audio/")):
+            import file_inspector as fi
+
+            try:
+                insp = fi.inspect_uploaded_file(file.filename, raw)
+                insp_md = fi.format_inspection_markdown(insp)
+                file_note += f"\n\n{insp_md}"
+            except Exception:
+                pass
 
     # Domain Experts & KVKK PII auto-enrichment
     lower_prompt = prompt.lower()
@@ -689,7 +702,12 @@ async def _prepare_chat_request(
 
     full_prompt = prompt
     if extracted_text:
-        full_prompt = f"{prompt}\n\n--- Eklenen dosya içeriği ---\n{extracted_text[:8000]}"
+        limit = 16000
+        trunc_note = f"\n[Not: Dosya uzunluğu {len(extracted_text)} karakter; ilk {limit} karakter gösteriliyor.]" if len(extracted_text) > limit else ""
+        full_prompt = (
+            f"{prompt}\n\n--- Eklenen dosya içeriği (GERÇEK VERİ - uydurma yapma, olmayan hata ekleme) ---\n"
+            f"{extracted_text[:limit]}{trunc_note}"
+        )
     else:
         import company_rag
         import hybrid_graph_rag
@@ -1187,12 +1205,13 @@ async def _chat_stream_impl(
         pass
     messages = mem.compact_conversation_context(messages)
 
-    # If an image was processed/edited, prepend the processed image preview before the LLM analysis
+    # If an image was processed/edited or a deterministic file inspection ran, prepend it before LLM analysis
     pre_note = ""
-    if "### İşlenmiş Görsel Çıktısı" in full_prompt:
-        idx_n = full_prompt.index("### İşlenmiş Görsel Çıktısı")
-        pre_note = full_prompt[idx_n:] + "\n\n---\n\n"
-        full_prompt = full_prompt[:idx_n].strip()
+    for marker in ("### İşlenmiş Görsel Çıktısı", "### Deterministik Dosya Denetim Raporu"):
+        if marker in full_prompt:
+            idx_n = full_prompt.index(marker)
+            pre_note += full_prompt[idx_n:] + "\n\n---\n\n"
+            full_prompt = full_prompt[:idx_n].strip()
 
     user_msg: dict = {"role": "user", "content": full_prompt}
     if image_b64:
