@@ -864,6 +864,19 @@ let currentMessages = []; // {role: 'user'|'assistant', text, modelBadge?, fileN
 let pendingDeleteId = null;
 const activeStreams = new Map(); // chatId -> stream state for concurrent background chats
 const unreadCompletedChats = new Set(); // chatIds that finished in background while viewing another chat
+let userScrolledUp = false;
+
+function scrollToBottomIfPinned(force = false) {
+  if (!els || !els.messages) return;
+  if (force) {
+    userScrolledUp = false;
+    els.messages.scrollTop = els.messages.scrollHeight;
+    return;
+  }
+  if (!userScrolledUp) {
+    els.messages.scrollTop = els.messages.scrollHeight;
+  }
+}
 
 function loadChats() {
   try {
@@ -1328,7 +1341,7 @@ async function sendMessage(overridePrompt = null) {
   wrap.append(streamBar, bubble);
   row.appendChild(wrap);
   els.messages.appendChild(row);
-  els.messages.scrollTop = els.messages.scrollHeight;
+  scrollToBottomIfPinned(true);
 
   activeStreams.set(targetChatId, { controller, row, thinkTicker });
   syncSendBtnState();
@@ -1396,7 +1409,7 @@ async function sendMessage(overridePrompt = null) {
           fullText += evt.content;
           bubble.innerHTML = renderMarkdown(fullText);
           if (currentChatId === targetChatId) {
-            els.messages.scrollTop = els.messages.scrollHeight;
+            scrollToBottomIfPinned(false);
           }
         } else if (evt.type === 'council') {
           councilTrace = evt.council;
@@ -1574,6 +1587,14 @@ export function initAssistant() {
       }
     });
   }
+  els.messages.addEventListener('scroll', () => {
+    const dist = els.messages.scrollHeight - els.messages.scrollTop - els.messages.clientHeight;
+    if (dist > 64) userScrolledUp = true;
+    else if (dist <= 36) userScrolledUp = false;
+  }, { passive: true });
+  els.messages.addEventListener('wheel', (e) => {
+    if (e.deltaY < 0) userScrolledUp = true;
+  }, { passive: true });
   els.messages.addEventListener('click', handleRunCodeClick);
   initVoiceRecognition();
   showRunButtonsIfEnabled();
