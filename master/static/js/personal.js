@@ -538,8 +538,11 @@ function sectionData(body) {
   }));
   body.replaceChildren(
     h('div', { class: 'sp-note' }, 'Tüm veriler yalnızca bu bilgisayardaki sunucuda tutulur ve hiçbir yere gönderilmez.'),
-    group(settingRow('Verilerimi dışa aktar', 'Profil, ayarlar, öğrenilen bilgiler, istatistikler ve sohbetler tek bir JSON dosyası olarak iner.',
-      h('a', { class: 'sp-btn primary', href: `/api/user/${activeUserId}/export`, download: '' }, 'JSON indir'))),
+    group(
+      settingRow('Verilerimi dışa aktar', 'Profil, ayarlar, öğrenilen bilgiler, istatistikler ve sohbetler tek bir JSON dosyası olarak iner.',
+        h('a', { class: 'sp-btn primary', href: `/api/user/${activeUserId}/export`, download: '' }, 'JSON indir')),
+      settingRow('Tam sistem yedeği (Kurumsal ZIP)', 'Tüm SQLite veritabanları, CNC işleri ve üretilen yazılım çalışma alanlarını tek arşivde indirir.',
+        h('a', { class: 'sp-btn', href: '/api/admin/backup.zip', download: '' }, 'Tam Yedek (.ZIP)'))),
     groupTitle('Verileri sil'),
     group(
       wipe('usage', 'Kullanım istatistikleri', 'Token ve yanıt süresi kayıtlarını siler.'),

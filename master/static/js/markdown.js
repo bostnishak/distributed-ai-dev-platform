@@ -1,13 +1,10 @@
 // A small, self-contained Markdown -> HTML renderer for assistant answers (no CDN library,
 // so the system stays fully local). Supports headings, bold/italic, lists, inline code,
-// code blocks, GFM tables, ```svg blocks rendered as sanitized inline diagrams, and a "Run"
-// button under Python code blocks (see assistant.js for the click handler).
+// code blocks, GFM tables, ```svg blocks, ```chart blocks, ```mermaid/diagram blocks,
+// ```mindmap blocks, LaTeX math ($...$ / $$...$$), and a "Run" button under Python code blocks.
 
-import { renderChartSvg } from './canvas_widgets.js';
+import { renderChartSvg, renderDiagramSvg, renderLatexMath, renderMindmapHtml } from './canvas_widgets.js';
 
-// A block gets the Run button when its fence is explicitly tagged python/py, when another
-// language is explicitly tagged we never run it as Python, and with no tag we fall back to a
-// content heuristic.
 function looksLikePython(lang, code) {
   if (lang === 'python' || lang === 'py') return true;
   if (lang) return false;
@@ -20,8 +17,6 @@ export function escapeHtml(str) {
   return div.innerHTML;
 }
 
-// Models often emit <svg width=".." height=".."> without a viewBox. Such an SVG is clipped
-// instead of scaled when CSS shrinks it to fit the bubble, so derive the viewBox from its size.
 function ensureSvgViewBox(svgText) {
   return svgText.replace(/<svg\b[^>]*>/i, (tag) => {
     if (/\bviewBox\s*=/i.test(tag)) return tag;
@@ -32,7 +27,6 @@ function ensureSvgViewBox(svgText) {
   });
 }
 
-// Strips scripts, inline event handlers and javascript: links before the SVG is inserted.
 export function sanitizeSvg(svgText) {
   return ensureSvgViewBox(svgText
     .replace(/<script[\s\S]*?<\/script>/gi, '')
@@ -50,11 +44,11 @@ export function renderMarkdown(raw) {
   });
 
   text = escapeHtml(text);
+  text = renderLatexMath(text);
 
   text = text.replace(/^### (.*)$/gm, '<h3>$1</h3>');
   text = text.replace(/^## (.*)$/gm, '<h2>$1</h2>');
   text = text.replace(/^# (.*)$/gm, '<h1>$1</h1>');
-  // Safe local images (![alt](/api/...)) and local/hash links ([label](/api/...) or [label](#/...))
   text = text.replace(
     /!\[([^\]]*)\]\((\/api\/[a-zA-Z0-9_./?=&%-]+)\)/g,
     '<img src="$2" alt="$1" style="max-width:100%;border-radius:8px;border:1px solid #e2e8f0;margin:8px 0;">'
@@ -67,7 +61,6 @@ export function renderMarkdown(raw) {
   text = text.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<em>$1</em>');
   text = text.replace(/`([^`\n]+)`/g, '<code>$1</code>');
 
-  // GFM tables: | head | head |\n|---|---|\n| cell | cell |
   text = text.replace(
     /(^|\n)(\|.+\|)\n(\|[ \t:|-]+\|)\n((?:\|.*\|\n?)*)/g,
     (_match, pre, headerLine, _sepLine, bodyLines) => {
@@ -83,7 +76,6 @@ export function renderMarkdown(raw) {
     }
   );
 
-  // Consecutive "- "/"* " lines become <ul>, "1. " lines become <ol>.
   text = text.replace(/(^|\n)((?:[-*] .*(?:\n|$))+)/g, (m, pre, block) => {
     const items = block.trim().split('\n').map((l) => `<li>${l.replace(/^[-*]\s+/, '')}</li>`).join('');
     return `${pre}<ul>${items}</ul>`;
@@ -94,7 +86,7 @@ export function renderMarkdown(raw) {
   });
 
   text = text.split(/\n{2,}/).map((p) => {
-    if (/^<(h1|h2|h3|ul|ol|table)/.test(p.trim())) return p;
+    if (/^<(h1|h2|h3|ul|ol|table|div|details)/.test(p.trim())) return p;
     return `<p>${p.replace(/\n/g, '<br>')}</p>`;
   }).join('');
 
@@ -106,6 +98,14 @@ export function renderMarkdown(raw) {
     if (block.lang === 'chart') {
       const chartHtml = renderChartSvg(block.code);
       if (chartHtml) return chartHtml;
+    }
+    if (block.lang === 'mermaid' || block.lang === 'diagram') {
+      const diagHtml = renderDiagramSvg(block.code);
+      if (diagHtml) return diagHtml;
+    }
+    if (block.lang === 'mindmap') {
+      const mmHtml = renderMindmapHtml(block.code);
+      if (mmHtml) return mmHtml;
     }
     const escaped = escapeHtml(block.code);
     if (!looksLikePython(block.lang, block.code)) {

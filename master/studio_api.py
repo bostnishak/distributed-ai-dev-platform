@@ -318,8 +318,126 @@ async def get_workspace_file_diff(id: str, path: str = Query(...), base_version:
         "path": path,
         "base_version": base_version,
         "has_changes": len(diff_lines) > 0,
+        "base_content": "\n".join(base_lines),
+        "current_content": "\n".join(current_lines),
         "diff": "\n".join(diff_lines) if diff_lines else f"({base_version} sürümü ile güncel dosya arasında fark yok)",
     }
+
+
+class WorkspaceExecRequest(BaseModel):
+    command: str
+
+
+class WorkspaceGitRequest(BaseModel):
+    action: str = "status"
+    message: str = "AI Studio commit"
+    branch: str = ""
+
+
+@router.post("/workspaces/{id}/exec")
+def exec_in_workspace(id: str, body: WorkspaceExecRequest):
+    """Run a command inside the workspace directory for the embedded IDE terminal ([M28])."""
+    import shlex
+    import sys
+
+    try:
+        ws_dir = wb.safe_workspace_dir(id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if not ws_dir.is_dir():
+        raise HTTPException(status_code=404, detail="Çalışma alanı bulunamadı.")
+    cmd_str = (body.command or "").strip()
+    if not cmd_str:
+        raise HTTPException(status_code=400, detail="Komut boş olamaz.")
+
+    parts = shlex.split(cmd_str, posix=(sys.platform != "win32"))
+    if not parts:
+        raise HTTPException(status_code=400, detail="Geçersiz komut.")
+    if parts[0] in ("python", "python3", "py"):
+        parts[0] = sys.executable
+    elif parts[0] == "pytest":
+        parts = [sys.executable, "-m", "pytest", *parts[1:]]
+
+    try:
+        proc = subprocess.run(
+            parts,
+            cwd=str(ws_dir),
+            capture_output=True,
+            text=True,
+            timeout=12,
+            check=False,
+        )
+        return {
+            "ok": proc.returncode == 0,
+            "exit_code": proc.returncode,
+            "stdout": proc.stdout[-6000:],
+            "stderr": proc.stderr[-6000:],
+        }
+    except FileNotFoundError:
+        return {"ok": False, "exit_code": 127, "stdout": "", "stderr": f"Komut bulunamadı: {parts[0]}"}
+    except subprocess.TimeoutExpired:
+        return {"ok": False, "exit_code": -1, "stdout": "", "stderr": "Komut zaman aşımına uğradı (12 sn)."}
+
+
+@router.post("/workspaces/{id}/git")
+async def workspace_git_control(id: str, body: WorkspaceGitRequest):
+    """Local Git version control (init, status, commit, log, branch) for a workspace ([M29])."""
+    try:
+        ws_dir = wb.safe_workspace_dir(id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if not ws_dir.is_dir():
+        raise HTTPException(status_code=404, detail="Çalışma alanı bulunamadı.")
+
+    def _git(*args: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(["git", *args], cwd=str(ws_dir), capture_output=True, text=True, timeout=8, check=False)
+
+    if not (ws_dir / ".git").is_dir():
+        _git("init")
+        _git("config", "user.email", "studio@local.ai")
+        _git("config", "user.name", "AI Studio")
+
+    act = (body.action or "status").lower()
+    if act == "commit":
+        _git("add", "-A")
+        c = _git("commit", "-m", body.message or "AI Studio snapshot")
+        out = (c.stdout + "\n" + c.stderr).strip()
+    elif act == "branch" and body.branch:
+        c = _git("checkout", "-B", body.branch)
+        out = (c.stdout + "\n" + c.stderr).strip()
+    else:
+        st = _git("status", "-s")
+        lg = _git("log", "-n", "8", "--oneline")
+        out = f"--- DURUM ---\n{st.stdout.strip() or '(Temiz çalışma alanı)'}\n\n--- SON COMMITLER ---\n{lg.stdout.strip() or '(Henüz commit yok)'}"
+    return {"ok": True, "action": act, "output": out}
+
+
+@router.get("/workspaces/{id}/search")
+async def search_workspace_files(id: str, q: str = Query(..., min_length=1)):
+    """Instant text/regex search across all files in a workspace ([M29] Ctrl+Shift+F)."""
+    try:
+        ws_dir = wb.safe_workspace_dir(id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if not ws_dir.is_dir():
+        raise HTTPException(status_code=404, detail="Çalışma alanı bulunamadı.")
+
+    needle = q.strip().lower()
+    matches = []
+    for rel in wb.list_relative_files(ws_dir):
+        p = ws_dir / rel
+        if p.suffix.lower() in (".exe", ".dll", ".png", ".jpg", ".zip", ".pdf"):
+            continue
+        try:
+            lines = p.read_text(encoding="utf-8", errors="ignore").splitlines()
+        except OSError:
+            continue
+        for idx, ln in enumerate(lines, start=1):
+            if needle in ln.lower():
+                matches.append({"path": rel, "line": idx, "snippet": ln.strip()[:160]})
+                if len(matches) >= 50:
+                    return {"query": q, "matches": matches}
+    return {"query": q, "matches": matches}
 
 
 @router.get("/workspaces/{id}/code-graph")
