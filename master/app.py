@@ -30,6 +30,7 @@ import rag
 import scheduler
 import security_middleware
 import studio_api
+import studios
 import tasks_api
 import user_api
 
@@ -69,6 +70,7 @@ app.include_router(orchestrator.router)
 app.include_router(rag.router)
 app.include_router(hallucination.router)
 app.include_router(ml_ops.router)
+app.include_router(studios.router)
 
 
 @app.get("/api/admin/contract-check")
