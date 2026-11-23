@@ -14,6 +14,9 @@ import cnc_api
 import config
 import contract_check
 import db
+import domains
+import factory
+import games
 import gateway
 import hallucination
 import llm
@@ -71,6 +74,9 @@ app.include_router(rag.router)
 app.include_router(hallucination.router)
 app.include_router(ml_ops.router)
 app.include_router(studios.router)
+app.include_router(factory.router)
+app.include_router(games.router)
+app.include_router(domains.router)
 
 
 @app.get("/api/admin/contract-check")
