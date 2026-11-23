@@ -96,7 +96,7 @@ Team members configure remote agents using [agent-node/README.md](agent-node/REA
 .\master\venv\Scripts\python.exe scripts/plan_tool.py status
 
 # Offline hallucination/grounding eval gate
-.\master\venv\Scripts\python.exe eval/run.py --limit 50 --offline
+.\master\venv\Scripts\python.exe eval/run.py --limit 50
 ```
 
 ## Repository Layout

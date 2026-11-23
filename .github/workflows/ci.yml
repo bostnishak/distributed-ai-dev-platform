@@ -80,12 +80,12 @@ jobs:
       - name: Install eval dependencies
         run: pip install -r master/requirements.txt
       - name: Fast offline hallucination & grounding eval gate (HAL-05)
-        run: python eval/run.py --limit 50 --offline --report eval/reports/ci_latest.json
+        run: python eval/run.py --limit 50 --config ci_latest
       - name: Upload eval report
         uses: actions/upload-artifact@v4
         with:
           name: eval-report
-          path: eval/reports/ci_latest.json
+          path: eval/reports/
 
   security-scan:
     runs-on: ubuntu-latest
