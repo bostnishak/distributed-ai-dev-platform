@@ -14,6 +14,7 @@ import cnc_api
 import config
 import contract_check
 import db
+import distributed
 import domains
 import factory
 import games
@@ -36,6 +37,7 @@ import studio_api
 import studios
 import tasks_api
 import user_api
+import ux_api
 
 
 @asynccontextmanager
@@ -46,6 +48,7 @@ async def lifespan(_app: FastAPI):
     orchestrator.init_orchestrator_db()
     hallucination.init_hallucination_db()
     ml_ops.init_ml_db()
+    distributed.init_distributed_db()
     projects_api.recover_interrupted()
     tasks_api.start_lease_expiry()
     scheduler.start_dag_scheduler()
@@ -77,6 +80,8 @@ app.include_router(studios.router)
 app.include_router(factory.router)
 app.include_router(games.router)
 app.include_router(domains.router)
+app.include_router(distributed.router)
+app.include_router(ux_api.router)
 
 
 @app.get("/api/admin/contract-check")
