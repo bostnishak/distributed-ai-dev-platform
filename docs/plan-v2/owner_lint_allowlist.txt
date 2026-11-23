@@ -1,7 +1,5 @@
 # DAT-15 known debt: SQL on owned tables that does not mention the owner column.
 # One entry per line: file|normalised statement. Entries only ever get removed; a new unscoped query fails CI.
-# memory_api.py: POST /api/memory/compact/{id} rewrites any conversation's summary; needs the caller's identity (SEC-03).
-memory_api.py|UPDATE conversations SET summary = ?, updated_at = ? WHERE id = ?
 # user_profile.py: the profile picker lists every local profile (display name and role only).
 user_profile.py|SELECT * FROM profiles ORDER BY created_at
 # user_profile.py: runs after `SELECT id FROM conversations WHERE user_id = ?`, so the ids are already the user's.

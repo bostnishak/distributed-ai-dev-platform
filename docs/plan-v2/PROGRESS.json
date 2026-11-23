@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-23T20:13:58+00:00",
+ "generated_at": "2026-11-23T20:34:56+00:00",
  "items": {
   "DEF-01": {
    "status": "done",
@@ -3456,7 +3456,7 @@
     "tests": [
      "master/tests/test_def_foundation_parca1.py::test_dat16_portable_sqlite_and_postgres_dialect_translation"
     ],
-    "commit": "HEAD",
+    "commit": "1a1deed",
     "eval_report": ""
    }
   },

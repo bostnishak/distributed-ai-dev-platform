@@ -131,9 +131,10 @@ def compact_conversation(
             summary_text = "Önceki konuşma turlarının sıkıştırılmış özeti:\n" + "\n".join(snippets)
 
         now = datetime.now(UTC).isoformat()
+        owner_uid = uid or str(conv_row["user_id"])
         conn.execute(
-            "UPDATE conversations SET summary = ?, updated_at = ? WHERE id = ?",
-            (summary_text, now, cid),
+            "UPDATE conversations SET summary = ?, updated_at = ? WHERE id = ? AND user_id = ?",
+            (summary_text, now, cid, owner_uid),
         )
 
     return {
