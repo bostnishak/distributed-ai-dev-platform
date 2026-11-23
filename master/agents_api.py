@@ -35,6 +35,12 @@ class RegisterRequest(BaseModel):
 
 class HeartbeatRequest(BaseModel):
     status: Literal["idle", "busy"] = "idle"
+    loaded_models: list[str] = Field(default_factory=list, max_length=20)
+    vram_used_gb: float | None = Field(default=None, ge=0, le=1024)
+    tokens_per_sec: float | None = Field(default=None, ge=0, le=10000)
+
+
+LIVE_AGENT_TELEMETRY: dict[str, dict] = {}
 
 
 def require_agent_token(authorization: str | None = Header(default=None)) -> None:
@@ -59,7 +65,8 @@ def _compute_online(agent: dict) -> bool:
 
 
 def _with_online(agent: dict) -> dict:
-    return {**agent, "online": _compute_online(agent)}
+    tele = LIVE_AGENT_TELEMETRY.get(agent.get("agent_id", ""), {})
+    return {**agent, "online": _compute_online(agent), **tele}
 
 
 @router.post("/register", dependencies=[Depends(require_agent_token)])
@@ -72,6 +79,11 @@ def heartbeat(agent_id: str, request: HeartbeatRequest):
     found = db.update_heartbeat(agent_id, request.status)
     if not found:
         raise HTTPException(status_code=404, detail="Ajan bulunamadı.")
+    LIVE_AGENT_TELEMETRY[agent_id] = {
+        "loaded_models": request.loaded_models,
+        "vram_used_gb": request.vram_used_gb,
+        "tokens_per_sec": request.tokens_per_sec,
+    }
     return {"ok": True}
 
 

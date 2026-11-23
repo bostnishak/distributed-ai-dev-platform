@@ -850,6 +850,144 @@ async def _chat_stream_impl(
 
         return StreamingResponse(_cad3d_gen(), media_type="text/event-stream")
 
+    lower_p = prompt.lower()
+
+    # 50+ Drawing RFQ Batch ZIP Quoting Engine ([M53])
+    if (
+        has_file
+        and file is not None
+        and (file.filename or "").lower().endswith(".zip")
+        and any(k in lower_p for k in ("rfq", "ihale", "toplu teklif", "bom", "balon", "çizim", "cizim"))
+    ):
+        import rfq_batch
+
+        raw_rfq = await file.read()
+
+        async def _rfq_gen():
+            try:
+                res = rfq_batch.process_rfq_zip_package(raw_rfq, customer_name="Kurumsal Musteri")
+                lines = [
+                    f"## Toplu RFQ İhale ve Maliyet Teklif Paketi ({res.get('part_count', 0)} Parça)",
+                    f"- **Toplam İşleme Süresi:** `{res.get('total_cycle_hours', 0)} saat` | "
+                    f"**10 Adet Seri Toplamı:** `{res.get('grand_total_10_tl', 0):,.2f} TL`",
+                ]
+                if res.get("excel_url"):
+                    lines.append(f"- [Toplu RFQ Excel Teklifi İndir (.xlsx)]({res['excel_url']})")
+                if res.get("pdf_url"):
+                    lines.append(f"- [Kurumsal RFQ Teklif Mektubu İndir (.pdf)]({res['pdf_url']})")
+                lines.append("")
+                lines.append("| Parça | Malzeme | Çevrim (dk) | 1 Adet (TL) | 10 Adet Birim (TL) | 100 Adet Birim (TL) |")
+                lines.append("|---|---|---|---|---|---|")
+                for b in res.get("bom_items", [])[:30]:
+                    lines.append(
+                        f"| `{b.get('part_name', '-')}` | {b.get('material', '-')} | {b.get('cycle_time_min', 0)} | "
+                        f"{b.get('unit_price_1_tl', 0)} | {b.get('unit_price_10_tl', 0)} | {b.get('unit_price_100_tl', 0)} |"
+                    )
+                yield f"data: {json.dumps({'type': 'token', 'content': '\\n'.join(lines)}, ensure_ascii=False)}\n\n"
+                yield f"data: {json.dumps({'type': 'done', 'model': 'cnc-ballooner', 'task_type': 'cnc'})}\n\n"
+            except Exception as exc:
+                yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
+
+        return StreamingResponse(_rfq_gen(), media_type="text/event-stream")
+
+    # PowerPoint (.pptx) Presentation & Deep Research Synthesizer ([M10]/[M11])
+    if (
+        not has_file
+        and any(k in lower_p for k in ("sunum", "slayt", "pptx", "powerpoint"))
+        and any(a in lower_p for a in ("yap", "oluştur", "olustur", "hazırla", "hazirla", "üret", "uret"))
+    ):
+        import deep_research as dr
+
+        async def _pptx_gen():
+            try:
+                qs = dr.decompose_research_questions(prompt)
+                slides = [
+                    {"title": q.split(" - ")[-1] if " - " in q else q, "bullets": [q, "Deterministik yerel sentez ve mühendislik analizi."]}
+                    for q in qs
+                ]
+                out_path = dr.build_pptx_presentation(prompt[:70], "Kurumsal Yönetici Sunumu (%100 Yerel)", slides)
+                url = f"/api/assistant/media/{out_path.name}"
+                md = [
+                    "## PowerPoint Sunumu Hazır (.PPTX)",
+                    f"- **Dosya İndirme Bağlantısı:** [Sunumu İndir ({out_path.name})]({url})",
+                    "",
+                    "### Slayt Planı",
+                    *[f"- **{i + 1}. Slayt:** {s['title']}" for i, s in enumerate(slides)],
+                ]
+                yield f"data: {json.dumps({'type': 'token', 'content': '\\n'.join(md)}, ensure_ascii=False)}\n\n"
+                yield f"data: {json.dumps({'type': 'done', 'model': 'deep-research-pptx', 'task_type': 'dokuman'})}\n\n"
+            except Exception as exc:
+                yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
+
+        return StreamingResponse(_pptx_gen(), media_type="text/event-stream")
+
+    # Multi-Agent Reasoning Council ([M08]/[M09])
+    if not has_file and any(k in lower_p for k in ("konseyde tartış", "konseyde tartis", "ajan konseyi", "çoklu ajan konsey")):
+        import reasoning_council as rc
+
+        async def _council_gen():
+            try:
+                c_res = await rc.run_reasoning_council(prompt)
+                yield f"data: {json.dumps({'type': 'council', 'council': c_res}, ensure_ascii=False)}\n\n"
+                final_txt = c_res.get("final_answer") or c_res.get("judge_synthesis") or json.dumps(c_res, ensure_ascii=False)
+                yield f"data: {json.dumps({'type': 'token', 'content': final_txt}, ensure_ascii=False)}\n\n"
+                yield f"data: {json.dumps({'type': 'done', 'model': 'reasoning-council', 'task_type': 'genel'})}\n\n"
+            except Exception as exc:
+                yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
+
+        return StreamingResponse(_council_gen(), media_type="text/event-stream")
+
+    # 1D Bar Nesting & CNC Job-Shop Gantt Scheduler ([M54])
+    if not has_file and any(k in lower_p for k in ("nesting", "fire optimizasyon", "çubuk kesim", "tezgah çizelge", "job-shop gantt")):
+        import erp_mes_scheduler as ems
+
+        async def _erp_gen():
+            nest = ems.optimize_1d_bar_nesting(
+                3000.0,
+                3.0,
+                [
+                    {"part_id": "MIL-420", "length_mm": 420.0, "quantity": 6},
+                    {"part_id": "BURC-185", "length_mm": 185.0, "quantity": 10},
+                ],
+            )
+            sched = ems.schedule_cnc_job_shop(
+                [
+                    {
+                        "job_id": "IS-101",
+                        "due_date_min": 240,
+                        "operations": [
+                            {"op_code": "OP10", "machine": "CNC-TORNA-01", "setup_min": 15, "run_min": 35},
+                            {"op_code": "OP20", "machine": "CNC-FREZE-01", "setup_min": 20, "run_min": 40},
+                        ],
+                    },
+                    {
+                        "job_id": "IS-102",
+                        "due_date_min": 300,
+                        "operations": [
+                            {"op_code": "OP10", "machine": "CNC-TORNA-01", "setup_min": 10, "run_min": 25},
+                            {"op_code": "OP20", "machine": "CNC-FREZE-01", "setup_min": 15, "run_min": 30},
+                        ],
+                    },
+                ],
+                ["CNC-TORNA-01", "CNC-FREZE-01"],
+            )
+            gantt_tasks = [
+                {"label": f"{b['job_id']} {b['op_code']}", "start": b["start_min"], "end": b["end_min"]}
+                for b in sched.get("gantt_bars", [])
+            ]
+            gantt_json = json.dumps({"type": "gantt", "title": "CNC İş Atölyesi Gantt Çizelgesi (dk)", "tasks": gantt_tasks}, ensure_ascii=False)
+            md = [
+                "## ERP / MES 1B Çubuk Fire Optimizasyonu (Nesting) ve CNC Gantt Çizelgesi",
+                f"- **1B Çubuk Nesting:** `{nest['bar_count']}` boy çubuk · **Malzeme Verimliliği:** `%{nest['material_utilization_percent']}` · **Fire:** `%{nest['scrap_percent']}`",
+                f"- **İş Atölyesi Toplam Süre (Makespan):** `{sched['makespan_min']} dk`",
+                "",
+                f"```chart\n{gantt_json}\n```",
+            ]
+            yield f"data: {json.dumps({'type': 'token', 'content': '\\n'.join(md)}, ensure_ascii=False)}\n\n"
+            yield f"data: {json.dumps({'type': 'done', 'model': 'erp-mes-scheduler', 'task_type': 'cnc'})}\n\n"
+
+        return StreamingResponse(_erp_gen(), media_type="text/event-stream")
+
     if _is_cnc_balloon_request(prompt, file):
         report_md = await _run_cnc_balloon_from_chat(file)  # type: ignore[arg-type]
 

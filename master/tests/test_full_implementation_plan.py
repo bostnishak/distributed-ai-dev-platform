@@ -162,3 +162,45 @@ def test_build_pipelines_visual_verifier_and_rfq_batch(tmp_path: Path):
         zf.writestr("part2.step", "ISO-10303-21;\nDATA;\n#1=PRODUCT('P2','Flange','',(#2));\n#2=CYLINDRICAL_SURFACE('OD',#3,40.0);\nENDSEC;\nEND-ISO-10303-21;")
     rfq = rfq_batch.process_rfq_zip_package(zbuf.getvalue(), customer_name="Test AS")
     assert rfq["part_count"] == 2
+
+
+def test_agent_vram_heartbeat_and_assistant_new_routes(client, auth_headers):
+    # 1. Agent VRAM & warm-model heartbeat telemetry
+    reg = client.post(
+        "/api/agents/register",
+        json={"agent_id": "uye1-vram", "member_name": "Test", "model": "qwen3.5:9b"},
+        headers=auth_headers,
+    )
+    assert reg.status_code == 200
+    hb = client.post(
+        "/api/agents/uye1-vram/heartbeat",
+        json={"status": "idle", "loaded_models": ["qwen3.5:9b"], "vram_used_gb": 6.4, "tokens_per_sec": 42.5},
+        headers=auth_headers,
+    )
+    assert hb.status_code == 200
+    agents = client.get("/api/agents").json()
+    found = [a for a in agents if a["agent_id"] == "uye1-vram"][0]
+    assert found["loaded_models"] == ["qwen3.5:9b"]
+    assert found["vram_used_gb"] == 6.4
+
+    # 2. Enterprise status / 12-discipline ELO Arena endpoint for dashboard
+    ent = client.get("/api/assistant/enterprise-status")
+    assert ent.status_code == 200
+    assert len(ent.json()["elo_leaderboard"]) >= 1
+
+    # 3. Chat stream -> PowerPoint (.pptx) generator
+    r_pptx = client.post(
+        "/api/assistant/chat/stream",
+        data={"prompt": "CNC otomasyonu hakkında 4 slaytlık sunum pptx hazırla"},
+    )
+    assert r_pptx.status_code == 200
+    assert ".pptx" in r_pptx.text
+
+    # 4. Chat stream -> ERP/MES 1D Nesting & CNC Gantt
+    r_erp = client.post(
+        "/api/assistant/chat/stream",
+        data={"prompt": "1D çubuk kesim nesting ve tezgah çizelge gantt çıkar"},
+    )
+    assert r_erp.status_code == 200
+    assert "gantt" in r_erp.text.lower()
+

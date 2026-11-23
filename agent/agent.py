@@ -141,17 +141,38 @@ async def with_retry(
 # Sprint 2: heartbeat loop
 # ---------------------------------------------------------------------------
 
+async def collect_runtime_telemetry(client: httpx.AsyncClient, ollama_url: str) -> dict:
+    """Query local Ollama /api/ps to report warm-cached models and VRAM allocation ([M35])."""
+    loaded_models: list[str] = []
+    vram_bytes = 0
+    try:
+        r = await client.get(f"{ollama_url}/api/ps", timeout=2.0)
+        if r.status_code == 200:
+            for m in r.json().get("models") or []:
+                name = str(m.get("name") or m.get("model") or "").strip()
+                if name:
+                    loaded_models.append(name)
+                vram_bytes += int(m.get("size_vram") or m.get("size") or 0)
+    except Exception:
+        pass
+    return {
+        "loaded_models": loaded_models,
+        "vram_used_gb": round(vram_bytes / (1024**3), 3),
+    }
+
+
 async def heartbeat_loop(
     settings: Settings,
     sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
 ) -> None:
-    """Send a heartbeat to master every HEARTBEAT_INTERVAL seconds."""
+    """Send a heartbeat with live VRAM and warm-model telemetry to master every HEARTBEAT_INTERVAL seconds."""
     async with httpx.AsyncClient(timeout=10.0) as client:
         while True:
             try:
+                tele = await collect_runtime_telemetry(client, settings.ollama_url)
                 resp = await client.post(
                     f"{settings.master_url}/api/agents/{settings.agent_id}/heartbeat",
-                    json={"status": "idle"},
+                    json={"status": "idle", **tele},
                     headers={"Authorization": f"Bearer {settings.agent_token}"},
                 )
                 if resp.status_code not in (200, 204):

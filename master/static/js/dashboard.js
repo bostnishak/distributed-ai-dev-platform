@@ -86,13 +86,30 @@ function perfSection(perf) {
   );
 }
 
+function eloArenaTable(entries) {
+  if (!entries || !entries.length) return h('p', { class: 'muted' }, 'Henüz ELO değerlendirme kaydı yok.');
+  const rows = entries.map((e, idx) => h('tr', null,
+    h('td', null, `#${idx + 1}`),
+    h('td', null, h('strong', null, e.model)),
+    h('td', null, h('span', { class: 'badge' }, `${e.elo} ELO`)),
+    h('td', { class: 'muted small' }, e.discipline === 'overall' ? '12 Disiplin Ortalaması' : e.discipline),
+  ));
+  return h('table', { class: 'dash-table' },
+    h('thead', null, h('tr', null,
+      h('th', null, 'Sıra'), h('th', null, 'Yerel Model'), h('th', null, 'ELO Puanı'), h('th', null, 'Kapsam'),
+    )),
+    h('tbody', null, ...rows),
+  );
+}
+
 export function renderDashboard(root, ctx) {
   root.replaceChildren(loading('Pano yükleniyor…'));
 
   async function load() {
-    const [dash, agentsRaw] = await Promise.all([
+    const [dash, agentsRaw, entStatus] = await Promise.all([
       api('/api/dashboard'),
       api('/api/agents'),
+      api('/api/assistant/enterprise-status').catch(() => null),
     ]);
 
     const { agents: agentStats, projects: projStats, recent_events, perf } = dash;
@@ -100,6 +117,9 @@ export function renderDashboard(root, ctx) {
       ...a,
       online: a.online ?? false,
     }));
+    const tele = entStatus?.telemetry || {};
+    const llmops = entStatus?.llmops || {};
+    const eloBoard = entStatus?.elo_leaderboard || [];
 
     const content = h('div', { class: 'dash-root' },
       h('h2', null, 'Pano'),
@@ -108,10 +128,15 @@ export function renderDashboard(root, ctx) {
         statCard('Toplam ajan', agentStats.total),
         statCard('Çevrimiçi', agentStats.online, `${agentStats.busy} meşgul`),
         statCard('Toplam proje', projStats.total, `${projStats.active} aktif`),
+        entStatus ? statCard('RAM / CPU', `%${tele.ram_percent ?? 0}`, `CPU %${tele.cpu_percent ?? 0}`) : null,
+        entStatus ? statCard('AS9100 Denetim İzi', entStatus.audit_chain_valid ? 'Doğrulandı' : 'Hata', `DPO: ${llmops.total_pairs ?? 0} çift`) : null,
       ),
 
       h('h3', null, 'Ajanlar'),
       agentTable(agentDetails),
+
+      h('h3', null, '12 Disiplinli Bilişsel Model ELO Arenası'),
+      eloArenaTable(eloBoard),
 
       h('h3', null, 'Performans'),
       perfSection(perf),
