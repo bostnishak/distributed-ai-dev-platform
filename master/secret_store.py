@@ -20,6 +20,7 @@ from pathlib import Path
 from cryptography.fernet import Fernet, InvalidToken
 
 import config
+import dbconn
 
 KEYRING_SERVICE = "cm6453-distributed-ai-platform"
 KEYRING_ACCOUNT = "master_secret_key"
@@ -85,10 +86,7 @@ def _fernet(key_override: str | None = None) -> Fernet:
 
 def _connect() -> sqlite3.Connection:
     p = secrets_db_path()
-    p.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(p), timeout=10.0)
-    conn.row_factory = sqlite3.Row
-    return conn
+    return dbconn.open_db(p)
 
 
 def init_secrets_db() -> None:

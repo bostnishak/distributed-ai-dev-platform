@@ -11,14 +11,14 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-import config
+import dbconn
 from cad_cam_physics import generate_cmm_wear_offset_gcode
 
 
 def _cmm_db_path() -> Path:
-    data_dir = Path(getattr(config, "DATA_DIR", Path(config.DB_PATH).parent))
-    data_dir.mkdir(parents=True, exist_ok=True)
-    return data_dir / "cmm_quality.db"
+    path = dbconn.database_file("cmm_quality.db")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return path
 
 
 def init_cmm_quality_db(db_path: Path | None = None) -> Path:

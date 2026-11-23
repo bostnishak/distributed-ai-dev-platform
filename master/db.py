@@ -8,9 +8,15 @@ import json
 import sqlite3
 from contextlib import contextmanager
 from datetime import UTC, datetime
+from pathlib import Path
 
 import config
+import dbconn
+import dbindexes
+import dbunify
+import migrate
 
+MIGRATIONS_DIR = config.BASE_DIR / "migrations" / "platform"
 SCHEMA_VERSION = 7
 
 MAX_ATTEMPTS = 3  # PB-44: tasks fail permanently after this many attempts
@@ -201,10 +207,7 @@ def utc_now() -> str:
 
 @contextmanager
 def connect():
-    config.DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(config.DB_PATH)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
+    conn = dbconn.open_db(config.DB_PATH)
     try:
         yield conn
         conn.commit()
@@ -212,25 +215,35 @@ def connect():
         conn.close()
 
 
+def apply_sql_migrations() -> list[str]:
+    """DAT-02: numbered SQL files on top of the legacy in-code schema (version 7 is the baseline)."""
+    return migrate.apply_pending(config.DB_PATH, MIGRATIONS_DIR, snapshot_dir=dbconn.data_dir() / "backups")
+
+
 def init_db() -> None:
+    if getattr(config, "UNIFIED_DB", False):
+        dbunify.unify(dbconn.data_dir(), Path(config.DB_PATH))
     with connect() as conn:
         conn.executescript(SCHEMA)
         row = conn.execute("SELECT version FROM schema_version").fetchone()
         if row is None:
             conn.execute("INSERT INTO schema_version (version) VALUES (?)", (SCHEMA_VERSION,))
-            return
-        version = row["version"]
-        for target in sorted(MIGRATIONS):
-            if target > version:
-                for statement in MIGRATIONS[target]:
-                    try:
-                        conn.execute(statement)
-                    except sqlite3.OperationalError as exc:
-                        # Skip "duplicate column name" errors — column already added by SCHEMA.
-                        if "duplicate column name" not in str(exc).lower():
-                            raise
-                version = target
-        conn.execute("UPDATE schema_version SET version = ?", (version,))
+        else:
+            version = row["version"]
+            for target in sorted(MIGRATIONS):
+                if target > version:
+                    for statement in MIGRATIONS[target]:
+                        try:
+                            conn.execute(statement)
+                        except sqlite3.OperationalError as exc:
+                            # Skip "duplicate column name" errors: the column was already added by SCHEMA.
+                            if "duplicate column name" not in str(exc).lower():
+                                raise
+                    version = target
+            conn.execute("UPDATE schema_version SET version = ?", (version,))
+    apply_sql_migrations()
+    with connect() as conn:
+        dbindexes.ensure_indexes(conn)
 
 
 # --- Agents -------------------------------------------------------------------------------
