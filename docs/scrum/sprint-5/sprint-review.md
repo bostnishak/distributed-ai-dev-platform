@@ -18,13 +18,13 @@
 
 | ID | Öğe | Sorumlu | Durum |
 |---|---|---|---|
-| PB-50 | Uçtan uca iş akışı sertleştirme | İshak Bostan | ✅ |
-| PB-51 | Pano: genel bakış + canlı olay akışı | Berfin Yiğit | ✅ |
-| PB-52 | Performans ölçümleri | Zeynep Duru Küçük | ✅ |
-| PB-53 | Ajan / model karşılaştırma görünümü | Berfin Yiğit | ✅ |
-| PB-54 | Son belgeleme ve kullanıcı rehberi | Işıl Karademir | ✅ |
-| PB-55 | Son testler ve demo provası | Semih Sarıca | ✅ |
-| PB-56 | Güvenlik sertleştirme | Furkan Kaan Özbeyli | ✅ |
+| PB-50 | Uçtan uca iş akışı sertleştirme | İshak Bostan | [TAMAMLANDI] |
+| PB-51 | Pano: genel bakış + canlı olay akışı | Berfin Yiğit | [TAMAMLANDI] |
+| PB-52 | Performans ölçümleri | Zeynep Duru Küçük | [TAMAMLANDI] |
+| PB-53 | Ajan / model karşılaştırma görünümü | Berfin Yiğit | [TAMAMLANDI] |
+| PB-54 | Son belgeleme ve kullanıcı rehberi | Işıl Karademir | [TAMAMLANDI] |
+| PB-55 | Son testler ve demo provası | Semih Sarıca | [TAMAMLANDI] |
+| PB-56 | Güvenlik sertleştirme | Furkan Kaan Özbeyli | [TAMAMLANDI] |
 
 ## Yapılan Demo
 

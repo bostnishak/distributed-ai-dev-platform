@@ -92,7 +92,7 @@ export function renderNewProject(root) {
     fileNameEl);
   const pickFile = (f) => {
     file = f || null;
-    fileNameEl.textContent = file ? `📎 ${file.name}` : '';
+    fileNameEl.textContent = file ? `Dosya: ${file.name}` : '';
   };
   dropzone.addEventListener('click', () => fileInput.click());
   dropzone.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') fileInput.click(); });
@@ -339,7 +339,7 @@ function renderTaskList(tasks) {
           task.attempt > 0
             ? h('span', { class: 'badge warn', title: `${task.attempt}. deneme` }, `↻${task.attempt}`) : null,
           task.has_conflict
-            ? h('span', { class: 'badge danger', title: 'Çıktı dosyasında çakışma tespit edildi' }, '⚡ çakışma') : null),
+            ? h('span', { class: 'badge danger', title: 'Çıktı dosyasında çakışma tespit edildi' }, '! çakışma') : null),
         h('div', { class: 'task-desc' }, task.description),
         task.depends_on.length
           ? h('div', { class: 'task-deps' }, 'Bağımlılık: ',

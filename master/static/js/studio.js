@@ -9,14 +9,14 @@ let previewMode = false;
 const collapsedDirs = new Set();
 
 function fileIcon(name, isDir) {
-  if (isDir) return '📁';
+  if (isDir) return '[DIR]';
   const ext = (name.split('.').pop() || '').toLowerCase();
   const map = {
-    py: '🐍', html: '🌐', htm: '🌐', css: '🎨', js: '⚡', ts: '📘',
-    json: '📋', md: '📝', txt: '📄', exe: '⚙️', yml: '⚙️', yaml: '⚙️',
-    sql: '🗄️', svg: '🖼️', png: '🖼️', jpg: '🖼️',
+    py: 'PY', html: 'WEB', htm: 'WEB', css: 'CSS', js: '!', ts: 'TS',
+    json: 'JSON', md: '', txt: '', exe: 'CFG', yml: 'CFG', yaml: 'CFG',
+    sql: '', svg: '', png: '', jpg: '',
   };
-  return map[ext] || '📄';
+  return map[ext] || '';
 }
 
 function formatSize(bytes) {
@@ -34,9 +34,9 @@ export async function renderStudio(root) {
   // --- Top Bar ---
   const wsSelect = h('select', { class: 'studio-select' });
   const newFileBtn = h('button', { type: 'button', class: 'btn studio-btn-sm' }, '＋ Dosya');
-  const saveBtn = h('button', { type: 'button', class: 'btn studio-btn-sm', disabled: true }, '💾 Kaydet');
+  const saveBtn = h('button', { type: 'button', class: 'btn studio-btn-sm', disabled: true }, 'Kaydet');
   const previewBtn = h('button', { type: 'button', class: 'btn studio-btn-sm', hidden: true }, '▶ Canlı Önizleme');
-  const buildExeBtn = h('button', { type: 'button', class: 'btn btn-primary studio-btn-sm', hidden: true }, '⚙ .EXE Oluştur');
+  const buildExeBtn = h('button', { type: 'button', class: 'btn btn-primary studio-btn-sm', hidden: true }, '.EXE Oluştur');
   const downloadExeLink = h('a', { class: 'btn studio-btn-exe studio-btn-sm', hidden: true, download: '' }, '⬇ .EXE İndir');
   const downloadZipLink = h('a', { class: 'btn studio-btn-sm', hidden: true, download: '' }, '⬇ ZIP İndir');
   const breadcrumb = h('span', { class: 'studio-breadcrumb' }, 'Bir çalışma alanı seçin veya yeni proje oluşturun');
@@ -85,8 +85,8 @@ export async function renderStudio(root) {
     rows: 6,
     placeholder: 'Kapsamlı proje isteğini yaz...\nÖrnek: "CNC yedek parçaları satan modern koyu temalı bir e-ticaret sitesi yap. Kategori filtresi, arama, ürün kartları, canlı sepet çekmecesi ve sipariş özeti olsun."\nveya: "Python ile oynanabilir bir uzay gemisi arcade oyunu yap, skor, seviye ve can sistemi olsun."',
   });
-  const genBtn = h('button', { type: 'button', class: 'btn btn-primary', style: { flex: 1 } }, '✨ Yeni Proje Oluştur');
-  const iterBtn = h('button', { type: 'button', class: 'btn', style: { flex: 1 }, disabled: true }, '🛠 Mevcut Projeyi Geliştir');
+  const genBtn = h('button', { type: 'button', class: 'btn btn-primary', style: { flex: 1 } }, 'Yeni Proje Oluştur');
+  const iterBtn = h('button', { type: 'button', class: 'btn', style: { flex: 1 }, disabled: true }, 'Mevcut Projeyi Geliştir');
   const consoleLog = h('div', { class: 'studio-console' }, 'Hazır. Bir proje seçin veya AI ile sıfırdan oluşturun.');
 
   const quickPresets = h('div', { class: 'studio-presets' },
@@ -96,14 +96,14 @@ export async function renderStudio(root) {
         typeSelect.value = 'web';
         promptBox.value = 'Modern, profesyonel bir e-ticaret sitesi oluştur: ürün kataloğu, kategori filtreleme, anlık arama, sepet çekmecesi (ekle/çıkar/adet güncelle), indirim kuponu ve ödeme özeti modalı olsun.';
       },
-    }, '🛒 E-Ticaret Promptu'),
+    }, ' E-Ticaret Promptu'),
     h('button', {
       type: 'button', class: 'studio-preset-chip',
       onClick: () => {
         typeSelect.value = 'game';
         promptBox.value = 'Python tkinter Canvas ile neon temalı, akıcı oynanabilir bir Arcade Yılan / Uzay Oyunu yap. Başlangıç ekranı, skor, en yüksek skor, hızlanan seviyeler, duraklatma (P) ve yeniden başlatma olsun. PyInstaller ile .exe derlemeye uygun modüler dosya yapısında olsun.';
       },
-    }, '🎮 Oyun (.EXE) Promptu'),
+    }, ' Oyun (.EXE) Promptu'),
   );
 
   const aiPane = h('aside', { class: 'studio-ai-pane' },
@@ -142,7 +142,7 @@ export async function renderStudio(root) {
     }
     const hasWeb = Boolean(activeWsMeta?.has_web_preview);
     previewBtn.hidden = !hasWeb;
-    previewBtn.textContent = previewMode ? '📝 Koda Dön' : '▶ Canlı Önizleme';
+    previewBtn.textContent = previewMode ? 'Koda Dön' : '▶ Canlı Önizleme';
 
     const hasPy = activeTree.some((n) => n.name.endsWith('.py')) || activeWsMeta?.project_type === 'game' || activeWsMeta?.project_type === 'desktop';
     buildExeBtn.hidden = !hasPy;
@@ -339,7 +339,7 @@ export async function renderStudio(root) {
       appendLog(`✗ Derleme hatası: ${err.message}`, 'err');
     } finally {
       buildExeBtn.disabled = false;
-      buildExeBtn.textContent = '⚙ .EXE Oluştur';
+      buildExeBtn.textContent = '.EXE Oluştur';
     }
   });
 
@@ -367,17 +367,17 @@ export async function renderStudio(root) {
           appendLog(`⏳ ${evt.message}`);
         } else if (evt.type === 'plan') {
           finalWsId = evt.workspace.id;
-          appendLog(`📐 Plan hazır: ${evt.workspace.name} (${evt.files.length} dosya)`, 'ok');
+          appendLog(` Plan hazır: ${evt.workspace.name} (${evt.files.length} dosya)`, 'ok');
         } else if (evt.type === 'file_start') {
-          appendLog(`✍️ Yazılıyor [${evt.index}/${evt.total}]: ${evt.path}...`);
+          appendLog(`✍ Yazılıyor [${evt.index}/${evt.total}]: ${evt.path}...`);
         } else if (evt.type === 'file_done') {
           appendLog(`✓ Oluşturuldu: ${evt.path} (${formatSize(evt.size)})`, 'ok');
         } else if (evt.type === 'done') {
           finalWsId = evt.workspace.id;
           if (evt.warnings?.length) {
-            for (const w of evt.warnings) appendLog(`⚠️ ${w}`, 'err');
+            for (const w of evt.warnings) appendLog(`! ${w}`, 'err');
           }
-          appendLog(`🎉 Proje hazır! Dosyalar soldaki Explorer ağacında.`, 'ok');
+          appendLog(` Proje hazır! Dosyalar soldaki Explorer ağacında.`, 'ok');
         } else if (evt.type === 'error') {
           appendLog(`✗ Hata: ${evt.message}`, 'err');
         }

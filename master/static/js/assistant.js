@@ -728,7 +728,7 @@ function buildInlineWorkspaceCard(wsMeta, wsTree) {
       const issueCount = (secData.security && secData.security.total_issues) || 0;
       const errCount = (secData.errors || []).length;
       const symCount = (cgData.symbols || []).length;
-      statusLeft.innerHTML = `<span>⎇ main</span><span>${errCount + issueCount === 0 ? '✓ 0 hata / SAST temiz' : `⚠ ${errCount} hata · ${issueCount} SAST`} · ${symCount} AST sembol</span>`;
+      statusLeft.innerHTML = `<span>⎇ main</span><span>${errCount + issueCount === 0 ? '✓ 0 hata / SAST temiz' : `! ${errCount} hata · ${issueCount} SAST`} · ${symCount} AST sembol</span>`;
     } catch {
       /* ignore */
     } finally {

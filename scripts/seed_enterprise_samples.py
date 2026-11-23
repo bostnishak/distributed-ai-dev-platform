@@ -483,7 +483,7 @@ class NeonArcadeApp:
         # HUD
         self.canvas.create_text(
             14, 14, anchor="nw", fill=TEXT_COLOR, font=("Consolas", 13, "bold"),
-            text=f"SKOR: {self.score}   SEVIYE: {self.level}   CAN: {'♥' * max(0, self.player.lives)}",
+            text=f"SKOR: {self.score}   SEVIYE: {self.level}   CAN: {'*' * max(0, self.player.lives)}",
         )
         self.canvas.create_text(
             WIDTH - 14, 14, anchor="ne", fill="#64748b", font=("Consolas", 10),
@@ -510,7 +510,7 @@ class NeonArcadeApp:
         self._step()
         self.root.mainloop()
 ''',
-        "README.md": "# Neon Arcade Space Defender (.EXE Oyun Örneği)\n\nPython Tkinter ile geliştirilmiş modüler arcade oyunu. Kod Stüdyosu içindeki `⚙ .EXE Oluştur` butonuyla tek dosyalık Windows `.exe` olarak derlenmiştir.\n",
+        "README.md": "# Neon Arcade Space Defender (.EXE Oyun Örneği)\n\nPython Tkinter ile geliştirilmiş modüler arcade oyunu. Kod Stüdyosu içindeki `.EXE Oluştur` butonuyla tek dosyalık Windows `.exe` olarak derlenmiştir.\n",
     }
 
     for rel, content in files.items():

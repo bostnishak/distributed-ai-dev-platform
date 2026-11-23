@@ -79,7 +79,7 @@ Master ajan dokümanı analiz ederek DAG (Yönlü Döngüsüz Graf) biçiminde g
 | `başarısız` | 3 denemede başarısız oldu (kalıcı) |
 | `! doğrulama hatası` | Çıktı formatı geçersiz |
 | `↻N` | N. deneme (sarı) |
-| `⚡ çakışma` | Başka bir görevle aynı dosyayı üretti |
+| `! çakışma` | Başka bir görevle aynı dosyayı üretti |
 
 Görevler bağımlılıklarına göre sıralanır. T1 ve T2 tamamlanmadan T3 başlamaz.
 

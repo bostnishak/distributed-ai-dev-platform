@@ -21,7 +21,7 @@ export async function renderCnc(root) {
   const workspace = h('div', { class: 'cnc-workspace' });
 
   // --- Header ---
-  const demoBtn = h('button', { class: 'btn btn-primary', type: 'button' }, '✨ Örnek CNC Çizimi (Demo)');
+  const demoBtn = h('button', { class: 'btn btn-primary', type: 'button' }, 'Örnek CNC Çizimi (Demo)');
   const head = h('div', { class: 'page-head' },
     h('div', {},
       h('h1', { class: 'page-title' }, 'CNC Teknik Çizim Balonlama'),
@@ -41,7 +41,7 @@ export async function renderCnc(root) {
     style: { display: 'none' },
   });
   const fileLabel = h('span', { class: 'muted small' }, 'Dosya seçilmedi (PDF, PNG, JPG, DOCX, XLSX)');
-  const pickBtn = h('button', { class: 'btn', type: 'button' }, '📎 Teknik Çizim Seç');
+  const pickBtn = h('button', { class: 'btn', type: 'button' }, 'Dosya: Teknik Çizim Seç');
   const partNoIn = h('input', { class: 'cnc-input', placeholder: 'Parça No (opsiyonel, ör. FLN-2026-042)' });
   const matIn = h('input', { class: 'cnc-input', placeholder: 'Malzeme (ör. AISI 4140 / Al 6061)' });
   const stdIn = h('input', { class: 'cnc-input', value: 'ISO 2768-mK', placeholder: 'Standart' });
@@ -123,7 +123,7 @@ export async function renderCnc(root) {
     const toggleBtn = h('button', {
       type: 'button', class: 'btn',
       onClick: () => { showOriginal = !showOriginal; renderJobWorkspace(); },
-    }, showOriginal ? '◎ Balonlu Görünümü Göster' : '👁 Orijinal Çizimi Göster');
+    }, showOriginal ? '◎ Balonlu Görünümü Göster' : 'Orijinal Çizimi Göster');
 
     const zoomOut = h('button', {
       type: 'button', class: 'btn',
@@ -167,10 +167,10 @@ export async function renderCnc(root) {
     });
 
     const exportBar = h('div', { class: 'cnc-export-bar' },
-      h('a', { class: 'btn btn-primary', href: `/api/cnc/jobs/${job.id}/file/report.xlsx`, download: '' }, '📊 Excel Raporu (.xlsx)'),
-      h('a', { class: 'btn btn-primary', href: `/api/cnc/jobs/${job.id}/file/report.docx`, download: '' }, '📝 Word Raporu (.docx)'),
-      h('a', { class: 'btn', href: `/api/cnc/jobs/${job.id}/file/ballooned.pdf`, download: '' }, '📄 Balonlu PDF'),
-      h('a', { class: 'btn', href: `/api/cnc/jobs/${job.id}/file/ballooned.png`, download: `${job.id}-ballooned.png` }, '🖼 Balonlu PNG'),
+      h('a', { class: 'btn btn-primary', href: `/api/cnc/jobs/${job.id}/file/report.xlsx`, download: '' }, 'Excel Raporu (.xlsx)'),
+      h('a', { class: 'btn btn-primary', href: `/api/cnc/jobs/${job.id}/file/report.docx`, download: '' }, 'Word Raporu (.docx)'),
+      h('a', { class: 'btn', href: `/api/cnc/jobs/${job.id}/file/ballooned.pdf`, download: '' }, 'Balonlu PDF'),
+      h('a', { class: 'btn', href: `/api/cnc/jobs/${job.id}/file/ballooned.png`, download: `${job.id}-ballooned.png` }, 'Balonlu PNG'),
     );
 
     const metaSummary = h('div', { class: 'cnc-meta-summary small' },
@@ -255,10 +255,10 @@ export async function renderCnc(root) {
           setStatus('Güncelleme hatası: ' + err.message, true);
         } finally {
           saveBtn.disabled = false;
-          saveBtn.textContent = '💾 Kaydet ve Yeniden Balonla';
+          saveBtn.textContent = 'Kaydet ve Yeniden Balonla';
         }
       },
-    }, '💾 Kaydet ve Yeniden Balonla');
+    }, 'Kaydet ve Yeniden Balonla');
 
     const tableCard = h('div', { class: 'card cnc-table-card' },
       h('div', { class: 'cnc-toolbar' },
@@ -330,7 +330,7 @@ export async function renderCnc(root) {
             h('tbody', {}, ...opRows),
           ),
         ),
-        h('h3', { style: { color: '#991b1b', marginTop: '14px' } }, '⚠️ DFM & Kritik Kalite Risk Uyarıları'),
+        h('h3', { style: { color: '#991b1b', marginTop: '14px' } }, '! DFM & Kritik Kalite Risk Uyarıları'),
         riskList,
       );
       workspace.append(planCard);

@@ -31,7 +31,7 @@ Sprint 4 delivered error recovery, automated code quality gates, and conflict re
 
 - **Zeynep Duru Küçük — fake-agent tests (PB-46).** Wrote `tests/test_sprint4.py` with 16 tests: max attempts (3), conflict detection (5), review exclusion (4), contract check (2), DAG scheduler with fake agents (2). All 150 tests pass.
 
-- **Berfin Yiğit — project detail UI enhancements (PB-47).** Updated `projects.js` task rows to show: attempt count badge (yellow if > 0), validation status icon (✓/✗), conflict warning icon (⚡) when the task's output has conflicts. Task detail drawer shows `assignment_reason` JSON formatted as a readable score breakdown.
+- **Berfin Yiğit — project detail UI enhancements (PB-47).** Updated `projects.js` task rows to show: attempt count badge (yellow if > 0), validation status icon (✓/✗), conflict warning icon (!) when the task's output has conflicts. Task detail drawer shows `assignment_reason` JSON formatted as a readable score breakdown.
 
 - **Semih Sarıca — test generation + code review (PB-42, PB-43).** Added `review_scheduler.py`: after a code task (backend/frontend/database) completes, automatically creates a sibling "review" task with `performed_by` set to the code task's agent. `select_agent()` now accepts `exclude_agent_id`; review tasks pass the code author's ID, ensuring a different agent reviews. Added `POST /api/tasks/{id}/fix-tasks` to spawn fix tasks from review findings.
 

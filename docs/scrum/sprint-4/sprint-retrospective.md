@@ -27,7 +27,7 @@ Furkan'ın sandbox'ı demo'da çalıştırmak için Docker Desktop'ın açık ol
 Birkaç PR'da değişikliğin motivasyonu (neden MAX_ATTEMPTS = 3, neden 30 saniye değil 300 saniye) eksikti. Reviewer'lar "neden" sorusuna cevap bulamadı.
 
 **Start: Conflict detection sonuçlarını UI'a daha belirgin yansıtmak.**
-Şu an ⚡ rozeti var ama çakışmanın ne olduğunu görmek için API çağrısı gerekiyor. Sprint 5'te proje detay sayfasına inline çakışma açıklaması eklenmeli.
+Şu an ! rozeti var ama çakışmanın ne olduğunu görmek için API çağrısı gerekiyor. Sprint 5'te proje detay sayfasına inline çakışma açıklaması eklenmeli.
 
 **Start: `e2e_test.py` gibi uçtan uca smoke test.**
 Sprint 4 boyunca hiç gerçek akış testi yapılmadı; her şey birim test seviyesinde kaldı. Sprint 5'te demo provası sırasında bir script çalıştırılabilmeli.
@@ -41,9 +41,9 @@ Sprint 4 boyunca hiç gerçek akış testi yapılmadı; her şey birim test sevi
 | A9 | `e2e_test.py` smoke script yazılsın | İshak | Sprint 5 |
 
 Sprint 3'ten taşınan aksiyonlar (A4–A6) tamamlandı:
-- A4 ✅ WebSocket yerli proje için tartışıldı; polling → push Sprint 5'e taşındı (PB-51 dashboard'da uygulandı)
-- A5 ✅ MAX_ATTEMPTS = 3 ile başarısız görev işaretleme (PB-44)
-- A6 ✅ Kayıt sırasında Ollama model varlık kontrolü (PB-56 kapsamında değerlendirildi)
+- A4 [TAMAMLANDI] WebSocket yerli proje için tartışıldı; polling → push Sprint 5'e taşındı (PB-51 dashboard'da uygulandı)
+- A5 [TAMAMLANDI] MAX_ATTEMPTS = 3 ile başarısız görev işaretleme (PB-44)
+- A6 [TAMAMLANDI] Kayıt sırasında Ollama model varlık kontrolü (PB-56 kapsamında değerlendirildi)
 
 ## Takım Memnuniyet Puanı
 

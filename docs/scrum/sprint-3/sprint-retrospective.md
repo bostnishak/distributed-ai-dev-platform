@@ -46,9 +46,9 @@ Kayıt sırasında ajan hangi modeli bildirirse bildirsin master doğrulamıyor.
 | A6 | Kayıt sırasında Ollama model varlık kontrolü | Işıl | Sprint 4 |
 
 Sprint 2'den taşınan aksiyonlar (A1–A3) tamamlandı:
-- A1 ✅ Branch protection → PR'da en az 1 reviewer zorunlu
-- A2 ✅ Sprint başı açık dal kontrolü Daily Scrum gündemine alındı
-- A3 ✅ Lint CI adımı zorunlu hale getirildi
+- A1 [TAMAMLANDI] Branch protection → PR'da en az 1 reviewer zorunlu
+- A2 [TAMAMLANDI] Sprint başı açık dal kontrolü Daily Scrum gündemine alındı
+- A3 [TAMAMLANDI] Lint CI adımı zorunlu hale getirildi
 
 ## Takım Memnuniyet Puanı
 

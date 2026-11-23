@@ -93,7 +93,7 @@ class NeonArcadeApp:
         # HUD
         self.canvas.create_text(
             14, 14, anchor="nw", fill=TEXT_COLOR, font=("Consolas", 13, "bold"),
-            text=f"SKOR: {self.score}   SEVIYE: {self.level}   CAN: {'♥' * max(0, self.player.lives)}",
+            text=f"SKOR: {self.score}   SEVIYE: {self.level}   CAN: {'*' * max(0, self.player.lives)}",
         )
         self.canvas.create_text(
             WIDTH - 14, 14, anchor="ne", fill="#64748b", font=("Consolas", 10),

@@ -14,7 +14,7 @@ const EVENT_ICONS = {
   task_assigned: '→',
   task_done: '✓',
   task_validation_failed: '✗',
-  conflict_detected: '⚡',
+  conflict_detected: '!',
 };
 
 function agentLabel(id) {

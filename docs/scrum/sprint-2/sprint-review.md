@@ -18,13 +18,13 @@
 
 | ID | Öğe | Durum |
 |---|---|---|
-| PB-20 | Ajan durum izleme (heartbeat) | ✅ Tamamlandı |
-| PB-21 | Model başına yetenek profili — benchmark soruları | ✅ Tamamlandı |
-| PB-22 | Yetenek değerlendirme koşucusu | ✅ Tamamlandı |
-| PB-23 | Görev tipi ağırlık vektörleri | ✅ Tamamlandı |
-| PB-24 | Ajan seçim algoritması | ✅ Tamamlandı |
-| PB-25 | Görev dağıtımı (kuyruk, çekme, kiralama) | ✅ Tamamlandı |
-| PB-26 | Ajan durum arayüzü | ✅ Tamamlandı |
+| PB-20 | Ajan durum izleme (heartbeat) | [TAMAMLANDI] Tamamlandı |
+| PB-21 | Model başına yetenek profili — benchmark soruları | [TAMAMLANDI] Tamamlandı |
+| PB-22 | Yetenek değerlendirme koşucusu | [TAMAMLANDI] Tamamlandı |
+| PB-23 | Görev tipi ağırlık vektörleri | [TAMAMLANDI] Tamamlandı |
+| PB-24 | Ajan seçim algoritması | [TAMAMLANDI] Tamamlandı |
+| PB-25 | Görev dağıtımı (kuyruk, çekme, kiralama) | [TAMAMLANDI] Tamamlandı |
+| PB-26 | Ajan durum arayüzü | [TAMAMLANDI] Tamamlandı |
 
 Tamamlanmayan öğe: **Yok.**
 

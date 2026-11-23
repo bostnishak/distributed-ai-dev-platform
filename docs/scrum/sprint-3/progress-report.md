@@ -17,15 +17,15 @@ Give the platform end-to-end task execution: agents generate real code, the mast
 
 | ID | Item | Responsible | Status | Hours |
 |---|---|---|---|---|
-| PB-30 | Real task execution (type-aware prompts) | İshak Bostan | ✅ Done | 16 h |
-| PB-31 | Result protocol v2 (files + cancel) | Işıl Karademir | ✅ Done | 12 h |
-| PB-32 | Output ZIP download | Zeynep Duru Küçük | ✅ Done | 14 h |
-| PB-33 | Output validation + file extraction | Semih Sarıca | ✅ Done | 14 h |
-| PB-34 | DAG scheduler | İshak Bostan | ✅ Done | 10 h |
-| PB-35 | Live project detail UI | Furkan Kaan Özbeyli | ✅ Done | 14 h |
-| PB-36 | Vision routing | Berfin Yiğit | ✅ Done | 8 h |
-| PB-37 | Remove LiteLLM gateway | Işıl Karademir / Berfin Yiğit | ✅ Done | 8 h |
-| — | Tests + docs | Zeynep Duru Küçük | ✅ Done | 6 h |
+| PB-30 | Real task execution (type-aware prompts) | İshak Bostan | [TAMAMLANDI] Done | 16 h |
+| PB-31 | Result protocol v2 (files + cancel) | Işıl Karademir | [TAMAMLANDI] Done | 12 h |
+| PB-32 | Output ZIP download | Zeynep Duru Küçük | [TAMAMLANDI] Done | 14 h |
+| PB-33 | Output validation + file extraction | Semih Sarıca | [TAMAMLANDI] Done | 14 h |
+| PB-34 | DAG scheduler | İshak Bostan | [TAMAMLANDI] Done | 10 h |
+| PB-35 | Live project detail UI | Furkan Kaan Özbeyli | [TAMAMLANDI] Done | 14 h |
+| PB-36 | Vision routing | Berfin Yiğit | [TAMAMLANDI] Done | 8 h |
+| PB-37 | Remove LiteLLM gateway | Işıl Karademir / Berfin Yiğit | [TAMAMLANDI] Done | 8 h |
+| — | Tests + docs | Zeynep Duru Küçük | [TAMAMLANDI] Done | 6 h |
 
 **Total:** 102 h estimated · 8 items · **134 tests passing** (22 new)
 

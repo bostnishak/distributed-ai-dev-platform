@@ -18,14 +18,14 @@
 
 | ID | Öğe | Sorumlu | Durum |
 |---|---|---|---|
-| PB-40 | API sözleşme kontrolü | İshak Bostan | ✅ |
-| PB-41 | Sandbox test koşucusu | Furkan Kaan Özbeyli | ✅ |
-| PB-42 | Test üretme + hata döngüsü | Semih Sarıca | ✅ |
-| PB-43 | Kod inceleme ajanı (asla yazar değil) | Semih Sarıca | ✅ |
-| PB-44 | Maks deneme + otomatik kurtarma | İshak Bostan | ✅ |
-| PB-45 | Çakışma çözümü | Işıl Karademir | ✅ |
-| PB-46 | Sahte ajan testleri | Zeynep Duru Küçük | ✅ |
-| PB-47 | Proje sayfası güncellemeleri | Berfin Yiğit | ✅ |
+| PB-40 | API sözleşme kontrolü | İshak Bostan | [TAMAMLANDI] |
+| PB-41 | Sandbox test koşucusu | Furkan Kaan Özbeyli | [TAMAMLANDI] |
+| PB-42 | Test üretme + hata döngüsü | Semih Sarıca | [TAMAMLANDI] |
+| PB-43 | Kod inceleme ajanı (asla yazar değil) | Semih Sarıca | [TAMAMLANDI] |
+| PB-44 | Maks deneme + otomatik kurtarma | İshak Bostan | [TAMAMLANDI] |
+| PB-45 | Çakışma çözümü | Işıl Karademir | [TAMAMLANDI] |
+| PB-46 | Sahte ajan testleri | Zeynep Duru Küçük | [TAMAMLANDI] |
+| PB-47 | Proje sayfası güncellemeleri | Berfin Yiğit | [TAMAMLANDI] |
 
 ## Yapılan Demo
 
@@ -33,7 +33,7 @@
 - T3 (backend) ve T7 (integration) aynı projede `backend/main.py` dosyasını üretti.
 - Master, T7 sonucu gönderildiğinde çakışmayı otomatik tespit etti.
 - `GET /api/projects/1/conflicts` → çakışma listesi API'den alındı.
-- Proje sayfasında T7 satırında ⚡ rozeti göründü.
+- Proje sayfasında T7 satırında ! rozeti göründü.
 
 ### Demo Senaryosu 2 — Maks Deneme
 - Kasıtlı olarak kısa çıktı gönderildi, görev 3 kez reddedildi.

@@ -18,14 +18,14 @@
 
 | ID | Öğe | Sorumlu | Durum |
 |---|---|---|---|
-| PB-30 | Gerçek görev yürütme — tür-duyarlı promptlar | İshak Bostan | ✅ |
-| PB-31 | Sonuç protokolü v2 (files[], cancel) | Işıl Karademir | ✅ |
-| PB-32 | ZIP çıktı indirme | Zeynep Duru Küçük | ✅ |
-| PB-33 | Çıktı doğrulama + dosya çıkarma | Semih Sarıca | ✅ |
-| PB-34 | DAG planlayıcı | İshak Bostan | ✅ |
-| PB-35 | Canlı proje detay arayüzü | Furkan Kaan Özbeyli | ✅ |
-| PB-36 | Görsel yönlendirme | Berfin Yiğit | ✅ |
-| PB-37 | LiteLLM gateway kaldırma | Işıl Karademir / Berfin Yiğit | ✅ |
+| PB-30 | Gerçek görev yürütme — tür-duyarlı promptlar | İshak Bostan | [TAMAMLANDI] |
+| PB-31 | Sonuç protokolü v2 (files[], cancel) | Işıl Karademir | [TAMAMLANDI] |
+| PB-32 | ZIP çıktı indirme | Zeynep Duru Küçük | [TAMAMLANDI] |
+| PB-33 | Çıktı doğrulama + dosya çıkarma | Semih Sarıca | [TAMAMLANDI] |
+| PB-34 | DAG planlayıcı | İshak Bostan | [TAMAMLANDI] |
+| PB-35 | Canlı proje detay arayüzü | Furkan Kaan Özbeyli | [TAMAMLANDI] |
+| PB-36 | Görsel yönlendirme | Berfin Yiğit | [TAMAMLANDI] |
+| PB-37 | LiteLLM gateway kaldırma | Işıl Karademir / Berfin Yiğit | [TAMAMLANDI] |
 
 Tamamlanmayan öğe: **Yok.**
 
