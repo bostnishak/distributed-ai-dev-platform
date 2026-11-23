@@ -1482,41 +1482,41 @@ function renderHeroCards() {
   if (!els || !els.heroCards) return;
   const cards = [
     {
-      title: '2B & 3B CNC CAD/CAM Mühendisliği',
-      tag: 'AS9102 · 4 Kontrolcü',
-      desc: 'PDF/DXF/STEP/STL çizim yükle; otomatik balonlama, 4 sekmeli AS9102 Excel, Kienzle kesme fiziği ve Fanuc/Siemens/Heidenhain/Haas G-kodu üret.',
-      prompt: 'Yüklediğim teknik çizimi balonla, AS9102 FAI kalite kontrol paketini ve CNC kesme parametrelerini çıkar.',
+      title: 'Kod, Web ve Masaüstü Proje Geliştirme',
+      tag: 'IDE · Web · .EXE',
+      desc: 'Çok klasörlü web sitesi, masaüstü uygulaması veya oyun oluşturun; gömülü kod editöründe canlı önizleyin, düzenleyin ve .EXE olarak derleyin.',
+      prompt: 'Modern karanlık arayüzlü, arama ve filtreleme özellikli bir görev ve proje takip web uygulaması oluştur.',
+    },
+    {
+      title: 'Doküman, Sunum ve Tablo Üretimi',
+      tag: '.XLSX · .DOCX · .PPTX · .PDF',
+      desc: 'İstediğiniz herhangi bir konuda formüllü ve grafikli Excel tablosu, Word raporu, PowerPoint sunumu veya Türkçe karakter uyumlu PDF oluşturun.',
+      prompt: 'Aylık kişisel bütçe ve harcama takibi için formüllü, grafikli ve kategorili bir Excel (.xlsx) tablosu oluştur.',
+    },
+    {
+      title: 'Görsel Tasarım ve Fotoğraf Düzenleme',
+      tag: 'Görsel · Filtre · Tarayıcı',
+      desc: 'Metin komutundan görsel, logo veya afiş üretin; yüklediğiniz fotoğrafları düzenleyin, arka planı temizleyin veya belge gölgelerini giderin.',
+      prompt: 'Minimalist ve modern bir teknoloji markası için yüksek çözünürlüklü kurumsal bir logo ve görsel tasarım üret.',
+    },
+    {
+      title: 'Dosya Analizi ve Hata Denetimi',
+      tag: 'Kod · PDF · Excel · CSV',
+      desc: 'Herhangi bir kod, PDF, Word, Excel, CSV veya JSON dosyası yükleyin; sözdizimi, formül ve veri hatalarını satır satır yakalayın.',
+      prompt: 'Yüklediğim dosyayı satır satır incele, bulduğun tüm hataları ve iyileştirme önerilerini listele.',
       attach: true,
     },
     {
-      title: 'Tam Proje & Windows .EXE Fabrikası',
-      tag: 'VS Code IDE · .EXE',
-      desc: 'Çok klasörlü Web uygulaması, masaüstü programı veya oyun üret; gömülü VS Code IDE içinde canlı önizle, SAST güvenlik taraması yap ve .EXE derle.',
-      prompt: 'Kategori filtreli, sepetli ve modern karanlık arayüzlü bir CNC yedek parça e-ticaret web sitesi projesi oluştur.',
+      title: 'Veri Bilimi, Tahminleme ve SQL',
+      tag: 'AutoML · Grafik · SQL',
+      desc: 'Veri setlerindeki trendleri ve anormallikleri analiz edin, gelecek dönem tahminleri yapın, veritabanlarını doğal dille sorgulayın.',
+      prompt: '12 aylık örnek satış ve maliyet verisi üzerinden trend analizi, gelecek 3 ay tahmini ve özet grafik raporu hazırla.',
     },
     {
-      title: 'Veri Bilimi, AutoML & SQL Analizi',
-      tag: 'L2 Ridge · Anomali',
-      desc: 'CSV/Excel veya SQLite veritabanı yükle; otomatik korelasyon matrisi, Z-skoru anomali tespiti, L2 Ridge gelecek tahmini ve ER diyagramı çıkar.',
-      prompt: 'Aylık üretim, fire oranı ve takım maliyeti içeren 12 satırlık örnek bir veri analizi ve gelecek 3 ay tahmin raporu hazırla.',
-    },
-    {
-      title: 'Kurumsal Excel / Word / Sunum / PDF',
-      tag: '.XLSX · .DOCX · .PPTX',
-      desc: 'Herhangi bir konuda indirilebilir çok sekmeli Excel tablosu, kurumsal Word raporu, PowerPoint (.pptx) yönetici sunumu veya PDF belgesi üret.',
-      prompt: 'CNC atölyesi verimlilik ve kalite iyileştirme planı için kapsamlı bir Excel (.xlsx) tablosu oluştur.',
-    },
-    {
-      title: 'Görsel Tasarım & Belge Tarayıcı',
-      tag: 'SVG/PNG · CV Filtre',
-      desc: 'Yüksek çözünürlüklü vektörel/raster görsel üret veya yüklediğin fotoğrafı düzenle, belge gölgelerini temizle ve arka planı kaldır.',
-      prompt: 'Modern bir havacılık ve CNC mühendislik teknolojisi şirketi için kurumsal vektörel bir görsel tasarım üret.',
-    },
-    {
-      title: 'Hukuk, CFO Finans (DCF) & KVKK',
-      tag: 'Monte Carlo · Redline',
-      desc: 'Sözleşme risk ve cezai şart redline incelemesi, 5 yıllık İNA (DCF) + 500 koşulu Monte Carlo NPV simülasyonu ve KVKK kişisel veri maskeleme.',
-      prompt: '5 yıllık CFO finansal değerleme (DCF) ve 500 koşulu Monte Carlo NPV yatırım risk analizi simülasyonu çalıştır ve raporla.',
+      title: 'Araştırma, Hukuk, Finans ve Teknik Analiz',
+      tag: 'Konsey · Analiz · Rapor',
+      desc: 'Sözleşme risk incelemesi, finansal değerleme, derin araştırma, akademik özetleme veya 2B/3B teknik çizim analizi yapın.',
+      prompt: 'Yeni bir yazılım girişimi için 5 yıllık finansal değerleme (DCF) ve yatırım risk analizi raporu hazırla.',
     },
   ];
   els.heroCards.innerHTML = '';

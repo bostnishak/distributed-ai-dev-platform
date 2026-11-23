@@ -410,7 +410,7 @@ async function sectionProfile(body) {
       h('div', null, h('div', { style: { fontWeight: 600, fontSize: '16px' } }, profile.display_name), h('div', { class: 'small muted' }, `Profil kimliği: ${profile.user_id}`))),
     h('div', { class: 'sp-grid-2' },
       textField('Görünen ad', profile.display_name, { max: 40, onInput: (v) => savePatch({ display_name: v }) }),
-      textField('Unvan / rol', profile.role_title, { max: 60, placeholder: 'ör. CNC Proses Mühendisi', onInput: (v) => savePatch({ role_title: v }) })),
+      textField('Unvan / rol', profile.role_title, { max: 60, placeholder: 'ör. Yazılım Geliştirici, Araştırmacı, Öğrenci', onInput: (v) => savePatch({ role_title: v }) })),
     textField('Hakkında', profile.bio, { multiline: true, max: 400, hint: 'Asistan bu bilgiyi sizi daha iyi tanımak için kullanmaz; yalnızca profil kartınızda görünür.', onInput: (v) => savePatch({ bio: v }) }),
     h('div', { class: 'sp-field' }, h('label', null, 'Avatar rengi'), swatches(avatarColors.map((c) => [c, c]), profile.avatar_color, (c) => { savePatch({ avatar_color: c }); sectionProfile(body); })),
     groupTitle('Profiller'),
@@ -470,7 +470,7 @@ async function sectionAssistant(body) {
       settingRow('Yanıt uzunluğu', null, seg([['concise', 'Kısa'], ['balanced', 'Dengeli'], ['detailed', 'Ayrıntılı']], s.response_style, (v) => patch({ response_style: v }))),
       settingRow('Üslup', null, seg([['professional', 'Profesyonel'], ['friendly', 'Samimi'], ['technical', 'Teknik']], s.tone, (v) => patch({ tone: v }))),
       settingRow('Deneyim seviyesi', 'Açıklamaların derinliğini belirler', seg([['beginner', 'Başlangıç'], ['intermediate', 'Orta'], ['expert', 'Uzman']], s.expertise_level, (v) => patch({ expertise_level: v })))),
-    textField('İlgi alanları ve çalışma bağlamı', s.interests, { max: 400, placeholder: 'ör. 5 eksen CNC, havacılık kalite, Python otomasyon', hint: 'Asistan örnekleri ve önerileri bu alanlara göre seçer.', onInput: (v) => patch({ interests: v }) }),
+    textField('İlgi alanları ve çalışma bağlamı', s.interests, { max: 400, placeholder: 'ör. Yazılım geliştirme, veri analizi, akademik araştırma, tasarım', hint: 'Asistan örnekleri ve önerileri bu alanlara göre seçer.', onInput: (v) => patch({ interests: v }) }),
     textField('Özel talimatlar', s.custom_instructions, { multiline: true, max: 1500, placeholder: 'ör. Ölçüleri her zaman mm cinsinden ver. Tabloları tercih et. Önce kısa özet, sonra detay.', hint: 'Her yeni sohbette geçerli olan kalıcı kurallarınız.', onInput: (v) => patch({ custom_instructions: v }) }),
     groupTitle('Kullanım bütçesi'),
     group(settingRow('Aylık token bütçesi', '0 = sınırsız. Aşıldığında istatistik sayfasında uyarı gösterilir; kullanım engellenmez.', budget)),
@@ -497,7 +497,7 @@ async function sectionMemory(body) {
       h('div', { class: 'sp-list-main' }, h('div', { class: 'sp-list-title' }, c.title), h('div', { class: 'sp-list-sub' }, `${c.message_count} mesaj · ${formatDateTime(c.updated_at)}`)))) : [h('div', { class: 'sp-empty' }, 'Kayıtlı sohbet yok.')]));
   }
 
-  const addInput = h('input', { class: 'sp-input', type: 'text', maxlength: 300, placeholder: 'Asistanın hatırlamasını istediğiniz bilgi (ör. Şirketimiz AISI 4140 kullanır)' });
+  const addInput = h('input', { class: 'sp-input', type: 'text', maxlength: 300, placeholder: 'Asistanın hatırlamasını istediğiniz bilgi (ör. Yanıtlarda kısa özet ve tablo tercih ederim)' });
   const addBtn = h('button', { type: 'button', class: 'sp-btn primary', onClick: async () => {
     if (!addInput.value.trim()) return;
     await api(`/api/user/${activeUserId}/memories`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ category: 'preference', fact_value: addInput.value }) });
@@ -505,7 +505,7 @@ async function sectionMemory(body) {
     renderFacts();
   } }, 'Hatırla');
 
-  const searchInput = h('input', { class: 'sp-input', type: 'text', placeholder: 'Geçmiş sohbetlerde ara (ör. flanş toleransı)' });
+  const searchInput = h('input', { class: 'sp-input', type: 'text', placeholder: 'Geçmiş sohbetlerde ara (ör. proje planı, bütçe tablosu)' });
   async function doSearch() {
     if (!searchInput.value.trim()) { searchOut.replaceChildren(); return; }
     const { results } = await api(`/api/user/${activeUserId}/history/search?q=${encodeURIComponent(searchInput.value)}`);
@@ -541,7 +541,7 @@ function sectionData(body) {
     group(
       settingRow('Verilerimi dışa aktar', 'Profil, ayarlar, öğrenilen bilgiler, istatistikler ve sohbetler tek bir JSON dosyası olarak iner.',
         h('a', { class: 'sp-btn primary', href: `/api/user/${activeUserId}/export`, download: '' }, 'JSON indir')),
-      settingRow('Tam sistem yedeği (Kurumsal ZIP)', 'Tüm SQLite veritabanları, CNC işleri ve üretilen yazılım çalışma alanlarını tek arşivde indirir.',
+      settingRow('Tam sistem yedeği (ZIP)', 'Tüm veritabanları, sohbetler ve üretilen çalışma alanlarını tek arşivde indirir.',
         h('a', { class: 'sp-btn', href: '/api/admin/backup.zip', download: '' }, 'Tam Yedek (.ZIP)'))),
     groupTitle('Verileri sil'),
     group(
