@@ -245,3 +245,13 @@ class TestUnify:
         assert {"agents", "profiles", "conversations", "semantic_memories", "usage_events"} <= tables
         with db.connect() as conn:
             assert conn.execute("SELECT COUNT(*) FROM profiles WHERE user_id IN ('a','b')").fetchone()[0] == 2
+
+
+    def test_a_same_named_table_with_other_columns_is_refused_not_mixed(self, tmp_path):
+        make_legacy(tmp_path)
+        target = tmp_path / "platform.db"
+        with dbconn.connection(target) as conn:
+            conn.execute("CREATE TABLE profiles (other_id INTEGER, label TEXT)")
+        with pytest.raises(dbunify.UnifyError, match="sütunları farklı"):
+            dbunify.unify(tmp_path, target)
+        assert (tmp_path / "user_profile.db").is_file()

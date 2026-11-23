@@ -29,7 +29,7 @@ def render(conn: sqlite3.Connection) -> str:
     relations: list[str] = []
     for table in tables:
         lines.append(f"    {table} {{")
-        for _cid, name, ctype, notnull, _default, pk in conn.execute(f'PRAGMA table_info("{table}")'):
+        for _cid, name, ctype, _notnull, _default, pk in conn.execute(f'PRAGMA table_info("{table}")'):
             marks = []
             if pk:
                 marks.append("PK")

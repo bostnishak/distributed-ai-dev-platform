@@ -21,6 +21,7 @@ import log_sanitizer
 import mcp_connector
 import memory_api
 import ml_ops
+import ops
 import orchestrator
 import output_api
 import perf_api
@@ -46,11 +47,14 @@ async def lifespan(_app: FastAPI):
     tasks_api.start_lease_expiry()
     scheduler.start_dag_scheduler()
     preview_server.start_preview_server_background()
+    ops.startup()
     yield
+    ops.shutdown()
 
 
 app = FastAPI(title="Distributed AI Software Development Platform - Master", lifespan=lifespan)
 app.add_middleware(security_middleware.SecurityHeadersAndCSRFMiddleware)
+ops.install(app)
 app.include_router(agents_api.router)
 app.include_router(projects_api.router)
 app.include_router(assistant.router)

@@ -46,6 +46,11 @@ def _copy_one(conn: sqlite3.Connection, legacy: Path) -> dict[str, int]:
         for name, sql in _tables(conn, "legacy"):
             if name not in existing:
                 conn.execute(sql)
+            else:
+                mine = [r[1] for r in conn.execute(f'PRAGMA main.table_info("{name}")')]
+                theirs = [r[1] for r in conn.execute(f'PRAGMA legacy.table_info("{name}")')]
+                if mine != theirs:
+                    raise UnifyError(f"{legacy.name}: '{name}' tablosu platform.db'dekiyle aynı adı taşıyor ama sütunları farklı")
             conn.execute(f'INSERT OR IGNORE INTO main."{name}" SELECT * FROM legacy."{name}"')
             before = conn.execute(f'SELECT COUNT(*) FROM legacy."{name}"').fetchone()[0]
             after = conn.execute(f'SELECT COUNT(*) FROM main."{name}"').fetchone()[0]
