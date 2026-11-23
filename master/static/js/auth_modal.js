@@ -23,17 +23,17 @@ function buildModalDom() {
       <form id="authForm" style="display:flex;flex-direction:column;gap:10px;">
         <label style="font-size:12.5px;font-weight:600;">Kullanıcı adı
           <input id="authUsername" type="text" required minlength="3" autocomplete="username"
-            style="width:100%;margin-top:4px;padding:8px 10px;border:1px solid var(--border,#cbd5e1);border-radius:8px;background:var(--bg,#fff);color:inherit;box-sizing:border-box;">
+            style="width:100%;margin-top:4px;padding:8px 10px;border:1px solid var(--input-border,#cbd5e1);border-radius:8px;background:var(--surface,#fff);color:inherit;box-sizing:border-box;">
         </label>
         <label style="font-size:12.5px;font-weight:600;">Parola (en az 8 karakter)
           <input id="authPassword" type="password" required minlength="8" autocomplete="current-password"
-            style="width:100%;margin-top:4px;padding:8px 10px;border:1px solid var(--border,#cbd5e1);border-radius:8px;background:var(--bg,#fff);color:inherit;box-sizing:border-box;">
+            style="width:100%;margin-top:4px;padding:8px 10px;border:1px solid var(--input-border,#cbd5e1);border-radius:8px;background:var(--surface,#fff);color:inherit;box-sizing:border-box;">
         </label>
         <div id="authError" role="alert" style="color:#dc2626;font-size:12.5px;min-height:16px;"></div>
         <button id="authSubmitBtn" type="submit" class="btn primary" style="padding:9px 14px;border-radius:8px;font-weight:600;cursor:pointer;">Giriş Yap</button>
       </form>
       <div id="authSignedInBox" hidden style="display:flex;flex-direction:column;gap:10px;">
-        <div id="authUserInfo" style="font-size:13.5px;padding:10px;border-radius:8px;background:var(--bg-soft,#f8fafc);border:1px solid var(--border,#e2e8f0);"></div>
+        <div id="authUserInfo" style="font-size:13.5px;padding:10px;border-radius:8px;background:var(--surface-2);border:1px solid var(--border,#e2e8f0);"></div>
         <button id="authLogoutBtn" type="button" class="btn" style="padding:8px 12px;border-radius:8px;cursor:pointer;">Oturumu Kapat</button>
       </div>
     </div>

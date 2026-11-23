@@ -6,6 +6,8 @@ const COMMANDS = [
   { label: 'Projeler', hint: 'Sayfa', run: () => { location.hash = '#/projects'; } },
   { label: 'Ajanlar', hint: 'Sayfa', run: () => { location.hash = '#/agents'; } },
   { label: 'Stüdyolar ve yönetim', hint: 'Sayfa', run: () => { location.hash = '#/studios'; } },
+  { label: 'Artefaktlar', hint: 'Sayfa', run: () => { location.hash = '#/artifacts'; } },
+  { label: 'Dosyalar ve bilgi tabanı', hint: 'Sayfa', run: () => { location.hash = '#/files'; } },
   { label: 'Pano', hint: 'Sayfa', run: () => { location.hash = '#/dashboard'; } },
   { label: 'Asistan', hint: 'Sayfa', run: () => { location.hash = '#/assistant'; } },
   { label: 'Yeni sohbet', hint: 'Eylem', run: () => { location.hash = '#/assistant'; document.getElementById('newChatBtn')?.click(); } },

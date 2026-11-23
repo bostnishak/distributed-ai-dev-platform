@@ -5,6 +5,7 @@ import { initAuthUi } from './auth_modal.js';
 import { renderDashboard } from './dashboard.js';
 import { renderHub } from './hub.js';
 import { initPalette } from './palette.js';
+import { renderArtifacts, renderFiles, renderShare } from './panels.js';
 import { initPersonalSpace } from './personal.js';
 import { renderNewProject, renderProjectDetail, renderProjects } from './projects.js';
 import { createReactiveStore } from './store.js';
@@ -29,6 +30,9 @@ const ROUTES = [
   { pattern: /^#\/agents$/, nav: 'agents', render: (root, _m, ctx) => renderAgents(root, ctx) },
   { pattern: /^#\/dashboard$/, nav: 'dashboard', render: (root, _m, ctx) => renderDashboard(root, ctx) },
   { pattern: /^#\/studios$/, nav: 'studios', render: (root, _m, ctx) => renderHub(root, ctx) },
+  { pattern: /^#\/artifacts$/, nav: 'artifacts', render: (root, _m, ctx) => renderArtifacts(root, ctx) },
+  { pattern: /^#\/files$/, nav: 'files', render: (root, _m, ctx) => renderFiles(root, ctx) },
+  { pattern: /^#\/share\/([\w-]+)$/, nav: 'assistant', render: (root, m) => renderShare(root, m[1]) },
   { pattern: /^#\/assistant$/, nav: 'assistant', render: null },
 ];
 

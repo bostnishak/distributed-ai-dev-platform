@@ -16,6 +16,7 @@ import {
 } from './assistant_voice.js';
 import { escapeHtml, renderMarkdown } from './markdown.js';
 import { getActiveUserId, getPrefs } from './personal.js';
+import { buildBranchLink, buildExtraActions, notifyAnswerReady, regenerateLast, requestNotifyPermission } from './message_tools.js';
 import { closeSidebar } from './util.js';
 import { parseSlashAndMentions, renderConfidenceBadgeHtml } from './ux_shell.js';
 
@@ -145,21 +146,7 @@ function addUserMessage(text, fileName, record = true) {
   bubble.style.maxWidth = '100%';
   bubble.textContent = fileName ? `[Dosya: ${fileName}]\n${text}` : text;
 
-  const branchBtn = document.createElement('span');
-  branchBtn.className = 'download-link sp-branch-link';
-  branchBtn.style.marginTop = '3px';
-  branchBtn.textContent = 'Düzenle & Dallandır';
-  branchBtn.title = 'Bu mesajı düzenleyerek sohbeti buradan yeni bir dala ayır';
-  branchBtn.addEventListener('click', () => {
-    els.promptInput.value = text;
-    els.promptInput.style.height = 'auto';
-    els.promptInput.style.height = Math.min(els.promptInput.scrollHeight, 160) + 'px';
-    state.currentMessages = state.currentMessages.slice(0, msgIdx);
-    while (row.nextSibling) row.nextSibling.remove();
-    row.remove();
-    syncSendBtnState();
-    els.promptInput.focus();
-  });
+  const branchBtn = buildBranchLink({ els, state, row, msgIdx, text, sync: syncSendBtnState });
 
   wrap.append(bubble, branchBtn);
   row.appendChild(wrap);
@@ -190,12 +177,19 @@ function addAssistantMessage(text, modelBadge, isError, isThinking, record = tru
   else bubble.innerHTML = renderMarkdown(text);
   wrap.appendChild(bubble);
 
-  if (!isError && !isThinking) wrap.appendChild(createMessageActions(text, sendMessage));
+  if (!isError && !isThinking) wrap.appendChild(messageBar(text));
   row.appendChild(wrap);
   els.messages.appendChild(row);
   els.messages.scrollTop = els.messages.scrollHeight;
   if (record && !isThinking) state.currentMessages.push({ role: 'assistant', text, modelBadge, isError });
   return row;
+}
+
+function messageBar(text) {
+  const bar = createMessageActions(text, sendMessage);
+  const reopen = (id) => openChat(id);
+  bar.append(buildExtraActions({ messages: () => state.currentMessages, regenerate: () => regenerateLast({ state, persist: persistCurrentChat, reopen, send: sendMessage }) }));
+  return bar;
 }
 
 function appendAssistantMessageToChat(chatId, msgObj) {
@@ -221,6 +215,7 @@ async function sendMessage(overridePrompt = null) {
   const parsedSlash = parseSlashAndMentions(rawPrompt);
   const prompt = parsedSlash.slash && parsedSlash.cleanPrompt ? parsedSlash.cleanPrompt : rawPrompt;
 
+  requestNotifyPermission();
   ensureStarted();
   const targetChatId = state.currentChatId;
   const fileToSend = isOverride ? null : selectedFile;
@@ -385,7 +380,7 @@ async function sendMessage(overridePrompt = null) {
         for (const p of parts) { const s = document.createElement('span'); s.textContent = p; meta.appendChild(s); }
         wrap.appendChild(meta);
       }
-      wrap.appendChild(createMessageActions(fullText, sendMessage));
+      wrap.appendChild(messageBar(fullText));
       appendAssistantMessageToChat(targetChatId, { role: 'assistant', text: fullText, modelBadge: label, isError: false, workspace: builtWorkspace });
     }
   } catch (err) {
@@ -393,7 +388,7 @@ async function sendMessage(overridePrompt = null) {
       fullText += '\n\n*[Yanıt kullanıcı tarafından durduruldu]*';
       bubble.classList.remove('thinking');
       bubble.innerHTML = renderMarkdown(fullText);
-      wrap.appendChild(createMessageActions(fullText, sendMessage));
+      wrap.appendChild(messageBar(fullText));
       appendAssistantMessageToChat(targetChatId, { role: 'assistant', text: fullText, modelBadge: MODEL_LABELS[usedModel] || usedModel, isError: false });
     } else {
       const errText = 'Bağlantı hatası: ' + err.message;
@@ -410,6 +405,7 @@ async function sendMessage(overridePrompt = null) {
     renderChatList();
     if (state.currentChatId === targetChatId) els.promptInput.focus();
     document.dispatchEvent(new CustomEvent('usage-updated'));
+    notifyAnswerReady(fullText || 'Yanıt tamamlandı');
   }
 }
 

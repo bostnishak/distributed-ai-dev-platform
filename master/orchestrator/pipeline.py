@@ -547,6 +547,15 @@ async def api_get_artifact(artifact_id: str):
     return art
 
 
+@router.get("/artifacts/{artifact_id}/versions")
+async def api_artifact_versions(artifact_id: str):
+    from orchestrator.state import list_artifact_versions
+
+    if not get_artifact(artifact_id):
+        raise HTTPException(status_code=404, detail="Artefakt bulunamadı.")
+    return {"artifact_id": artifact_id, "versions": list_artifact_versions(artifact_id)}
+
+
 @router.post("/artifacts/{artifact_id}/edit", dependencies=_LOCAL_OR_ADMIN)
 async def api_edit_artifact(artifact_id: str, body: TargetedEditRequest):
     try:

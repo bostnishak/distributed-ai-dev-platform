@@ -97,6 +97,14 @@ def init_orchestrator_db() -> None:
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS orchestrator_artifact_versions (
+                artifact_id TEXT NOT NULL,
+                version INTEGER NOT NULL,
+                sections_json TEXT NOT NULL DEFAULT '[]',
+                content TEXT NOT NULL DEFAULT '',
+                saved_at TEXT NOT NULL,
+                PRIMARY KEY (artifact_id, version)
+            );
             CREATE TABLE IF NOT EXISTS orchestrator_runs (
                 run_id TEXT PRIMARY KEY,
                 chat_id TEXT NOT NULL DEFAULT '',
@@ -252,6 +260,19 @@ def get_artifact(artifact_id: str) -> dict[str, Any] | None:
     return d
 
 
+def list_artifact_versions(artifact_id: str) -> list[dict[str, Any]]:
+    """UX-11: every earlier version of an artifact (each edit snapshots the version it replaces)."""
+    init_orchestrator_db()
+    with _conn() as conn:
+        rows = conn.execute(
+            "SELECT * FROM orchestrator_artifact_versions WHERE artifact_id = ? ORDER BY version DESC", (artifact_id,)
+        ).fetchall()
+    return [
+        {"version": r["version"], "sections": json.loads(r["sections_json"] or "[]"), "content": r["content"], "saved_at": r["saved_at"]}
+        for r in rows
+    ]
+
+
 def list_artifacts(user_id: str = "default", chat_id: str | None = None) -> list[dict[str, Any]]:
     init_orchestrator_db()
     with _conn() as conn:
@@ -287,6 +308,11 @@ def apply_targeted_edit(artifact_id: str, section_index: int, new_section_conten
     merged = "\n\n".join(sections)
     now = datetime.now(UTC).isoformat()
     with _conn() as conn:
+        conn.execute(
+            "INSERT OR REPLACE INTO orchestrator_artifact_versions (artifact_id, version, sections_json, content, saved_at) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (artifact_id, int(art["version"]), json.dumps(art["sections"], ensure_ascii=False), art["content"], now),
+        )
         conn.execute(
             """
             UPDATE orchestrator_artifacts

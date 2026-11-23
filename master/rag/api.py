@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any
+import tempfile
+from pathlib import Path
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
 from access_control import require_local_or_admin
@@ -67,6 +69,35 @@ async def api_ingest_text(body: IngestTextReq):
         )
     except Exception as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+MAX_UPLOAD_BYTES = 25 * 1024 * 1024
+UPLOAD_SUFFIXES = {".pdf", ".docx", ".pptx", ".xlsx", ".html", ".htm", ".md", ".txt", ".csv", ".json"}
+
+
+@router.post("/ingest-file", dependencies=_LOCAL_OR_ADMIN)
+async def api_ingest_file(
+    file: Annotated[UploadFile, File()], collection_id: Annotated[str, Form()] = "default", user_id: Annotated[str, Form()] = "default"
+):
+    """UX-12: upload one real file (PDF/DOCX/PPTX/XLSX/HTML/text); a failure names its reason so the UI can show it."""
+    name = Path(file.filename or "dosya").name
+    suffix = Path(name).suffix.lower()
+    if suffix not in UPLOAD_SUFFIXES:
+        raise HTTPException(status_code=415, detail=f"Desteklenmeyen dosya türü: {suffix or 'uzantısız'}")
+    data = await file.read(MAX_UPLOAD_BYTES + 1)
+    if len(data) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="Dosya 25 MB sınırını aşıyor.")
+    if not data:
+        raise HTTPException(status_code=400, detail="Dosya boş.")
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / name
+        path.write_bytes(data)
+        try:
+            return await default_rag_store.ingest_document(
+                collection_id=collection_id, file_path=path, title=name, user_id=user_id
+            )
+        except Exception as exc:
+            raise HTTPException(status_code=422, detail=f"{name} dizinlenemedi: {exc}") from exc
 
 
 @router.get("/collections/{collection_id}/documents")

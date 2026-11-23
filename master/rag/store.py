@@ -275,6 +275,10 @@ class RAGStore:
         return True
 
     def list_documents(self, collection_id: str, *, user_id: str = "default") -> list[dict[str, Any]]:
+        with self._conn() as conn:
+            exists = conn.execute("SELECT 1 FROM rag_collections WHERE collection_id = ?", (collection_id,)).fetchone()
+        if not exists:
+            return []  # a collection that was never created has no documents; that is not a permission problem
         if not self.can_access_collection(collection_id, user_id):
             raise PermissionError("Bu koleksiyonu görüntüleme yetkiniz yok.")
         with self._conn() as conn:
