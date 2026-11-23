@@ -1595,7 +1595,26 @@ export function initAssistant() {
   els.messages.addEventListener('wheel', (e) => {
     if (e.deltaY < 0) userScrolledUp = true;
   }, { passive: true });
-  els.messages.addEventListener('click', handleRunCodeClick);
+  els.messages.addEventListener('click', async (e) => {
+    const copyBtn = e.target.closest('.sp-code-copy');
+    if (copyBtn) {
+      const codeEl = copyBtn.closest('.code-block')?.querySelector('pre code');
+      if (!codeEl) return;
+      try {
+        await navigator.clipboard.writeText(codeEl.textContent || '');
+        copyBtn.textContent = 'Kopyalandı';
+        copyBtn.classList.add('copied');
+        setTimeout(() => {
+          copyBtn.textContent = 'Kopyala';
+          copyBtn.classList.remove('copied');
+        }, 1600);
+      } catch {
+        copyBtn.textContent = 'Kopyalanamadı';
+      }
+      return;
+    }
+    handleRunCodeClick(e);
+  });
   initVoiceRecognition();
   showRunButtonsIfEnabled();
 

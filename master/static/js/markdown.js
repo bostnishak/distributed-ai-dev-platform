@@ -112,11 +112,17 @@ export function renderMarkdown(raw) {
       if (mmHtml) return mmHtml;
     }
     const escaped = escapeHtml(block.code);
+    const langLabel = escapeHtml(block.lang || 'kod');
+    const header =
+      `<div class="sp-code-head">` +
+      `<span class="sp-code-lang">${langLabel}</span>` +
+      `<button class="sp-code-copy" type="button" title="Bu kod bloğunu kopyala">Kopyala</button>` +
+      `</div>`;
     if (!looksLikePython(block.lang, block.code)) {
-      return `<pre><code>${escaped}</code></pre>`;
+      return `<div class="code-block sp-code-wrap">${header}<pre><code>${escaped}</code></pre></div>`;
     }
     return (
-      `<div class="code-block"><pre><code>${escaped}</code></pre>` +
+      `<div class="code-block sp-code-wrap">${header}<pre><code>${escaped}</code></pre>` +
       `<button class="run-code-btn" type="button">▶ Çalıştır</button>` +
       `<div class="run-output" hidden></div></div>`
     );
