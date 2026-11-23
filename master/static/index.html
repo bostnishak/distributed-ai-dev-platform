@@ -5,6 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dağıtık YZ Yazılım Geliştirme Platformu</title>
 <link rel="stylesheet" href="/static/css/app.css">
+<link rel="stylesheet" href="/static/css/theme.css">
+<script>
+  // Apply the saved theme before first paint so dark mode does not flash white.
+  (function () {
+    try {
+      var p = JSON.parse(localStorage.getItem('cm6453_prefs') || '{}');
+      var r = document.documentElement;
+      var t = p.theme || 'system';
+      if (t === 'system') t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      r.dataset.theme = t; r.dataset.accent = p.accent || 'indigo'; r.dataset.font = p.font_size || 'medium';
+      r.dataset.density = p.density || 'comfortable'; r.dataset.motion = p.reduce_motion ? 'reduced' : 'normal';
+    } catch (e) { /* defaults apply */ }
+  })();
+</script>
 </head>
 <body>
 
@@ -12,13 +26,19 @@
 <div id="sidebarOverlay"></div>
 
 <aside id="sidebar">
-  <div class="brand">
-    <span class="dot"></span>
+  <a href="#/assistant" id="brandHomeLink" class="brand" title="Ana sayfaya dön">
+    <span class="brand-logo" aria-hidden="true">
+      <svg viewBox="0 0 32 32" width="22" height="22" fill="none">
+        <path d="M16 3L27.26 9.5V22.5L16 29L4.74 22.5V9.5L16 3Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+        <circle cx="16" cy="16" r="4.2" stroke="currentColor" stroke-width="2"/>
+        <path d="M16 7.5V11.8M16 20.2V24.5M8.6 11.7L12.3 13.9M19.7 18.1L23.4 20.3M23.4 11.7L19.7 13.9M12.3 18.1L8.6 20.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </span>
     <div>
       <div class="brand-title">Dağıtık YZ Platformu</div>
-      <div class="brand-sub">Yazılım geliştirme · team6</div>
+      <div class="brand-sub">Otonom YZ &amp; CNC Stüdyosu · team6</div>
     </div>
-  </div>
+  </a>
 
   <nav id="nav">
     <a href="#/new" data-view="new"><span class="nav-icon">＋</span> Yeni Proje</a>
@@ -30,8 +50,14 @@
 
   <div id="assistantSide" hidden>
     <button id="newChatBtn">＋ Yeni sohbet</button>
+    <input id="chatSearchInput" class="sp-chat-search" type="search" placeholder="Sohbetlerde ara..." aria-label="Sohbetlerde ara">
     <div class="sidebar-label">Sohbetler</div>
     <div id="chatList"></div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px">
+    <button id="userCard" class="sp-usercard" type="button" style="margin-top:0" aria-label="Kişisel alan ve ayarlar"></button>
+    <button id="themeToggle" class="sp-icon-btn" type="button" aria-label="Temayı değiştir"></button>
   </div>
 
   <div class="sidebar-foot">%100 lokal · veriler bilgisayarlarımızdan çıkmaz</div>
@@ -41,8 +67,15 @@
   <section id="view-page" class="view page" hidden></section>
 
   <section id="view-assistant" class="view chat" hidden>
+    <header id="assistantTopBar" class="sp-topbar"></header>
+
     <div id="centerStage">
-      <h1>Bugün aklında ne var?</h1>
+      <div class="sp-hero-head">
+        <span class="sp-hero-kicker">KİŞİSELLEŞTİRİLMİŞ OTONOM YZ İŞLETİM SİSTEMİ &amp; MÜHENDİSLİK STÜDYOSU</span>
+        <h1 id="heroGreeting">Bugün aklında ne var?</h1>
+        <p class="sp-hero-sub">Geçmiş sohbetlerinizden bilgi alan, öğrenilen tercihlerinize göre optimize çalışan ve tüm token/performans istatistiklerinizi yerel olarak izleyen çalışma alanınız.</p>
+      </div>
+      <div id="heroCards" class="sp-hero-grid"></div>
     </div>
 
     <div id="messages"></div>

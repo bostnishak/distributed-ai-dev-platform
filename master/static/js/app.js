@@ -2,6 +2,7 @@
 import { renderAgents } from './agents.js';
 import { focusAssistant, initAssistant } from './assistant.js';
 import { renderDashboard } from './dashboard.js';
+import { initPersonalSpace } from './personal.js';
 import { renderNewProject, renderProjectDetail, renderProjects } from './projects.js';
 import { closeSidebar, isDesktop, openSidebar } from './util.js';
 
@@ -73,4 +74,5 @@ document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar
 window.addEventListener('hashchange', route);
 
 initAssistant();
+initPersonalSpace();
 route();

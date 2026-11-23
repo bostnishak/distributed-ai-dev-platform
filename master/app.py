@@ -19,6 +19,7 @@ import projects_api
 import scheduler
 import studio_api
 import tasks_api
+import user_api
 
 
 @asynccontextmanager
@@ -39,6 +40,7 @@ app.include_router(output_api.router)
 app.include_router(perf_api.router)
 app.include_router(cnc_api.router)
 app.include_router(studio_api.router)
+app.include_router(user_api.router)
 
 
 @app.get("/api/admin/contract-check")

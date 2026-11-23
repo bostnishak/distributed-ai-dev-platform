@@ -1,8 +1,11 @@
 // Assistant tab: the chat assistant. History is stored per browser in localStorage.
 import { renderMarkdown } from './markdown.js';
+import { getActiveUserId, getPrefs } from './personal.js';
 import { closeSidebar } from './util.js';
 
-const STORAGE_KEY = 'coklu_llm_chats';
+// Each profile keeps its own chat list; the default profile keeps the original key.
+const STORAGE_KEY = getActiveUserId() === 'default' ? 'coklu_llm_chats' : `coklu_llm_chats:${getActiveUserId()}`;
+const LAST_CHAT_KEY = `cm6453_last_chat:${getActiveUserId()}`;
 
 const MODEL_LABELS = {
   'uye1-qwen': 'Üye-1 (İshak Bostan) · Qwen3.5 4B',
@@ -776,9 +779,20 @@ function persistCurrentChat() {
   const chats = loadChats();
   const firstUserMsg = currentMessages.find((m) => m.role === 'user');
   const title = firstUserMsg ? firstUserMsg.text.slice(0, 40) : 'Yeni sohbet';
-  chats[currentChatId] = { title, updatedAt: Date.now(), messages: currentMessages };
+  const updatedAt = Date.now();
+  const record = { title, updatedAt, messages: currentMessages };
+  chats[currentChatId] = record;
   saveChats(chats);
+  try { localStorage.setItem(LAST_CHAT_KEY, currentChatId); } catch { /* ignore */ }
   renderChatList();
+  // Persist to local SQLite server disk so chats never disappear across restarts or browsers
+  const uid = getActiveUserId();
+  const cid = currentChatId;
+  fetch(`/api/user/${encodeURIComponent(uid)}/chats/${encodeURIComponent(cid)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(record),
+  }).catch(() => { /* offline fallback already in localStorage */ });
 }
 
 function deleteChat(id) {
@@ -786,15 +800,64 @@ function deleteChat(id) {
   delete chats[id];
   saveChats(chats);
   pendingDeleteId = null;
+  const uid = getActiveUserId();
+  fetch(`/api/user/${encodeURIComponent(uid)}/chats/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  }).catch(() => { /* ignore */ });
   if (id === currentChatId) startNewChat();
   else renderChatList();
+}
+
+async function syncChatsWithServer() {
+  const uid = getActiveUserId();
+  const localChats = loadChats();
+  try {
+    const resp = await fetch(`/api/user/${encodeURIComponent(uid)}/chats`);
+    if (!resp.ok) return;
+    const data = await resp.json();
+    const serverChats = (data && data.chats) || {};
+    const merged = { ...serverChats };
+    const toUpload = [];
+    for (const [cid, lchat] of Object.entries(localChats)) {
+      if (!lchat || !Array.isArray(lchat.messages) || lchat.messages.length === 0) continue;
+      const schat = serverChats[cid];
+      if (!schat || (lchat.updatedAt || 0) > (schat.updatedAt || 0)) {
+        merged[cid] = lchat;
+        toUpload.push([cid, lchat]);
+      }
+    }
+    saveChats(merged);
+    renderChatList();
+    for (const [cid, chatObj] of toUpload) {
+      fetch(`/api/user/${encodeURIComponent(uid)}/chats/${encodeURIComponent(cid)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(chatObj),
+      }).catch(() => { /* ignore */ });
+    }
+    // If the user has not typed anything yet, restore their last active chat if one exists
+    if (!started && currentMessages.length === 0) {
+      const lastId = localStorage.getItem(LAST_CHAT_KEY);
+      if (lastId && merged[lastId] && merged[lastId].messages && merged[lastId].messages.length > 0) {
+        openChat(lastId);
+      }
+    }
+  } catch {
+    /* keep localStorage chats if server is unreachable */
+  }
 }
 
 function renderChatList() {
   const chats = loadChats();
   els.chatList.innerHTML = '';
+  const q = (els.chatSearchInput ? els.chatSearchInput.value : '').trim().toLowerCase();
   const sorted = Object.entries(chats).sort((a, b) => b[1].updatedAt - a[1].updatedAt);
   for (const [id, chat] of sorted) {
+    if (q) {
+      const inTitle = (chat.title || '').toLowerCase().includes(q);
+      const inMsgs = (chat.messages || []).some((m) => (m.text || '').toLowerCase().includes(q));
+      if (!inTitle && !inMsgs) continue;
+    }
     const item = document.createElement('div');
     item.className = 'chat-item' + (id === currentChatId ? ' active' : '');
 
@@ -843,6 +906,7 @@ function openChat(id) {
   const chat = loadChats()[id];
   if (!chat) return;
   currentChatId = id;
+  try { localStorage.setItem(LAST_CHAT_KEY, id); } catch { /* ignore */ }
   currentMessages = chat.messages.slice();
   els.messages.innerHTML = '';
   ensureStarted();
@@ -859,7 +923,10 @@ function openChat(id) {
   closeSidebar();
 }
 
-function startNewChat() {
+function startNewChat(clearLastActive = false) {
+  if (clearLastActive) {
+    try { localStorage.removeItem(LAST_CHAT_KEY); } catch { /* ignore */ }
+  }
   currentChatId = 'chat_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
   currentMessages = [];
   els.messages.innerHTML = '';
@@ -1011,11 +1078,15 @@ async function sendMessage() {
   let taskType = '';
   let streaming = false;
   let builtWorkspace = null;
+  let usageInfo = null;
+  let latencyMs = 0;
 
   try {
     const formData = new FormData();
     formData.append('prompt', prompt);
     formData.append('history', JSON.stringify(currentMessages.slice(-11, -1)));
+    formData.append('user_id', getActiveUserId());
+    formData.append('conversation_id', currentChatId || '');
     if (fileToSend) formData.append('file', fileToSend);
 
     const resp = await fetch('/api/assistant/chat/stream', {
@@ -1060,6 +1131,8 @@ async function sendMessage() {
         } else if (evt.type === 'done') {
           usedModel = evt.model || '';
           taskType = evt.task_type || '';
+          usageInfo = evt.usage || null;
+          latencyMs = evt.latency_ms || 0;
         } else if (evt.type === 'error') {
           row.remove();
           addAssistantMessage('Model hatası: ' + evt.content, null, true, false);
@@ -1075,7 +1148,7 @@ async function sendMessage() {
         wrap.appendChild(buildInlineWorkspaceCard(builtWorkspace.workspace, builtWorkspace.tree));
       }
       const label = MODEL_LABELS[usedModel] || usedModel;
-      if (label) {
+      if (label && getPrefs().show_model_badge) {
         const badgeRow = document.createElement('div');
         badgeRow.className = 'badge-row';
         const badge = document.createElement('span');
@@ -1083,6 +1156,23 @@ async function sendMessage() {
         badge.textContent = label;
         badgeRow.appendChild(badge);
         wrap.insertBefore(badgeRow, bubble);
+      }
+      if (usageInfo && getPrefs().show_token_counter) {
+        const meta = document.createElement('div');
+        meta.className = 'sp-meta';
+        const approx = usageInfo.estimated ? '~' : '';
+        const total = (usageInfo.prompt_tokens || 0) + (usageInfo.completion_tokens || 0);
+        const parts = [
+          `${approx}${total.toLocaleString('tr-TR')} token`,
+          `${approx}${(usageInfo.prompt_tokens || 0).toLocaleString('tr-TR')} giriş / ${approx}${(usageInfo.completion_tokens || 0).toLocaleString('tr-TR')} çıkış`,
+        ];
+        if (latencyMs) parts.push(`${(latencyMs / 1000).toFixed(1).replace('.', ',')} sn`);
+        for (const p of parts) {
+          const s = document.createElement('span');
+          s.textContent = p;
+          meta.appendChild(s);
+        }
+        wrap.appendChild(meta);
       }
       wrap.appendChild(createMessageActions(fullText));
 
@@ -1107,6 +1197,7 @@ async function sendMessage() {
     updateSendState();
     els.promptInput.focus();
     persistCurrentChat();
+    document.dispatchEvent(new CustomEvent('usage-updated'));
   }
 }
 
@@ -1124,8 +1215,15 @@ export function initAssistant() {
     fileChipName: byId('fileChipName'),
     removeFile: byId('removeFile'),
     chatList: byId('chatList'),
+    chatSearchInput: byId('chatSearchInput'),
+    heroCards: byId('heroCards'),
     newChatBtn: byId('newChatBtn'),
   };
+
+  if (els.chatSearchInput) {
+    els.chatSearchInput.addEventListener('input', renderChatList);
+  }
+  renderHeroCards();
 
   els.promptInput.addEventListener('input', () => {
     els.promptInput.style.height = 'auto';
@@ -1147,20 +1245,99 @@ export function initAssistant() {
   });
   els.sendBtn.addEventListener('click', sendMessage);
   els.promptInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key !== 'Enter' || e.shiftKey) return;
+    const enterSends = getPrefs().send_with_enter !== false;
+    if (enterSends || e.ctrlKey || e.metaKey) {
       e.preventDefault();
       sendMessage();
     }
   });
   els.newChatBtn.addEventListener('click', () => {
     persistCurrentChat();
-    startNewChat();
+    startNewChat(true);
   });
+  const brandHomeLink = document.getElementById('brandHomeLink');
+  if (brandHomeLink) {
+    brandHomeLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      persistCurrentChat();
+      startNewChat(true);
+      if (location.hash !== '#/assistant') {
+        location.hash = '#/assistant';
+      }
+    });
+  }
   els.messages.addEventListener('click', handleRunCodeClick);
   initVoiceRecognition();
   showRunButtonsIfEnabled();
 
-  startNewChat();
+  startNewChat(false);
+  syncChatsWithServer();
+}
+
+function renderHeroCards() {
+  if (!els || !els.heroCards) return;
+  const cards = [
+    {
+      title: '2B & 3B CNC CAD/CAM Mühendisliği',
+      tag: 'AS9102 · 4 Kontrolcü',
+      desc: 'PDF/DXF/STEP/STL çizim yükle; otomatik balonlama, 4 sekmeli AS9102 Excel, Kienzle kesme fiziği ve Fanuc/Siemens/Heidenhain/Haas G-kodu üret.',
+      prompt: 'Yüklediğim teknik çizimi balonla, AS9102 FAI kalite kontrol paketini ve CNC kesme parametrelerini çıkar.',
+      attach: true,
+    },
+    {
+      title: 'Tam Proje & Windows .EXE Fabrikası',
+      tag: 'VS Code IDE · .EXE',
+      desc: 'Çok klasörlü Web uygulaması, masaüstü programı veya oyun üret; gömülü VS Code IDE içinde canlı önizle, SAST güvenlik taraması yap ve .EXE derle.',
+      prompt: 'Kategori filtreli, sepetli ve modern karanlık arayüzlü bir CNC yedek parça e-ticaret web sitesi projesi oluştur.',
+    },
+    {
+      title: 'Veri Bilimi, AutoML & SQL Analizi',
+      tag: 'L2 Ridge · Anomali',
+      desc: 'CSV/Excel veya SQLite veritabanı yükle; otomatik korelasyon matrisi, Z-skoru anomali tespiti, L2 Ridge gelecek tahmini ve ER diyagramı çıkar.',
+      prompt: 'Aylık üretim, fire oranı ve takım maliyeti içeren 12 satırlık örnek bir veri analizi ve gelecek 3 ay tahmin raporu hazırla.',
+    },
+    {
+      title: 'Kurumsal Excel / Word / Sunum / PDF',
+      tag: '.XLSX · .DOCX · .PPTX',
+      desc: 'Herhangi bir konuda indirilebilir çok sekmeli Excel tablosu, kurumsal Word raporu, PowerPoint (.pptx) yönetici sunumu veya PDF belgesi üret.',
+      prompt: 'CNC atölyesi verimlilik ve kalite iyileştirme planı için kapsamlı bir Excel (.xlsx) tablosu oluştur.',
+    },
+    {
+      title: 'Görsel Tasarım & Belge Tarayıcı',
+      tag: 'SVG/PNG · CV Filtre',
+      desc: 'Yüksek çözünürlüklü vektörel/raster görsel üret veya yüklediğin fotoğrafı düzenle, belge gölgelerini temizle ve arka planı kaldır.',
+      prompt: 'Modern bir havacılık ve CNC mühendislik teknolojisi şirketi için kurumsal vektörel bir görsel tasarım üret.',
+    },
+    {
+      title: 'Hukuk, CFO Finans (DCF) & KVKK',
+      tag: 'Monte Carlo · Redline',
+      desc: 'Sözleşme risk ve cezai şart redline incelemesi, 5 yıllık İNA (DCF) + 500 koşulu Monte Carlo NPV simülasyonu ve KVKK kişisel veri maskeleme.',
+      prompt: '5 yıllık CFO finansal değerleme (DCF) ve 500 koşulu Monte Carlo NPV yatırım risk analizi simülasyonu çalıştır ve raporla.',
+    },
+  ];
+  els.heroCards.innerHTML = '';
+  for (const c of cards) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'sp-hero-card';
+    btn.innerHTML = `
+      <div class="sp-hero-card-top">
+        <span class="sp-hero-card-title">${c.title}</span>
+        <span class="sp-hero-card-tag">${c.tag}</span>
+      </div>
+      <div class="sp-hero-card-desc">${c.desc}</div>
+    `;
+    btn.addEventListener('click', () => {
+      els.promptInput.value = c.prompt;
+      els.promptInput.style.height = 'auto';
+      els.promptInput.style.height = Math.min(els.promptInput.scrollHeight, 160) + 'px';
+      updateSendState();
+      if (c.attach) els.fileInput.click();
+      else els.promptInput.focus();
+    });
+    els.heroCards.appendChild(btn);
+  }
 }
 
 function initVoiceRecognition() {

@@ -95,6 +95,7 @@ def record_conversation_turn(
     model_used: str = "",
     task_type: str = "",
     user_id: str = "default",
+    learn: bool = True,
 ) -> None:
     """Persist a user+assistant turn into Episodic Memory and index in FTS5."""
     init_memory_db()
@@ -132,7 +133,8 @@ def record_conversation_turn(
             (conversation_id, assistant_text),
         )
 
-    extract_and_upsert_memories(user_text, user_id=user_id)
+    if learn:
+        extract_and_upsert_memories(user_text, user_id=user_id)
 
 
 # Rule-based + pattern semantic fact extractor (instant, zero latency)

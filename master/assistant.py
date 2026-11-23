@@ -758,13 +758,87 @@ async def get_assistant_media(filename: str):
     return FileResponse(target, headers=headers)
 
 
+async def _tracked_stream(source, prompt: str, user_id: str, conversation_id: str):
+    """Wrap an SSE generator: measure latency, fill in token usage on the final event, and persist
+    usage statistics plus the conversation turn (episodic memory) for the personal space."""
+    import time
+
+    import memory_engine as mem
+    import user_profile as up
+
+    started = time.monotonic()
+    collected: list[str] = []
+    model_used = ""
+    task_type = ""
+    failed = False
+    async for chunk in source:
+        text = chunk.decode("utf-8", errors="ignore") if isinstance(chunk, (bytes, bytearray)) else chunk
+        if not text.startswith("data: "):
+            yield chunk
+            continue
+        try:
+            evt = json.loads(text[6:].strip())
+        except json.JSONDecodeError:
+            yield chunk
+            continue
+        etype = evt.get("type")
+        if etype == "token":
+            collected.append(evt.get("content", ""))
+        elif etype == "error":
+            failed = True
+        elif etype == "done":
+            model_used = evt.get("model", "")
+            task_type = evt.get("task_type", "")
+            answer = "".join(collected)
+            usage = evt.get("usage") or {}
+            estimated = not usage
+            p_tok = int(usage.get("prompt_tokens") or up.estimate_tokens(prompt))
+            c_tok = int(usage.get("completion_tokens") or up.estimate_tokens(answer))
+            latency_ms = round((time.monotonic() - started) * 1000)
+            evt["usage"] = {"prompt_tokens": p_tok, "completion_tokens": c_tok, "estimated": estimated}
+            evt["latency_ms"] = latency_ms
+            try:
+                up.record_usage(user_id, conversation_id, model_used, task_type, p_tok, c_tok, latency_ms, estimated)
+                if conversation_id and answer.strip():
+                    learn = bool(up.get_settings(user_id).get("auto_learn_facts"))
+                    mem.record_conversation_turn(
+                        conversation_id, prompt, answer, model_used, task_type, user_id=user_id, learn=learn
+                    )
+            except Exception:
+                pass
+            yield f"data: {json.dumps(evt, ensure_ascii=False)}\n\n"
+            continue
+        yield chunk
+    _ = failed
+
+
 @router.post("/chat/stream")
 async def chat_stream(
     prompt: str = Form(...),
     file: UploadFile | None = File(None),  # noqa: B008
     history: str = Form("[]"),
+    user_id: str = Form("default"),
+    conversation_id: str = Form(""),
 ):
     """Streaming chat endpoint: tokens arrive as Server-Sent Events."""
+    import user_profile as up
+
+    try:
+        uid = up.valid_user_id(user_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    resp = await _chat_stream_impl(prompt, file, history, uid, conversation_id[:80])
+    resp.body_iterator = _tracked_stream(resp.body_iterator, prompt, uid, conversation_id[:80])
+    return resp
+
+
+async def _chat_stream_impl(
+    prompt: str,
+    file: UploadFile | None,
+    history: str,
+    user_id: str,
+    conversation_id: str,
+):
     has_file = bool(file is not None and file.filename)
 
     if _is_3d_cad_request(file):
@@ -952,9 +1026,16 @@ async def chat_stream(
 
     # Multi-turn conversation history + 4-Layer Persistent Semantic Memory
     import memory_engine as mem
+    import user_profile as up
 
-    mem.extract_and_upsert_memories(prompt)
-    mem_ctx = mem.build_memory_context_block(prompt)
+    user_settings = up.get_settings(user_id)
+    extra_blocks = [up.personalization_block(user_id)]
+    if user_settings.get("auto_learn_facts"):
+        mem.extract_and_upsert_memories(prompt, user_id=user_id)
+    extra_blocks.append(mem.build_memory_context_block(prompt, user_id=user_id))
+    if user_settings.get("cross_chat_memory"):
+        extra_blocks.append(up.cross_chat_context_block(user_id, prompt, exclude_conversation=conversation_id))
+    mem_ctx = "\n\n".join(b for b in extra_blocks if b)
     if mem_ctx and messages and messages[0]["role"] == "system":
         messages[0]["content"] = f"{messages[0]['content']}\n\n{mem_ctx}"
 
@@ -1005,7 +1086,14 @@ async def chat_stream(
                         if content_piece:
                             yield f"data: {json.dumps({'type': 'token', 'content': content_piece})}\n\n"
                         if chunk.get("done"):
-                            yield f"data: {json.dumps({'type': 'done', 'model': model, 'task_type': task_type})}\n\n"
+                            done_evt: dict = {"type": "done", "model": model, "task_type": task_type}
+                            if chunk.get("eval_count") is not None:
+                                done_evt["usage"] = {
+                                    "prompt_tokens": int(chunk.get("prompt_eval_count") or 0),
+                                    "completion_tokens": int(chunk.get("eval_count") or 0),
+                                    "estimated": False,
+                                }
+                            yield f"data: {json.dumps(done_evt)}\n\n"
         except Exception as exc:
             yield f"data: {json.dumps({'type': 'error', 'content': str(exc)})}\n\n"
 
