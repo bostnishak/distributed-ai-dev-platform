@@ -282,7 +282,11 @@ class RAGStore:
         if not self.can_access_collection(collection_id, user_id):
             raise PermissionError("Bu koleksiyonu görüntüleme yetkiniz yok.")
         with self._conn() as conn:
-            rows = conn.execute("SELECT * FROM rag_documents WHERE collection_id = ? ORDER BY created_at DESC", (collection_id,)).fetchall()
+            rows = conn.execute(
+                "SELECT d.*, (SELECT COUNT(*) FROM rag_chunks c WHERE c.doc_id = d.doc_id) AS chunk_count "
+                "FROM rag_documents d WHERE d.collection_id = ? ORDER BY d.created_at DESC",
+                (collection_id,),
+            ).fetchall()
         return [dict(r) for r in rows]
 
     # ---------------------------------------------------------------- RAG-05 Strict Embedding Resolver

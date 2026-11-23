@@ -31,3 +31,14 @@ Halüsinasyon oranları: uydurma atıf %14,3 → %0; uydurma olgu %8,6 → %2,9;
 `detect_unanswerable` (özel veri ve kesin gelecek değer soruları) eklendi ve hem eval'in korumalı yoluna hem de canlı sohbet akışına (`/api/assistant/chat/stream`, model çağrılmadan) bağlandı. Yeniden ölçüm (`eval_live70_guarded_v2_qwen35_4b.json`): genel 0,986, cevaplanamaz kategori 0,70 → 1,00, uydurma olgu %1,4, cevaplanabilir olgusal 0,90.
 
 **Dikkat, bu sonuç şişiktir:** altın kümede cevaplanamaz kategorisi yalnızca 3 soru kalıbının tekrarından oluşur ve kural bu kalıplara uyar; yanlış öncül dedektörü de 4 varlıklı küçük bir tabloya dayanır. Gerçek genelleme için farklı biçimlerde yazılmış cevaplanamaz/yanlış öncüllü soru kümesi gerekir. Yanlış kaçınma tarafı `test_hal15_detect_unanswerable_*` testiyle (sıradan sorular reddedilmez) korunur.
+
+## Bağımsız küme ile gerçek genelleme (`eval/heldout/abstention_heldout.jsonl`)
+
+Altın küme 3 kalıbı tekrarladığı için kural, farklı ifadelerle yazılmış 75 soruyla ayrıca ölçüldü (cevaplanamaz 25, cevaplanabilir 30, yanlış öncül 6, doğru öncül 4; model gerekmez, kural düzeyinde).
+
+| Sürüm | Cevaplanamaz yakalama | Gereksiz kaçınma | Yanlış öncül | Doğru öncül |
+|---|---|---|---|---|
+| ilk kural | 18/25 (%72) | 4/30 (%13) | 6/6 | 4/4 |
+| iyileştirilmiş kural | 25/25 | 0/30 | 6/6 | 4/4 |
+
+İyileştirme: açıklayıcı sorular ("nasıl çalışır", "farkı nedir") hiç reddedilmez; özel veri yalnız değer isteyen soruda, gelecek değer yalnız tahmin ifadesiyle birlikte tetiklenir. **Uyarı:** ilk ölçümdeki kaçırmalara bakarak ayarlandığı için ikinci satır da iyimserdir; bu küme artık "eğitim" kümesi sayılmalı, kesin genelleme için hiç görülmemiş yeni sorular gerekir. Kümeyi koruyan test: `test_hal15_hal16_rules_on_the_held_out_set`.

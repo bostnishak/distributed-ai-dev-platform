@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import os
 from collections import Counter
 from collections.abc import Callable
 from datetime import UTC, datetime
@@ -23,7 +24,7 @@ EVAL_DIR = REPO_ROOT / "eval"
 GOLDEN_PATH = EVAL_DIR / "golden" / "golden_tr_en.jsonl"
 REDTEAM_PATH = EVAL_DIR / "redteam" / "redteam_attacks.jsonl"
 RETRIEVAL_PATH = EVAL_DIR / "retrieval" / "retrieval_eval.jsonl"
-REPORTS_DIR = EVAL_DIR / "reports"
+REPORTS_DIR = Path(os.environ["EVAL_REPORTS_DIR"]) if os.environ.get("EVAL_REPORTS_DIR") else EVAL_DIR / "reports"
 
 JUDGE_VERSION = "2.0.0"
 

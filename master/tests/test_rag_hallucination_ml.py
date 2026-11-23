@@ -291,6 +291,11 @@ async def test_hal01_to_hal30_verification_eval_datasets_judge_and_guardrails():
     assert len(load_jsonl(RETRIEVAL_PATH)) == 200
 
     # HAL-03, HAL-04, HAL-05: Run golden eval, check Cohen's kappa, and verify CI regression gate catches drop
+    import tempfile
+
+    from hallucination import eval_runner
+
+    eval_runner.REPORTS_DIR = __import__("pathlib").Path(tempfile.mkdtemp())  # tests must not rewrite the tracked reports
     base_rep = run_golden_eval(default_grounded_demo_predictor, config_name="baseline_test")
     assert base_rep["overall_score"] >= 0.95
     broken_rep = run_golden_eval(lambda _ex: "Bilmem ama kesin 999999.", config_name="broken_test", limit=50)
@@ -488,3 +493,27 @@ def test_hal15_chat_stream_abstains_without_calling_the_model():
     )
     assert r.status_code == 200
     assert "doğrulayamadım" in r.text and "abstention-policy" in r.text
+
+
+def test_hal15_hal16_rules_on_the_held_out_set():
+    """eval/heldout/abstention_heldout.jsonl: phrasing differs from the golden set; false alarms are as costly as misses."""
+    import json
+    from pathlib import Path
+
+    from hallucination import detect_false_premise, detect_unanswerable
+
+    path = Path(__file__).resolve().parents[2] / "eval" / "heldout" / "abstention_heldout.jsonl"
+    rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    hits = {"unanswerable": 0, "answerable": 0, "false_premise": 0, "valid_premise": 0}
+    totals = dict.fromkeys(hits, 0)
+    for r in rows:
+        kind = r["kind"]
+        totals[kind] += 1
+        if kind in ("unanswerable", "answerable"):
+            hits[kind] += int(detect_unanswerable(r["q"])["unanswerable"] == (kind == "unanswerable"))
+        else:
+            hits[kind] += int(detect_false_premise(r["q"])["false_premise"] == (kind == "false_premise"))
+    assert hits["unanswerable"] / totals["unanswerable"] >= 0.85  # HAL-15 target
+    assert hits["answerable"] / totals["answerable"] >= 0.93  # unnecessary abstention <= 7%
+    assert hits["false_premise"] / totals["false_premise"] >= 0.80  # HAL-16 target
+    assert hits["valid_premise"] / totals["valid_premise"] >= 0.97

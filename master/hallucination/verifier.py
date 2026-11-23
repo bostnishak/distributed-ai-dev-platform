@@ -426,26 +426,38 @@ def decide_abstention(*, confidence_score: float, has_sources: bool, risk: str, 
     return {"abstain": False, "message": ""}
 
 
-_FUTURE_MARKERS = ("yarın", "gelecek hafta", "gelecek yıl", "haftaya", "önümüzdeki", "tomorrow", "next week", "next year", "will be")
-_PRIVATE_MARKERS = (
-    "gizli", "özel telefon", "ev adresi", "şifresi", "parolası", "kimlik numarası", "private", "confidential",
-    "home address", "password", "phone number of",
+_FUTURE_MARKERS = (
+    "yarın", "gelecek hafta", "gelecek yıl", "gelecek ay", "haftaya", "önümüzdeki", "bir sonraki", "sonraki",
+    "tomorrow", "next week", "next year", "next month",
 )
-_FORECAST_VERBS = ("ne olacak", "kaç olacak", "kapanış fiyatı", "closing price", "will close", "will it")
+_PRIVATE_MARKERS = (
+    "gizli", "özel telefon", "kişisel cep", "cep telefonu", "ev adresi", "şifresi", "parolası", "kimlik numarasını",
+    "kredi kart", "tıbbi kayıt", "özel e-posta", "private", "confidential", "home address", "password of", "phone number of",
+)
+_FORECAST_VERBS = (
+    "ne olacak", "kaç olacak", "olacak", "kapanış fiyatı", "closing price", "will close", "will it", "will be", "will win",
+    "winning numbers", "kesin olarak", "tam tarih", "exact", "tam olarak", "şampiyon",
+)
+_REQUEST_VERBS = ("nedir", "söyle", "verir misin", "listele", "getir", "paylaş", "tell me", "what is", "give me", "who will")
+# Questions about *how something works* are ordinary knowledge questions even when they mention a private-sounding word.
+_EXPLAINER_MARKERS = ("nasıl", "how ", "how?", "farkı", "neden", "why ", "algoritma", "regex", "kriptografi", "nedir ve", "ne demek", "ne demektir")
 
 
 def detect_unanswerable(question: str, *, current_year: int | None = None) -> dict[str, Any]:
     """HAL-15: questions nobody can answer truthfully (private data, exact future values) get an abstention up front.
 
-    Conservative on purpose: it fires only on explicit private-data wording or a *specific future value*
-    (a future marker together with a forecast phrase, or a year after ``current_year``), so ordinary factual
-    questions are never refused.
+    Conservative on purpose: it fires only on explicit private-data wording asked as a request for a value, or a
+    *specific future value* (a future marker together with a forecast phrase, or a year after ``current_year``).
+    Explanatory questions ("nasıl çalışır", "farkı nedir") are never refused.
     """
     year = current_year or datetime.now(UTC).year
     low = tr_lower(question)
-    private = [m for m in _PRIVATE_MARKERS if m in low]
+    if any(m in low for m in _EXPLAINER_MARKERS) and not any(m in low for m in ("olacak", "will be", "tam olarak")):
+        return {"unanswerable": False, "reason": "", "message": ""}
+    asks_for_value = any(v in low for v in _REQUEST_VERBS) or "?" in low
+    private = any(m in low for m in _PRIVATE_MARKERS) and asks_for_value
     future = any(m in low for m in _FUTURE_MARKERS) and any(v in low for v in _FORECAST_VERBS)
-    future_year = any(int(y) > year + 1 for y in _DATE_RE.findall(low)) and ("tam olarak" in low or "kaç" in low or "exact" in low)
+    future_year = any(int(y) > year + 1 for y in _DATE_RE.findall(low)) and any(v in low for v in ("tam olarak", "kaç", "exact", "olacak"))
     if private or future or future_year:
         reason = "private_data" if private else "future_value"
         return {
