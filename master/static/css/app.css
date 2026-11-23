@@ -810,3 +810,16 @@ ul.plain { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.6; }
 .diff-add { background: rgba(34, 197, 94, 0.18); color: #86efac; display: block; padding: 0 6px; }
 .diff-del { background: rgba(239, 68, 68, 0.18); color: #fca5a5; display: block; padding: 0 6px; }
 .diff-hunk { color: #93c5fd; font-weight: 600; display: block; }
+
+/* --- Voice Microphone Button in Chat Input Pill --- */
+#micBtn {
+  width: 32px; height: 32px; border-radius: 50%; border: none;
+  background: transparent; color: #6b6b76; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all 0.15s;
+}
+#micBtn:hover { background: #eeeef2; color: var(--text); }
+#micBtn.recording {
+  background: #dc2626; color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.22);
+}

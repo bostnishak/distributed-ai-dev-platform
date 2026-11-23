@@ -50,12 +50,15 @@
     <div id="inputWrap">
       <div id="fileChip"><span id="fileChipName"></span><span class="remove" id="removeFile">✕</span></div>
       <div id="inputPill">
-        <button id="attachBtn" title="Dosya ekle">＋</button>
-        <textarea id="promptInput" rows="1" placeholder="İstediğin bir şeyi sor"></textarea>
+        <button id="attachBtn" title="Dosya, görsel, ses veya çizim ekle">＋</button>
+        <textarea id="promptInput" rows="1" placeholder="İstediğin bir şeyi sor, görsel/doküman üret, fotoğraf düzenle veya proje oluştur"></textarea>
+        <button id="micBtn" title="Sesli mesajı metne çevir" type="button" aria-label="Sesle yaz">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/></svg>
+        </button>
         <button id="sendBtn">↑</button>
       </div>
-      <div id="hint">Otomatik yönlendirme · Teknik çizim (PDF/Foto/DOCX/XLSX) yükleyip "balonla" yazabilir veya kapsamlı promptla tam proje / web sitesi / .EXE oyun ürettirebilirsin</div>
-      <input type="file" id="fileInput" style="display:none" accept=".pdf,.docx,.txt,.md,.csv,.xlsx,.xlsm,.dxf,.zip,image/*">
+      <div id="hint">Her alanda soru-cevap, özetleme, görsel üretme/düzenleme, sesli mesaj (mikrofon/ses dosyası), Excel/Word/PDF üretimi, CNC balonlama ve tam proje (.EXE/Web)</div>
+      <input type="file" id="fileInput" style="display:none" accept=".pdf,.docx,.txt,.md,.csv,.tsv,.xlsx,.xlsm,.dxf,.zip,.json,.xml,.yaml,.yml,.py,.js,.ts,.html,.css,.sql,.log,image/*,audio/*,.mp3,.wav,.m4a,.ogg,.webm">
     </div>
   </section>
 </main>

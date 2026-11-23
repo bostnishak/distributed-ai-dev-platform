@@ -979,6 +979,7 @@ async function sendMessage() {
   try {
     const formData = new FormData();
     formData.append('prompt', prompt);
+    formData.append('history', JSON.stringify(currentMessages.slice(-11, -1)));
     if (fileToSend) formData.append('file', fileToSend);
 
     const resp = await fetch('/api/assistant/chat/stream', { method: 'POST', body: formData });
@@ -1064,6 +1065,7 @@ export function initAssistant() {
     centerStage: byId('centerStage'),
     promptInput: byId('promptInput'),
     sendBtn: byId('sendBtn'),
+    micBtn: byId('micBtn'),
     attachBtn: byId('attachBtn'),
     fileInput: byId('fileInput'),
     fileChip: byId('fileChip'),
@@ -1103,9 +1105,61 @@ export function initAssistant() {
     startNewChat();
   });
   els.messages.addEventListener('click', handleRunCodeClick);
+  initVoiceRecognition();
   showRunButtonsIfEnabled();
 
   startNewChat();
+}
+
+function initVoiceRecognition() {
+  if (!els.micBtn) return;
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) {
+    els.micBtn.title = 'Ses dosyası (.wav/.mp3) yüklemek için tıklayın';
+    els.micBtn.addEventListener('click', () => els.fileInput.click());
+    return;
+  }
+  const rec = new SpeechRec();
+  rec.lang = 'tr-TR';
+  rec.interimResults = true;
+  rec.continuous = false;
+  let listening = false;
+  let baseText = '';
+
+  rec.onstart = () => {
+    listening = true;
+    baseText = els.promptInput.value ? els.promptInput.value.trim() + ' ' : '';
+    els.micBtn.classList.add('recording');
+    els.micBtn.title = 'Dinleniyor... Durdurmak için tıklayın';
+  };
+  rec.onresult = (event) => {
+    let transcript = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      transcript += event.results[i][0].transcript;
+    }
+    els.promptInput.value = baseText + transcript;
+    els.promptInput.style.height = 'auto';
+    els.promptInput.style.height = Math.min(els.promptInput.scrollHeight, 160) + 'px';
+    updateSendState();
+  };
+  rec.onerror = () => {
+    listening = false;
+    els.micBtn.classList.remove('recording');
+  };
+  rec.onend = () => {
+    listening = false;
+    els.micBtn.classList.remove('recording');
+    els.micBtn.title = 'Sesli mesajı metne çevir';
+    els.promptInput.focus();
+  };
+
+  els.micBtn.addEventListener('click', () => {
+    if (listening) {
+      rec.stop();
+    } else {
+      try { rec.start(); } catch { /* already started */ }
+    }
+  });
 }
 
 // The master keeps code running off unless CODE_RUN_ENABLED is set, so the Run buttons stay

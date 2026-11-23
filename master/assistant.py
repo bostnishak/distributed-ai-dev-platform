@@ -18,12 +18,18 @@ import tempfile
 
 import httpx
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 
 import config
 import db
-from extract import extract_csv_text, extract_docx_text, extract_pdf_text, extract_xlsx_text
+from extract import (
+    extract_csv_text,
+    extract_docx_text,
+    extract_pdf_text,
+    extract_xlsx_text,
+    extract_zip_text,
+)
 
 CNC_BALLOON_KEYWORDS = (
     "balonla", "balonlama", "teknik çizim", "teknik cizim", "as9102", "fai",
@@ -422,8 +428,33 @@ async def _prepare_chat_request(
         content_type = file.content_type or ""
         raw = await file.read()
 
-        if content_type.startswith("image/"):
+        if content_type.startswith("image/") or name.endswith((".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif", ".tiff")):
+            import multimodal_studio as mms
+
+            if mms.is_image_edit_request(prompt):
+                edit_info = mms.process_and_edit_image(raw, prompt)
+                filters_str = ", ".join(edit_info["applied_filters"])
+                file_note += (
+                    f"\n\n### İşlenmiş Görsel Çıktısı\n"
+                    f"- **Uygulanan İşlemler:** {filters_str}\n"
+                    f"- **Boyut:** {edit_info['original_size']} -> {edit_info['output_size']} · "
+                    f"**Ortalama Parlaklık:** {edit_info['mean_brightness']} · **Kontrast (Std):** {edit_info['std_contrast']}\n"
+                    f"- [İşlenmiş Görseli İndir (PNG)]({edit_info['url']})\n\n"
+                    f"![İşlenmiş Görsel]({edit_info['url']})\n"
+                )
             image_b64 = base64.b64encode(raw).decode()
+            forced_task_type = "analiz"
+        elif content_type.startswith("audio/") or name.endswith((".wav", ".mp3", ".m4a", ".ogg", ".webm", ".flac")):
+            import multimodal_studio as mms
+
+            stt = mms.transcribe_audio_bytes(file.filename, raw)
+            if stt["transcript"]:
+                extracted_text = f"[Ses Kaydı Metin Dökümü ({stt['engine']}, {stt['duration_sec']} sn)]:\n{stt['transcript']}"
+            else:
+                extracted_text = (
+                    f"[Ses Dosyası Yüklendi: {file.filename} ({stt['size_kb']} KB, {stt['duration_sec']} sn). "
+                    "Lütfen kullanıcının sesli mesaj isteğine göre yanıt ver.]"
+                )
             forced_task_type = "analiz"
         elif name.endswith(".pdf"):
             extracted_text = extract_pdf_text(raw)
@@ -434,10 +465,19 @@ async def _prepare_chat_request(
         elif name.endswith((".xlsx", ".xlsm")):
             extracted_text = extract_xlsx_text(raw)
             forced_task_type = "analiz"
-        elif name.endswith(".csv"):
+        elif name.endswith((".csv", ".tsv")):
             extracted_text = extract_csv_text(raw)
             forced_task_type = "analiz"
-        elif name.endswith((".txt", ".md")) or content_type.startswith("text/"):
+        elif name.endswith(".zip"):
+            try:
+                extracted_text = extract_zip_text(raw)
+            except Exception:
+                extracted_text = f"[ZIP Arşivi: {file.filename}]"
+            forced_task_type = "analiz"
+        elif (
+            name.endswith((".txt", ".md", ".json", ".xml", ".yaml", ".yml", ".html", ".css", ".js", ".ts", ".py", ".sql", ".log", ".ini"))
+            or content_type.startswith("text/")
+        ):
             extracted_text = raw.decode("utf-8", errors="ignore")
             forced_task_type = "analiz"
         else:
@@ -488,9 +528,32 @@ async def chat(prompt: str = Form(...), file: UploadFile | None = File(None)):  
     return ChatResponse(content=content, used_model=used_model, task_type=task_type)
 
 
+@router.get("/media/{filename}")
+async def get_assistant_media(filename: str):
+    """Serve generated or edited images (.png, .svg) and documents (.xlsx, .docx, .pdf)."""
+    import multimodal_studio as mms
+
+    safe = "".join(c for c in filename if c.isalnum() or c in ("-", "_", "."))
+    if not safe or safe != filename:
+        raise HTTPException(status_code=400, detail="Geçersiz medya dosya adı.")
+    target = mms.media_dir() / safe
+    if not target.is_file():
+        raise HTTPException(status_code=404, detail="Dosya bulunamadı.")
+    headers = {"Cache-Control": "no-cache"}
+    if safe.endswith((".xlsx", ".docx", ".pdf")):
+        headers["Content-Disposition"] = f'attachment; filename="{safe}"'
+    return FileResponse(target, headers=headers)
+
+
 @router.post("/chat/stream")
-async def chat_stream(prompt: str = Form(...), file: UploadFile | None = File(None)):  # noqa: B008
+async def chat_stream(
+    prompt: str = Form(...),
+    file: UploadFile | None = File(None),  # noqa: B008
+    history: str = Form("[]"),
+):
     """Streaming chat endpoint: tokens arrive as Server-Sent Events."""
+    has_file = bool(file is not None and file.filename)
+
     if _is_cnc_balloon_request(prompt, file):
         report_md = await _run_cnc_balloon_from_chat(file)  # type: ignore[arg-type]
 
@@ -527,6 +590,57 @@ async def chat_stream(prompt: str = Form(...), file: UploadFile | None = File(No
                 yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
 
         return StreamingResponse(_zip_gen(), media_type="text/event-stream")
+
+    # Universal Image / Logo / Illustration Generation
+    import document_factory as df
+    import multimodal_studio as mms
+
+    if mms.is_image_generation_request(prompt, has_file):
+        async def _img_gen():
+            try:
+                res = await mms.generate_ai_image(prompt)
+                md_lines = [
+                    "## Üretilen Görsel Tasarım",
+                    f"- **Motor:** `{res['engine']}`",
+                    f"- [Yüksek Çözünürlüklü PNG İndir]({res['png_url']})"
+                    + (f" · [Vektörel SVG İndir]({res['svg_url']})" if res.get("svg_url") else ""),
+                    "",
+                    f"![Üretilen Görsel]({res['png_url']})",
+                ]
+                yield f"data: {json.dumps({'type': 'token', 'content': '\\n'.join(md_lines)}, ensure_ascii=False)}\n\n"
+                yield f"data: {json.dumps({'type': 'done', 'model': res['engine'], 'task_type': 'gorsel'})}\n\n"
+            except Exception as exc:
+                yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
+
+        return StreamingResponse(_img_gen(), media_type="text/event-stream")
+
+    # Universal Office & PDF Document Deliverable Factory (.xlsx, .docx, .pdf)
+    doc_fmt = df.detect_document_request(prompt, has_file)
+    if doc_fmt:
+        async def _doc_gen():
+            try:
+                res = await df.generate_document_deliverable(prompt, doc_fmt)
+                fmt_upper = doc_fmt.upper()
+                md = [
+                    f"## {res['title']} ({fmt_upper} Dosyası Hazır)",
+                    res.get("summary") or "",
+                    "",
+                    f"- **Dosya İndirme Bağlantısı:** [{res['title']} (.{doc_fmt} İndir)]({res['url']})",
+                    "",
+                ]
+                headers = res.get("table_headers") or []
+                rows = res.get("table_rows") or []
+                if headers and rows:
+                    md.append("| " + " | ".join(str(h) for h in headers) + " |")
+                    md.append("|" + "|".join("---" for _ in headers) + "|")
+                    for r in rows[:15]:
+                        md.append("| " + " | ".join(str(c) for c in r[:len(headers)]) + " |")
+                yield f"data: {json.dumps({'type': 'token', 'content': '\\n'.join(md)}, ensure_ascii=False)}\n\n"
+                yield f"data: {json.dumps({'type': 'done', 'model': res['model'], 'task_type': 'dokuman'})}\n\n"
+            except Exception as exc:
+                yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
+
+        return StreamingResponse(_doc_gen(), media_type="text/event-stream")
 
     if _is_project_build_request(prompt, file):
         import workspace_builder as wb
@@ -613,6 +727,24 @@ async def chat_stream(prompt: str = Form(...), file: UploadFile | None = File(No
     messages = []
     if ANSWER_SYSTEM_PROMPT:
         messages.append({"role": "system", "content": ANSWER_SYSTEM_PROMPT})
+
+    # Multi-turn conversation history support (up to last 10 turns)
+    try:
+        hist_items = json.loads(history) if history else []
+        if isinstance(hist_items, list):
+            for h_msg in hist_items[-10:]:
+                if isinstance(h_msg, dict) and h_msg.get("role") in ("user", "assistant") and h_msg.get("text"):
+                    messages.append({"role": h_msg["role"], "content": str(h_msg["text"])[:3000]})
+    except Exception:
+        pass
+
+    # If an image was processed/edited, prepend the processed image preview before the LLM analysis
+    pre_note = ""
+    if "### İşlenmiş Görsel Çıktısı" in full_prompt:
+        idx_n = full_prompt.index("### İşlenmiş Görsel Çıktısı")
+        pre_note = full_prompt[idx_n:] + "\n\n---\n\n"
+        full_prompt = full_prompt[:idx_n].strip()
+
     user_msg: dict = {"role": "user", "content": full_prompt}
     if image_b64:
         user_msg["images"] = [image_b64]
@@ -628,6 +760,8 @@ async def chat_stream(prompt: str = Form(...), file: UploadFile | None = File(No
 
     async def _stream_gen():
         try:
+            if pre_note:
+                yield f"data: {json.dumps({'type': 'token', 'content': pre_note}, ensure_ascii=False)}\n\n"
             async with httpx.AsyncClient(timeout=180.0) as client:
                 async with client.stream("POST", f"{ollama_url}/api/chat", json=payload) as resp:
                     async for line in resp.aiter_lines():

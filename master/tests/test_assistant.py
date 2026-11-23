@@ -170,3 +170,51 @@ class TestEnterpriseBackgroundRouting:
         assert _is_project_build_request("E-ticaret nedir?", None) is False
         assert _is_project_build_request("Oyun motoru ne demek açıkla", None) is False
         assert _is_project_build_request("Merhaba nasılsın", None) is False
+
+
+class TestUniversalMultimodalAndDocuments:
+    def test_image_processing_and_editing(self, tmp_path, monkeypatch):
+        import io
+
+        from PIL import Image
+
+        import config
+        import multimodal_studio as mms
+
+        monkeypatch.setattr(config, "DATA_DIR", tmp_path)
+        im = Image.new("RGB", (320, 240), (120, 160, 200))
+        buf = io.BytesIO()
+        im.save(buf, format="PNG")
+
+        res = mms.process_and_edit_image(
+            buf.getvalue(),
+            'Bu görüntüyü siyah beyaz yap, kontrast artır ve "TEST" yazı ekle',
+        )
+        assert res["output_size"] == "320x240 px"
+        assert len(res["applied_filters"]) >= 2
+        assert (tmp_path / "media" / f"{res['file_id']}.png").is_file()
+
+    def test_audio_wav_transcription_metadata(self, tmp_path):
+        import io
+        import wave
+
+        import multimodal_studio as mms
+
+        buf = io.BytesIO()
+        with wave.open(buf, "wb") as wf:
+            wf.setnchannels(1)
+            wf.setsampwidth(2)
+            wf.setframerate(16000)
+            wf.writeframes(b"\x00\x00" * 8000)  # 0.5 sec silence
+
+        info = mms.transcribe_audio_bytes("ses_kaydi.wav", buf.getvalue())
+        assert info["duration_sec"] == 0.5
+        assert info["filename"] == "ses_kaydi.wav"
+
+    def test_detect_document_requests(self):
+        import document_factory as df
+
+        assert df.detect_document_request("Bana 12 aylık şirket bütçesi Excel tablosu hazırla", False) == "xlsx"
+        assert df.detect_document_request("Kira sözleşmesi Word dosyası oluştur", False) == "docx"
+        assert df.detect_document_request("Pazar araştırması PDF raporu çıkar", False) == "pdf"
+        assert df.detect_document_request("Merhaba nasılsın", False) is None
