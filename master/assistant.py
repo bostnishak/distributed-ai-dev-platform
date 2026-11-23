@@ -9,6 +9,7 @@ import ast
 import asyncio
 import base64
 import json
+import logging
 import operator
 import os
 import re
@@ -17,12 +18,13 @@ import sys
 import tempfile
 
 import httpx
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 
 import config
 import db
+from access_control import require_local_or_admin
 from extract import (
     extract_csv_text,
     extract_docx_text,
@@ -30,6 +32,8 @@ from extract import (
     extract_xlsx_text,
     extract_zip_text,
 )
+
+log = logging.getLogger(__name__)
 
 CNC_BALLOON_KEYWORDS = (
     "balonla", "balonlama", "teknik çizim", "teknik cizim", "as9102", "fai",
@@ -735,7 +739,9 @@ async def _prepare_chat_request(
                 f"- **Sayım:** `{json.dumps(pii['counts'], ensure_ascii=False)}`\n"
                 f"- **Maskelenmiş Metin:**\n```\n{pii['cleaned_text'][:2000]}\n```\n"
             )
-    if any(k in lower_prompt for k in ("sözleşme risk", "sozlesme risk", "redline", "cezai şart", "cezai sart", "hukuki inceleme")):
+    if extracted_text and any(
+        k in lower_prompt for k in ("sözleşme risk", "sozlesme risk", "redline", "cezai şart", "cezai sart", "hukuki inceleme")
+    ):
         import domain_experts as de
 
         leg = de.analyze_legal_contract(combined_source)
@@ -746,14 +752,12 @@ async def _prepare_chat_request(
             f"Revizyon (Redline) Önerileri: {json.dumps(leg['redline_recommendations'], ensure_ascii=False)}"
         )
     if any(k in lower_prompt for k in ("dcf", "monte carlo", "şirket değerleme", "sirket degerleme", "cfo analiz", "npv simülasyon")):
-        import domain_experts as de
-
-        cfo = de.run_cfo_financial_analysis()
+        # The valuation engine only has built-in sample figures; presenting them as the user's
+        # numbers would be fabrication, so the model is told to ask for real inputs instead.
         file_note += (
-            f"\n\n--- CFO Finansal Değerleme ve 500-Koşulu Monte Carlo Motoru ---\n"
-            f"Oranlar: Cari Oran={cfo['ratios']['current_ratio']}, ROE={cfo['ratios']['roe']}, Borç/Özsermaye={cfo['ratios']['debt_to_equity']}\n"
-            f"5 Yıllık İNA (DCF) Firma Değeri: {cfo['dcf']['enterprise_value']:,.2f} | Baz NPV: {cfo['dcf']['base_npv']:,.2f}\n"
-            f"Monte Carlo (500 Koşu): P10={cfo['monte_carlo']['p10_npv']:,.2f} | P50={cfo['monte_carlo']['p50_npv']:,.2f} | P90={cfo['monte_carlo']['p90_npv']:,.2f} | Pozitif NPV Olasılığı=%{cfo['monte_carlo']['prob_positive_npv']*100:.1f}"
+            "\n\n--- Finansal Değerleme (DCF / Monte Carlo) ---\n"
+            "Kullanıcı gerçek finansal veri vermedi. Gelir, FAVÖK, büyüme oranı, WACC ve borç gibi "
+            "girdileri kullanıcıdan iste; bu değerleri tahmin etme veya uydurma, sonuç sayısı üretme."
         )
 
     full_prompt = prompt
@@ -772,11 +776,12 @@ async def _prepare_chat_request(
         graph_lines: list[str] = []
         try:
             grag = hybrid_graph_rag.HybridGraphRAG()
-            g_hits = grag.hybrid_search(prompt, top_k=2)
+            # RRF always ranks something first, so only documents with a real lexical match count.
+            g_hits = [h for h in grag.search(prompt, top_k=2) if h["bm25_score"] > 0]
             for gh in g_hits:
                 graph_lines.append(f"- [GraphRAG] {gh['title']}: {gh['content'][:300]}")
         except Exception:
-            pass
+            log.warning("GraphRAG araması başarısız", exc_info=True)
         if kb_docs or graph_lines:
             kb_text = "\n".join([*(f"- {d['title']}: {d['content']}" for d in kb_docs), *graph_lines])
             full_prompt = f"{prompt}\n\n--- Şirket Mühendislik Bilgi Bankası (Hybrid GraphRAG) ---\n{kb_text}"
@@ -1649,7 +1654,7 @@ async def assistant_config():
     return {"code_run_enabled": config.CODE_RUN_ENABLED}
 
 
-@router.post("/run-code", response_model=CodeRunResponse)
+@router.post("/run-code", response_model=CodeRunResponse, dependencies=[Depends(require_local_or_admin)])
 async def run_code(body: CodeRunRequest):
     """Run a code block (see the "Run" button) in an isolated subprocess.
 

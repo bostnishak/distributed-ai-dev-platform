@@ -11,7 +11,6 @@ Stop: Ctrl-C
 
 import asyncio
 import logging
-import sys
 from pathlib import Path
 
 import httpx

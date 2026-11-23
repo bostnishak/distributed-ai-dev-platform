@@ -10,11 +10,12 @@ import subprocess
 import zipfile
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 
 import workspace_builder as wb
+from access_control import require_local_or_admin
 
 router = APIRouter(prefix="/api/studio", tags=["studio"])
 
@@ -159,7 +160,7 @@ async def delete_workspace_file(id: str, path: str = Query(...)):
     return {"ok": True, "path": path}
 
 
-@router.delete("/workspaces/{id}")
+@router.delete("/workspaces/{id}", dependencies=[Depends(require_local_or_admin)])
 async def delete_workspace(id: str):
     try:
         ws_dir = wb.safe_workspace_dir(id)
@@ -171,7 +172,7 @@ async def delete_workspace(id: str):
     return {"ok": True, "id": id}
 
 
-@router.post("/workspaces/{id}/build-exe")
+@router.post("/workspaces/{id}/build-exe", dependencies=[Depends(require_local_or_admin)])
 async def build_exe(id: str, body: BuildExeRequest | None = None):
     try:
         res = await wb.build_workspace_exe(id, windowed=body.windowed if body else None)
@@ -182,7 +183,7 @@ async def build_exe(id: str, body: BuildExeRequest | None = None):
     return res
 
 
-@router.post("/workspaces/{id}/launch-exe")
+@router.post("/workspaces/{id}/launch-exe", dependencies=[Depends(require_local_or_admin)])
 def launch_exe(id: str):
     """Launch the compiled Windows .exe locally so the user can run their generated app with one click."""
     try:
@@ -278,7 +279,7 @@ async def restore_workspace_version(id: str, version: str):
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
-@router.post("/workspaces/{id}/start-server")
+@router.post("/workspaces/{id}/start-server", dependencies=[Depends(require_local_or_admin)])
 def start_workspace_live_server(id: str):
     try:
         return wb.start_workspace_server(id)
@@ -334,7 +335,7 @@ class WorkspaceGitRequest(BaseModel):
     branch: str = ""
 
 
-@router.post("/workspaces/{id}/exec")
+@router.post("/workspaces/{id}/exec", dependencies=[Depends(require_local_or_admin)])
 def exec_in_workspace(id: str, body: WorkspaceExecRequest):
     """Run a command inside the workspace directory for the embedded IDE terminal ([M28])."""
     import shlex
@@ -379,7 +380,7 @@ def exec_in_workspace(id: str, body: WorkspaceExecRequest):
         return {"ok": False, "exit_code": -1, "stdout": "", "stderr": "Komut zaman aşımına uğradı (12 sn)."}
 
 
-@router.post("/workspaces/{id}/git")
+@router.post("/workspaces/{id}/git", dependencies=[Depends(require_local_or_admin)])
 async def workspace_git_control(id: str, body: WorkspaceGitRequest):
     """Local Git version control (init, status, commit, log, branch) for a workspace ([M29])."""
     try:

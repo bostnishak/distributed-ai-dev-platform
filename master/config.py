@@ -33,6 +33,10 @@ NUM_CTX_MAX = int(os.environ.get("NUM_CTX_MAX", "32768"))
 NUM_PREDICT = int(os.environ.get("NUM_PREDICT", "6144"))
 LLM_TIMEOUT_SECONDS = float(os.environ.get("LLM_TIMEOUT_SECONDS", "1800"))
 
+# Lets a remote caller use the code-running, backup and data-deleting endpoints (see
+# access_control.py). Empty means only the master's own machine may use them.
+ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN", "")
+
 # --- Agents ---
 # Shared secret every agent sends as "Authorization: Bearer <token>" when registering.
 AGENT_TOKEN = os.environ.get("AGENT_TOKEN", "")

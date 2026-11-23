@@ -5,12 +5,13 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
 from pydantic import BaseModel
 
 import memory_engine
 import user_profile as up
+from access_control import require_local_or_admin
 
 router = APIRouter(prefix="/api/user", tags=["user"])
 
@@ -75,7 +76,7 @@ async def update_profile(user_id: str, body: UpdateProfileBody):
     )
 
 
-@router.delete("/{user_id}")
+@router.delete("/{user_id}", dependencies=[Depends(require_local_or_admin)])
 async def delete_profile(user_id: str):
     try:
         up.delete_profile(_uid(user_id))
@@ -143,7 +144,7 @@ async def search_history(user_id: str, q: str = Query("", max_length=200)):
     return {"results": up.cross_chat_snippets(_uid(user_id), q, limit=12)}
 
 
-@router.get("/{user_id}/export")
+@router.get("/{user_id}/export", dependencies=[Depends(require_local_or_admin)])
 async def export_data(user_id: str):
     uid = _uid(user_id)
     payload = json.dumps(up.export_all(uid), ensure_ascii=False, indent=2)
@@ -154,7 +155,7 @@ async def export_data(user_id: str):
     )
 
 
-@router.delete("/{user_id}/data")
+@router.delete("/{user_id}/data", dependencies=[Depends(require_local_or_admin)])
 async def wipe(user_id: str, scope: str = Query("usage")):
     try:
         return {"ok": True, "removed": up.wipe_data(_uid(user_id), scope)}

@@ -12,10 +12,11 @@ import zipfile
 from datetime import UTC, datetime
 from pathlib import Path
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import Response
 
 import config
+from access_control import require_local_or_admin
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -47,7 +48,7 @@ def create_enterprise_backup_zip(data_dir: Path | None = None) -> bytes:
     return buf.getvalue()
 
 
-@router.get("/backup.zip")
+@router.get("/backup.zip", dependencies=[Depends(require_local_or_admin)])
 async def download_enterprise_backup():
     """Download a full timestamped enterprise backup ZIP archive."""
     raw_zip = create_enterprise_backup_zip()

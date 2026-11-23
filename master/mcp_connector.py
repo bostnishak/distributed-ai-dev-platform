@@ -17,10 +17,11 @@ from datetime import UTC, datetime
 from typing import Any
 
 import httpx
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 import config
+from access_control import require_local_or_admin
 
 router = APIRouter(prefix="/api/mcp", tags=["mcp"])
 
@@ -337,7 +338,7 @@ async def api_list_connectors():
     return {"connectors": list_connectors()}
 
 
-@router.post("/connectors")
+@router.post("/connectors", dependencies=[Depends(require_local_or_admin)])
 async def api_create_connector(req: MCPCreateReq):
     try:
         conn = create_connector(req.name, req.url, req.api_key, req.auth_header, req.auth_prefix, req.description)
@@ -346,7 +347,7 @@ async def api_create_connector(req: MCPCreateReq):
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
-@router.put("/connectors/{connector_id}")
+@router.put("/connectors/{connector_id}", dependencies=[Depends(require_local_or_admin)])
 async def api_update_connector(connector_id: str, req: MCPUpdateReq):
     try:
         conn = update_connector(connector_id, req.model_dump(exclude_none=True))
@@ -355,14 +356,14 @@ async def api_update_connector(connector_id: str, req: MCPUpdateReq):
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
-@router.delete("/connectors/{connector_id}")
+@router.delete("/connectors/{connector_id}", dependencies=[Depends(require_local_or_admin)])
 async def api_delete_connector(connector_id: str):
     if not delete_connector(connector_id):
         raise HTTPException(status_code=404, detail="MCP bağlayıcı bulunamadı.")
     return {"deleted": True}
 
 
-@router.post("/connectors/{connector_id}/discover")
+@router.post("/connectors/{connector_id}/discover", dependencies=[Depends(require_local_or_admin)])
 async def api_discover_connector(connector_id: str):
     try:
         return await discover_connector_tools(connector_id)
@@ -370,7 +371,7 @@ async def api_discover_connector(connector_id: str):
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
-@router.post("/connectors/{connector_id}/call")
+@router.post("/connectors/{connector_id}/call", dependencies=[Depends(require_local_or_admin)])
 async def api_call_connector(connector_id: str, req: MCPCallReq):
     try:
         return await call_connector_tool(connector_id, req.tool_name, req.arguments)
