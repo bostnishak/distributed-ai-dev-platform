@@ -901,7 +901,7 @@ async def _chat_stream_impl(
                         f"| `{b.get('part_name', '-')}` | {b.get('material', '-')} | {b.get('cycle_time_min', 0)} | "
                         f"{b.get('unit_price_1_tl', 0)} | {b.get('unit_price_10_tl', 0)} | {b.get('unit_price_100_tl', 0)} |"
                     )
-                yield f"data: {json.dumps({'type': 'token', 'content': '\\n'.join(lines)}, ensure_ascii=False)}\n\n"
+                yield f"data: {json.dumps({'type': 'token', 'content': '\n'.join(lines)}, ensure_ascii=False)}\n\n"
                 yield f"data: {json.dumps({'type': 'done', 'model': 'cnc-ballooner', 'task_type': 'cnc'})}\n\n"
             except Exception as exc:
                 yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
@@ -918,22 +918,25 @@ async def _chat_stream_impl(
 
         async def _pptx_gen():
             try:
-                qs = dr.decompose_research_questions(prompt)
-                slides = [
-                    {"title": q.split(" - ")[-1] if " - " in q else q, "bullets": [q, "Deterministik yerel sentez ve mühendislik analizi."]}
-                    for q in qs
-                ]
-                out_path = dr.build_pptx_presentation(prompt[:70], "Kurumsal Yönetici Sunumu (%100 Yerel)", slides)
-                url = f"/api/assistant/media/{out_path.name}"
+                res = await dr.generate_ai_pptx_presentation(prompt)
                 md = [
-                    "## PowerPoint Sunumu Hazır (.PPTX)",
-                    f"- **Dosya İndirme Bağlantısı:** [Sunumu İndir ({out_path.name})]({url})",
+                    f"## {res['title']} (PowerPoint Sunumu Hazır)",
+                    res["subtitle"],
                     "",
-                    "### Slayt Planı",
-                    *[f"- **{i + 1}. Slayt:** {s['title']}" for i, s in enumerate(slides)],
+                    f"- **Tema & Arka Plan:** {res['theme_name']} · **Slayt Geçiş Animasyonu:** `{res['transition']}` · **Toplam:** `{res['slide_count']} slayt`",
+                    f"- **Sunumu İndir (.PPTX):** [{res['title']} ({res['filename']})]({res['url']})",
+                    "",
+                    "### Araştırılan Slayt İçeriği",
                 ]
-                yield f"data: {json.dumps({'type': 'token', 'content': '\\n'.join(md)}, ensure_ascii=False)}\n\n"
-                yield f"data: {json.dumps({'type': 'done', 'model': 'deep-research-pptx', 'task_type': 'dokuman'})}\n\n"
+                for i, s in enumerate(res["slides"], start=2):
+                    md.append(f"#### Slayt {i}: {s.get('title', '')}")
+                    for b in (s.get("bullets") or [])[:5]:
+                        md.append(f"- {b}")
+                    if s.get("key_fact"):
+                        md.append(f"- **Vurgu Kartı:** {s['key_fact']}")
+                    md.append("")
+                yield f"data: {json.dumps({'type': 'token', 'content': '\n'.join(md)}, ensure_ascii=False)}\n\n"
+                yield f"data: {json.dumps({'type': 'done', 'model': res['model'], 'task_type': 'dokuman'})}\n\n"
             except Exception as exc:
                 yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
 
@@ -1001,7 +1004,7 @@ async def _chat_stream_impl(
                 "",
                 f"```chart\n{gantt_json}\n```",
             ]
-            yield f"data: {json.dumps({'type': 'token', 'content': '\\n'.join(md)}, ensure_ascii=False)}\n\n"
+            yield f"data: {json.dumps({'type': 'token', 'content': '\n'.join(md)}, ensure_ascii=False)}\n\n"
             yield f"data: {json.dumps({'type': 'done', 'model': 'erp-mes-scheduler', 'task_type': 'cnc'})}\n\n"
 
         return StreamingResponse(_erp_gen(), media_type="text/event-stream")
@@ -1059,7 +1062,7 @@ async def _chat_stream_impl(
                     "",
                     f"![Üretilen Görsel]({res['png_url']})",
                 ]
-                yield f"data: {json.dumps({'type': 'token', 'content': '\\n'.join(md_lines)}, ensure_ascii=False)}\n\n"
+                yield f"data: {json.dumps({'type': 'token', 'content': '\n'.join(md_lines)}, ensure_ascii=False)}\n\n"
                 yield f"data: {json.dumps({'type': 'done', 'model': res['engine'], 'task_type': 'gorsel'})}\n\n"
             except Exception as exc:
                 yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
@@ -1087,7 +1090,7 @@ async def _chat_stream_impl(
                     md.append("|" + "|".join("---" for _ in headers) + "|")
                     for r in rows[:15]:
                         md.append("| " + " | ".join(str(c) for c in r[:len(headers)]) + " |")
-                yield f"data: {json.dumps({'type': 'token', 'content': '\\n'.join(md)}, ensure_ascii=False)}\n\n"
+                yield f"data: {json.dumps({'type': 'token', 'content': '\n'.join(md)}, ensure_ascii=False)}\n\n"
                 yield f"data: {json.dumps({'type': 'done', 'model': res['model'], 'task_type': 'dokuman'})}\n\n"
             except Exception as exc:
                 yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
