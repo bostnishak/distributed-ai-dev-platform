@@ -1356,6 +1356,18 @@ async def run_code(body: CodeRunRequest):
     return await asyncio.to_thread(_run_code_blocking, body.code)
 
 
+@router.post("/transcribe")
+async def transcribe_voice_clip(file: UploadFile = File(...)):  # noqa: B008
+    """Transcribe a live microphone WAV/WebM recording locally to Turkish text."""
+    import multimodal_studio as mms
+
+    raw = await file.read()
+    if not raw or len(raw) < 128:
+        raise HTTPException(status_code=400, detail="Ses kaydı boş veya çok kısa.")
+    res = await asyncio.to_thread(mms.transcribe_audio_bytes, file.filename or "mic.wav", raw)
+    return res
+
+
 @router.get("/enterprise-status")
 async def enterprise_status():
     """Return live telemetry, Thompson Bandit Router state, LLMOps DPO status, and 12-discipline ELO Arena leaderboard."""

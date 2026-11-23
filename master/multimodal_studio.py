@@ -359,8 +359,20 @@ async def generate_ai_image(prompt: str) -> dict[str, Any]:
 # 3. VOICE MESSAGE TO TEXT (STT — Faster-Whisper / Windows SAPI / Audio Analysis)
 # ============================================================================
 
+_WHISPER_MODEL_CACHE: Any = None
+
+
+def _get_whisper_model():
+    global _WHISPER_MODEL_CACHE
+    if _WHISPER_MODEL_CACHE is None:
+        from faster_whisper import WhisperModel  # type: ignore[import-not-found]
+
+        _WHISPER_MODEL_CACHE = WhisperModel("base", device="cpu", compute_type="int8")
+    return _WHISPER_MODEL_CACHE
+
+
 def transcribe_audio_bytes(filename: str, raw_bytes: bytes) -> dict[str, Any]:
-    """Transcribe an uploaded voice message (.wav, .mp3, .m4a, .ogg, .webm) to Turkish text."""
+    """Transcribe an uploaded or microphone-recorded voice message (.wav, .mp3, .m4a, .ogg, .webm) to Turkish text."""
     suffix = Path(filename).suffix.lower() or ".wav"
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
         tmp.write(raw_bytes)
@@ -379,14 +391,12 @@ def transcribe_audio_bytes(filename: str, raw_bytes: bytes) -> dict[str, Any]:
     transcript = ""
     engine = "audio-metadata"
 
-    # 1. Try faster_whisper if installed
+    # 1. Try local faster_whisper (cached singleton, fast int8 CPU Turkish STT)
     try:
-        from faster_whisper import WhisperModel  # type: ignore[import-not-found]
-
-        wmodel = WhisperModel("small", device="cpu", compute_type="int8")
-        segments, _ = wmodel.transcribe(str(tmp_path), language="tr")
+        wmodel = _get_whisper_model()
+        segments, _ = wmodel.transcribe(str(tmp_path), language="tr", vad_filter=True)
         transcript = " ".join(seg.text.strip() for seg in segments).strip()
-        engine = "faster-whisper (local)"
+        engine = "faster-whisper-base (local)"
     except Exception:
         pass
 

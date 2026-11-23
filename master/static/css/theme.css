@@ -417,4 +417,21 @@ html[data-theme="dark"] .sp-tag { color: color-mix(in srgb, var(--accent) 55%, #
 .msg-row.user .sp-branch-link { opacity: 0; transition: opacity 0.14s ease; }
 .msg-row.user:hover .sp-branch-link { opacity: 1; }
 
+/* ---------- live microphone recording indicator ---------- */
+#micBtn.recording {
+  background: #dc2626 !important; color: #ffffff !important; border-color: #dc2626 !important;
+  animation: sp-mic-pulse 1.1s ease-in-out infinite;
+}
+@keyframes sp-mic-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.55); }
+  50% { box-shadow: 0 0 0 7px rgba(220, 38, 38, 0); }
+}
+.sp-voice-status {
+  display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500;
+  color: var(--text); background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 999px; padding: 4px 12px; margin-bottom: 8px;
+}
+.sp-voice-dot { width: 8px; height: 8px; border-radius: 50%; background: #dc2626; animation: sp-blink 1s infinite; }
+
+
 
