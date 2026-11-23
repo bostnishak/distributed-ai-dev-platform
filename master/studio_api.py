@@ -320,3 +320,32 @@ async def get_workspace_file_diff(id: str, path: str = Query(...), base_version:
         "has_changes": len(diff_lines) > 0,
         "diff": "\n".join(diff_lines) if diff_lines else f"({base_version} sürümü ile güncel dosya arasında fark yok)",
     }
+
+
+@router.get("/workspaces/{id}/code-graph")
+async def get_workspace_code_graph(id: str):
+    """Build multi-language AST symbol table and dependency graph for a workspace ([M21])."""
+    import code_graph
+
+    try:
+        ws_dir = wb.safe_workspace_dir(id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if not ws_dir.is_dir():
+        raise HTTPException(status_code=404, detail="Çalışma alanı bulunamadı.")
+    return code_graph.build_workspace_code_graph(ws_dir)
+
+
+@router.get("/workspaces/{id}/security-scan")
+async def run_workspace_security_and_smoke(id: str):
+    """Run SAST security vulnerability scan and Python/JS/JSON smoke verification ([M24]/[M25])."""
+    import self_healing_runner
+
+    try:
+        ws_dir = wb.safe_workspace_dir(id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if not ws_dir.is_dir():
+        raise HTTPException(status_code=404, detail="Çalışma alanı bulunamadı.")
+    return self_healing_runner.run_workspace_smoke_check(ws_dir)
+

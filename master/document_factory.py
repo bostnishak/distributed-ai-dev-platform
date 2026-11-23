@@ -28,13 +28,14 @@ import multimodal_studio as mms
 DOC_BUILD_RE = re.compile(
     r"((excel|\.xlsx)\s*(tablo\w*|dosya\w*|rapor\w*)?\s*(hazırla\w*|hazirla\w*|oluştur\w*|olustur\w*|yap\w*|üret\w*|çıkar\w*|ver\w*)|"
     r"(word|\.docx)\s*(dosya\w*|belge\w*|rapor\w*|sözleşme\w*|dilekçe\w*)?\s*(hazırla\w*|hazirla\w*|oluştur\w*|olustur\w*|yap\w*|üret\w*|ver\w*)|"
+    r"(sunum\w*|powerpoint|slayt\w*|\.pptx)\s*(dosya\w*)?\s*(hazırla\w*|hazirla\w*|oluştur\w*|olustur\w*|yap\w*|üret\w*|çıkar\w*|ver\w*)|"
     r"(pdf|\.pdf)\s*(rapor\w*|dosya\w*|belge\w*|özet\w*)?\s*(hazırla\w*|hazirla\w*|oluştur\w*|olustur\w*|yap\w*|üret\w*|çıkar\w*|ver\w*))",
     re.IGNORECASE,
 )
 
 
 def detect_document_request(prompt: str, has_file: bool) -> str | None:
-    """Return 'xlsx' | 'docx' | 'pdf' if the user is asking for a downloadable document file."""
+    """Return 'xlsx' | 'docx' | 'pptx' | 'pdf' if the user is asking for a downloadable document file."""
     lower = prompt.lower()
     if any(k in lower for k in ("balonla", "teknik çizim", "web sitesi", "e-ticaret", "oyun", "exe")):
         return None
@@ -44,6 +45,8 @@ def detect_document_request(prompt: str, has_file: bool) -> str | None:
         return "xlsx"
     if "word" in lower or ".docx" in lower:
         return "docx"
+    if "sunum" in lower or "powerpoint" in lower or "slayt" in lower or ".pptx" in lower:
+        return "pptx"
     if "pdf" in lower:
         return "pdf"
     return None
@@ -120,6 +123,16 @@ async def generate_document_deliverable(prompt: str, fmt: str, context_text: str
     elif fmt == "docx":
         out_path = out_dir / f"{file_id}.docx"
         _build_docx(out_path, title, summary, sections, headers, rows)
+    elif fmt == "pptx":
+        import deep_research as dr
+
+        out_path = out_dir / f"{file_id}.pptx"
+        slides = [
+            {"title": str(s.get("heading") or "Bölüm"), "bullets": str(s.get("content") or "").split(". ")}
+            for s in sections
+            if isinstance(s, dict)
+        ]
+        dr.build_pptx_presentation(title=title, subtitle=summary[:160], slides=slides, out_path=out_path)
     else:
         out_path = out_dir / f"{file_id}.pdf"
         _build_pdf(out_path, title, summary, sections, headers, rows)

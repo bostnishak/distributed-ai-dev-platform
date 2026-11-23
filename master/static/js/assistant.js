@@ -359,6 +359,11 @@ function buildInlineWorkspaceCard(wsMeta, wsTree) {
   diffToggleBtn.className = 'ide-tool-btn';
   diffToggleBtn.textContent = 'Diff';
 
+  const secScanBtn = document.createElement('button');
+  secScanBtn.type = 'button';
+  secScanBtn.className = 'ide-tool-btn';
+  secScanBtn.textContent = 'Güvenlik & AST';
+
   const editToggleBtn = document.createElement('button');
   editToggleBtn.type = 'button';
   editToggleBtn.className = 'ide-tool-btn';
@@ -370,7 +375,7 @@ function buildInlineWorkspaceCard(wsMeta, wsTree) {
   saveFileBtn.hidden = true;
   saveFileBtn.textContent = 'Kaydet';
 
-  editorTools.append(copyCodeBtn, diffToggleBtn, editToggleBtn, saveFileBtn);
+  editorTools.append(copyCodeBtn, diffToggleBtn, secScanBtn, editToggleBtn, saveFileBtn);
   subBar.append(breadcrumb, editorTools);
 
   // Code Viewport (Gutter + Highlighted Code / Editable Textarea)
@@ -601,6 +606,28 @@ function buildInlineWorkspaceCard(wsMeta, wsTree) {
       }).join('');
     } catch {
       diffMode = false;
+    }
+  });
+
+  secScanBtn.addEventListener('click', async () => {
+    secScanBtn.disabled = true;
+    secScanBtn.textContent = 'Taranıyor...';
+    try {
+      const [secResp, cgResp] = await Promise.all([
+        fetch(`/api/studio/workspaces/${wsId}/security-scan`),
+        fetch(`/api/studio/workspaces/${wsId}/code-graph`),
+      ]);
+      const secData = await secResp.json();
+      const cgData = await cgResp.json();
+      const issueCount = (secData.security && secData.security.total_issues) || 0;
+      const errCount = (secData.errors || []).length;
+      const symCount = (cgData.symbols || []).length;
+      statusLeft.innerHTML = `<span>⎇ main</span><span>${errCount + issueCount === 0 ? '✓ 0 hata / SAST temiz' : `⚠ ${errCount} hata · ${issueCount} SAST`} · ${symCount} AST sembol</span>`;
+    } catch {
+      /* ignore */
+    } finally {
+      secScanBtn.disabled = false;
+      secScanBtn.textContent = 'Güvenlik & AST';
     }
   });
 
@@ -941,7 +968,14 @@ function downloadAsFile(text) {
   URL.revokeObjectURL(url);
 }
 
+let activeStreamAbortController = null;
+
 async function sendMessage() {
+  if (activeStreamAbortController) {
+    activeStreamAbortController.abort();
+    activeStreamAbortController = null;
+    return;
+  }
   const prompt = els.promptInput.value.trim();
   if (!prompt) return;
 
@@ -954,8 +988,10 @@ async function sendMessage() {
   selectedFile = null;
   els.fileInput.value = '';
   els.fileChip.classList.remove('active');
-  els.sendBtn.disabled = true;
-  updateSendState();
+  activeStreamAbortController = new AbortController();
+  els.sendBtn.textContent = '■';
+  els.sendBtn.title = 'Yanıtı durdur';
+  els.sendBtn.classList.add('ready');
 
   // Create a streaming bubble
   const row = document.createElement('div');
@@ -982,7 +1018,11 @@ async function sendMessage() {
     formData.append('history', JSON.stringify(currentMessages.slice(-11, -1)));
     if (fileToSend) formData.append('file', fileToSend);
 
-    const resp = await fetch('/api/assistant/chat/stream', { method: 'POST', body: formData });
+    const resp = await fetch('/api/assistant/chat/stream', {
+      method: 'POST',
+      body: formData,
+      signal: activeStreamAbortController.signal,
+    });
     if (!resp.ok) {
       const data = await resp.json().catch(() => ({}));
       row.remove();
@@ -1049,10 +1089,22 @@ async function sendMessage() {
       currentMessages.push({ role: 'assistant', text: fullText, modelBadge: MODEL_LABELS[usedModel] || usedModel, isError: false, workspace: builtWorkspace });
     }
   } catch (err) {
-    row.remove();
-    addAssistantMessage('Bağlantı hatası: ' + err.message, null, true, false);
+    if (err && err.name === 'AbortError') {
+      fullText += '\n\n*[Yanıt kullanıcı tarafından durduruldu]*';
+      bubble.classList.remove('thinking');
+      bubble.innerHTML = renderMarkdown(fullText);
+      wrap.appendChild(createMessageActions(fullText));
+      currentMessages.push({ role: 'assistant', text: fullText, modelBadge: MODEL_LABELS[usedModel] || usedModel, isError: false });
+    } else {
+      row.remove();
+      addAssistantMessage('Bağlantı hatası: ' + err.message, null, true, false);
+    }
   } finally {
+    activeStreamAbortController = null;
+    els.sendBtn.textContent = '↑';
+    els.sendBtn.title = '';
     els.sendBtn.disabled = false;
+    updateSendState();
     els.promptInput.focus();
     persistCurrentChat();
   }

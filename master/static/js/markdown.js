@@ -3,6 +3,8 @@
 // code blocks, GFM tables, ```svg blocks rendered as sanitized inline diagrams, and a "Run"
 // button under Python code blocks (see assistant.js for the click handler).
 
+import { renderChartSvg } from './canvas_widgets.js';
+
 // A block gets the Run button when its fence is explicitly tagged python/py, when another
 // language is explicitly tagged we never run it as Python, and with no tag we fall back to a
 // content heuristic.
@@ -100,6 +102,10 @@ export function renderMarkdown(raw) {
     const block = codeBlocks[i];
     if (block.lang === 'svg' && /^\s*<svg[\s>]/i.test(block.code)) {
       return `<div class="svg-diagram">${sanitizeSvg(block.code)}</div>`;
+    }
+    if (block.lang === 'chart') {
+      const chartHtml = renderChartSvg(block.code);
+      if (chartHtml) return chartHtml;
     }
     const escaped = escapeHtml(block.code);
     if (!looksLikePython(block.lang, block.code)) {

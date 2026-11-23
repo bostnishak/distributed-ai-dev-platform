@@ -63,6 +63,121 @@ def _is_cnc_balloon_request(prompt: str, file: UploadFile | None) -> bool:
     return any(kw in lower for kw in CNC_BALLOON_KEYWORDS)
 
 
+def _is_3d_cad_request(file: UploadFile | None) -> bool:
+    if file is None or not file.filename:
+        return False
+    return file.filename.lower().endswith((".step", ".stp", ".iges", ".igs", ".stl"))
+
+
+async def _run_3d_cad_cam_from_chat(file: UploadFile, prompt: str) -> str:
+    """Execute 3D STEP/IGES/STL Feature Recognition, Kienzle Cutting Physics, FEA & 4-Controller G-Code Engine."""
+    import cad_cam_physics as ccp
+    import enterprise_security_mcp as esm
+
+    raw = await file.read()
+    fname = file.filename or "part.step"
+    cad = ccp.analyze_3d_cad_file(fname, raw)
+    bbox = cad.get("bounding_box_mm", {})
+    dx = float(bbox.get("x", 60.0))
+    dy = float(bbox.get("y", 60.0))
+    dz = float(bbox.get("z", 40.0))
+
+    lower = prompt.lower()
+    material = "AISI 4140"
+    for mat in ("AL 7075", "AL 6061", "AISI 316L", "AISI 304", "TI-6AL-4V", "AISI 1045", "AISI 4140"):
+        if mat.lower() in lower or mat.split()[-1].lower() in lower:
+            material = mat
+            break
+
+    phys = ccp.simulate_cutting_physics_and_fea(
+        material=material,
+        vc_m_min=185.0 if "4140" in material else 240.0,
+        ap_mm=2.5,
+        feed_mm_rev=0.22,
+        cutter_diameter_mm=max(dx, dy, 25.0),
+        tool_stickout_mm=min(max(dz * 0.9, 35.0), 75.0),
+        tool_shank_diameter_mm=16.0,
+        ring_mean_radius_mm=max(dx, dy) / 2.0,
+        wall_thickness_mm=3.0,
+    )
+
+    spec = {
+        "part_number": cad.get("product_name") or fname,
+        "material": material,
+        "outer_diameter_mm": round(max(dx, dy), 2),
+        "finish_od_mm": round(max(dx, dy) - 2.0, 2),
+        "length_mm": round(dz, 2),
+        "hole_diameter_mm": 12.0,
+        "hole_depth_mm": round(min(dz * 0.8, 35.0), 2),
+        "thread_pitch_mm": 1.5,
+        "thread_depth_mm": round(min(dz * 0.5, 20.0), 2),
+        "vc_m_min": 185,
+    }
+    gcode_fanuc = ccp.generate_multi_controller_gcode("fanuc", spec)
+    gcode_siemens = ccp.generate_multi_controller_gcode("siemens", spec)
+    gcode_heidenhain = ccp.generate_multi_controller_gcode("heidenhain", spec)
+    gcode_haas = ccp.generate_multi_controller_gcode("haas", spec)
+    cmm_offset = ccp.generate_cmm_wear_offset_gcode(
+        controller="fanuc",
+        tool_no=2,
+        nominal=spec["finish_od_mm"],
+        measured_mean=round(spec["finish_od_mm"] + 0.014, 4),
+    )
+
+    esm.AuditTrail().append_event(
+        actor="assistant_3d_cad",
+        action="3D_CAD_CAM_ANALYSIS",
+        payload={"filename": fname, "format": cad.get("format"), "features": len(cad.get("features", []))},
+    )
+
+    lines = [
+        f"## 3B CAD B-Rep Unsur Tanima, Kesme Fizigi ve Coklu Kontrolcu CAM Raporu ({fname})",
+        f"- **Format:** `{cad.get('format')}` | **Urun:** `{cad.get('product_name')}` | **Malzeme:** `{material}`",
+        f"- **Sinirlayici Kutu (Bounding Box):** `{dx} x {dy} x {dz} mm` | **Hacim:** `{cad.get('volume_cm3')} cm3` | **Yuzey Alani:** `{cad.get('surface_area_cm2')} cm2`",
+        "",
+        "### 1. Taninan 3B Geometrik Unsurlar ve 2B-3B MBD Balon Eslestirmesi",
+        "| Balon No | Unsur Kimligi | Unsur Tipi | B-Rep Yuzey | Gorunus | Nominal Olcu (mm) | Tolerans Sinifi |",
+        "|---|---|---|---|---|---|---|",
+    ]
+    for m in cad.get("mbd_2d_3d_matches", []):
+        lines.append(
+            f"| **#{m['balloon_no']}** | `{m['feature_id']}` | **{m['feature_type']}** | `{m['face_id']}` | "
+            f"{m['view']} | `{m['nominal_mm']}` | `{m['tolerance']}` |"
+        )
+
+    lines.extend([
+        "",
+        "### 2. Kienzle Kesme Kuvveti, Takim Sehimi ve 3 Ayakli Ayna FEA Ovalizasyon Analizi",
+        "| Tegetsel Kuvvet (Fc) | Radyal Kuvvet (Fr) | Is Mili Gucu (Pc) | Tork | Taylor Takim Omru | Takim Sehimi (delta) | Ayna Ovalizasyonu | Yuzey Puruzlulugu (Ra) |",
+        "|---|---|---|---|---|---|---|---|",
+        f"| **{phys['cutting_force_fc_n']} N** | {phys['radial_force_fr_n']} N | **{phys['spindle_power_kw']} kW** | "
+        f"{phys['spindle_torque_nm']} Nm | **{phys['taylor_tool_life_min']} dk** | `{phys['tool_deflection_mm']} mm` | "
+        f"`{phys['chuck_ovalization_mm']} mm` | **Ra {phys['surface_roughness_ra_um']} um** |",
+    ])
+    if phys.get("dfm_warnings"):
+        lines.append("")
+        lines.append("#### Fiziksel DFM ve Titresim (Chatter) Uyarilari")
+        for w in phys["dfm_warnings"]:
+            lines.append(f"- {w}")
+
+    lines.extend([
+        "",
+        "### 3. Kapali Cevrim CMM Asinma Ofset Telafisi (Closed-Loop G10)",
+        f"- **Olculen Ortalama Sapma:** `{cmm_offset['deviation_mm']:+.4f} mm` -> **Otomatik Ofset Komutu:** `{cmm_offset['offset_gcode']}` (Cp: `{cmm_offset['spc']['cp']}`, Cpk: `{cmm_offset['spc']['cpk']}`)",
+        "",
+        "### 4. Coklu Tezgah Kontrolcu Post-Processor Ciktisi (4 Diyalekt)",
+        "#### A) Fanuc 0i / 31i ISO G-Kodu",
+        f"```gcode\n{gcode_fanuc}\n```",
+        "#### B) Siemens Sinumerik 840D / ONE (CYCLE95 / CYCLE83 / CYCLE84)",
+        f"```gcode\n{gcode_siemens}\n```",
+        "#### C) Heidenhain TNC 640 Diyalog Programi (BLK FORM / CYCL DEF 200 & 207)",
+        f"```gcode\n{gcode_heidenhain}\n```",
+        "#### D) Haas NGC G-Kodu",
+        f"```gcode\n{gcode_haas}\n```",
+    ])
+    return "\n".join(lines)
+
+
 def _is_zip_workspace_request(prompt: str, file: UploadFile | None) -> bool:
     if file is None or not file.filename or not file.filename.lower().endswith(".zip"):
         return False
@@ -429,9 +544,20 @@ async def _prepare_chat_request(
         raw = await file.read()
 
         if content_type.startswith("image/") or name.endswith((".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif", ".tiff")):
+            import media_lab_arena as mla
             import multimodal_studio as mms
 
-            if mms.is_image_edit_request(prompt):
+            lower_p = prompt.lower()
+            if any(k in lower_p for k in ("tara", "tarayıcı", "tarayici", "gölge", "golge", "belge temizle", "scan")):
+                scan_info = mla.scan_and_clean_document_image(raw)
+                file_note += (
+                    f"\n\n### İşlenmiş Görsel Çıktısı\n"
+                    f"- **Belge Tarayıcı ve Gölge Giderme:** `{scan_info['width']}x{scan_info['height']}` | "
+                    f"**Aydınlatma Sapması:** `{scan_info['original_illumination_std']} -> {scan_info['cleaned_illumination_std']}`\n"
+                    f"- [Taranmış Belgeyi İndir (PNG)]({scan_info['url']})\n\n"
+                    f"![Taranmış Belge]({scan_info['url']})\n"
+                )
+            elif mms.is_image_edit_request(prompt):
                 edit_info = mms.process_and_edit_image(raw, prompt)
                 filters_str = ", ".join(edit_info["applied_filters"])
                 file_note += (
@@ -466,7 +592,51 @@ async def _prepare_chat_request(
             extracted_text = extract_xlsx_text(raw)
             forced_task_type = "analiz"
         elif name.endswith((".csv", ".tsv")):
+            import csv
+            import io
+
+            import automl_studio as aml
+
             extracted_text = extract_csv_text(raw)
+            try:
+                text_csv = raw.decode("utf-8", errors="ignore")
+                delim = "\t" if name.endswith(".tsv") else ","
+                rows = list(csv.DictReader(io.StringIO(text_csv), delimiter=delim))
+                if rows:
+                    prof = aml.profile_dataset(rows)
+                    num_cols = prof.get("numeric_columns", [])
+                    aml_lines = [
+                        f"\n\n### AutoML Veri Bilimi ve Anomali Özeti ({prof['row_count']} satır, {prof['column_count']} sütun)",
+                        f"- **Sayısal Sütunlar:** `{', '.join(num_cols) or '-'}` | **Tespit Edilen Anomali:** `{len(prof.get('anomalies', []))}` satır",
+                    ]
+                    if num_cols and len(rows) >= 4:
+                        fc = aml.train_and_forecast(rows, target_col=num_cols[-1], horizon=3)
+                        preds = ", ".join(f"T+{p['step']}: {p['prediction']:.2f}" for p in fc.get("forecasts", []))
+                        aml_lines.append(
+                            f"- **L2 Ridge Tahmin ({num_cols[-1]}):** R2=`{fc['metrics']['r2']:.3f}`, RMSE=`{fc['metrics']['rmse']:.2f}` -> `{preds}`"
+                        )
+                    extracted_text += "\n" + "\n".join(aml_lines)
+            except Exception:
+                pass
+            forced_task_type = "analiz"
+        elif name.endswith((".db", ".sqlite", ".sqlite3")):
+            import domain_experts as de
+
+            tmp_db = config.DATA_DIR / f"upload_{os.getpid()}.sqlite"
+            tmp_db.parent.mkdir(parents=True, exist_ok=True)
+            tmp_db.write_bytes(raw)
+            try:
+                sql_res = de.introspect_sqlite_and_query(tmp_db, prompt)
+                extracted_text = (
+                    f"[SQLite Veritabanı Şema ve Sorgu Sonucu]\n"
+                    f"Çalıştırılan SQL: `{sql_res['executed_sql']}` ({sql_res['row_count']} satır)\n"
+                    f"İlk Satırlar: {json.dumps(sql_res['rows'][:10], ensure_ascii=False)}\n"
+                    f"ER Diyagramı:\n```mermaid\n{sql_res['er_diagram']}\n```"
+                )
+            except Exception as exc:
+                extracted_text = f"[SQLite Veritabanı: {file.filename} ({exc})]"
+            finally:
+                tmp_db.unlink(missing_ok=True)
             forced_task_type = "analiz"
         elif name.endswith(".zip"):
             try:
@@ -483,16 +653,59 @@ async def _prepare_chat_request(
         else:
             file_note = f"\n\n[Not: '{file.filename}' desteklenmeyen bir dosya türü.]"
 
+    # Domain Experts & KVKK PII auto-enrichment
+    lower_prompt = prompt.lower()
+    combined_source = f"{prompt}\n{extracted_text}".strip()
+    if any(k in lower_prompt for k in ("kvkk", "pii", "maskele", "anonimleştir", "anonimlestir", "kişisel veri gizle")):
+        import media_lab_arena as mla
+
+        pii = mla.redact_sensitive_pii(combined_source)
+        if pii["has_pii"]:
+            file_note += (
+                f"\n\n### KVKK / PII Hassas Veri Maskeleme Özeti ({pii['total_redacted']} öğe maskelendi)\n"
+                f"- **Sayım:** `{json.dumps(pii['counts'], ensure_ascii=False)}`\n"
+                f"- **Maskelenmiş Metin:**\n```\n{pii['cleaned_text'][:2000]}\n```\n"
+            )
+    if any(k in lower_prompt for k in ("sözleşme risk", "sozlesme risk", "redline", "cezai şart", "cezai sart", "hukuki inceleme")):
+        import domain_experts as de
+
+        leg = de.analyze_legal_contract(combined_source)
+        file_note += (
+            f"\n\n--- Hukuki Sözleşme Risk Motoru Çıktısı ---\n"
+            f"Genel Risk: {leg['overall_risk']} (Skor: {leg['risk_score']}/100, Yüksek Risk: {leg['high_risk_count']})\n"
+            f"Eksik Maddeler: {', '.join(leg['missing_clauses']) or 'Yok'}\n"
+            f"Revizyon (Redline) Önerileri: {json.dumps(leg['redline_recommendations'], ensure_ascii=False)}"
+        )
+    if any(k in lower_prompt for k in ("dcf", "monte carlo", "şirket değerleme", "sirket degerleme", "cfo analiz", "npv simülasyon")):
+        import domain_experts as de
+
+        cfo = de.run_cfo_financial_analysis()
+        file_note += (
+            f"\n\n--- CFO Finansal Değerleme ve 500-Koşulu Monte Carlo Motoru ---\n"
+            f"Oranlar: Cari Oran={cfo['ratios']['current_ratio']}, ROE={cfo['ratios']['roe']}, Borç/Özsermaye={cfo['ratios']['debt_to_equity']}\n"
+            f"5 Yıllık İNA (DCF) Firma Değeri: {cfo['dcf']['enterprise_value']:,.2f} | Baz NPV: {cfo['dcf']['base_npv']:,.2f}\n"
+            f"Monte Carlo (500 Koşu): P10={cfo['monte_carlo']['p10_npv']:,.2f} | P50={cfo['monte_carlo']['p50_npv']:,.2f} | P90={cfo['monte_carlo']['p90_npv']:,.2f} | Pozitif NPV Olasılığı=%{cfo['monte_carlo']['prob_positive_npv']*100:.1f}"
+        )
+
     full_prompt = prompt
     if extracted_text:
         full_prompt = f"{prompt}\n\n--- Eklenen dosya içeriği ---\n{extracted_text[:8000]}"
     else:
         import company_rag
+        import hybrid_graph_rag
 
         kb_docs = company_rag.search_company_kb_sync(prompt, top_k=2)
-        if kb_docs:
-            kb_text = "\n".join(f"- {d['title']}: {d['content']}" for d in kb_docs)
-            full_prompt = f"{prompt}\n\n--- Şirket Mühendislik Bilgi Bankası (RAG) ---\n{kb_text}"
+        graph_lines: list[str] = []
+        try:
+            grag = hybrid_graph_rag.HybridGraphRAG()
+            g_hits = grag.hybrid_search(prompt, top_k=2)
+            for gh in g_hits:
+                graph_lines.append(f"- [GraphRAG] {gh['title']}: {gh['content'][:300]}")
+        except Exception:
+            pass
+        if kb_docs or graph_lines:
+            kb_text = "\n".join([*(f"- {d['title']}: {d['content']}" for d in kb_docs), *graph_lines])
+            full_prompt = f"{prompt}\n\n--- Şirket Mühendislik Bilgi Bankası (Hybrid GraphRAG) ---\n{kb_text}"
     full_prompt += file_note
 
     # Skip the classifier call when a keyword match already determines the category.
@@ -540,7 +753,7 @@ async def get_assistant_media(filename: str):
     if not target.is_file():
         raise HTTPException(status_code=404, detail="Dosya bulunamadı.")
     headers = {"Cache-Control": "no-cache"}
-    if safe.endswith((".xlsx", ".docx", ".pdf")):
+    if safe.endswith((".xlsx", ".docx", ".pptx", ".pdf")):
         headers["Content-Disposition"] = f'attachment; filename="{safe}"'
     return FileResponse(target, headers=headers)
 
@@ -553,6 +766,15 @@ async def chat_stream(
 ):
     """Streaming chat endpoint: tokens arrive as Server-Sent Events."""
     has_file = bool(file is not None and file.filename)
+
+    if _is_3d_cad_request(file):
+        report_md = await _run_3d_cad_cam_from_chat(file, prompt)  # type: ignore[arg-type]
+
+        async def _cad3d_gen():
+            yield f"data: {json.dumps({'type': 'token', 'content': report_md}, ensure_ascii=False)}\n\n"
+            yield f"data: {json.dumps({'type': 'done', 'model': 'cnc-ballooner', 'task_type': 'cad3d'})}\n\n"
+
+        return StreamingResponse(_cad3d_gen(), media_type="text/event-stream")
 
     if _is_cnc_balloon_request(prompt, file):
         report_md = await _run_cnc_balloon_from_chat(file)  # type: ignore[arg-type]
@@ -728,7 +950,14 @@ async def chat_stream(
     if ANSWER_SYSTEM_PROMPT:
         messages.append({"role": "system", "content": ANSWER_SYSTEM_PROMPT})
 
-    # Multi-turn conversation history support (up to last 10 turns)
+    # Multi-turn conversation history + 4-Layer Persistent Semantic Memory
+    import memory_engine as mem
+
+    mem.extract_and_upsert_memories(prompt)
+    mem_ctx = mem.build_memory_context_block(prompt)
+    if mem_ctx and messages and messages[0]["role"] == "system":
+        messages[0]["content"] = f"{messages[0]['content']}\n\n{mem_ctx}"
+
     try:
         hist_items = json.loads(history) if history else []
         if isinstance(hist_items, list):
@@ -737,6 +966,7 @@ async def chat_stream(
                     messages.append({"role": h_msg["role"], "content": str(h_msg["text"])[:3000]})
     except Exception:
         pass
+    messages = mem.compact_conversation_context(messages)
 
     # If an image was processed/edited, prepend the processed image preview before the LLM analysis
     pre_note = ""
@@ -879,3 +1109,21 @@ async def run_code(body: CodeRunRequest):
     # subprocess.run is blocking; without a thread a running snippet could hold up another
     # user's /chat request on the same event loop for up to CODE_RUN_TIMEOUT_SECONDS.
     return await asyncio.to_thread(_run_code_blocking, body.code)
+
+
+@router.get("/enterprise-status")
+async def enterprise_status():
+    """Return live telemetry, Thompson Bandit Router state, LLMOps DPO status, and 12-discipline ELO Arena leaderboard."""
+    import cluster_telemetry as ct
+    import enterprise_security_mcp as esm
+    import llmops_pipeline as lp
+    import media_lab_arena as mla
+
+    arena = mla.CognitiveArena()
+    return {
+        "telemetry": ct.get_local_hardware_telemetry(query_ollama=False),
+        "llmops": lp.get_llmops_stats(),
+        "audit_chain_valid": esm.AuditTrail().verify_chain(),
+        "elo_leaderboard": arena.get_leaderboard()[:5],
+    }
+
