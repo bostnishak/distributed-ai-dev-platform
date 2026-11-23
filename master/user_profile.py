@@ -424,30 +424,80 @@ def personalization_block(user_id: str) -> str:
 def cross_chat_snippets(
     user_id: str, query: str, exclude_conversation: str = "", limit: int = 3
 ) -> list[dict[str, str]]:
-    """Full-text search over this user's other conversations."""
+    """Search across BOTH saved UI chats and FTS5 episodic conversation messages."""
     memory_engine.init_memory_db()
     uid = valid_user_id(user_id)
-    tokens = [t for t in re.findall(r"[A-Za-z0-9ÇĞİÖŞÜçğıöşü]+", query or "") if len(t) > 2]
-    if not tokens:
+    cap = max(1, min(limit, 20))
+    raw_q = (query or "").strip()
+    if not raw_q:
         return []
-    fts_q = " OR ".join(f'"{t}"' for t in tokens[:6])
-    conn = memory_engine._connect()
-    try:
-        rows = conn.execute(
-            """
-            SELECT f.conversation_id AS conversation_id, c.title AS title, f.role AS role,
-                   snippet(messages_fts, 2, '[', ']', '...', 28) AS snippet
-            FROM messages_fts f
-            JOIN conversations c ON c.id = f.conversation_id
-            WHERE messages_fts MATCH ? AND c.user_id = ? AND f.conversation_id != ?
-            ORDER BY rank
-            LIMIT ?
-            """,
-            (fts_q, uid, exclude_conversation or "", max(1, min(limit, 20))),
-        ).fetchall()
-    finally:
-        conn.close()
-    return [dict(r) for r in rows]
+
+    results: list[dict[str, str]] = []
+    seen: set[tuple[str, str]] = set()
+
+    # 1. Search saved_chats directly (covers every UI chat with Turkish-tolerant folding)
+    q_folded = _fold_tr(raw_q)
+    q_tokens = _tr_tokens(raw_q)
+    saved = list_saved_chats(uid)
+    for cid, rec in saved.items():
+        if cid == (exclude_conversation or ""):
+            continue
+        title = (rec.get("title") or "Sohbet").strip()
+        for m in rec.get("messages") or []:
+            body = str(m.get("text") or "").strip()
+            if not body:
+                continue
+            body_folded = _fold_tr(body)
+            matched = q_folded in body_folded or (
+                q_tokens and any(_token_root_match(qt, bt) for qt in q_tokens for bt in _tr_tokens(body[:1200]))
+            )
+            if matched:
+                idx = body_folded.find(q_folded) if q_folded in body_folded else 0
+                start = max(0, idx - 45)
+                snip = ("..." if start > 0 else "") + body[start : start + 140].replace("\n", " ") + ("..." if start + 140 < len(body) else "")
+                key = (cid, snip[:48])
+                if key not in seen:
+                    seen.add(key)
+                    results.append({
+                        "conversation_id": cid,
+                        "title": title,
+                        "role": str(m.get("role") or "user"),
+                        "snippet": snip,
+                    })
+                    if len(results) >= cap:
+                        return results
+
+    # 2. Merge any FTS5 hits not already found
+    tokens = [t for t in re.findall(r"[A-Za-z0-9ÇĞİÖŞÜçğıöşü]+", raw_q) if len(t) > 2]
+    if tokens:
+        fts_q = " OR ".join(f'"{t}"' for t in tokens[:6])
+        conn = memory_engine._connect()
+        try:
+            rows = conn.execute(
+                """
+                SELECT f.conversation_id AS conversation_id, c.title AS title, f.role AS role,
+                       snippet(messages_fts, 2, '[', ']', '...', 28) AS snippet
+                FROM messages_fts f
+                JOIN conversations c ON c.id = f.conversation_id
+                WHERE messages_fts MATCH ? AND c.user_id = ? AND f.conversation_id != ?
+                ORDER BY rank
+                LIMIT ?
+                """,
+                (fts_q, uid, exclude_conversation or "", cap),
+            ).fetchall()
+            for r in rows:
+                d = dict(r)
+                key = (d["conversation_id"], str(d["snippet"])[:48])
+                if key not in seen:
+                    seen.add(key)
+                    results.append(d)
+                    if len(results) >= cap:
+                        break
+        except Exception:
+            pass
+        finally:
+            conn.close()
+    return results
 
 
 _TR_FOLD = str.maketrans("ÇĞİÖŞÜçğıöşüİ", "cgiosucgiosui")
