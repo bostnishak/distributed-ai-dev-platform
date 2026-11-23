@@ -1,2 +1,21 @@
-# Shell scripts must keep LF line endings or they fail on macOS/Linux (and in Git Bash/WSL).
+# Normalize line endings across Windows/Linux/Docker/CI (DEF-20)
+* text=auto eol=lf
+
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
 *.sh text eol=lf
+Dockerfile text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.db binary
+*.sqlite binary

@@ -1,0 +1,9 @@
+# Optional dependencies for extended local capabilities (DEF-13, DEF-15)
+# Core runtime works cleanly without these; /api/assistant/config reports their live availability.
+faster-whisper>=1.0.0
+playwright>=1.48.0
+pytesseract>=0.3.13
+sympy>=1.13.0
+scipy>=1.13.0
+radon>=6.0.1
+mkdocs>=1.6.0

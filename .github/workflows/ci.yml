@@ -137,6 +137,20 @@ jobs:
           docker build -t dadp-master:ci master
           docker build -t dadp-agent:ci agent
           docker build -t platform-sandbox:ci docker/sandbox
+      - name: Master container smoke test (/health & /ready, DEF-14)
+        run: |
+          docker run -d --name dadp-smoke -p 127.0.0.1:8000:8000 -e AGENT_TOKEN=ci-smoke dadp-master:ci
+          for i in $(seq 1 20); do
+            if curl -fsS http://127.0.0.1:8000/health; then
+              curl -sS -o /dev/null -w "ready_http=%{http_code}\n" http://127.0.0.1:8000/ready
+              docker rm -f dadp-smoke
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs dadp-smoke
+          docker rm -f dadp-smoke
+          exit 1
       - name: Trivy container image vulnerability scan (SEC-19)
         uses: aquasecurity/trivy-action@0.28.0
         with:

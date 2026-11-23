@@ -1,19 +1,23 @@
 {
- "generated_at": "2026-11-23T18:42:22+00:00",
+ "generated_at": "2026-11-23T18:49:10+00:00",
  "items": {
   "DEF-01": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_def_foundation_parca1.py"
+    ],
+    "commit": "b968241",
     "eval_report": ""
    }
   },
   "DEF-02": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_def_foundation_parca1.py"
+    ],
+    "commit": "b968241",
     "eval_report": ""
    }
   },
@@ -26,170 +30,212 @@
    }
   },
   "DEF-04": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops.py"
+    ],
+    "commit": "7417c6d",
     "eval_report": ""
    }
   },
   "DEF-05": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "DEF-06": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "DEF-07": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "DEF-08": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "DEF-09": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "DEF-10": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "DEF-11": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_def_foundation_parca1.py"
+    ],
+    "commit": "b968241",
     "eval_report": ""
    }
   },
   "DEF-12": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_data_layer.py"
+    ],
+    "commit": "bb0ba53",
     "eval_report": ""
    }
   },
   "DEF-13": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_def_foundation_parca1.py"
+    ],
+    "commit": "b968241",
     "eval_report": ""
    }
   },
   "DEF-14": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_def_foundation_parca1.py"
+    ],
+    "commit": "b968241",
     "eval_report": ""
    }
   },
   "DEF-15": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_def_foundation_parca1.py"
+    ],
+    "commit": "b968241",
     "eval_report": ""
    }
   },
   "DEF-16": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "DEF-17": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "DEF-18": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "agent/tests/test_agent.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "DEF-19": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_def_foundation_parca1.py"
+    ],
+    "commit": "b968241",
     "eval_report": ""
    }
   },
   "DEF-20": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_def_foundation_parca1.py"
+    ],
+    "commit": "b968241",
     "eval_report": ""
    }
   },
   "DEF-21": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_def_foundation_parca1.py"
+    ],
+    "commit": "b968241",
     "eval_report": ""
    }
   },
   "DEF-22": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_def_foundation_parca1.py"
+    ],
+    "commit": "b968241",
     "eval_report": ""
    }
   },
   "DEF-23": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_def_foundation_parca1.py"
+    ],
+    "commit": "b968241",
     "eval_report": ""
    }
   },
   "DEF-24": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_def_foundation_parca1.py"
+    ],
+    "commit": "b968241",
     "eval_report": ""
    }
   },

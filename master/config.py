@@ -63,6 +63,21 @@ CNC_JOBS_DIR = Path(os.environ.get("CNC_JOBS_DIR", str(DATA_DIR / "cnc_jobs")))
 WORKSPACES_DIR = Path(os.environ.get("WORKSPACES_DIR", str(DATA_DIR / "workspaces")))
 SAMPLES_DIR = BASE_DIR.parent / "samples"
 
+
+def data_dir() -> Path:
+    """DEF-11: Resolve data directory dynamically from current DB_PATH at call time."""
+    return Path(DB_PATH).resolve().parent
+
+
+def workspaces_dir() -> Path:
+    """DEF-11: Resolve workspaces directory dynamically from current DB_PATH."""
+    return data_dir() / "workspaces"
+
+
+def cnc_jobs_dir() -> Path:
+    """DEF-11: Resolve CNC jobs directory dynamically from current DB_PATH."""
+    return data_dir() / "cnc_jobs"
+
 # --- Enterprise AI Models (CNC Ballooning & Project Studio) ---
 CNC_VISION_MODEL = os.environ.get("CNC_VISION_MODEL", "cnc-ballooner")
 STUDIO_CODER_MODEL = os.environ.get("STUDIO_CODER_MODEL", "qwen2.5-coder:7b")

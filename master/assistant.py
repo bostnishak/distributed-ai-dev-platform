@@ -318,17 +318,25 @@ DEFAULT_TASK = "genel"
 _EMOJI_STRIP_RE = re.compile(
     "["
     "\U0001F300-\U0001FAFF"
-    "\U00002600-\U000027BF"
     "\U0001F1E0-\U0001F1FF"
+    "\U00002600-\U000026FF"
+    "\U00002700-\U00002712"
+    "\U00002728\U0000274C\U00002753-\U00002755\U00002764"
     "\u200d\ufe0f"
     "]+",
     flags=re.UNICODE,
 )
+_FENCED_CODE_SPLIT_RE = re.compile(r"(```[\s\S]*?```)")
 
 
 def _strip_emojis(text: str) -> str:
-    """Deterministically remove any emoji emitted by the LLM so zero emojis ever reach the UI."""
-    return _EMOJI_STRIP_RE.sub("", text)
+    """DEF-23: Strip emojis outside fenced code blocks while preserving technical symbols (→, ✓, ≤, ©)."""
+    if not text:
+        return text
+    parts = _FENCED_CODE_SPLIT_RE.split(text)
+    for idx in range(0, len(parts), 2):
+        parts[idx] = _EMOJI_STRIP_RE.sub("", parts[idx])
+    return "".join(parts)
 
 
 ANSWER_SYSTEM_PROMPT = (
@@ -510,11 +518,91 @@ def _safe_eval_node(node: ast.AST) -> float:
     raise ValueError("unsupported expression")
 
 
+def _try_extended_calculation(prompt: str) -> str | None:
+    """DEF-22: Deterministic percentages, KDV, unit conversions, date diffs, and compound interest."""
+    from datetime import date
+    from decimal import Decimal
+
+    raw = prompt.strip()
+    if not raw or len(raw) > 200:
+        return None
+    low = raw.lower()
+
+    # 1. Compound interest: "10000 TL %20 2 yıl bileşik faiz"
+    m_ci = re.search(
+        r"(\d+(?:[.,]\d+)?)\s*(?:tl|usd|eur|\$|€)?\s*%(\d+(?:[.,]\d+)?)\s*(\d+)\s*(?:yıl|yil|year).*bileşik\s*faiz",
+        low,
+    )
+    if m_ci:
+        p = Decimal(m_ci.group(1).replace(",", "."))
+        r = Decimal(m_ci.group(2).replace(",", ".")) / Decimal("100")
+        n = int(m_ci.group(3))
+        total = (p * ((Decimal("1") + r) ** n)).quantize(Decimal("0.01"))
+        return f"Bileşik faiz ({p} x (1 + {r})^{n}) = {total}"
+
+    # 2. KDV / VAT: "1000 TL %20 KDV dahil/hariç"
+    m_kdv = re.search(r"(\d+(?:[.,]\d+)?)\s*(?:tl|₺)?\s*%(\d+(?:[.,]\d+)?)\s*kdv", low)
+    if m_kdv:
+        base = Decimal(m_kdv.group(1).replace(",", "."))
+        rate = Decimal(m_kdv.group(2).replace(",", ".")) / Decimal("100")
+        kdv = (base * rate).quantize(Decimal("0.01"))
+        total = (base + kdv).quantize(Decimal("0.01"))
+        return f"KDV (%{m_kdv.group(2)}): {kdv}, Toplam = {total}"
+
+    # 3. Percentage: "200'ün %15'i" or "%15 of 200"
+    m_pct = re.search(r"(\d+(?:[.,]\d+)?)\s*(?:'?[ıiuü]n)?\s*%(\d+(?:[.,]\d+)?)", low)
+    if m_pct:
+        val = Decimal(m_pct.group(1).replace(",", "."))
+        pct = Decimal(m_pct.group(2).replace(",", "."))
+        res = val * pct / Decimal("100")
+        res_s = format(res, "f").rstrip("0").rstrip(".") if "." in format(res, "f") else format(res, "f")
+        return f"{val} x %{pct} = {res_s}"
+
+    # 4. Date diff: "2026-01-01 ile 2026-01-31 kaç gün"
+    m_date = re.search(r"(\d{4}-\d{2}-\d{2}).*?(\d{4}-\d{2}-\d{2})", low)
+    if m_date and any(k in low for k in ("gün", "gun", "days", "fark")):
+        try:
+            d1 = date.fromisoformat(m_date.group(1))
+            d2 = date.fromisoformat(m_date.group(2))
+            return f"{d1.isoformat()} .. {d2.isoformat()} = {abs((d2 - d1).days)} gün"
+        except ValueError:
+            return None
+
+    # 5. Common unit conversions: "5 km kaç m", "25 C kaç F", "2 gb kaç mb"
+    m_unit = re.search(
+        r"(-?\d+(?:[.,]\d+)?)\s*(km|m|cm|mm|kg|g|gb|mb|c|f)\s*(?:kaç|kac|to|->)\s*(km|m|cm|mm|kg|g|gb|mb|c|f)\b",
+        low,
+    )
+    if m_unit:
+        val = float(m_unit.group(1).replace(",", "."))
+        u_from, u_to = m_unit.group(2), m_unit.group(3)
+        factors: dict[tuple[str, str], float] = {
+            ("km", "m"): 1000.0, ("m", "km"): 0.001,
+            ("m", "cm"): 100.0, ("cm", "m"): 0.01,
+            ("cm", "mm"): 10.0, ("mm", "cm"): 0.1,
+            ("m", "mm"): 1000.0, ("mm", "m"): 0.001,
+            ("kg", "g"): 1000.0, ("g", "kg"): 0.001,
+            ("gb", "mb"): 1024.0, ("mb", "gb"): 1.0 / 1024.0,
+        }
+        if (u_from, u_to) in factors:
+            out = round(val * factors[(u_from, u_to)], 6)
+            out_s = int(out) if float(out).is_integer() else out
+            return f"{val:g} {u_from} = {out_s} {u_to}"
+        if (u_from, u_to) == ("c", "f"):
+            out = round(val * 9.0 / 5.0 + 32.0, 2)
+            return f"{val:g} C = {out} F"
+        if (u_from, u_to) == ("f", "c"):
+            out = round((val - 32.0) * 5.0 / 9.0, 2)
+            return f"{val:g} F = {out} C"
+    return None
+
+
 def try_calculate(prompt: str) -> str | None:
-    """Return "expression = result" if the prompt is a pure arithmetic expression end to end
-    (e.g. '125*4 kaç eder', '(38+7)/3'); otherwise None, so the caller falls through to the
-    normal classify/route flow. No eval() -- only numeric constants and +-*/%** reach a
-    restricted AST walk."""
+    """Return "expression = result" if the prompt is a deterministic arithmetic, percentage, unit,
+    date-diff, or compound-interest expression; otherwise None. No eval()."""
+    extended = _try_extended_calculation(prompt)
+    if extended is not None:
+        return extended
     text = _CALC_TRAILING_WORDS.sub("", prompt.strip()).strip().rstrip("?").strip()
     if (
         not text
@@ -1632,16 +1720,39 @@ def _run_code_blocking(code: str) -> CodeRunResponse:
     )
 
 
+def _optional_pkg_capability(pkg_name: str, install_hint: str) -> dict[str, object]:
+    import importlib.util
+
+    ok = importlib.util.find_spec(pkg_name) is not None
+    return {
+        "available": ok,
+        "reason": "Hazır" if ok else f"Kurulu değil ({install_hint})",
+    }
+
+
 @router.get("/config")
 async def assistant_config():
-    """Tells the web UI which optional Assistant features and sandbox isolation are available."""
+    """DEF-15: Tells the web UI which optional Assistant features and capabilities are available."""
     import sandbox
 
     sb = sandbox.status()
+    capabilities = {
+        "stt": _optional_pkg_capability("faster_whisper", "pip install faster-whisper"),
+        "tts": {"available": True, "reason": "Tarayıcı Web Speech API"},
+        "ocr": _optional_pkg_capability("pytesseract", "pip install pytesseract"),
+        "web_search": {
+            "available": bool(os.environ.get("SEARXNG_URL", "").strip()),
+            "reason": "SearXNG yapılandırıldı" if os.environ.get("SEARXNG_URL", "").strip() else "SEARXNG_URL tanımlı değil",
+        },
+        "image_gen": _optional_pkg_capability("PIL", "pip install pillow"),
+        "sandbox": {"available": sb["available"], "reason": sb["reason"]},
+        "vector_index": _optional_pkg_capability("numpy", "pip install numpy"),
+    }
     return {
         "code_run_enabled": bool(config.CODE_RUN_ENABLED and sb["available"]),
         "sandbox_available": sb["available"],
         "sandbox_reason": sb["reason"],
+        "capabilities": capabilities,
     }
 
 

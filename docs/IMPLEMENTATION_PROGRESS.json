@@ -1,4 +1,5 @@
 {
+  "_deprecated_notice": "ARCHIVED (DEF-19): Legacy self-declared progress file. Canonical evidence-based progress is tracked in docs/plan-v2/PROGRESS.json and verified by `python scripts/plan_tool.py status`.",
   "project": "Universal Autonomous AI Operating System, Software Factory & CNC Engineering Platform",
   "plan_document": "docs/ENTERPRISE_AI_MASTER_IMPLEMENTATION_PLAN.md",
   "updated_at": "2026-11-23T17:40:00Z",

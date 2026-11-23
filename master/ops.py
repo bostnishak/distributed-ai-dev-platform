@@ -30,6 +30,7 @@ import maintenance
 import memory_maintenance
 import metrics
 import portability
+import process_utils
 import readiness
 import search_index
 from access_control import require_local_or_admin
@@ -183,6 +184,7 @@ async def admin_data_services(query: str = Query(default="")):
         "portability_format": portability.FORMAT,
         "memory_consolidation_available": callable(memory_maintenance.consolidate),
         "sample_tokens": search_index.tokens(query) if query else [],
+        "supervisors": process_utils.all_supervisor_statuses(),
     }
 
 
