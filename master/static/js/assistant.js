@@ -1064,7 +1064,7 @@ function addUserMessage(text, fileName, record = true) {
   bubble.textContent = fileName ? `[Dosya: ${fileName}]\n${text}` : text;
 
   const branchBtn = document.createElement('span');
-  branchBtn.className = 'download-link';
+  branchBtn.className = 'download-link sp-branch-link';
   branchBtn.style.marginTop = '3px';
   branchBtn.textContent = 'Düzenle & Dallandır';
   branchBtn.title = 'Bu mesajı düzenleyerek sohbeti buradan yeni bir dala ayır';
@@ -1204,15 +1204,51 @@ async function sendMessage() {
   els.sendBtn.title = 'Yanıtı durdur';
   els.sendBtn.classList.add('ready');
 
-  // Create a streaming bubble
+  // Create an animated thinking + streaming bubble with spinning wheel, stages, and live timer
   const row = document.createElement('div');
   row.className = 'msg-row assistant';
   const wrap = document.createElement('div');
   wrap.className = 'msg-wrap';
+
+  const streamBar = document.createElement('div');
+  streamBar.className = 'sp-stream-bar';
+  streamBar.hidden = true;
+  streamBar.innerHTML = '<span class="sp-think-ring sm"></span><span class="sp-stream-text">Yanıt yazılıyor...</span>';
+
   const bubble = document.createElement('div');
   bubble.className = 'msg assistant thinking';
-  bubble.textContent = 'düşünüyor...';
-  wrap.appendChild(bubble);
+  const stages = fileToSend
+    ? ['Dosya okunuyor ve denetleniyor', 'Bağlam ve hafıza taranıyor', 'Düşünüyor ve analiz ediyor', 'Yanıt hazırlanıyor']
+    : ['Düşünüyor', 'Hafıza ve bilgi bankası taranıyor', 'Yanıt hazırlanıyor'];
+  bubble.innerHTML = `
+    <div class="sp-think-head">
+      <span class="sp-think-ring"></span>
+      <span class="sp-think-label">${stages[0]}<span class="sp-think-dots"><i></i><i></i><i></i></span></span>
+      <span class="sp-think-timer">0,0 sn</span>
+    </div>
+    <div class="sp-think-skel"><span></span><span></span><span></span></div>
+  `;
+  const thinkLabelEl = bubble.querySelector('.sp-think-label');
+  const thinkTimerEl = bubble.querySelector('.sp-think-timer');
+  const streamTextEl = streamBar.querySelector('.sp-stream-text');
+  const startedAt = performance.now();
+  let stageIdx = 0;
+  const thinkTicker = setInterval(() => {
+    const sec = (performance.now() - startedAt) / 1000;
+    const secStr = sec.toFixed(1).replace('.', ',') + ' sn';
+    if (!streaming) {
+      if (thinkTimerEl) thinkTimerEl.textContent = secStr;
+      const nextIdx = Math.min(stages.length - 1, Math.floor(sec / 2.2));
+      if (nextIdx !== stageIdx && thinkLabelEl) {
+        stageIdx = nextIdx;
+        thinkLabelEl.innerHTML = `${stages[stageIdx]}<span class="sp-think-dots"><i></i><i></i><i></i></span>`;
+      }
+    } else if (streamTextEl) {
+      streamTextEl.textContent = `Yanıt yazılıyor · ${secStr}`;
+    }
+  }, 150);
+
+  wrap.append(streamBar, bubble);
   row.appendChild(wrap);
   els.messages.appendChild(row);
   els.messages.scrollTop = els.messages.scrollHeight;
@@ -1269,7 +1305,9 @@ async function sendMessage() {
             streaming = true;
             ttftMs = Math.max(1, Math.round(performance.now() - reqStartMs));
             bubble.classList.remove('thinking');
+            bubble.classList.add('streaming');
             bubble.textContent = '';
+            streamBar.hidden = false;
           }
           fullText += evt.content;
           bubble.innerHTML = renderMarkdown(fullText);
@@ -1352,6 +1390,9 @@ async function sendMessage() {
       addAssistantMessage('Bağlantı hatası: ' + err.message, null, true, false);
     }
   } finally {
+    clearInterval(thinkTicker);
+    bubble.classList.remove('thinking', 'streaming');
+    streamBar.remove();
     activeStreamAbortController = null;
     els.sendBtn.textContent = '↑';
     els.sendBtn.title = '';
