@@ -20,6 +20,7 @@ from pydantic import BaseModel
 
 import config
 import db_doctor
+import db_portable
 import dbconn
 import erd
 import error_tracker
@@ -182,6 +183,7 @@ async def admin_erd():
 async def admin_data_services(query: str = Query(default="")):
     return {
         "portability_format": portability.FORMAT,
+        "sql_dialect": db_portable.detect_dialect(),
         "memory_consolidation_available": callable(memory_maintenance.consolidate),
         "sample_tokens": search_index.tokens(query) if query else [],
         "supervisors": process_utils.all_supervisor_statuses(),

@@ -146,3 +146,23 @@ def test_def24_run_process_handles_utf8_and_invalid_bytes():
     assert res.returncode == 0
     assert res.timed_out is False
     assert "Türkçe ğüşiöç" in res.stdout
+
+
+def test_dat16_portable_sqlite_and_postgres_dialect_translation(tmp_path: Path):
+    """DAT-16: PortableDB runs SQLite natively and translates placeholders & DDL cleanly for PostgreSQL."""
+    import db_portable
+
+    assert db_portable.detect_dialect(tmp_path / "x.db") == "sqlite"
+    assert db_portable.detect_dialect("postgresql://user:pass@localhost:5432/dadp") == "postgresql"
+    assert db_portable.translate_placeholders("SELECT * FROM t WHERE a = ? AND b = '?' AND c = ?", "postgresql") == (
+        "SELECT * FROM t WHERE a = %s AND b = '?' AND c = %s"
+    )
+    assert "SERIAL PRIMARY KEY" in db_portable.translate_ddl(
+        "CREATE TABLE items (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)", "postgresql"
+    )
+
+    with db_portable.PortableDB(tmp_path / "portable.db") as pdb:
+        pdb.execute("CREATE TABLE kv (k TEXT PRIMARY KEY, v TEXT)")
+        pdb.execute("INSERT INTO kv (k, v) VALUES (?, ?)", ("hello", "world"))
+        row = pdb.execute("SELECT v FROM kv WHERE k = ?", ("hello",)).fetchone()
+        assert row["v"] == "world"

@@ -25,44 +25,19 @@ ALL_PLAN_MODULES = [
     "tool_executor",
     "deep_research",
     "document_factory",
-    "voice_engine",
-    "media_analyzer",
-    "image_studio",
     "code_graph",
-    "project_archetypes",
-    "software_factory",
     "self_healing_runner",
-    "visual_verifier",
-    "build_pipelines",
-    "security_scanner",
     "automl_studio",
-    "browser_agent",
-    "desktop_automation",
     "cluster_telemetry",
-    "swarm_coordinator",
-    "bandit_router",
-    "map_reduce_llm",
-    "fault_tolerance",
     "hybrid_graph_rag",
-    "citation_guard",
     "llmops_pipeline",
     "cad_cam_physics",
-    "cad_projection",
-    "cam_postprocessor",
-    "fea_solver",
-    "dfm_advisor",
-    "cmm_closed_loop",
-    "vision_qc",
-    "machine_iot",
     "rfq_batch",
     "erp_mes_scheduler",
     "enterprise_security_mcp",
     "audit_log",
-    "secure_sandbox",
-    "automation_engine",
     "domain_experts",
     "media_lab_arena",
-    "vram_manager",
     "backup_manager",
     "user_profile",
     "user_api",
@@ -77,6 +52,9 @@ ALL_PLAN_MODULES = [
     "games",
     "domains",
     "distributed",
+    "sandbox",
+    "db_portable",
+    "process_utils",
 ]
 
 
@@ -96,7 +74,7 @@ def test_memory_api_and_backup_endpoints(client):
 
 
 def test_vram_manager_single_vs_multi_node():
-    import vram_manager as vm
+    from gateway import power_manager as vm
 
     single = vm.compute_vram_execution_plan(["qwen3.5:9b", "qwen2.5-coder:7b"], available_vram_gb=8.0, online_agents=1)
     assert single["mode"] == "single_node_sequential"
@@ -129,9 +107,8 @@ def test_workspace_terminal_git_and_search_endpoints(client, tmp_path: Path):
 
 
 def test_build_pipelines_visual_verifier_and_rfq_batch(tmp_path: Path):
-    import build_pipelines as bp
     import rfq_batch
-    import visual_verifier as vv
+    from factory import deploy_verify as bp
 
     ws = tmp_path / "sample_web"
     ws.mkdir()
@@ -145,7 +122,7 @@ def test_build_pipelines_visual_verifier_and_rfq_batch(tmp_path: Path):
     assert (ws / "Dockerfile").is_file() and (ws / "docker-compose.yml").is_file()
     assert dock
 
-    ui_check = vv.verify_web_workspace_ui(ws)
+    ui_check = bp.verify_web_workspace_ui(ws)
     assert isinstance(ui_check, dict)
 
     # Test RFQ batch ZIP with 2 STEP parts

@@ -1,6 +1,8 @@
 # Erişilemeyen Modül Sınıflandırması — Wiring Triage (DEF-02)
 
-Bu tablo `docs/plan-v2/wiring_allowlist.txt` içindeki tüm eski/erişilemeyen modüller için mimari kararı tanımlar (`BİRLEŞTİR` yeni paket mimarisine taşınanlar, `BAĞLA` ilgili plan maddesine bağlı olanlar, `DONDUR/SİL` kapsam dışı bırakılanlar).
+Bu tablo ilk denetimde tespit edilen tüm 45 eski/erişilemeyen modül için mimari kararı tanımlar (`BİRLEŞTİR` yeni paket mimarisine taşınanlar, `BAĞLA` ilgili plan maddesine bağlı olanlar, `DONDUR/SİL` kapsam dışı bırakılanlar).
+
+**Güncel durum:** Aşağıdaki tüm 45 eski modül ilgili yeni paketlere taşınmış veya kapsam dışı olarak kaldırılmıştır (`python scripts/plan_tool.py wiring --fail-on-new --facades` çıktısı: `0` erişilemeyen modül, `0` ince sarmalayıcı; `wiring_allowlist.txt` boştur).
 
 | Modül | Karar | Hedef Paket / Plan Maddesi | Gerekçe |
 |---|---|---|---|

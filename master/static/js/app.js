@@ -1,6 +1,7 @@
 // Shell: hash router, navigation and the mobile sidebar drawer.
 import { renderAgents } from './agents.js';
 import { focusAssistant, initAssistant } from './assistant.js';
+import { initAuthUi } from './auth_modal.js';
 import { renderDashboard } from './dashboard.js';
 import { initPersonalSpace } from './personal.js';
 import { renderNewProject, renderProjectDetail, renderProjects } from './projects.js';
@@ -85,5 +86,6 @@ window.addEventListener('hashchange', route);
 
 initAssistant();
 initPersonalSpace();
+initAuthUi();
 fetchHealthWizardStatus().then((hw) => { if (hw) window.__DADP_HEALTH_WIZARD__ = hw; }).catch(() => {});
 route();

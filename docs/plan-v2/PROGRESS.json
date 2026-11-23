@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-23T19:46:43+00:00",
+ "generated_at": "2026-11-23T20:13:58+00:00",
  "items": {
   "DEF-01": {
    "status": "done",
@@ -1371,7 +1371,7 @@
      "master/tests/test_rag_hallucination_ml.py"
     ],
     "commit": "6e838fc",
-    "eval_report": "eval/reports/eval_live_qwen35_4b.json"
+    "eval_report": "eval/reports/eval_live_guarded_qwen35_4b.json"
    }
   },
   "HAL-06": {
@@ -3018,7 +3018,8 @@
    "status": "done",
    "evidence": {
     "tests": [
-     "master/tests/test_distributed_and_ux.py"
+     "master/tests/test_distributed_and_ux.py",
+     "frontend/tests/ui_modules.test.mjs"
     ],
     "commit": "d87a69b",
     "eval_report": ""
@@ -3450,10 +3451,12 @@
    }
   },
   "DAT-16": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_def_foundation_parca1.py::test_dat16_portable_sqlite_and_postgres_dialect_translation"
+    ],
+    "commit": "HEAD",
     "eval_report": ""
    }
   },

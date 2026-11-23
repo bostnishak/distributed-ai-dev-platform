@@ -1,6 +1,8 @@
 // Personal space: profile card in the sidebar, theme/preferences and a full settings panel with
 // usage statistics, personalization, cross-chat memory and data controls. No framework, no CDN.
-import { api, formatDateTime, formatNumber, h, svg } from './util.js';
+import { renderSectionAppearance, renderSectionAssistant, renderSectionOverview, renderSectionProfile } from './personal_charts.js';
+import { renderSectionData, renderSectionMcp, renderSectionMemory } from './personal_sections.js';
+import { api, formatNumber, h } from './util.js';
 
 const LS_USER = 'cm6453_user_id';
 const LS_PREFS = 'cm6453_prefs';
@@ -319,140 +321,24 @@ function confirmButton(label, onConfirm, cls = 'danger') {
   return holder;
 }
 
-// ---------------------------------------------------------------- charts
-
-function dailyChart(daily) {
-  if (!Array.isArray(daily) || !daily.length) return h('div', { class: 'sp-empty' }, 'Günlük veri yok.');
-  const W = 720; const H = 190; const padL = 36; const padB = 22; const padT = 8;
-  const max = Math.max(1, ...daily.map((d) => d.tokens));
-  const niceMax = Math.ceil(max / 10 ** Math.max(0, String(max).length - 1)) * 10 ** Math.max(0, String(max).length - 1);
-  const plotW = W - padL - 6; const plotH = H - padB - padT;
-  const bw = plotW / daily.length;
-  const root = svg('svg', { class: 'sp-chart', viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Günlük token kullanımı' });
-  for (let i = 0; i <= 4; i += 1) {
-    const y = padT + plotH - (plotH * i) / 4;
-    root.append(svg('line', { class: 'grid', x1: padL, x2: W - 6, y1: y, y2: y }));
-    root.append(svg('text', { x: padL - 5, y: y + 3, 'text-anchor': 'end' }, compact(Math.round((niceMax * i) / 4))));
-  }
-  daily.forEach((d, i) => {
-    const bh = (plotH * d.tokens) / niceMax;
-    const rect = svg('rect', { class: 'sp-bar', x: padL + i * bw + bw * 0.14, y: padT + plotH - bh, width: Math.max(1, bw * 0.72), height: Math.max(d.tokens ? 2 : 0, bh), rx: 2 });
-    rect.append(svg('title', null, `${new Date(d.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}: ${formatNumber(d.tokens)} token, ${d.messages} mesaj`));
-    root.append(rect);
-    const step = Math.ceil(daily.length / 7);
-    if (i % step === 0) {
-      root.append(svg('text', { x: padL + i * bw + bw / 2, y: H - 6, 'text-anchor': 'middle' }, new Date(d.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })));
-    }
-  });
-  return root;
-}
-
-function hbars(items, nameKey, valueKey, valueLabel) {
-  const max = Math.max(1, ...items.map((i) => i[valueKey]));
-  return h('div', null, ...items.map((it) => h('div', { class: 'sp-hbar' },
-    h('div', { class: 'sp-hbar-name', title: it[nameKey] }, it[nameKey]),
-    h('div', { class: 'sp-hbar-track' }, h('div', { class: 'sp-hbar-fill', style: { width: `${(it[valueKey] / max) * 100}%` } })),
-    h('div', { class: 'sp-hbar-val' }, valueLabel(it)))));
-}
-
-function hourStrip(byHour) {
-  const max = Math.max(1, ...byHour);
-  return h('div', null,
-    h('div', { class: 'sp-hours' }, ...byHour.map((c, hr) => h('div', { class: 'sp-hour', title: `${String(hr).padStart(2, '0')}:00 - ${c} mesaj`, style: { opacity: c ? 0.18 + (0.82 * c) / max : 0.07 } }))),
-    h('div', { class: 'sp-hours-axis' }, h('span', null, '00'), h('span', null, '06'), h('span', null, '12'), h('span', null, '18'), h('span', null, '23')));
-}
-
-// ---------------------------------------------------------------- sections
-
-const TASK_LABELS = { genel: 'Genel sohbet', kod: 'Kod', analiz: 'Dosya analizi', cnc: 'CNC 2B', cad3d: 'CNC 3B CAD/CAM', proje: 'Proje üretimi', gorsel: 'Görsel', dokuman: 'Doküman', hesaplama: 'Hesaplama', engellendi: 'Engellenen' };
+// ---------------------------------------------------------------- sections (charts & overview in personal_charts.js)
 
 async function sectionOverview(body, state) {
-  body.replaceChildren(h('div', { class: 'loading' }, h('span', { class: 'spinner' }), 'İstatistikler yükleniyor…'));
-  const s = await api(`/api/user/${activeUserId}/stats?days=${state.days}`);
-  monthTokens = s.budget.month_tokens;
-  renderCard();
-  const t = s.totals;
-
-  const range = seg([[7, 'Son 7 gün'], [30, 'Son 30 gün'], [90, 'Son 90 gün']], state.days, (v) => { state.days = Number(v); sectionOverview(body, state); });
-  range.style.marginBottom = '14px';
-
-  if (!t.messages) {
-    body.replaceChildren(range, h('div', { class: 'sp-card' }, h('div', { class: 'sp-empty' },
-      'Bu dönemde henüz kullanım kaydı yok.', h('br'), 'Asistan ile sohbet ettikçe token, yanıt süresi ve model istatistikleri burada görünecek.')));
-    return;
-  }
-
-  const kpi = (num, lbl, sub) => h('div', { class: 'sp-kpi' }, h('div', { class: 'sp-kpi-num' }, num), h('div', { class: 'sp-kpi-lbl' }, lbl), sub && h('div', { class: 'sp-kpi-sub' }, sub));
-  const kpis = h('div', { class: 'sp-kpis' },
-    kpi(formatNumber(t.total_tokens), 'Toplam token', `${formatNumber(t.prompt_tokens)} giriş · ${formatNumber(t.completion_tokens)} çıkış`),
-    kpi(formatNumber(t.messages), 'Mesaj', `${formatNumber(t.conversations)} sohbet`),
-    kpi(formatNumber(t.avg_tokens_per_message), 'Mesaj başına token'),
-    kpi(`${(t.avg_latency_ms / 1000).toFixed(1).replace('.', ',')} sn`, 'Ort. yanıt süresi'),
-    kpi(`${t.streak_days} gün`, 'Kesintisiz kullanım', `${t.active_days} aktif gün`));
-
-  const cards = [range, kpis];
-
-  const b = s.budget;
-  if (b.monthly_token_budget > 0) {
-    const cls = b.percent >= 100 ? 'danger' : b.percent >= 80 ? 'warn' : '';
-    cards.push(h('div', { class: 'sp-card' },
-      h('h3', null, 'Aylık token bütçesi', h('small', null, `%${String(b.percent).replace('.', ',')}`)),
-      h('div', { class: 'small muted' }, `${formatNumber(b.month_tokens)} / ${formatNumber(b.monthly_token_budget)} token kullanıldı (bu takvim ayı)`),
-      h('div', { class: `sp-progress ${cls}` }, h('div', { style: { width: `${Math.min(100, b.percent)}%` } }))));
-  }
-
-  cards.push(h('div', { class: 'sp-card' }, h('h3', null, 'Günlük token kullanımı', h('small', null, `${s.days} gün`)), dailyChart(s.daily)));
-
-  const twoCol = h('div', { class: 'sp-grid-2' },
-    h('div', { class: 'sp-card' }, h('h3', null, 'Modele göre kullanım'),
-      hbars(s.by_model.slice(0, 7), 'model', 'tokens', (i) => `${compact(i.tokens)} tok · ${i.messages}`)),
-    h('div', { class: 'sp-card' }, h('h3', null, 'İş türüne göre dağılım'),
-      hbars(s.by_task.slice(0, 7).map((x) => ({ ...x, label: TASK_LABELS[x.task_type] || x.task_type })), 'label', 'messages', (i) => `${i.messages} mesaj`)));
-  cards.push(twoCol);
-
-  cards.push(h('div', { class: 'sp-card' }, h('h3', null, 'Günün hangi saatlerinde çalışıyorsunuz', h('small', null, 'yerel saat')), hourStrip(s.by_hour)));
-  cards.push(h('div', { class: 'sp-note' }, `Bu sistem tamamen yerel çalışır; kullanım ücretsizdir. Karşılaştırma için: aynı hacim ücretli bir bulut API'sinde (varsayım: 1 USD / 1 Mn giriş, 4 USD / 1 Mn çıkış token) yaklaşık ${String(s.cloud_equivalent_usd).replace('.', ',')} USD tutardı. Bazı yanıtlarda model token sayısı bildirmez; bu durumda sayı karakter uzunluğundan tahmin edilir.`));
-  body.replaceChildren(...cards);
+  return renderSectionOverview(body, state, {
+    activeUserId,
+    setMonthTokens: (n) => { monthTokens = n; },
+    renderCard,
+    seg,
+    compact,
+  });
 }
 
 async function sectionProfile(body) {
-  const list = h('div');
-  async function renderProfiles() {
-    const data = await api('/api/user/profiles');
-    avatarColors = data.avatar_colors || avatarColors;
-    list.replaceChildren(...data.profiles.map((p) => h('div', { class: 'sp-list-item' },
-      avatar(p, 'sm'),
-      h('div', { class: 'sp-list-main' }, h('div', { class: 'sp-list-title' }, p.display_name, p.user_id === activeUserId && h('span', { class: 'sp-tag', style: { marginLeft: '8px' } }, 'Aktif')), h('div', { class: 'sp-list-sub' }, p.role_title || p.user_id)),
-      p.user_id !== activeUserId && h('button', { type: 'button', class: 'sp-btn sm', onClick: () => switchProfile(p.user_id) }, 'Geç'),
-      p.user_id !== 'default' && confirmButton('Sil', async () => {
-        await api(`/api/user/${p.user_id}`, { method: 'DELETE' });
-        if (p.user_id === activeUserId) switchProfile('default'); else renderProfiles();
-      }))));
-  }
-  const newName = h('input', { class: 'sp-input', type: 'text', maxlength: 40, placeholder: 'Yeni profil adı (ör. Ayşe, Kalite Birimi)' });
-  const addBtn = h('button', { type: 'button', class: 'sp-btn primary', onClick: async () => {
-    if (!newName.value.trim()) { setStatus('Lütfen bir profil adı girin.'); return; }
-    try {
-      const created = await api('/api/user/profiles', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ display_name: newName.value }) });
-      switchProfile(created.user_id);
-    } catch (err) {
-      setStatus(`Profil oluşturulamadı: ${err.message}`);
-    }
-  } }, 'Profil oluştur');
-
-  body.replaceChildren(
-    h('div', { class: 'sp-inline', style: { marginBottom: '16px' } }, avatar(profile, 'lg'),
-      h('div', null, h('div', { style: { fontWeight: 600, fontSize: '16px' } }, profile.display_name), h('div', { class: 'small muted' }, `Profil kimliği: ${profile.user_id}`))),
-    h('div', { class: 'sp-grid-2' },
-      textField('Görünen ad', profile.display_name, { max: 40, onInput: (v) => savePatch({ display_name: v }) }),
-      textField('Unvan / rol', profile.role_title, { max: 60, placeholder: 'ör. Yazılım Geliştirici, Araştırmacı, Öğrenci', onInput: (v) => savePatch({ role_title: v }) })),
-    textField('Hakkında', profile.bio, { multiline: true, max: 400, hint: 'Asistan bu bilgiyi sizi daha iyi tanımak için kullanmaz; yalnızca profil kartınızda görünür.', onInput: (v) => savePatch({ bio: v }) }),
-    h('div', { class: 'sp-field' }, h('label', null, 'Avatar rengi'), swatches(avatarColors.map((c) => [c, c]), profile.avatar_color, async (c) => { await savePatch({ avatar_color: c }, true); sectionProfile(body); })),
-    groupTitle('Profiller'),
-    h('div', { class: 'sp-note' }, 'Her profilin kendi sohbet geçmişi, ayarları, hafızası ve istatistikleri vardır. Ortak bilgisayarda herkes kendi alanını kullanabilir.'),
-    group(list),
-    h('div', { class: 'sp-inline' }, newName, addBtn));
-  await renderProfiles();
+  return renderSectionProfile(body, {
+    activeUserId, profile, avatar, avatarColors,
+    setAvatarColors: (c) => { avatarColors = c; },
+    switchProfile, confirmButton, setStatus, textField, swatches, savePatch, group, groupTitle,
+  });
 }
 
 function switchProfile(uid) {
@@ -461,330 +347,49 @@ function switchProfile(uid) {
 }
 
 function sectionAppearance(body) {
-  const s = profile.settings;
-  const themeCard = (val, label, cls) => {
-    const btn = h('button', { type: 'button', class: `sp-theme-card${s.theme === val ? ' active' : ''}` },
-      h('div', { class: `sp-prev ${cls}` }, h('div', { class: 'side' }), h('div', { class: 'main' }, h('i'), h('i'))), h('span', null, label));
-    btn.addEventListener('click', () => { savePatch({ settings: { theme: val } }, true); sectionAppearance(body); });
-    return btn;
-  };
-  body.replaceChildren(
-    h('div', { class: 'sp-group-title', style: { marginTop: 0 } }, 'Tema'),
-    h('div', { class: 'sp-theme-cards', style: { marginBottom: '16px' } }, themeCard('light', 'Açık', 'light'), themeCard('dark', 'Koyu', 'dark'), themeCard('system', 'Sistem', 'auto')),
-    group(
-      settingRow('Vurgu rengi', 'Düğmeler, bağlantılar ve seçili öğeler', swatches(Object.entries(ACCENTS), s.accent, (k) => savePatch({ settings: { accent: k } }, true), ACCENT_LABELS)),
-      settingRow('Yazı boyutu', 'Sohbet ve sayfa metinleri', seg([['small', 'Küçük'], ['medium', 'Orta'], ['large', 'Büyük']], s.font_size, (v) => savePatch({ settings: { font_size: v } }, true))),
-      settingRow('Yoğunluk', 'Boşlukları sıkılaştırarak ekrana daha çok içerik sığdırır', seg([['comfortable', 'Rahat'], ['compact', 'Sıkı']], s.density, (v) => savePatch({ settings: { density: v } }, true))),
-      toggleRow('Animasyonları azalt', 'Geçiş ve hareket efektlerini kapatır', s.reduce_motion, (v) => savePatch({ settings: { reduce_motion: v } }, true))),
-    groupTitle('Sohbet davranışı'),
-    group(
-      toggleRow('Enter ile gönder', 'Kapalıysa mesaj Ctrl+Enter ile gönderilir, Enter yeni satır ekler', s.send_with_enter, (v) => savePatch({ settings: { send_with_enter: v } }, true)),
-      toggleRow('Token ve süre bilgisini göster', 'Her yanıtın altında kullanılan token sayısı ve yanıt süresi', s.show_token_counter, (v) => savePatch({ settings: { show_token_counter: v } }, true)),
-      toggleRow('Model rozetini göster', 'Yanıtı üreten modelin adı', s.show_model_badge, (v) => savePatch({ settings: { show_model_badge: v } }, true))));
+  return renderSectionAppearance(body, {
+    profile, ACCENTS, ACCENT_LABELS, savePatch, group, groupTitle, settingRow, swatches, seg, toggleRow,
+  });
 }
 
 async function sectionAssistant(body) {
-  const s = profile.settings;
-  const preview = h('pre', { class: 'sp-preview-pre' }, '…');
-  let previewTimer = null;
-  async function refreshPreview() {
-    try { preview.textContent = (await api(`/api/user/${activeUserId}/personalization-preview`)).system_note; } catch { preview.textContent = 'Önizleme alınamadı.'; }
-  }
-  function patch(p, immediate = false) {
-    savePatch({ settings: p }, immediate);
-    clearTimeout(previewTimer);
-    previewTimer = setTimeout(async () => { await flushSave(); refreshPreview(); }, immediate ? 150 : 650);
-  }
-  const budget = h('input', { class: 'sp-input', type: 'number', min: 0, step: 10000, style: { width: '170px' } });
-  budget.value = s.monthly_token_budget || 0;
-  budget.addEventListener('input', () => patch({ monthly_token_budget: Math.max(0, parseInt(budget.value || '0', 10) || 0) }));
+  return renderSectionAssistant(body, {
+    activeUserId, profile, savePatch, flushSave, group, groupTitle, settingRow, seg, textField,
+  });
+}
 
-  body.replaceChildren(
-    h('div', { class: 'sp-note' }, 'Bu tercihler asistanın her yanıtına gizli bir yönerge olarak eklenir. Yanıt biçimini ve dilini size göre ayarlar.'),
-    group(
-      settingRow('Yanıt uzunluğu', null, seg([['concise', 'Kısa'], ['balanced', 'Dengeli'], ['detailed', 'Ayrıntılı']], s.response_style, (v) => patch({ response_style: v }, true))),
-      settingRow('Üslup', null, seg([['professional', 'Profesyonel'], ['friendly', 'Samimi'], ['technical', 'Teknik']], s.tone, (v) => patch({ tone: v }, true))),
-      settingRow('Deneyim seviyesi', 'Açıklamaların derinliğini belirler', seg([['beginner', 'Başlangıç'], ['intermediate', 'Orta'], ['expert', 'Uzman']], s.expertise_level, (v) => patch({ expertise_level: v }, true)))),
-    textField('İlgi alanları ve çalışma bağlamı', s.interests, { max: 400, placeholder: 'ör. Yazılım geliştirme, veri analizi, akademik araştırma, tasarım', hint: 'Asistan örnekleri ve önerileri bu alanlara göre seçer.', onInput: (v) => patch({ interests: v }) }),
-    textField('Özel talimatlar', s.custom_instructions, { multiline: true, max: 1500, placeholder: 'ör. Ölçüleri her zaman mm cinsinden ver. Tabloları tercih et. Önce kısa özet, sonra detay.', hint: 'Her yeni sohbette geçerli olan kalıcı kurallarınız.', onInput: (v) => patch({ custom_instructions: v }) }),
-    groupTitle('Kullanım bütçesi'),
-    group(settingRow('Aylık token bütçesi', '0 = sınırsız. Aşıldığında istatistik sayfasında uyarı gösterilir; kullanım engellenmez.', budget)),
-    groupTitle('Asistana giden kişiselleştirme notu'),
-    preview);
-  refreshPreview();
+function _sectionCtx() {
+  return {
+    activeUserId,
+    profile,
+    setStatus,
+    setMemoryCount: (n) => { memoryCount = n; },
+    resetCounters: (scope) => {
+      if (scope === 'usage' || scope === 'all') { monthTokens = 0; monthMessages = 0; }
+      if (scope === 'memories' || scope === 'all') memoryCount = 0;
+    },
+    renderCard,
+    closePanel,
+    group,
+    groupTitle,
+    toggleRow,
+    settingRow,
+    seg,
+    savePatch,
+    confirmButton,
+  };
 }
 
 async function sectionMemory(body) {
-  const s = profile.settings;
-  const factsBox = h('div');
-  const convBox = h('div');
-  const searchOut = h('div');
-
-  async function renderFacts() {
-    const { memories } = await api(`/api/user/${activeUserId}/memories`);
-    memoryCount = memories.length;
-    renderCard();
-    factsBox.replaceChildren(...(memories.length ? memories.map((m) => h('div', { class: 'sp-list-item' },
-      h('div', { class: 'sp-list-main' }, h('div', { class: 'sp-list-title' }, h('span', { class: 'sp-tag' }, m.category), m.fact_value), h('div', { class: 'sp-list-sub' }, formatDateTime(m.updated_at))),
-      h('button', {
-        type: 'button',
-        class: 'sp-btn danger sm',
-        onClick: async () => {
-          try {
-            await api(`/api/user/${activeUserId}/memories/${m.id}`, { method: 'DELETE' });
-            setStatus('Bilgi unutuldu', true);
-            renderFacts();
-          } catch (err) {
-            setStatus(`Silinemedi: ${err.message}`);
-          }
-        },
-      }, 'Unut'))) : [h('div', { class: 'sp-empty' }, 'Henüz öğrenilmiş bilgi yok. Sohbet ettikçe tercihleriniz ve proje bilgileriniz burada birikir.')]));
-  }
-  async function renderConvs() {
-    const { conversations } = await api(`/api/user/${activeUserId}/conversations`);
-    convBox.replaceChildren(...(conversations.length ? conversations.slice(0, 12).map((c) => h('div', {
-      class: 'sp-list-item',
-      style: { cursor: 'pointer' },
-      title: 'Bu sohbeti aç',
-      onClick: () => {
-        closePanel();
-        document.dispatchEvent(new CustomEvent('open-saved-chat', { detail: { chatId: c.id } }));
-      },
-    },
-      h('div', { class: 'sp-list-main' }, h('div', { class: 'sp-list-title' }, c.title), h('div', { class: 'sp-list-sub' }, `${c.message_count} mesaj · ${formatDateTime(c.updated_at)}`)))) : [h('div', { class: 'sp-empty' }, 'Kayıtlı sohbet yok.')]));
-  }
-
-  const addInput = h('input', { class: 'sp-input', type: 'text', maxlength: 300, placeholder: 'Asistanın hatırlamasını istediğiniz bilgi (ör. Yanıtlarda kısa özet ve tablo tercih ederim)' });
-  const addBtn = h('button', {
-    type: 'button',
-    class: 'sp-btn primary',
-    onClick: async () => {
-      if (!addInput.value.trim()) { setStatus('Hatırlanacak bilgi boş olamaz.'); return; }
-      try {
-        await api(`/api/user/${activeUserId}/memories`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ category: 'preference', fact_value: addInput.value }) });
-        addInput.value = '';
-        setStatus('Hafızaya kaydedildi', true);
-        renderFacts();
-      } catch (err) {
-        setStatus(`Kaydedilemedi: ${err.message}`);
-      }
-    },
-  }, 'Hatırla');
-
-  const searchInput = h('input', { class: 'sp-input', type: 'text', placeholder: 'Geçmiş sohbetlerde ara (ör. proje planı, bütçe tablosu)' });
-  async function doSearch() {
-    if (!searchInput.value.trim()) { searchOut.replaceChildren(); return; }
-    try {
-      const { results } = await api(`/api/user/${activeUserId}/history/search?q=${encodeURIComponent(searchInput.value)}`);
-      searchOut.replaceChildren(...(results.length ? results.map((r) => h('div', {
-        class: 'sp-list-item',
-        style: { cursor: 'pointer' },
-        title: 'Bu sohbeti aç',
-        onClick: () => {
-          closePanel();
-          document.dispatchEvent(new CustomEvent('open-saved-chat', { detail: { chatId: r.conversation_id } }));
-        },
-      },
-        h('div', { class: 'sp-list-main' }, h('div', { class: 'sp-list-title' }, r.title), h('div', { class: 'sp-list-sub' }, `${r.role === 'user' ? 'Siz' : 'Asistan'}: ${r.snippet}`)))) : [h('div', { class: 'sp-empty' }, 'Eşleşen kayıt bulunamadı.')]));
-    } catch (err) {
-      searchOut.replaceChildren(h('div', { class: 'sp-empty' }, `Arama hatası: ${err.message}`));
-    }
-  }
-  let searchTimer = null;
-  searchInput.addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(doSearch, 350); });
-
-  body.replaceChildren(
-    group(
-      toggleRow('Diğer sohbetlerden bilgi al', 'Yeni bir soruda ilgili eski sohbetleriniz taranır ve bulunan bilgiler asistanın bağlamına eklenir.', s.cross_chat_memory, (v) => savePatch({ settings: { cross_chat_memory: v } }, true)),
-      toggleRow('Tercihleri otomatik öğren', 'Mesajlarınızdan standart, malzeme, teknoloji ve ad gibi kalıcı bilgiler çıkarılır.', s.auto_learn_facts, (v) => savePatch({ settings: { auto_learn_facts: v } }, true))),
-    groupTitle('Öğrenilen bilgiler'),
-    group(factsBox),
-    h('div', { class: 'sp-inline', style: { marginBottom: '8px' } }, addInput, addBtn),
-    groupTitle('Sohbet geçmişinde ara'),
-    searchInput, searchOut,
-    groupTitle('Son sohbetler'),
-    group(convBox));
-  addInput.style.flex = '1';
-  await Promise.all([renderFacts(), renderConvs()]);
+  return renderSectionMemory(body, _sectionCtx());
 }
 
 function sectionData(body) {
-  const s = profile.settings;
-  const auditBox = h('div', { class: 'sp-note', style: { marginTop: '8px' } }, 'AS9100 SHA-256 denetim izi doğrulanmadı.');
-  const verifyAuditBtn = h('button', {
-    type: 'button',
-    class: 'sp-btn sm',
-    onClick: async () => {
-      try {
-        const res = await api('/api/admin/audit/verify');
-        auditBox.textContent = res.valid
-          ? `Denetim zinciri doğrulandı (${res.total_entries} kayıt, bütünlük sağlam).`
-          : `UYARI: Zincir bozuk! Satır ${res.corrupted_line}: ${res.reason}`;
-        setStatus(res.valid ? 'Denetim izi sağlam' : 'Denetim izi bozuk!', Boolean(res.valid));
-      } catch (err) {
-        auditBox.textContent = `Doğrulama hatası: ${err.message}`;
-      }
-    },
-  }, 'Zinciri Doğrula');
-
-  const encBackupBtn = h('button', {
-    type: 'button',
-    class: 'sp-btn',
-    onClick: async () => {
-      const pwd = prompt('Şifreli AES-256 yedek için parola belirleyin (boş bırakırsanız yerel anahtar kullanılır):', '');
-      if (pwd === null) return;
-      const q = pwd.trim() ? `?password=${encodeURIComponent(pwd.trim())}` : '';
-      window.location.href = `/api/admin/backup.zip${q}`;
-    },
-  }, 'Şifreli Yedek (.ZIP)');
-
-  const wipe = (scope, label, desc) => settingRow(label, desc, confirmButton('Sil', async () => {
-    await api(`/api/user/${activeUserId}/data?scope=${scope}`, { method: 'DELETE' });
-    if (scope === 'usage' || scope === 'all') { monthTokens = 0; monthMessages = 0; }
-    if (scope === 'memories' || scope === 'all') { memoryCount = 0; }
-    renderCard();
-    if (scope === 'conversations' || scope === 'all') { document.dispatchEvent(new CustomEvent('chats-wiped')); }
-    setStatus('Silindi (WAL + VACUUM temizlendi)', true);
-  }));
-  body.replaceChildren(
-    h('div', { class: 'sp-note' }, 'Tüm veriler yalnızca bu bilgisayardaki sunucuda tutulur; gizli anahtarlar Fernet ile şifrelenir ve yedeklere dahil edilmez.'),
-    group(
-      settingRow('Otomatik saklama süresi', 'Sohbet ve kullanım kayıtlarının saklanacağı gün sayısı (0 = sınırsız)',
-        seg([[0, 'Sınırsız'], [7, '7 gün'], [30, '30 gün'], [90, '90 gün']], Number(s.retention_days || 0), (v) => savePatch({ settings: { retention_days: Number(v) } }, true))),
-      settingRow('Verilerimi dışa aktar', 'Profil, ayarlar, öğrenilen bilgiler, istatistikler ve sohbetler JSON olarak iner (gizli anahtarlar hariç).',
-        h('a', { class: 'sp-btn primary', href: `/api/user/${activeUserId}/export`, download: '' }, 'JSON indir')),
-      settingRow('Şifreli sistem yedeği (AES-256 ZIP)', 'Parola korumalı ve SHA-256 manifestli tam veri yedeği indirir (secrets.db hariç).', encBackupBtn),
-      settingRow('AS9100 Denetim İzi Bütünlüğü', 'Tüm güvenlik olaylarının SHA-256 özet zincirini doğrular.', verifyAuditBtn)),
-    auditBox,
-    groupTitle('Verileri sil (Kalıcı VACUUM + WAL temizliği)'),
-    group(
-      wipe('usage', 'Kullanım istatistikleri', 'Token ve yanıt süresi kayıtlarını kalıcı olarak siler.'),
-      wipe('memories', 'Öğrenilen bilgiler', 'Asistanın sizin hakkınızda öğrendiği her şeyi kalıcı olarak siler.'),
-      wipe('conversations', 'Sunucudaki sohbet kayıtları', 'Sohbetler, FTS dizini ve ilgili medya dosyalarını kalıcı olarak siler.'),
-      wipe('all', 'Hepsi', 'Yukarıdakilerin tamamını fiziksel olarak temizler. Profil ve ayarlar kalır.')));
+  return renderSectionData(body, _sectionCtx());
 }
 
-// ---------------------------------------------------------------- panel shell
-
 async function sectionMcp(body) {
-  const listBox = h('div');
-  const outPre = h('pre', { class: 'sp-preview-pre', hidden: true });
-
-  async function renderConnectors() {
-    const { connectors } = await api('/api/mcp/connectors');
-    if (!connectors.length) {
-      listBox.replaceChildren(h('div', { class: 'sp-empty' }, 'Henüz harici MCP bağlayıcısı eklenmedi. Yukarıdaki formdan herhangi bir MCP sunucu URL\'si ve API anahtarı ile bağlanabilirsiniz.'));
-      return;
-    }
-    listBox.replaceChildren(...connectors.map((c) => {
-      const toolsRow = c.tools && c.tools.length
-        ? h('div', { style: { marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '6px' } },
-          ...c.tools.map((t) => h('button', {
-            type: 'button',
-            class: 'sp-btn sm',
-            title: t.description || t.name,
-            onClick: async () => {
-              const rawArgs = prompt(`"${t.name}" aracı için JSON argümanları (boş bırakabilirsiniz):`, '{}');
-              if (rawArgs === null) return;
-              let parsed = {};
-              try { parsed = rawArgs.trim() ? JSON.parse(rawArgs) : {}; } catch { setStatus('Geçersiz JSON argümanı.'); return; }
-              setStatus(`${t.name} çalıştırılıyor...`);
-              try {
-                const res = await api(`/api/mcp/connectors/${c.id}/call`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ tool_name: t.name, arguments: parsed }),
-                });
-                outPre.hidden = false;
-                outPre.textContent = JSON.stringify(res, null, 2);
-                setStatus(`${t.name} tamamlandı`, true);
-              } catch (err) {
-                outPre.hidden = false;
-                outPre.textContent = String(err.message);
-                setStatus('MCP çağrısı başarısız');
-              }
-            },
-          }, `Çalıştır: ${t.name}`)))
-        : null;
-
-      return h('div', { class: 'sp-list-item', style: { flexDirection: 'column', alignItems: 'stretch' } },
-        h('div', { style: { display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'space-between', flexWrap: 'wrap' } },
-          h('div', { class: 'sp-list-main' },
-            h('div', { class: 'sp-list-title' }, c.name, h('span', { class: 'sp-tag', style: { marginLeft: '8px' } }, c.enabled ? 'Aktif' : 'Pasif')),
-            h('div', { class: 'sp-list-sub' }, `${c.url} · ${c.last_status}${c.has_api_key ? ` · Anahtar: ${c.api_key_masked}` : ''}`)),
-          h('div', { class: 'sp-inline' },
-            h('button', {
-              type: 'button',
-              class: 'sp-btn sm primary',
-              onClick: async () => {
-                setStatus(`${c.name} keşfediliyor...`);
-                const res = await api(`/api/mcp/connectors/${c.id}/discover`, { method: 'POST' });
-                setStatus(res.ok ? 'Araçlar keşfedildi' : (res.error || 'Bağlantı hatası'), Boolean(res.ok));
-                renderConnectors();
-              },
-            }, 'Araçları Keşfet'),
-            h('button', {
-              type: 'button',
-              class: 'sp-btn sm',
-              onClick: async () => {
-                await api(`/api/mcp/connectors/${c.id}`, {
-                  method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ enabled: !c.enabled }),
-                });
-                renderConnectors();
-              },
-            }, c.enabled ? 'Pasifleştir' : 'Aktifleştir'),
-            confirmButton('Sil', async () => {
-              await api(`/api/mcp/connectors/${c.id}`, { method: 'DELETE' });
-              renderConnectors();
-            }))),
-        toolsRow);
-    }));
-  }
-
-  const nameIn = h('input', { class: 'sp-input', type: 'text', placeholder: 'Bağlayıcı adı (ör. GitHub MCP, Notion, Özel API)' });
-  const urlIn = h('input', { class: 'sp-input', type: 'url', placeholder: 'MCP Sunucu URL (ör. https://mcp.example.com/mcp)' });
-  const keyIn = h('input', { class: 'sp-input', type: 'password', placeholder: 'MCP Connector API Key / Bearer Token (opsiyonel)' });
-  const hdrIn = h('input', { class: 'sp-input', type: 'text', value: 'Authorization', placeholder: 'Başlık (Authorization veya X-API-Key)' });
-  const addBtn = h('button', {
-    type: 'button',
-    class: 'sp-btn primary',
-    onClick: async () => {
-      if (!nameIn.value.trim() || !urlIn.value.trim()) {
-        setStatus('Ad ve geçerli URL zorunludur.');
-        return;
-      }
-      const hdr = hdrIn.value.trim() || 'Authorization';
-      const prefix = hdr.toLowerCase() === 'authorization' ? 'Bearer ' : '';
-      try {
-        await api('/api/mcp/connectors', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: nameIn.value, url: urlIn.value, api_key: keyIn.value, auth_header: hdr, auth_prefix: prefix }),
-        });
-        nameIn.value = ''; urlIn.value = ''; keyIn.value = '';
-        setStatus('MCP bağlayıcısı eklendi', true);
-        renderConnectors();
-      } catch (err) {
-        setStatus(err.message);
-      }
-    },
-  }, 'MCP Bağlayıcı Ekle');
-
-  body.replaceChildren(
-    h('div', { class: 'sp-note' }, 'Dışarıdaki herhangi bir MCP (Model Context Protocol) sunucusuna URL ve API anahtarı ile bağlanın. Keşfedilen araçları buradan veya doğrudan sohbet ekranından çalıştırabilirsiniz.'),
-    h('div', { class: 'sp-grid-2' },
-      h('div', { class: 'sp-field' }, h('label', null, 'Bağlayıcı Adı'), nameIn),
-      h('div', { class: 'sp-field' }, h('label', null, 'MCP Sunucu URL'), urlIn)),
-    h('div', { class: 'sp-grid-2' },
-      h('div', { class: 'sp-field' }, h('label', null, 'API Anahtarı / Connector Key'), keyIn),
-      h('div', { class: 'sp-field' }, h('label', null, 'Yetki Başlığı'), hdrIn)),
-    h('div', { class: 'sp-inline', style: { marginBottom: '14px' } }, addBtn),
-    groupTitle('Kayıtlı MCP Bağlayıcıları'),
-    group(listBox),
-    outPre);
-  await renderConnectors();
+  return renderSectionMcp(body, _sectionCtx());
 }
 
 const SECTIONS = [

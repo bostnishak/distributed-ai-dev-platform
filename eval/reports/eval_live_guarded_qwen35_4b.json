@@ -1,0 +1,20 @@
+{
+  "config_name": "live_guarded_qwen35_4b",
+  "judge_version": "2.0.0",
+  "dataset_hash": "547bc7a76c1fa71e",
+  "total_examples": 21,
+  "overall_score": 0.9524,
+  "category_scores": {
+    "answerable_factual": 1.0,
+    "citation_required": 1.0,
+    "code": 1.0,
+    "false_premise": 1.0,
+    "instruction_compliance": 1.0,
+    "numeric_calc": 1.0,
+    "unanswerable": 0.6667
+  },
+  "hallucination_rates": {
+    "overconfidence": 0.0476
+  },
+  "timestamp": "2026-11-23T20:13:14.849176+00:00"
+}

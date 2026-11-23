@@ -279,12 +279,27 @@ def run_golden_eval(
     *,
     config_name: str = "baseline",
     limit: int | None = None,
+    stratified: bool = False,
 ) -> dict[str, Any]:
     """HAL-03: Execute golden evaluation suite and emit JSON + HTML report in eval/reports/."""
     ensure_eval_datasets()
     rows = load_jsonl(GOLDEN_PATH)
     if limit is not None:
-        rows = rows[:limit]
+        if stratified:
+            grouped: dict[str, list[dict[str, Any]]] = {}
+            for row in rows:
+                grouped.setdefault(row["category"], []).append(row)
+            cats = sorted(grouped)
+            picked: list[dict[str, Any]] = []
+            idx = 0
+            while len(picked) < limit and any(idx < len(grouped[c]) for c in cats):
+                for c in cats:
+                    if idx < len(grouped[c]) and len(picked) < limit:
+                        picked.append(grouped[c][idx])
+                idx += 1
+            rows = picked
+        else:
+            rows = rows[:limit]
 
     by_cat: dict[str, list[bool]] = {}
     tax_counts: Counter[str] = Counter()

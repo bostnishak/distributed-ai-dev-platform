@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import test from 'node:test';
 
 import { sanitizeHtmlOrSvg } from '../../master/static/js/sanitizer.js';
@@ -46,4 +48,14 @@ test('ux_shell parses slash commands, @mentions, and renders sanitized confidenc
   const badge = renderConfidenceBadgeHtml('yüksek', 0.92, 'tr');
   assert.ok(badge.includes('role="status"'));
   assert.ok(badge.includes('%92'));
+});
+
+test('UX-02: every frontend JS file in master/static/js stays within 500 lines', () => {
+  const jsDir = path.resolve(import.meta.dirname, '../../master/static/js');
+  const offenders = [];
+  for (const name of fs.readdirSync(jsDir).filter((f) => f.endsWith('.js'))) {
+    const lines = fs.readFileSync(path.join(jsDir, name), 'utf-8').split(/\r?\n/).length;
+    if (lines > 500) offenders.push(`${name}:${lines}`);
+  }
+  assert.deepEqual(offenders, [], `Frontend JS files exceeding 500 lines: ${offenders.join(', ')}`);
 });
