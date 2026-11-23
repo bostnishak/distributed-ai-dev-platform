@@ -438,23 +438,26 @@ async def call_ollama_chat(
         user_msg["images"] = [image_b64]
     messages.append(user_msg)
 
-    payload = {
-        "model": model,
-        "messages": messages,
-        "stream": False,
-        "think": False,
-        "options": {
-            "num_predict": config.ASSISTANT_NUM_PREDICT,
-            "temperature": 0.7,
-        },
-    }
-    async with httpx.AsyncClient(timeout=180.0) as client:
-        try:
-            resp = await client.post(f"{ollama_url}/api/chat", json=payload)
-            resp.raise_for_status()
-        except httpx.HTTPError as exc:
-            raise HTTPException(status_code=502, detail=f"Ollama hatası: {exc}") from exc
-    return resp.json()["message"]["content"], model
+    import gateway
+
+    gw = (
+        gateway.default_client
+        if ollama_url.rstrip("/") == config.OLLAMA_URL.rstrip("/")
+        else gateway.LLMClient({"ollama": gateway.OllamaProvider(base_url=ollama_url)})
+    )
+    try:
+        res = await gw.chat(
+            messages,
+            model=model,
+            profile="creative",
+            num_predict=config.ASSISTANT_NUM_PREDICT,
+            timeout_s=180.0,
+            feature="assistant_chat",
+            max_retries=0,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Ollama hatası: {exc}") from exc
+    return res.content, model
 
 
 def keyword_category_override(prompt: str) -> str | None:
@@ -1527,46 +1530,46 @@ async def _chat_stream_impl(
         user_msg["images"] = [image_b64]
     messages.append(user_msg)
 
+    import gateway
+
     is_strict_factual = has_file or is_prompt_conv or task_type in ("kod", "analiz")
-    payload = {
-        "model": model,
-        "messages": messages,
-        "stream": True,
-        "think": False,
-        "options": {
-            "num_predict": config.ASSISTANT_NUM_PREDICT,
-            "num_ctx": 8192,
-            "temperature": 0.15 if is_strict_factual else 0.3,
-            "top_p": 0.85,
-            "repeat_penalty": 1.08,
-        },
-    }
+    gw_profile = "factual" if is_strict_factual else "analytic"
+    gw = (
+        gateway.default_client
+        if ollama_url.rstrip("/") == config.OLLAMA_URL.rstrip("/")
+        else gateway.LLMClient({"ollama": gateway.OllamaProvider(base_url=ollama_url)})
+    )
 
     async def _stream_gen():
         try:
             if pre_note:
                 yield f"data: {json.dumps({'type': 'token', 'content': pre_note}, ensure_ascii=False)}\n\n"
-            async with httpx.AsyncClient(timeout=180.0) as client:
-                async with client.stream("POST", f"{ollama_url}/api/chat", json=payload) as resp:
-                    async for line in resp.aiter_lines():
-                        if not line:
-                            continue
-                        try:
-                            chunk = json.loads(line)
-                        except json.JSONDecodeError:
-                            continue
-                        content_piece = _strip_emojis(chunk.get("message", {}).get("content", ""))
-                        if content_piece:
-                            yield f"data: {json.dumps({'type': 'token', 'content': content_piece})}\n\n"
-                        if chunk.get("done"):
-                            done_evt: dict = {"type": "done", "model": model, "task_type": task_type}
-                            if chunk.get("eval_count") is not None:
-                                done_evt["usage"] = {
-                                    "prompt_tokens": int(chunk.get("prompt_eval_count") or 0),
-                                    "completion_tokens": int(chunk.get("eval_count") or 0),
-                                    "estimated": False,
-                                }
-                            yield f"data: {json.dumps(done_evt)}\n\n"
+            async for evt in gw.stream(
+                messages,
+                model=model,
+                task_type=task_type,
+                profile=gw_profile,
+                user_id=user_id,
+                timeout_s=180.0,
+            ):
+                if evt.get("type") == "token":
+                    content_piece = _strip_emojis(str(evt.get("content") or ""))
+                    if content_piece:
+                        yield f"data: {json.dumps({'type': 'token', 'content': content_piece})}\n\n"
+                elif evt.get("type") == "done":
+                    done_evt: dict = {
+                        "type": "done",
+                        "model": model,
+                        "task_type": task_type,
+                        "run_id": evt.get("run_id"),
+                    }
+                    if evt.get("tokens_out") is not None:
+                        done_evt["usage"] = {
+                            "prompt_tokens": int(evt.get("tokens_in") or 0),
+                            "completion_tokens": int(evt.get("tokens_out") or 0),
+                            "estimated": False,
+                        }
+                    yield f"data: {json.dumps(done_evt)}\n\n"
         except Exception as exc:
             yield f"data: {json.dumps({'type': 'error', 'content': str(exc)})}\n\n"
 

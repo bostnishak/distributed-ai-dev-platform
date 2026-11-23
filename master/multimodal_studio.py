@@ -476,40 +476,39 @@ async def _design_spec_from_llm(combined_prompt: str, seed: int) -> dict[str, st
         f"Varyasyon numarasi: {seed} (her varyasyonda farkli bir archetype, palette ve layout sec)."
     )
     try:
-        async with httpx.AsyncClient(timeout=45.0) as client:
-            resp = await client.post(
-                f"{config.OLLAMA_URL}/api/chat",
-                json={
-                    "model": model,
-                    "messages": [
-                        {"role": "system", "content": sys_msg},
-                        {"role": "user", "content": combined_prompt},
-                    ],
-                    "stream": False,
-                    "think": False,
-                    "options": {"temperature": 0.65, "num_predict": 320},
-                },
-            )
-            if resp.status_code == 200:
-                raw = resp.json().get("message", {}).get("content", "")
-                m = re.search(r"\{[\s\S]*\}", raw)
-                if m:
-                    parsed = json.loads(m.group(0))
-                    if isinstance(parsed, dict):
-                        bname = str(parsed.get("brand_name") or "").strip()[:20]
-                        if bname and not any(bad in bname.lower() for bad in ("beğenmedim", "begenmedim", "kötü", "kotu", "görsel", "gorsel", "üret", "uret")):
-                            default_spec["brand_name"] = quoted or bname.upper()
-                        tag = str(parsed.get("tagline") or "").strip()[:38]
-                        if tag and not any(bad in tag.lower() for bad in ("beğenmedim", "begenmedim", "kötü", "kotu")):
-                            default_spec["tagline"] = tag.upper()
-                        if parsed.get("archetype") in ARCHETYPE_ORDER and seed == 0:
-                            default_spec["archetype"] = parsed["archetype"]
-                        elif parsed.get("archetype") in ARCHETYPE_ORDER and parsed["archetype"] != ARCHETYPE_ORDER[(seed - 1) % len(ARCHETYPE_ORDER)]:
-                            default_spec["archetype"] = parsed["archetype"]
-                        if parsed.get("palette") in STUDIO_PALETTES:
-                            default_spec["palette"] = parsed["palette"]
-                        if parsed.get("layout") in LAYOUT_ORDER and seed == 0:
-                            default_spec["layout"] = parsed["layout"]
+        import gateway
+
+        res = await gateway.default_client.chat(
+            [
+                {"role": "system", "content": sys_msg},
+                {"role": "user", "content": combined_prompt},
+            ],
+            model=model,
+            profile="creative",
+            num_predict=320,
+            timeout_s=45.0,
+            feature="multimodal_studio",
+            max_retries=0,
+        )
+        raw = res.content
+        m = re.search(r"\{[\s\S]*\}", raw)
+        if m:
+            parsed = json.loads(m.group(0))
+            if isinstance(parsed, dict):
+                bname = str(parsed.get("brand_name") or "").strip()[:20]
+                if bname and not any(bad in bname.lower() for bad in ("beğenmedim", "begenmedim", "kötü", "kotu", "görsel", "gorsel", "üret", "uret")):
+                    default_spec["brand_name"] = quoted or bname.upper()
+                tag = str(parsed.get("tagline") or "").strip()[:38]
+                if tag and not any(bad in tag.lower() for bad in ("beğenmedim", "begenmedim", "kötü", "kotu")):
+                    default_spec["tagline"] = tag.upper()
+                if parsed.get("archetype") in ARCHETYPE_ORDER and seed == 0:
+                    default_spec["archetype"] = parsed["archetype"]
+                elif parsed.get("archetype") in ARCHETYPE_ORDER and parsed["archetype"] != ARCHETYPE_ORDER[(seed - 1) % len(ARCHETYPE_ORDER)]:
+                    default_spec["archetype"] = parsed["archetype"]
+                if parsed.get("palette") in STUDIO_PALETTES:
+                    default_spec["palette"] = parsed["palette"]
+                if parsed.get("layout") in LAYOUT_ORDER and seed == 0:
+                    default_spec["layout"] = parsed["layout"]
     except Exception:
         pass
 

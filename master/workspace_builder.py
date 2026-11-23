@@ -172,20 +172,22 @@ async def pick_coder_model(preferred: str | None = None) -> str:
 
 
 async def _ollama_generate(model: str, system: str, user: str, num_predict: int = 4096, temperature: float = 0.25) -> str:
-    payload = {
-        "model": model,
-        "messages": [
+    import gateway
+
+    prof = "code" if temperature <= 0.3 else "analytic"
+    res = await gateway.default_client.chat(
+        [
             {"role": "system", "content": system},
             {"role": "user", "content": user},
         ],
-        "stream": False,
-        "think": False,
-        "options": {"num_predict": num_predict, "temperature": temperature},
-    }
-    async with httpx.AsyncClient(timeout=240.0) as client:
-        resp = await client.post(f"{config.OLLAMA_URL}/api/chat", json=payload)
-        resp.raise_for_status()
-        return resp.json().get("message", {}).get("content", "")
+        model=model,
+        profile=prof,
+        num_predict=num_predict,
+        timeout_s=240.0,
+        feature="workspace_builder",
+        max_retries=0,
+    )
+    return res.content
 
 
 def _strip_code_fences(raw: str) -> str:

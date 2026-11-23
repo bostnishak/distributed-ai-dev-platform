@@ -20,7 +20,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-import httpx
 import numpy as np
 from PIL import Image
 
@@ -287,17 +286,13 @@ class HybridGraphRAG:
 
     def _embed(self, text: str) -> list[float]:
         if self.use_ollama_embeddings:
-            ollama_url = getattr(config, "OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/")
+            import gateway
+
             try:
-                with httpx.Client(timeout=1.2) as client:
-                    resp = client.post(
-                        f"{ollama_url}/api/embeddings",
-                        json={"model": "bge-m3:latest", "prompt": text},
-                    )
-                    if resp.status_code == 200:
-                        emb = resp.json().get("embedding")
-                        if isinstance(emb, list) and len(emb) >= 64:
-                            return [float(x) for x in emb]
+                prov = gateway.OllamaProvider(base_url=getattr(config, "OLLAMA_URL", "http://127.0.0.1:11434"))
+                emb = prov.embed_sync("bge-m3:latest", text, timeout=1.2)
+                if len(emb) >= 64:
+                    return emb
             except Exception:
                 pass
         return deterministic_ngram_embedding(text, dim=FALLBACK_EMBED_DIM)

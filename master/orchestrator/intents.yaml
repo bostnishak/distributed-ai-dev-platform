@@ -1,0 +1,452 @@
+version: "2.0.0"
+intents:
+  - id: greeting
+    route: fast_chat
+    mode: short
+    tier: fast
+    risk: low
+    verify_profile: none
+    tools: []
+    required_inputs: []
+    examples:
+      - "merhaba"
+      - "selam nasılsın"
+      - "günaydın"
+      - "iyi akşamlar"
+      - "hi hello"
+      - "hey how are you"
+
+  - id: chat
+    route: general_llm
+    mode: general
+    tier: standard
+    risk: low
+    verify_profile: basic
+    tools: []
+    required_inputs: []
+    examples:
+      - "bugün biraz sohbet edelim"
+      - "yeni fikirler üzerine konuşalım"
+      - "bana bir öneride bulunur musun"
+      - "let us chat about productivity"
+      - "hangisini tercih etmeliyim sence"
+
+  - id: factual_qa
+    route: knowledge_qa
+    mode: general
+    tier: standard
+    risk: medium
+    verify_profile: factual
+    tools: []
+    required_inputs: []
+    examples:
+      - "türkiye cumhuriyeti ne zaman kuruldu"
+      - "fotosentez nasıl gerçekleşir"
+      - "http ve https arasındaki fark nedir"
+      - "what is the capital of france"
+      - "dna yapısını kim keşfetti"
+
+  - id: lesson
+    route: teaching
+    mode: lesson
+    tier: standard
+    risk: low
+    verify_profile: lesson_checklist
+    tools: []
+    required_inputs: []
+    examples:
+      - "bana özyineleme konusunu öğret"
+      - "sinir ağları ders anlatımı yap"
+      - "sql join kavramını sıfırdan anlat"
+      - "teach me dynamic programming step by step"
+      - "ders gibi anlat: nesne yönelimli programlama"
+
+  - id: code_write
+    route: coding
+    mode: general
+    tier: standard
+    risk: low
+    verify_profile: code_syntax
+    tools: ["python_ast_check"]
+    required_inputs: []
+    examples:
+      - "python ile hızlı sıralama fonksiyonu yaz"
+      - "fastapi ile crud endpointi oluştur"
+      - "react tablo bileşeni kodu yaz"
+      - "write a python script to parse csv"
+      - "ikili arama algoritmasını python ile kodla"
+
+  - id: code_only
+    route: coding
+    mode: code_only
+    tier: standard
+    risk: low
+    verify_profile: code_only_strict
+    tools: ["python_ast_check"]
+    required_inputs: []
+    examples:
+      - "sadece kod ver: python fibonacci fonksiyonu"
+      - "açıklamasız yalnızca python kodu yaz"
+      - "code only: binary search in python"
+      - "sadece çalışan kod bloğu döndür başka metin olmasın"
+      - "only code no explanation bubble sort"
+
+  - id: code_fix
+    route: coding
+    mode: general
+    tier: standard
+    risk: low
+    verify_profile: code_syntax
+    tools: ["python_ast_check"]
+    required_inputs: []
+    examples:
+      - "bu python kodundaki hatayı düzelt"
+      - "traceback keyerror neden oluyor debug et"
+      - "bu fonksiyonu refactor et ve bugları temizle"
+      - "fix this syntax error and typeerror in my code"
+      - "kodum çalışmıyor hatayı bul ve onar"
+
+  - id: project_build
+    route: studio_project
+    mode: project
+    tier: verified
+    risk: medium
+    verify_profile: project_summary
+    tools: ["sandbox_info"]
+    required_inputs: []
+    examples:
+      - "tam bir e-ticaret web sitesi projesi oluştur"
+      - "multi-file fastapi ve react tam uygulama kur"
+      - "sıfırdan görev yönetim sistemi projesi yap"
+      - "build a complete fullstack todo web application project"
+      - "kendi klasör yapısıyla tam proje üret"
+
+  - id: game_build
+    route: studio_project
+    mode: project
+    tier: verified
+    risk: low
+    verify_profile: project_summary
+    tools: ["sandbox_info"]
+    required_inputs: []
+    examples:
+      - "tarayıcıda oynanabilir yılan oyunu yap"
+      - "html5 canvas ile tetris oyunu oluştur"
+      - "uzay nişancı 2d platform oyunu geliştir"
+      - "build a playable breakout game in html canvas"
+      - "satranç oyunu uygulaması yap"
+
+  - id: presentation
+    route: document_studio
+    mode: presentation
+    tier: standard
+    risk: low
+    verify_profile: presentation_outline
+    tools: []
+    required_inputs: []
+    examples:
+      - "yapay zeka tarihi hakkında powerpoint sunumu hazırla"
+      - "10 slaytlık pptx sunum oluştur"
+      - "enerji dönüşümü üzerine slayt destesi hazırla"
+      - "create a powerpoint presentation about climate tech"
+      - "insanlık tarihi sunum taslağı çıkar"
+
+  - id: document_gen
+    route: document_studio
+    mode: general
+    tier: standard
+    risk: low
+    verify_profile: basic
+    tools: []
+    required_inputs: []
+    examples:
+      - "bu verilerle word raporu docx oluştur"
+      - "kurumsal pdf rapor dokümanı hazırla"
+      - "excel bütçe tablosu xlsx üret"
+      - "generate a formal pdf report and docx summary"
+      - "teknik şartname belgesi oluştur"
+
+  - id: research
+    route: deep_research
+    mode: research
+    tier: verified
+    risk: medium
+    verify_profile: citations_required
+    tools: []
+    required_inputs: []
+    examples:
+      - "kuantum bilgisayarların güncel durumunu kaynaklı araştır"
+      - "derinlemesine karşılaştırmalı araştırma raporu yaz"
+      - "elektrikli araç batarya teknolojilerini kaynaklarıyla incele"
+      - "deep research with citations on solid state batteries"
+      - "literatür taraması ve kaynakça ile analiz yap"
+
+  - id: data_analysis
+    route: data_lab
+    mode: general
+    tier: standard
+    risk: low
+    verify_profile: factual
+    tools: ["calculator"]
+    required_inputs: []
+    examples:
+      - "bu csv veri setini analiz et ve ortalama bul"
+      - "satış verilerinin korelasyon ve trend analizini yap"
+      - "sql sorgusu yazıp aylık gelir dağılımını çıkar"
+      - "analyze this dataset and compute summary statistics"
+      - "veri tablosundan anomali tespiti yap"
+
+  - id: image_gen
+    route: media_studio
+    mode: general
+    tier: standard
+    risk: low
+    verify_profile: basic
+    tools: []
+    required_inputs: []
+    examples:
+      - "mimari akış diyagramı görseli çiz"
+      - "minimalist logo ve poster resmi oluştur"
+      - "svg infografik ve görsel tasarım üret"
+      - "generate an illustration diagram of microservices"
+      - "ürün konsept görseli tasarla"
+
+  - id: image_explain
+    route: vision_qa
+    mode: general
+    tier: standard
+    risk: low
+    verify_profile: basic
+    tools: []
+    required_inputs: []
+    examples:
+      - "bu fotoğrafta ne görüyorsun açıkla"
+      - "yüklediğim ekran görüntüsündeki hatayı incele"
+      - "bu grafiği ve görseli yorumla"
+      - "describe what is inside this uploaded image"
+      - "resimdeki metni oku ve analiz et"
+
+  - id: audio_transcribe
+    route: audio_studio
+    mode: general
+    tier: fast
+    risk: low
+    verify_profile: basic
+    tools: []
+    required_inputs: []
+    examples:
+      - "bu ses kaydını metne çevir"
+      - "toplantı ses dosyasının transkripsiyonunu çıkar"
+      - "mp3 kaydını yazıya dök"
+      - "transcribe this audio recording to text"
+      - "sesli mesajı çözümle"
+
+  - id: translate
+    route: general_llm
+    mode: general
+    tier: fast
+    risk: low
+    verify_profile: basic
+    tools: []
+    required_inputs: []
+    examples:
+      - "bu metni ingilizceye çevir"
+      - "aşağıdaki paragrafı türkçeye tercüme et"
+      - "translate this technical specification to german"
+      - "almancadan türkçeye çeviri yap"
+      - "bu makaleyi akıcı ingilizceye aktar"
+
+  - id: summarize
+    route: general_llm
+    mode: general
+    tier: fast
+    risk: low
+    verify_profile: basic
+    tools: []
+    required_inputs: []
+    examples:
+      - "bu uzun makaleyi özetle"
+      - "toplantı notlarının ana maddelerini çıkar"
+      - "metnin kısa özetini hazırla"
+      - "summarize the key takeaways of this document"
+      - "raporu 5 maddede özet geç"
+
+  - id: math_calc
+    route: tool_calc
+    mode: general
+    tier: standard
+    risk: low
+    verify_profile: deterministic_math
+    tools: ["calculator"]
+    required_inputs: []
+    examples:
+      - "hesapla: (145 * 38) + 920 / 4"
+      - "2x + 5 = 19 denklemini çöz"
+      - "bileşik faiz hesabı yap yüzde 12 ile"
+      - "calculate the derivative and exact numeric result"
+      - "matematiksel işlemin tam sonucunu hesapla"
+
+  - id: legal_info
+    route: domain_legal
+    mode: research
+    tier: verified
+    risk: high
+    verify_profile: citations_required
+    tools: []
+    required_inputs: ["jurisdiction_or_contract"]
+    examples:
+      - "bu kira sözleşmesindeki riskli maddeleri incele"
+      - "kvkk kapsamında veri saklama yükümlülükleri nelerdir"
+      - "iş kanunu kıdem tazminatı şartlarını açıkla"
+      - "review this nda contract clause for legal risk"
+      - "hukuki mevzuat açısından sorumluluk nedir"
+
+  - id: finance_dcf
+    route: domain_finance
+    mode: research
+    tier: verified
+    risk: high
+    verify_profile: deterministic_math
+    tools: ["calculator"]
+    required_inputs: ["cash_flows", "discount_rate_wacc", "terminal_growth"]
+    examples:
+      - "şirket için dcf değerleme modeli hesapla"
+      - "indirgenmiş nakit akışı ve wacc hesabı yap"
+      - "iç verim oranı irr ve net bugünkü değer npv hesapla"
+      - "build a discounted cash flow valuation model"
+      - "finansal değerleme ve nakit akışı projeksiyonu"
+
+  - id: health_info
+    route: domain_health
+    mode: general
+    tier: verified
+    risk: high
+    verify_profile: factual
+    tools: []
+    required_inputs: []
+    examples:
+      - "yüksek tansiyon belirtileri ve genel korunma yolları"
+      - "d vitamini eksikliği nelere yol açar"
+      - "migren baş ağrısı hakkında genel tıbbi bilgi"
+      - "general medical information about sleep apnea symptoms"
+      - "kan şekeri ölçüm değerleri ne anlama gelir"
+
+  - id: cnc_engineering
+    route: cnc_studio
+    mode: general
+    tier: verified
+    risk: high
+    verify_profile: factual
+    tools: []
+    required_inputs: ["drawing_or_tolerance"]
+    examples:
+      - "cnc teknik resim balonlama ve gd&t tolerans analizi"
+      - "iso 2768 tolerans tablosu ve freze kesme hızı"
+      - "alüminyum 6061 için tornalama ilerleme ve devir hesabı"
+      - "inspect cnc engineering drawing dimensions and tolerances"
+      - "delik eksen kaçıklığı ve yüzey pürüzlülüğü ra analizi"
+
+  - id: file_convert
+    route: file_ops
+    mode: general
+    tier: fast
+    risk: low
+    verify_profile: basic
+    tools: ["file_convert_info"]
+    required_inputs: []
+    examples:
+      - "gönderdiğim pdf dosyasını docx formatına çevir"
+      - "word belgesini pdf ve pptx olarak dönüştür"
+      - "bu dosyayı farklı formata çevir"
+      - "convert this pdf file into editable docx"
+      - "pptx sunumunu pdf formatına dönüştür"
+
+  - id: archive_zip
+    route: file_ops
+    mode: general
+    tier: fast
+    risk: low
+    verify_profile: basic
+    tools: ["file_convert_info"]
+    required_inputs: []
+    examples:
+      - "bu klasörü zip dosyası olarak sıkıştır"
+      - "yüklediğim zip arşivinin içini aç ve listele"
+      - "projeyi ziple ve indirme linki ver"
+      - "extract this zip archive and inspect contents"
+      - "dosyaları tek arşivde paketle"
+
+  - id: automation_mcp
+    route: mcp_tool
+    mode: general
+    tier: standard
+    risk: medium
+    verify_profile: basic
+    tools: []
+    required_inputs: []
+    examples:
+      - "harici mcp connector ile bağlantı kur ve aracı çalıştır"
+      - "mcp sunucusundaki araçları listele ve çağır"
+      - "api anahtarı ile dış servis otomasyonu tetikle"
+      - "connect to external mcp server and run tool"
+      - "webhook ve mcp entegrasyonu başlat"
+
+  - id: prompt_distill
+    route: prompt_ops
+    mode: general
+    tier: fast
+    risk: low
+    verify_profile: basic
+    tools: []
+    required_inputs: []
+    examples:
+      - "bu sohbeti yeniden kullanılabilir sistem promptu yap"
+      - "konuşmamızdan temiz bir prompt şablonu çıkar"
+      - "sohbeti tek parça profesyonel prompta dönüştür"
+      - "distill this conversation into a reusable system prompt"
+      - "sohbeti prompt yap"
+
+  - id: cross_chat
+    route: memory_ops
+    mode: general
+    tier: fast
+    risk: low
+    verify_profile: basic
+    tools: ["memory_lookup"]
+    required_inputs: []
+    examples:
+      - "diğer sohbetlerimde hangi projelerden bahsetmiştim"
+      - "geçmiş sohbetler arası bilgi analizi yap"
+      - "önceki konuşmalarımda verdiğim kararları özetle"
+      - "search across my previous chats for past decisions"
+      - "sohbetler arası hafızada neler kayıtlı"
+
+  - id: short_answer
+    route: fast_chat
+    mode: short
+    tier: fast
+    risk: low
+    verify_profile: short_strict
+    tools: []
+    required_inputs: []
+    examples:
+      - "kısaca tek cümlede açıkla: docker nedir"
+      - "kısa tut: api ne işe yarar"
+      - "briefly in one sentence what is kubernetes"
+      - "uzatmadan direkt cevap ver: ram nedir"
+      - "en fazla iki cümleyle özetle"
+
+  - id: targeted_edit
+    route: artifact_edit
+    mode: general
+    tier: standard
+    risk: low
+    verify_profile: targeted_diff
+    tools: []
+    required_inputs: []
+    examples:
+      - "sadece 3. slaytı değiştir diğerlerine dokunma"
+      - "yalnızca giriş paragrafını daha resmi yap"
+      - "sadece ikinci fonksiyonun adını güncelle"
+      - "edit only section 2 and keep everything else untouched"
+      - "yalnızca başlık satırını revize et"

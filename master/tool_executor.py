@@ -16,10 +16,8 @@ import re
 import sqlite3
 from typing import Any
 
-import httpx
 import numpy as np
 
-import config
 import multimodal_studio as mms
 
 # ============================================================================
@@ -182,20 +180,22 @@ def query_csv_with_sql(csv_text: str, sql_query: str = "SELECT * FROM data LIMIT
 
 
 async def _call_model(model: str, system: str, prompt: str, num_predict: int = 2048, temp: float = 0.3) -> str:
-    payload = {
-        "model": model,
-        "messages": [
+    import gateway
+
+    prof = "factual" if temp <= 0.15 else ("code" if temp <= 0.25 else "analytic")
+    res = await gateway.default_client.chat(
+        [
             {"role": "system", "content": system},
             {"role": "user", "content": prompt},
         ],
-        "stream": False,
-        "think": False,
-        "options": {"num_predict": num_predict, "temperature": temp},
-    }
-    async with httpx.AsyncClient(timeout=120.0) as client:
-        resp = await client.post(f"{config.OLLAMA_URL}/api/chat", json=payload)
-        resp.raise_for_status()
-        return resp.json().get("message", {}).get("content", "")
+        model=model,
+        profile=prof,
+        num_predict=num_predict,
+        timeout_s=120.0,
+        feature="reasoning_council",
+        max_retries=0,
+    )
+    return res.content
 
 
 async def run_reasoning_council(prompt: str, context: str = "") -> dict[str, Any]:

@@ -878,10 +878,18 @@ async def _analyze_image_with_vlm(
     meta: dict[str, str] = {"part_number": "", "part_name": "", "material": "", "revision": "A", "standard": "ISO 2768-mK"}
 
     try:
-        async with httpx.AsyncClient(timeout=180.0) as client:
-            resp = await client.post(f"{config.OLLAMA_URL}/api/chat", json=payload)
-            resp.raise_for_status()
-            content = resp.json().get("message", {}).get("content", "")
+        import gateway
+
+        gw_res = await gateway.default_client.chat(
+            payload["messages"],
+            model=model,
+            profile="factual",
+            num_predict=4096,
+            timeout_s=180.0,
+            feature="cnc_ballooning",
+            max_retries=0,
+        )
+        content = gw_res.content
     except Exception:
         return items, meta, model
 

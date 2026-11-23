@@ -14,10 +14,12 @@ import cnc_api
 import config
 import contract_check
 import db
+import gateway
 import llm
 import log_sanitizer
 import mcp_connector
 import memory_api
+import orchestrator
 import output_api
 import perf_api
 import preview_server
@@ -33,6 +35,8 @@ import user_api
 async def lifespan(_app: FastAPI):
     log_sanitizer.install_log_redaction()
     db.init_db()
+    gateway.init_gateway_db()
+    orchestrator.init_orchestrator_db()
     projects_api.recover_interrupted()
     tasks_api.start_lease_expiry()
     scheduler.start_dag_scheduler()
@@ -55,6 +59,8 @@ app.include_router(memory_api.router)
 app.include_router(mcp_connector.router)
 app.include_router(backup_manager.router)
 app.include_router(audit_log.router)
+app.include_router(gateway.router)
+app.include_router(orchestrator.router)
 
 
 @app.get("/api/admin/contract-check")

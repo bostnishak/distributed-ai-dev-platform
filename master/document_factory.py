@@ -13,7 +13,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-import httpx
 import pymupdf as fitz
 from docx import Document
 from docx.oxml import OxmlElement
@@ -24,7 +23,6 @@ from openpyxl.chart import BarChart, Reference
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
-import config
 import multimodal_studio as mms
 
 DOC_BUILD_RE = re.compile(
@@ -135,28 +133,27 @@ async def generate_document_deliverable(prompt: str, fmt: str, context_text: str
     }
 
     try:
-        async with httpx.AsyncClient(timeout=120.0) as client:
-            resp = await client.post(
-                f"{config.OLLAMA_URL}/api/chat",
-                json={
-                    "model": model,
-                    "messages": [
-                        {"role": "system", "content": schema_prompt},
-                        {"role": "user", "content": user_msg},
-                    ],
-                    "stream": False,
-                    "think": False,
-                    "options": {"temperature": 0.2, "num_predict": 3500},
-                },
-            )
-            if resp.status_code == 200:
-                raw = resp.json().get("message", {}).get("content", "")
-                m = re.search(r"\{[\s\S]*\}", raw)
-                if m:
-                    cleaned_json = re.sub(r",\s*([}\]])", r"\1", m.group(0))
-                    parsed = json.loads(cleaned_json)
-                    if isinstance(parsed, dict) and parsed.get("title"):
-                        spec.update(parsed)
+        import gateway
+
+        res = await gateway.default_client.chat(
+            [
+                {"role": "system", "content": schema_prompt},
+                {"role": "user", "content": user_msg},
+            ],
+            model=model,
+            profile="factual",
+            num_predict=3500,
+            timeout_s=120.0,
+            feature="document_factory",
+            max_retries=0,
+        )
+        raw = res.content
+        m = re.search(r"\{[\s\S]*\}", raw)
+        if m:
+            cleaned_json = re.sub(r",\s*([}\]])", r"\1", m.group(0))
+            parsed = json.loads(cleaned_json)
+            if isinstance(parsed, dict) and parsed.get("title"):
+                spec.update(parsed)
     except Exception:
         pass
 

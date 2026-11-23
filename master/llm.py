@@ -1,13 +1,9 @@
-"""Client for the master agent's own local model, using Ollama's native API.
-
-The native /api/chat endpoint is used instead of the LiteLLM gateway because it reliably
-supports what requirements analysis needs: a JSON schema in ``format`` (structured output),
-``options.num_ctx`` for long documents and ``think: false`` to skip the slow thinking phase.
-"""
+"""Client for the master agent's own local model, routed through the in-process LLM Gateway (GW-01)."""
 
 import httpx
 
 import config
+import gateway
 
 
 class LLMError(RuntimeError):
@@ -16,28 +12,24 @@ class LLMError(RuntimeError):
 
 async def chat_structured(system: str, user: str, schema: dict, num_ctx: int) -> str:
     """Ask the master model for a JSON answer that follows ``schema``; returns the raw JSON text."""
-    payload = {
-        "model": config.MASTER_MODEL,
-        "messages": [
-            {"role": "system", "content": system},
-            {"role": "user", "content": user},
-        ],
-        "format": schema,
-        "stream": False,
-        "think": False,
-        "options": {"num_ctx": num_ctx, "num_predict": config.NUM_PREDICT, "temperature": 0},
-    }
+    messages = [
+        {"role": "system", "content": system},
+        {"role": "user", "content": user},
+    ]
     try:
-        async with httpx.AsyncClient(timeout=config.LLM_TIMEOUT_SECONDS) as client:
-            resp = await client.post(f"{config.OLLAMA_URL}/api/chat", json=payload)
-    except httpx.HTTPError as exc:
+        res = await gateway.default_client.chat(
+            messages,
+            model=config.MASTER_MODEL,
+            profile="extract",
+            format_schema=schema,
+            num_predict=config.NUM_PREDICT,
+            timeout_s=config.LLM_TIMEOUT_SECONDS,
+            feature="requirements_analysis",
+            max_retries=0,
+        )
+    except Exception as exc:
         raise LLMError(f"Master modeline ({config.MASTER_MODEL}) ulaşılamadı: {exc!r}") from exc
-    if resp.status_code != 200:
-        raise LLMError(f"Ollama hata döndürdü ({resp.status_code}): {resp.text[:300]}")
-    data = resp.json()
-    if data.get("done_reason") == "length":
-        raise LLMError("Model yanıtı üretim sınırında kesildi (NUM_PREDICT).")
-    return data["message"]["content"]
+    return res.content
 
 
 async def status() -> dict:

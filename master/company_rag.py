@@ -10,10 +10,6 @@ import math
 import re
 from typing import Any
 
-import httpx
-
-import config
-
 COMPANY_KNOWLEDGE_DOCS: list[dict[str, Any]] = [
     {
         "id": "iso-2768-mk",
@@ -81,16 +77,12 @@ def _cosine(a: list[float], b: list[float]) -> float:
 
 
 async def _embed_text(text: str) -> list[float] | None:
+    import gateway
+
     try:
-        async with httpx.AsyncClient(timeout=2.5) as client:
-            resp = await client.post(
-                f"{config.OLLAMA_URL}/api/embeddings",
-                json={"model": "bge-m3:latest", "prompt": text},
-            )
-            if resp.status_code == 200:
-                emb = resp.json().get("embedding")
-                if isinstance(emb, list) and emb:
-                    return emb
+        emb = await gateway.default_client.embed(text, model="bge-m3:latest")
+        if isinstance(emb, list) and emb:
+            return emb
     except Exception:
         pass
     return None

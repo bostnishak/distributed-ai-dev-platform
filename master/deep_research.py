@@ -17,7 +17,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-import httpx
 from pptx import Presentation
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE
@@ -25,7 +24,6 @@ from pptx.oxml import parse_xml
 from pptx.oxml.ns import nsdecls
 from pptx.util import Inches, Pt
 
-import config
 import multimodal_studio as mms
 
 TOPIC_THEMES: dict[str, dict[str, str]] = {
@@ -366,28 +364,27 @@ async def generate_ai_pptx_presentation(prompt: str) -> dict[str, Any]:
     }
 
     try:
-        async with httpx.AsyncClient(timeout=120.0) as client:
-            resp = await client.post(
-                f"{config.OLLAMA_URL}/api/chat",
-                json={
-                    "model": model,
-                    "messages": [
-                        {"role": "system", "content": sys_prompt},
-                        {"role": "user", "content": prompt},
-                    ],
-                    "stream": False,
-                    "think": False,
-                    "options": {"temperature": 0.35, "num_predict": 3600},
-                },
-            )
-            if resp.status_code == 200:
-                raw = resp.json().get("message", {}).get("content", "")
-                m = re.search(r"\{[\s\S]*\}", raw)
-                if m:
-                    cleaned = re.sub(r",\s*([}\]])", r"\1", m.group(0))
-                    parsed = json.loads(cleaned)
-                    if isinstance(parsed, dict) and parsed.get("slides"):
-                        spec.update(parsed)
+        import gateway
+
+        res = await gateway.default_client.chat(
+            [
+                {"role": "system", "content": sys_prompt},
+                {"role": "user", "content": prompt},
+            ],
+            model=model,
+            profile="analytic",
+            num_predict=3600,
+            timeout_s=120.0,
+            feature="deep_research",
+            max_retries=0,
+        )
+        raw = res.content
+        m = re.search(r"\{[\s\S]*\}", raw)
+        if m:
+            cleaned = re.sub(r",\s*([}\]])", r"\1", m.group(0))
+            parsed = json.loads(cleaned)
+            if isinstance(parsed, dict) and parsed.get("slides"):
+                spec.update(parsed)
     except Exception:
         pass
 
