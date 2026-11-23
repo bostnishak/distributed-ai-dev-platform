@@ -436,7 +436,8 @@ function buildInlineWorkspaceCard(wsMeta, wsTree) {
 
   const iframe = document.createElement('iframe');
   iframe.className = 'ide-preview-iframe';
-  iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-modals');
+  // SEC-17: Strictly omit allow-same-origin so previewed user/LLM scripts cannot access app cookies or APIs
+  iframe.setAttribute('sandbox', 'allow-scripts allow-forms');
   refreshBtn.addEventListener('click', () => {
     iframe.src = `/api/studio/workspaces/${wsId}/preview/index.html?t=${Date.now()}`;
   });

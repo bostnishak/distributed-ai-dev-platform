@@ -1,0 +1,47 @@
+title = "CM6453 Secret Leak Prevention Rules (SEC-20)"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "cm6453-agent-token"
+description = "Hardcoded AGENT_TOKEN assignment"
+regex = '''(?i)AGENT_TOKEN\s*=\s*["']?[A-Za-z0-9_\-]{12,}["']?'''
+tags = ["secret", "agent"]
+
+[[rules]]
+id = "cm6453-secret-key"
+description = "Hardcoded SECRET_KEY or ADMIN_TOKEN assignment"
+regex = '''(?i)(?:SECRET_KEY|ADMIN_TOKEN|BACKUP_PASSWORD)\s*=\s*["']?[A-Za-z0-9_\-=+/]{12,}["']?'''
+tags = ["secret", "master"]
+
+[[rules]]
+id = "cm6453-tailscale-key"
+description = "Tailscale Auth / API Key"
+regex = '''\btskey-(?:auth|api|client)-[A-Za-z0-9\-_]{10,}'''
+tags = ["secret", "tailscale"]
+
+[[rules]]
+id = "cm6453-openai-or-sk-key"
+description = "API key with sk- prefix"
+regex = '''\bsk-[A-Za-z0-9\-_]{20,}'''
+tags = ["secret", "api"]
+
+[[rules]]
+id = "cm6453-google-api-key"
+description = "Google API key (AIza...)"
+regex = '''\bAIza[0-9A-Za-z\-_]{35}\b'''
+tags = ["secret", "google"]
+
+[allowlist]
+description = "Allow .env.example placeholders and test fixtures"
+paths = [
+  '''^\.env\.example$''',
+  '''^master/tests/''',
+  '''^agent/tests/''',
+]
+stopwords = [
+  "ci-placeholder",
+  "test-secret-token",
+  "your-secret-here",
+]

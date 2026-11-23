@@ -30,7 +30,7 @@ services:
     container_name: litellm-gateway
     restart: unless-stopped
     ports:
-      - "4000:4000"
+      - "127.0.0.1:4000:4000"
     volumes:
       - ./gateway/litellm_config.yaml:/app/config.yaml:ro
     env_file:
@@ -44,7 +44,7 @@ services:
     container_name: dadp-master
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     environment:
       GATEWAY_BASE_URL: http://litellm-gateway:4000
       OLLAMA_URL: http://host.docker.internal:11434

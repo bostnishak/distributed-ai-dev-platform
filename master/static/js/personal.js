@@ -609,27 +609,59 @@ async function sectionMemory(body) {
 }
 
 function sectionData(body) {
+  const s = profile.settings;
+  const auditBox = h('div', { class: 'sp-note', style: { marginTop: '8px' } }, 'AS9100 SHA-256 denetim izi doğrulanmadı.');
+  const verifyAuditBtn = h('button', {
+    type: 'button',
+    class: 'sp-btn sm',
+    onClick: async () => {
+      try {
+        const res = await api('/api/admin/audit/verify');
+        auditBox.textContent = res.valid
+          ? `Denetim zinciri doğrulandı (${res.total_entries} kayıt, bütünlük sağlam).`
+          : `UYARI: Zincir bozuk! Satır ${res.corrupted_line}: ${res.reason}`;
+        setStatus(res.valid ? 'Denetim izi sağlam' : 'Denetim izi bozuk!', Boolean(res.valid));
+      } catch (err) {
+        auditBox.textContent = `Doğrulama hatası: ${err.message}`;
+      }
+    },
+  }, 'Zinciri Doğrula');
+
+  const encBackupBtn = h('button', {
+    type: 'button',
+    class: 'sp-btn',
+    onClick: async () => {
+      const pwd = prompt('Şifreli AES-256 yedek için parola belirleyin (boş bırakırsanız yerel anahtar kullanılır):', '');
+      if (pwd === null) return;
+      const q = pwd.trim() ? `?password=${encodeURIComponent(pwd.trim())}` : '';
+      window.location.href = `/api/admin/backup.zip${q}`;
+    },
+  }, 'Şifreli Yedek (.ZIP)');
+
   const wipe = (scope, label, desc) => settingRow(label, desc, confirmButton('Sil', async () => {
     await api(`/api/user/${activeUserId}/data?scope=${scope}`, { method: 'DELETE' });
     if (scope === 'usage' || scope === 'all') { monthTokens = 0; monthMessages = 0; }
     if (scope === 'memories' || scope === 'all') { memoryCount = 0; }
     renderCard();
     if (scope === 'conversations' || scope === 'all') { document.dispatchEvent(new CustomEvent('chats-wiped')); }
-    setStatus('Silindi', true);
+    setStatus('Silindi (WAL + VACUUM temizlendi)', true);
   }));
   body.replaceChildren(
-    h('div', { class: 'sp-note' }, 'Tüm veriler yalnızca bu bilgisayardaki sunucuda tutulur ve hiçbir yere gönderilmez.'),
+    h('div', { class: 'sp-note' }, 'Tüm veriler yalnızca bu bilgisayardaki sunucuda tutulur; gizli anahtarlar Fernet ile şifrelenir ve yedeklere dahil edilmez.'),
     group(
-      settingRow('Verilerimi dışa aktar', 'Profil, ayarlar, öğrenilen bilgiler, istatistikler ve sohbetler tek bir JSON dosyası olarak iner.',
+      settingRow('Otomatik saklama süresi', 'Sohbet ve kullanım kayıtlarının saklanacağı gün sayısı (0 = sınırsız)',
+        seg([[0, 'Sınırsız'], [7, '7 gün'], [30, '30 gün'], [90, '90 gün']], Number(s.retention_days || 0), (v) => savePatch({ settings: { retention_days: Number(v) } }, true))),
+      settingRow('Verilerimi dışa aktar', 'Profil, ayarlar, öğrenilen bilgiler, istatistikler ve sohbetler JSON olarak iner (gizli anahtarlar hariç).',
         h('a', { class: 'sp-btn primary', href: `/api/user/${activeUserId}/export`, download: '' }, 'JSON indir')),
-      settingRow('Tam sistem yedeği (ZIP)', 'Tüm veritabanları, sohbetler ve üretilen çalışma alanlarını tek arşivde indirir.',
-        h('a', { class: 'sp-btn', href: '/api/admin/backup.zip', download: '' }, 'Tam Yedek (.ZIP)'))),
-    groupTitle('Verileri sil'),
+      settingRow('Şifreli sistem yedeği (AES-256 ZIP)', 'Parola korumalı ve SHA-256 manifestli tam veri yedeği indirir (secrets.db hariç).', encBackupBtn),
+      settingRow('AS9100 Denetim İzi Bütünlüğü', 'Tüm güvenlik olaylarının SHA-256 özet zincirini doğrular.', verifyAuditBtn)),
+    auditBox,
+    groupTitle('Verileri sil (Kalıcı VACUUM + WAL temizliği)'),
     group(
-      wipe('usage', 'Kullanım istatistikleri', 'Token ve yanıt süresi kayıtlarını siler.'),
-      wipe('memories', 'Öğrenilen bilgiler', 'Asistanın sizin hakkınızda öğrendiği her şeyi unutturur.'),
-      wipe('conversations', 'Sunucudaki sohbet kayıtları', 'Sohbetler arası arama için tutulan kopyayı siler. Tarayıcıdaki sohbet listeniz etkilenmez.'),
-      wipe('all', 'Hepsi', 'Yukarıdakilerin tamamını siler. Profil ve ayarlar kalır.')));
+      wipe('usage', 'Kullanım istatistikleri', 'Token ve yanıt süresi kayıtlarını kalıcı olarak siler.'),
+      wipe('memories', 'Öğrenilen bilgiler', 'Asistanın sizin hakkınızda öğrendiği her şeyi kalıcı olarak siler.'),
+      wipe('conversations', 'Sunucudaki sohbet kayıtları', 'Sohbetler, FTS dizini ve ilgili medya dosyalarını kalıcı olarak siler.'),
+      wipe('all', 'Hepsi', 'Yukarıdakilerin tamamını fiziksel olarak temizler. Profil ve ayarlar kalır.')));
 }
 
 // ---------------------------------------------------------------- panel shell

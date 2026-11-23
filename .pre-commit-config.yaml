@@ -1,0 +1,21 @@
+# SEC-20: Pre-commit hooks for secret scanning, .env protection, and linting
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks
+        args: ["--config=.gitleaks.toml", "--redact"]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      - id: ruff
+        args: ["--config=ruff.toml"]
+
+  - repo: local
+    hooks:
+      - id: block-dotenv-files
+        name: Block committing .env* files (except .env.example)
+        entry: python -c "import sys; bad=[f for f in sys.argv[1:] if f.split('/')[-1].startswith('.env') and not f.endswith('.env.example')]; sys.exit('BLOCKED .env files: ' + ', '.join(bad)) if bad else sys.exit(0)"
+        language: system
+        pass_filenames: true

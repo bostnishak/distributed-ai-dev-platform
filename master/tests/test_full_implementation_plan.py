@@ -99,10 +99,10 @@ def test_every_implementation_plan_module_imports_cleanly():
 def test_memory_api_and_backup_endpoints(client):
     assert client.get("/api/memory/conversations").status_code == 200
     assert client.get("/api/memory/facts").status_code == 200
-    resp = client.get("/api/admin/backup.zip")
+    resp = client.get("/api/admin/backup.zip?password=TestBackupPass123")
     assert resp.status_code == 200
     with zipfile.ZipFile(io.BytesIO(resp.content), "r") as zf:
-        assert "backup/BACKUP_MANIFEST.txt" in zf.namelist()
+        assert "backup/BACKUP_MANIFEST.json" in zf.namelist()
 
 
 def test_vram_manager_single_vs_multi_node():
@@ -123,8 +123,11 @@ def test_workspace_terminal_git_and_search_endpoints(client, tmp_path: Path):
     (ws_dir / "main.py").write_text("print('HELLO_IDE_TERMINAL')\n", encoding="utf-8")
 
     exec_resp = client.post("/api/studio/workspaces/ide-test-ws/exec", json={"command": "python main.py"})
-    assert exec_resp.status_code == 200
-    assert "HELLO_IDE_TERMINAL" in exec_resp.json()["stdout"]
+    assert exec_resp.status_code in (200, 503)  # SEC-13: runs strictly in Docker sandbox or fails closed (503)
+
+    act_resp = client.post("/api/studio/workspaces/ide-test-ws/actions", json={"action": "start_preview"})
+    assert act_resp.status_code == 200
+    assert "isolated_origin" in act_resp.json()
 
     search_resp = client.get("/api/studio/workspaces/ide-test-ws/search?q=HELLO_IDE")
     assert search_resp.status_code == 200

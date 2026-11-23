@@ -37,6 +37,7 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "cross_chat_memory": True,
     "auto_learn_facts": True,
     "monthly_token_budget": 0,
+    "retention_days": 0,
 }
 
 _ENUMS: dict[str, set[str]] = {
@@ -146,6 +147,11 @@ def sanitize_settings(patch: dict[str, Any]) -> dict[str, Any]:
         elif key == "monthly_token_budget":
             try:
                 clean[key] = max(0, min(int(value), 1_000_000_000))
+            except (TypeError, ValueError):
+                continue
+        elif key == "retention_days":
+            try:
+                clean[key] = max(0, min(int(value), 3650))
             except (TypeError, ValueError):
                 continue
     return clean
@@ -804,20 +810,61 @@ def export_all(user_id: str) -> dict[str, Any]:
     }
 
 
+def _compact_sqlite_physical(db_path: Path) -> None:
+    """Force WAL truncation and VACUUM so erased user data leaves zero residual bytes on disk (SEC-21)."""
+    if not db_path.is_file():
+        return
+    conn = sqlite3.connect(str(db_path))
+    try:
+        conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        conn.execute("VACUUM")
+        conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+    finally:
+        conn.close()
+
+
+def _extract_media_filenames(text: str) -> set[str]:
+    return set(re.findall(r"/api/assistant/media/([A-Za-z0-9._\-]+)", text or ""))
+
+
+def purge_expired_data(user_id: str) -> dict[str, int]:
+    """Delete chats and usage events older than the user's configured retention_days (0 = keep forever)."""
+    uid = valid_user_id(user_id)
+    ret_days = int(get_settings(uid).get("retention_days") or 0)
+    if ret_days <= 0:
+        return {"usage": 0, "chats": 0}
+    cutoff_dt = datetime.now(UTC) - timedelta(days=ret_days)
+    cutoff_iso = cutoff_dt.isoformat()
+    cutoff_ms = int(cutoff_dt.timestamp() * 1000)
+    init_db()
+    with _connect() as conn:
+        u_cnt = conn.execute("DELETE FROM usage_events WHERE user_id = ? AND created_at < ?", (uid, cutoff_iso)).rowcount
+        c_cnt = conn.execute("DELETE FROM saved_chats WHERE user_id = ? AND updated_at < ?", (uid, cutoff_ms)).rowcount
+    if u_cnt or c_cnt:
+        _compact_sqlite_physical(_db_path())
+    return {"usage": u_cnt, "chats": c_cnt}
+
+
 def wipe_data(user_id: str, scope: str) -> dict[str, int]:
-    """scope: usage | memories | conversations | all"""
+    """SEC-21 Right to Erasure: remove DB rows, FTS index, linked media blobs, and VACUUM/WAL-truncate."""
     uid = valid_user_id(user_id)
     if scope not in {"usage", "memories", "conversations", "all"}:
         raise ValueError("Gecersiz kapsam.")
     init_db()
     memory_engine.init_memory_db()
-    removed = {"usage": 0, "memories": 0, "conversations": 0}
+    removed = {"usage": 0, "memories": 0, "conversations": 0, "media_files": 0}
+    media_to_delete: set[str] = set()
+
     if scope in {"usage", "all"}:
         with _connect() as conn:
             removed["usage"] = conn.execute("DELETE FROM usage_events WHERE user_id = ?", (uid,)).rowcount
     if scope in {"conversations", "all"}:
         with _connect() as conn:
+            rows = conn.execute("SELECT messages_json FROM saved_chats WHERE user_id = ?", (uid,)).fetchall()
+            for r in rows:
+                media_to_delete.update(_extract_media_filenames(str(r["messages_json"] or "")))
             conn.execute("DELETE FROM saved_chats WHERE user_id = ?", (uid,))
+
     mconn = memory_engine._connect()
     try:
         with mconn:
@@ -828,10 +875,38 @@ def wipe_data(user_id: str, scope: str) -> dict[str, int]:
             if scope in {"conversations", "all"}:
                 ids = [r["id"] for r in mconn.execute("SELECT id FROM conversations WHERE user_id = ?", (uid,))]
                 for cid in ids:
+                    for mr in mconn.execute("SELECT content FROM conversation_messages WHERE conversation_id = ?", (cid,)):
+                        media_to_delete.update(_extract_media_filenames(str(mr["content"] or "")))
                     mconn.execute("DELETE FROM messages_fts WHERE conversation_id = ?", (cid,))
                     mconn.execute("DELETE FROM conversation_messages WHERE conversation_id = ?", (cid,))
                     mconn.execute("DELETE FROM conversations WHERE id = ?", (cid,))
                 removed["conversations"] = len(ids)
     finally:
         mconn.close()
+
+    # Delete referenced user media files on disk
+    media_root = Path(config.DATA_DIR) / "media"
+    for fname in media_to_delete:
+        target = (media_root / Path(fname).name).resolve()
+        if media_root.resolve() in target.parents and target.is_file():
+            try:
+                target.unlink()
+                removed["media_files"] += 1
+            except OSError:
+                pass
+
+    # Physical WAL truncation + VACUUM so deleted user strings cannot be recovered from DB/WAL files
+    _compact_sqlite_physical(_db_path())
+    _compact_sqlite_physical(Path(config.DATA_DIR) / "cognitive_memory.db")
+
+    try:
+        from audit_log import AuditTrail
+
+        AuditTrail().append_event(
+            actor=uid,
+            action="USER_DATA_WIPED",
+            payload={"user_id": uid, "scope": scope, "removed": removed},
+        )
+    except Exception:
+        pass
     return removed

@@ -18,7 +18,8 @@ import db
 import review_scheduler
 import scheduler
 import validation as val_module
-from agents_api import require_agent_token
+from agents_api import require_agent_auth, require_agent_token
+from audit_log import AuditTrail
 from benchmarks import BENCHMARK_BY_ID, aggregate_dimension_scores, score_response
 from selection import select_agent
 
@@ -53,9 +54,20 @@ def start_lease_expiry() -> None:
 # GET /api/agents/{id}/tasks/next
 # ---------------------------------------------------------------------------
 
-@router.get("/api/agents/{agent_id}/tasks/next", dependencies=[Depends(require_agent_token)])
-def next_task(agent_id: str, background_tasks: BackgroundTasks):
-    """Return the next planned task assigned to this agent, or auto-assign one."""
+@router.get("/api/agents/{agent_id}/tasks/next")
+def next_task(
+    agent_id: str,
+    background_tasks: BackgroundTasks,
+    caller_agent_id: str | None = Depends(require_agent_auth),
+):
+    """Return the next planned task assigned to this agent, or auto-assign one (SEC-18 ownership)."""
+    if caller_agent_id and caller_agent_id != agent_id:
+        AuditTrail().append_event(
+            actor=caller_agent_id,
+            action="TASK_POLL_OWNERSHIP_DENIED",
+            payload={"target_agent_id": agent_id},
+        )
+        raise HTTPException(status_code=403, detail="Başka bir ajanın görev kuyruğu sorgulanamaz.")
     agent = db.get_agent(agent_id)
     if not agent:
         raise HTTPException(status_code=404, detail="Ajan bulunamadı.")
@@ -116,12 +128,27 @@ class TaskResultRequest(BaseModel):
     tokens_per_second: float | None = None
 
 
-@router.post("/api/tasks/{task_id}/result", dependencies=[Depends(require_agent_token)])
-def submit_result(task_id: int, request: TaskResultRequest):
-    """Agent submits the result for a task it completed."""
+@router.post("/api/tasks/{task_id}/result")
+def submit_result(
+    task_id: int,
+    request: TaskResultRequest,
+    caller_agent_id: str | None = Depends(require_agent_auth),
+):
+    """Agent submits the result for a task it completed (SEC-18: strictly verifies assigned_to ownership)."""
     task = db.get_task(task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Görev bulunamadı.")
+    assigned_to = task.get("assigned_to")
+    if caller_agent_id and assigned_to and caller_agent_id != assigned_to:
+        AuditTrail().append_event(
+            actor=caller_agent_id,
+            action="TASK_RESULT_OWNERSHIP_DENIED",
+            payload={"task_id": task_id, "assigned_to": assigned_to},
+        )
+        raise HTTPException(
+            status_code=403,
+            detail="Bu görev başka bir ajana atanmış; yalnız atanan ajan sonuç gönderebilir.",
+        )
 
     files = [f.model_dump() for f in request.files] if request.files else None
 

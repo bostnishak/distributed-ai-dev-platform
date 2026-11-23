@@ -40,6 +40,12 @@ ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN", "")
 # --- Agents ---
 # Shared secret every agent sends as "Authorization: Bearer <token>" when registering.
 AGENT_TOKEN = os.environ.get("AGENT_TOKEN", "")
+ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN", "")
+SECRET_KEY = os.environ.get("SECRET_KEY", "")
+BACKUP_PASSWORD = os.environ.get("BACKUP_PASSWORD", "")
+REQUIRE_AGENT_APPROVAL = os.environ.get("REQUIRE_AGENT_APPROVAL", "false").strip().lower() in ("1", "true", "yes")
+HOST_BIND = os.environ.get("HOST_BIND", "127.0.0.1")
+PREVIEW_PORT = int(os.environ.get("PREVIEW_PORT", "8001"))
 
 # --- Storage and limits ---
 DB_PATH = Path(os.environ.get("DB_PATH", str(BASE_DIR / "data" / "platform.db")))

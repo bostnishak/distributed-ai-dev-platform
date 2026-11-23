@@ -213,10 +213,13 @@ class AuditTrail:
         return str(record.get("entry_hash", self.GENESIS_HASH))
 
     def append_event(self, actor: str, action: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
-        """Append a tamper-evident SHA-256 hash-chained event to audit_chain.jsonl."""
+        """Append a tamper-evident SHA-256 hash-chained event to audit_chain.jsonl (PII/secret scrubbed)."""
+        from log_sanitizer import redact_sensitive_data
+
         prev_hash = self._get_last_hash()
         ts = datetime.now(UTC).isoformat()
-        safe_payload = payload if isinstance(payload, dict) else {"value": payload}
+        raw_payload = payload if isinstance(payload, dict) else {"value": payload}
+        safe_payload = redact_sensitive_data(raw_payload)
         entry_hash = self._compute_entry_hash(prev_hash, ts, actor, action, safe_payload)
         entry = {
             "timestamp": ts,
@@ -242,33 +245,54 @@ class AuditTrail:
                     events.append(json.loads(raw))
         return events
 
+    def verify_chain_detailed(self) -> dict[str, Any]:
+        """Verify cryptographic integrity and return exact corrupted line number if tampered."""
+        if not self.log_path.exists():
+            return {"valid": True, "total_entries": 0, "corrupted_line": None, "reason": ""}
+        expected_prev = self.GENESIS_HASH
+        total = 0
+        with self.log_path.open("r", encoding="utf-8") as fh:
+            for line_no, line in enumerate(fh, start=1):
+                raw = line.strip()
+                if not raw:
+                    continue
+                total += 1
+                try:
+                    record = json.loads(raw)
+                except json.JSONDecodeError as exc:
+                    return {
+                        "valid": False,
+                        "total_entries": total,
+                        "corrupted_line": line_no,
+                        "reason": f"Satır {line_no} geçersiz JSON: {exc}",
+                    }
+                if record.get("prev_hash") != expected_prev:
+                    return {
+                        "valid": False,
+                        "total_entries": total,
+                        "corrupted_line": line_no,
+                        "reason": f"Satır {line_no} prev_hash zinciri bozulmuş.",
+                    }
+                recomputed = self._compute_entry_hash(
+                    prev_hash=expected_prev,
+                    timestamp=str(record.get("timestamp", "")),
+                    actor=str(record.get("actor", "")),
+                    action=str(record.get("action", "")),
+                    payload=dict(record.get("payload") or {}),
+                )
+                if not hmac.compare_digest(str(record.get("entry_hash", "")), recomputed):
+                    return {
+                        "valid": False,
+                        "total_entries": total,
+                        "corrupted_line": line_no,
+                        "reason": f"Satır {line_no} entry_hash doğrulaması başarısız (kayıt değiştirilmiş).",
+                    }
+                expected_prev = recomputed
+        return {"valid": True, "total_entries": total, "corrupted_line": None, "reason": ""}
+
     def verify_chain(self) -> bool:
         """Verify cryptographic integrity of the entire SHA-256 hash chain."""
-        if not self.log_path.exists():
-            return True
-        expected_prev = self.GENESIS_HASH
-        try:
-            with self.log_path.open("r", encoding="utf-8") as fh:
-                for line in fh:
-                    raw = line.strip()
-                    if not raw:
-                        continue
-                    record = json.loads(raw)
-                    if record.get("prev_hash") != expected_prev:
-                        return False
-                    recomputed = self._compute_entry_hash(
-                        prev_hash=expected_prev,
-                        timestamp=str(record["timestamp"]),
-                        actor=str(record["actor"]),
-                        action=str(record["action"]),
-                        payload=dict(record.get("payload") or {}),
-                    )
-                    if not hmac.compare_digest(str(record.get("entry_hash", "")), recomputed):
-                        return False
-                    expected_prev = recomputed
-            return True
-        except Exception:
-            return False
+        return bool(self.verify_chain_detailed()["valid"])
 
 
 class MCPRegistry:

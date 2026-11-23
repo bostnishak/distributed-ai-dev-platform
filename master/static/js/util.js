@@ -37,8 +37,39 @@ export function svg(tag, props, ...children) {
   return el;
 }
 
+export function getCsrfToken() {
+  const m = document.cookie.match(/(?:^|;\s*)cm6453_csrf=([^;]+)/);
+  return m ? decodeURIComponent(m[1]) : '';
+}
+
+export function csrfHeaders(extra = {}) {
+  const tok = getCsrfToken();
+  return tok ? { ...extra, 'X-CSRF-Token': tok } : { ...extra };
+}
+
+// Automatically attach X-CSRF-Token on all same-origin mutating fetch() calls across the app (SEC-16)
+if (typeof window !== 'undefined' && typeof window.fetch === 'function' && !window.__cm6453CsrfWrapped) {
+  const _origFetch = window.fetch.bind(window);
+  window.__cm6453CsrfWrapped = true;
+  window.fetch = (input, init = {}) => {
+    const url = typeof input === 'string' ? input : (input && input.url) || '';
+    const method = ((init && init.method) || (input && input.method) || 'GET').toUpperCase();
+    if (url.startsWith('/') && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+      const headers = new Headers((init && init.headers) || undefined);
+      const tok = getCsrfToken();
+      if (tok && !headers.has('X-CSRF-Token')) headers.set('X-CSRF-Token', tok);
+      return _origFetch(input, { ...init, headers });
+    }
+    return _origFetch(input, init);
+  };
+}
+
 export async function api(path, options = {}) {
-  const resp = await fetch(path, options);
+  const method = (options.method || 'GET').toUpperCase();
+  const headers = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)
+    ? csrfHeaders(options.headers || {})
+    : (options.headers || {});
+  const resp = await fetch(path, { ...options, headers });
   const text = await resp.text();
   let data = null;
   if (text) {

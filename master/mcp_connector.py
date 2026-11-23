@@ -1,11 +1,11 @@
-"""External MCP (Model Context Protocol) Connector Manager & FastAPI Router.
+"""External MCP (Model Context Protocol) Connector Manager & FastAPI Router (SEC-11 hardened).
 
-Allows users to connect external MCP servers using a server URL and API Key / Bearer Token:
-- Persists connectors in local SQLite (`mcp_connectors` table in `config.DB_PATH`).
-- Masks API keys in all API responses so secrets are never leaked to the UI.
+- Persists connector metadata in local SQLite (`mcp_connectors` table in `config.DB_PATH`).
+- NEVER stores plaintext API keys in `platform.db`: all API keys are encrypted with Fernet
+  inside `secret_store` (`secrets.db`) which is excluded from backups and exports (SEC-11).
 - Real JSON-RPC 2.0 over HTTP / Streamable-HTTP (SSE) client supporting:
   `initialize`, `tools/list`, and `tools/call`.
-- Exposes `/api/mcp/connectors` CRUD + `/discover` + `/call` endpoints.
+- Exposes `/api/mcp/connectors` CRUD + `/discover` + `/call` endpoints with local/admin guards & audit logging.
 """
 
 from __future__ import annotations
@@ -21,7 +21,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 import config
+import secret_store
 from access_control import require_local_or_admin
+from audit_log import AuditTrail
 
 router = APIRouter(prefix="/api/mcp", tags=["mcp"])
 
@@ -33,6 +35,10 @@ def _connect() -> sqlite3.Connection:
     return conn
 
 
+def _secret_name(connector_id: str) -> str:
+    return f"mcp:{connector_id}:api_key"
+
+
 def init_mcp_db() -> None:
     with _connect() as conn:
         conn.execute(
@@ -42,6 +48,7 @@ def init_mcp_db() -> None:
                 name TEXT NOT NULL,
                 url TEXT NOT NULL,
                 api_key TEXT NOT NULL DEFAULT '',
+                api_key_masked TEXT NOT NULL DEFAULT '',
                 auth_header TEXT NOT NULL DEFAULT 'Authorization',
                 auth_prefix TEXT NOT NULL DEFAULT 'Bearer ',
                 description TEXT NOT NULL DEFAULT '',
@@ -53,15 +60,19 @@ def init_mcp_db() -> None:
             )
             """
         )
-
-
-def _mask_key(raw: str) -> str:
-    k = (raw or "").strip()
-    if not k:
-        return ""
-    if len(k) <= 8:
-        return "*" * len(k)
-    return f"{k[:4]}...{k[-4:]}"
+        cols = {r["name"] for r in conn.execute("PRAGMA table_info(mcp_connectors)").fetchall()}
+        if "api_key_masked" not in cols:
+            conn.execute("ALTER TABLE mcp_connectors ADD COLUMN api_key_masked TEXT NOT NULL DEFAULT ''")
+        # Auto-migrate any legacy plaintext api_key rows into encrypted secret_store
+        legacy_rows = conn.execute("SELECT id, api_key FROM mcp_connectors WHERE api_key != ''").fetchall()
+        for r in legacy_rows:
+            raw_k = str(r["api_key"] or "").strip()
+            if raw_k:
+                secret_store.set_secret(_secret_name(r["id"]), raw_k)
+                conn.execute(
+                    "UPDATE mcp_connectors SET api_key = '', api_key_masked = ? WHERE id = ?",
+                    (secret_store.mask_secret(raw_k), r["id"]),
+                )
 
 
 def _row_to_public(row: sqlite3.Row) -> dict[str, Any]:
@@ -69,12 +80,13 @@ def _row_to_public(row: sqlite3.Row) -> dict[str, Any]:
         tools = json.loads(row["tools_json"] or "[]")
     except json.JSONDecodeError:
         tools = []
+    masked = row["api_key_masked"] if "api_key_masked" in row.keys() else ""
     return {
         "id": row["id"],
         "name": row["name"],
         "url": row["url"],
-        "has_api_key": bool((row["api_key"] or "").strip()),
-        "api_key_masked": _mask_key(row["api_key"]),
+        "has_api_key": bool(masked),
+        "api_key_masked": masked,
         "auth_header": row["auth_header"],
         "auth_prefix": row["auth_prefix"],
         "description": row["description"],
@@ -114,17 +126,21 @@ def create_connector(
         raise ValueError("Geçerli bir bağlayıcı adı ve http(s):// ile başlayan MCP URL girin.")
     cid = f"mcp-{uuid.uuid4().hex[:8]}"
     now = datetime.now(UTC).isoformat()
+    raw_key = (api_key or "").strip()
+    masked = secret_store.mask_secret(raw_key) if raw_key else ""
+    if raw_key:
+        secret_store.set_secret(_secret_name(cid), raw_key)
     with _connect() as conn:
         conn.execute(
             """
-            INSERT INTO mcp_connectors (id, name, url, api_key, auth_header, auth_prefix, description, enabled, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)
+            INSERT INTO mcp_connectors (id, name, url, api_key, api_key_masked, auth_header, auth_prefix, description, enabled, created_at)
+            VALUES (?, ?, ?, '', ?, ?, ?, ?, 1, ?)
             """,
             (
                 cid,
                 clean_name,
                 clean_url,
-                (api_key or "").strip(),
+                masked,
                 (auth_header or "Authorization").strip()[:40],
                 auth_prefix if auth_prefix is not None else "Bearer ",
                 (description or "").strip()[:240],
@@ -132,6 +148,11 @@ def create_connector(
             ),
         )
         row = conn.execute("SELECT * FROM mcp_connectors WHERE id = ?", (cid,)).fetchone()
+    AuditTrail().append_event(
+        actor="admin",
+        action="MCP_CONNECTOR_CREATED",
+        payload={"connector_id": cid, "name": clean_name, "url": clean_url, "has_api_key": bool(raw_key)},
+    )
     return _row_to_public(row)
 
 
@@ -142,23 +163,40 @@ def update_connector(connector_id: str, patch: dict[str, Any]) -> dict[str, Any]
         raise KeyError("MCP bağlayıcı bulunamadı.")
     name = str(patch["name"]).strip()[:60] if "name" in patch and patch["name"] is not None else row["name"]
     url = str(patch["url"]).strip()[:300] if "url" in patch and patch["url"] is not None else row["url"]
-    api_key = str(patch["api_key"]).strip() if patch.get("api_key") else row["api_key"]
+    masked = row["api_key_masked"]
+    if patch.get("api_key"):
+        raw_key = str(patch["api_key"]).strip()
+        secret_store.set_secret(_secret_name(connector_id), raw_key)
+        masked = secret_store.mask_secret(raw_key)
     enabled = int(bool(patch["enabled"])) if "enabled" in patch and patch["enabled"] is not None else row["enabled"]
     desc = str(patch["description"]).strip()[:240] if "description" in patch and patch["description"] is not None else row["description"]
     with _connect() as conn:
         conn.execute(
-            "UPDATE mcp_connectors SET name=?, url=?, api_key=?, enabled=?, description=? WHERE id=?",
-            (name, url, api_key, enabled, desc, connector_id),
+            "UPDATE mcp_connectors SET name=?, url=?, api_key='', api_key_masked=?, enabled=?, description=? WHERE id=?",
+            (name, url, masked, enabled, desc, connector_id),
         )
         updated = conn.execute("SELECT * FROM mcp_connectors WHERE id = ?", (connector_id,)).fetchone()
+    AuditTrail().append_event(
+        actor="admin",
+        action="MCP_CONNECTOR_UPDATED",
+        payload={"connector_id": connector_id, "enabled": bool(enabled)},
+    )
     return _row_to_public(updated)
 
 
 def delete_connector(connector_id: str) -> bool:
     init_mcp_db()
+    secret_store.delete_secret(_secret_name(connector_id))
     with _connect() as conn:
         cur = conn.execute("DELETE FROM mcp_connectors WHERE id = ?", (connector_id,))
-    return cur.rowcount > 0
+    if cur.rowcount > 0:
+        AuditTrail().append_event(
+            actor="admin",
+            action="MCP_CONNECTOR_DELETED",
+            payload={"connector_id": connector_id},
+        )
+        return True
+    return False
 
 
 def _build_headers(row: sqlite3.Row) -> dict[str, str]:
@@ -166,7 +204,7 @@ def _build_headers(row: sqlite3.Row) -> dict[str, str]:
         "Content-Type": "application/json",
         "Accept": "application/json, text/event-stream",
     }
-    key = (row["api_key"] or "").strip()
+    key = secret_store.get_secret(_secret_name(row["id"])).strip()
     if key:
         hdr = (row["auth_header"] or "Authorization").strip()
         pref = row["auth_prefix"] or ""
@@ -262,7 +300,7 @@ async def discover_connector_tools(connector_id: str) -> dict[str, Any]:
 
 
 async def call_connector_tool(connector_id: str, tool_name: str, arguments: dict[str, Any] | None = None) -> dict[str, Any]:
-    """Execute a live MCP tools/call on the connected external server using its stored API key."""
+    """Execute a live MCP tools/call on the connected external server using its encrypted API key."""
     row = _get_raw_connector(connector_id)
     if not row:
         raise KeyError("MCP bağlayıcı bulunamadı.")
@@ -289,6 +327,11 @@ async def call_connector_tool(connector_id: str, tool_name: str, arguments: dict
             {"name": tool_name, "arguments": arguments or {}},
             session_id=sid,
         )
+    AuditTrail().append_event(
+        actor="user",
+        action="MCP_TOOL_CALLED",
+        payload={"connector_id": connector_id, "tool_name": tool_name, "ok": "error" not in res},
+    )
     if "error" in res:
         return {"ok": False, "error": res["error"]}
     return {"ok": True, "result": res.get("result")}
@@ -308,8 +351,6 @@ def list_enabled_tools_summary() -> list[dict[str, Any]]:
             })
     return out
 
-
-# ---------------------------------------------------------------- FastAPI routes
 
 class MCPCreateReq(BaseModel):
     name: str

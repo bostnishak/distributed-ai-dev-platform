@@ -11,7 +11,7 @@ from datetime import UTC, datetime
 
 import config
 
-SCHEMA_VERSION = 6
+SCHEMA_VERSION = 7
 
 MAX_ATTEMPTS = 3  # PB-44: tasks fail permanently after this many attempts
 
@@ -73,6 +73,11 @@ MIGRATIONS = {
     6: [
         "ALTER TABLE tasks ADD COLUMN perf_ms INTEGER",
     ],
+    7: [
+        "ALTER TABLE agents ADD COLUMN agent_key_hash TEXT",
+        "ALTER TABLE agents ADD COLUMN agent_key_revoked INTEGER NOT NULL DEFAULT 0",
+        "ALTER TABLE agents ADD COLUMN approved INTEGER NOT NULL DEFAULT 1",
+    ],
 }
 
 SCHEMA = """
@@ -97,6 +102,9 @@ CREATE TABLE IF NOT EXISTS agents (
     capabilities     TEXT NOT NULL,          -- JSON array reported by Ollama, e.g. ["completion","vision"]
     agent_version    TEXT,
     heartbeat_status TEXT NOT NULL DEFAULT 'idle',
+    agent_key_hash   TEXT,
+    agent_key_revoked INTEGER NOT NULL DEFAULT 0,
+    approved         INTEGER NOT NULL DEFAULT 1,
     registered_at    TEXT NOT NULL,          -- first registration (UTC, ISO 8601)
     last_seen_at     TEXT NOT NULL           -- latest heartbeat/registration timestamp
 );

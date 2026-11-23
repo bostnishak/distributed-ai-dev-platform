@@ -19,11 +19,13 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install dependencies
-        run: pip install -r requirements-dev.txt
+        run: pip install -r requirements-dev.txt -r requirements.txt
       - name: Lint (ruff)
         run: ruff check .
       - name: Unit tests (pytest)
         run: pytest tests/ -v
+      - name: Security test suite & route auth matrix (SEC-22)
+        run: pytest -m security tests/ -v
 
   agent:
     runs-on: ubuntu-latest
@@ -42,6 +44,38 @@ jobs:
       - name: Unit tests (pytest)
         run: pytest tests/ -v
 
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Secret leak scan (gitleaks, SEC-20)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+      - name: Block tracked .env files (SEC-20)
+        run: |
+          tracked=$(git ls-files '.env*' | grep -v '^\.env\.example$' || true)
+          if [ -n "$tracked" ]; then
+            echo "Forbidden .env file tracked: $tracked"
+            exit 1
+          fi
+      - name: Python dependency vulnerability audit & CycloneDX SBOM (SEC-19)
+        run: |
+          pip install pip-audit cyclonedx-bom
+          pip-audit -r master/requirements.txt --strict --progress-spinner off
+          cyclonedx-py requirements master/requirements.txt --of JSON -o sbom-master.json
+      - name: Upload CycloneDX SBOM artifact (SEC-19)
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: sbom-master.json
+
   docker-build:
     runs-on: ubuntu-latest
     steps:
@@ -52,7 +86,16 @@ jobs:
         run: |
           cp .env.example .env
           docker compose --profile staging config --quiet
-      - name: Build master image
-        run: docker build -t dadp-master:ci master
-      - name: Build agent image
-        run: docker build -t dadp-agent:ci agent
+      - name: Build master, agent, and sandbox images
+        run: |
+          docker build -t dadp-master:ci master
+          docker build -t dadp-agent:ci agent
+          docker build -t platform-sandbox:ci docker/sandbox
+      - name: Trivy container image vulnerability scan (SEC-19)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: "dadp-master:ci"
+          format: "table"
+          exit-code: "1"
+          ignore-unfixed: true
+          severity: "CRITICAL,HIGH"

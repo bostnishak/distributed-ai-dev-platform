@@ -5,17 +5,22 @@ from __future__ import annotations
 import io
 import json
 import mimetypes
+import re
 import shutil
 import subprocess
 import zipfile
 from datetime import UTC, datetime
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse, StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
+import preview_server
+import sandbox
 import workspace_builder as wb
 from access_control import require_local_or_admin
+from audit_log import AuditTrail
 
 router = APIRouter(prefix="/api/studio", tags=["studio"])
 
@@ -169,6 +174,7 @@ async def delete_workspace(id: str):
     if not ws_dir.is_dir():
         raise HTTPException(status_code=404, detail="Çalışma alanı bulunamadı.")
     shutil.rmtree(ws_dir)
+    AuditTrail().append_event(actor="admin", action="WORKSPACE_DELETED", payload={"workspace_id": id})
     return {"ok": True, "id": id}
 
 
@@ -180,12 +186,13 @@ async def build_exe(id: str, body: BuildExeRequest | None = None):
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    AuditTrail().append_event(actor="admin", action="WORKSPACE_BUILD_EXE", payload={"workspace_id": id, "ok": bool(res.get("ok"))})
     return res
 
 
 @router.post("/workspaces/{id}/launch-exe", dependencies=[Depends(require_local_or_admin)])
 def launch_exe(id: str):
-    """Launch the compiled Windows .exe locally so the user can run their generated app with one click."""
+    """SEC-13/SEC-14: Refuse direct unsandboxed host .exe execution; direct users to safe download."""
     try:
         ws_dir = wb.safe_workspace_dir(id)
     except ValueError as exc:
@@ -194,9 +201,18 @@ def launch_exe(id: str):
     exe_files = list(dist.glob("*.exe")) if dist.is_dir() else []
     if not exe_files:
         raise HTTPException(status_code=404, detail="Henüz derlenmiş .exe dosyası yok.")
-    exe = exe_files[0]
-    subprocess.Popen([str(exe)], cwd=str(dist))
-    return {"ok": True, "exe_name": exe.name}
+    AuditTrail().append_event(
+        actor="admin",
+        action="WORKSPACE_LAUNCH_EXE_BLOCKED",
+        payload={"workspace_id": id, "exe_name": exe_files[0].name},
+    )
+    raise HTTPException(
+        status_code=403,
+        detail=(
+            "Güvenlik politikası gereği (SEC-13) üretilen .exe dosyaları sunucu ana makinesinde "
+            "doğrudan çalıştırılmaz. Lütfen /download-exe bağlantısından indirip kendi ortamınızda çalıştırın."
+        ),
+    )
 
 
 @router.get("/workspaces/{id}/download-exe")
@@ -255,7 +271,18 @@ async def preview_workspace_file(id: str, filepath: str):
         else:
             raise HTTPException(status_code=404, detail="Önizleme dosyası bulunamadı.")
     media, _ = mimetypes.guess_type(str(target))
-    return FileResponse(target, media_type=media or "application/octet-stream", headers={"Cache-Control": "no-cache"})
+    return FileResponse(
+        target,
+        media_type=media or "application/octet-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Content-Type-Options": "nosniff",
+            "Content-Security-Policy": (
+                "sandbox allow-scripts; default-src 'self' 'unsafe-inline' data: blob:; "
+                "connect-src 'none'; frame-ancestors 'self'"
+            ),
+        },
+    )
 
 
 @router.get("/workspaces/{id}/history")
@@ -281,12 +308,18 @@ async def restore_workspace_version(id: str, version: str):
 
 @router.post("/workspaces/{id}/start-server", dependencies=[Depends(require_local_or_admin)])
 def start_workspace_live_server(id: str):
+    """SEC-13/SEC-17: Serve workspace preview strictly via the isolated second-origin preview server."""
     try:
-        return wb.start_workspace_server(id)
-    except FileNotFoundError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        ws_dir = wb.safe_workspace_dir(id)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if not ws_dir.is_dir():
+        raise HTTPException(status_code=404, detail="Çalışma alanı bulunamadı.")
+    preview_server.start_preview_server_background()
+    origin = preview_server.get_preview_origin()
+    url = f"{origin}/preview/{id}/index.html"
+    AuditTrail().append_event(actor="admin", action="WORKSPACE_PREVIEW_STARTED", payload={"workspace_id": id, "url": url})
+    return {"ok": True, "url": url, "isolated_origin": origin}
 
 
 @router.get("/workspaces/{id}/diff")
@@ -326,20 +359,69 @@ async def get_workspace_file_diff(id: str, path: str = Query(...), base_version:
 
 
 class WorkspaceExecRequest(BaseModel):
-    command: str
+    command: str = Field(min_length=1, max_length=500)
+
+
+class WorkspaceActionRequest(BaseModel):
+    action: Literal["run_tests", "install_dependencies", "start_preview", "build_exe"]
+    target: str = Field(default=".", max_length=120)
+    windowed: bool | None = None
 
 
 class WorkspaceGitRequest(BaseModel):
-    action: str = "status"
-    message: str = "AI Studio commit"
-    branch: str = ""
+    action: Literal["status", "commit", "branch"] = "status"
+    message: str = Field(default="AI Studio commit", max_length=200)
+    branch: str = Field(default="", max_length=80)
+
+
+@router.post("/workspaces/{id}/actions", dependencies=[Depends(require_local_or_admin)])
+async def run_workspace_action(id: str, body: WorkspaceActionRequest):
+    """SEC-14: Action-based workspace execution (typed allowlisted actions; zero host raw-shell)."""
+    try:
+        ws_dir = wb.safe_workspace_dir(id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if not ws_dir.is_dir():
+        raise HTTPException(status_code=404, detail="Çalışma alanı bulunamadı.")
+
+    AuditTrail().append_event(
+        actor="admin",
+        action=f"WORKSPACE_ACTION_{body.action.upper()}",
+        payload={"workspace_id": id, "target": body.target},
+    )
+
+    if body.action == "start_preview":
+        preview_server.start_preview_server_background()
+        origin = preview_server.get_preview_origin()
+        return {"ok": True, "action": body.action, "url": f"{origin}/preview/{id}/index.html", "isolated_origin": origin}
+
+    if body.action == "build_exe":
+        return await wb.build_workspace_exe(id, windowed=body.windowed)
+
+    if body.action == "run_tests":
+        safe_target = body.target if re.fullmatch(r"[A-Za-z0-9_./\-]+", body.target or ".") else "."
+        res = sandbox.run_workspace_command(ws_dir, ["python", "-m", "pytest", "--tb=short", "-q", safe_target])
+        if not res.get("docker_available"):
+            raise HTTPException(status_code=503, detail=res.get("stderr") or "Docker sandbox erişilemiyor.")
+        return res
+
+    if body.action == "install_dependencies":
+        res = sandbox.run_workspace_command(
+            ws_dir,
+            ["python", "-m", "pip", "check"],
+            read_only_mount=True,
+        )
+        if not res.get("docker_available"):
+            raise HTTPException(status_code=503, detail=res.get("stderr") or "Docker sandbox erişilemiyor.")
+        return res
+
+    raise HTTPException(status_code=400, detail="Desteklenmeyen eylem.")
 
 
 @router.post("/workspaces/{id}/exec", dependencies=[Depends(require_local_or_admin)])
 def exec_in_workspace(id: str, body: WorkspaceExecRequest):
-    """Run a command inside the workspace directory for the embedded IDE terminal ([M28])."""
+    """SEC-13/SEC-14: Run terminal commands strictly inside the hardened Docker sandbox (never on host)."""
     import shlex
-    import sys
 
     try:
         ws_dir = wb.safe_workspace_dir(id)
@@ -351,33 +433,23 @@ def exec_in_workspace(id: str, body: WorkspaceExecRequest):
     if not cmd_str:
         raise HTTPException(status_code=400, detail="Komut boş olamaz.")
 
-    parts = shlex.split(cmd_str, posix=(sys.platform != "win32"))
+    parts = shlex.split(cmd_str, posix=True)
     if not parts:
         raise HTTPException(status_code=400, detail="Geçersiz komut.")
-    if parts[0] in ("python", "python3", "py"):
-        parts[0] = sys.executable
-    elif parts[0] == "pytest":
-        parts = [sys.executable, "-m", "pytest", *parts[1:]]
 
-    try:
-        proc = subprocess.run(
-            parts,
-            cwd=str(ws_dir),
-            capture_output=True,
-            text=True,
-            timeout=12,
-            check=False,
+    AuditTrail().append_event(
+        actor="admin",
+        action="WORKSPACE_SANDBOX_EXEC",
+        payload={"workspace_id": id, "argv_head": parts[0]},
+    )
+
+    res = sandbox.run_workspace_command(ws_dir, parts, read_only_mount=True)
+    if not res.get("docker_available"):
+        raise HTTPException(
+            status_code=503,
+            detail=res.get("stderr") or "Docker sandbox aktif değil; ana makinede serbest komut yürütme kapalı.",
         )
-        return {
-            "ok": proc.returncode == 0,
-            "exit_code": proc.returncode,
-            "stdout": proc.stdout[-6000:],
-            "stderr": proc.stderr[-6000:],
-        }
-    except FileNotFoundError:
-        return {"ok": False, "exit_code": 127, "stdout": "", "stderr": f"Komut bulunamadı: {parts[0]}"}
-    except subprocess.TimeoutExpired:
-        return {"ok": False, "exit_code": -1, "stdout": "", "stderr": "Komut zaman aşımına uğradı (12 sn)."}
+    return res
 
 
 @router.post("/workspaces/{id}/git", dependencies=[Depends(require_local_or_admin)])

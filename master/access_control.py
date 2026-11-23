@@ -24,6 +24,16 @@ def require_local_or_admin(request: Request) -> None:
     supplied = request.headers.get("x-admin-token", "")
     if expected and hmac.compare_digest(supplied.encode(), expected.encode()):
         return
+    try:
+        from audit_log import AuditTrail
+
+        AuditTrail().append_event(
+            actor=host or "unknown",
+            action="ACCESS_DENIED",
+            payload={"path": str(request.url.path), "method": request.method},
+        )
+    except Exception:
+        pass
     raise HTTPException(
         status_code=403,
         detail="Bu işlem yalnızca sunucu bilgisayarından veya yönetici anahtarıyla (X-Admin-Token) yapılabilir.",

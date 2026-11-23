@@ -13,9 +13,7 @@ import logging
 import operator
 import os
 import re
-import subprocess
 import sys
-import tempfile
 
 import httpx
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
@@ -1614,63 +1612,44 @@ def _code_run_env() -> dict[str, str]:
 
 
 def _run_code_blocking(code: str) -> CodeRunResponse:
-    options: dict = {}
-    if sys.platform != "win32":
-        options["preexec_fn"] = _limit_code_run_resources
-        # The master runs as root in its Docker image. Drop to "nobody" so a run cannot read
-        # root-only files such as /proc/1/environ (the master's environment).
-        if os.geteuid() == 0:
-            options.update(user=NOBODY_ID, group=NOBODY_ID, extra_groups=[])
-    try:
-        result = subprocess.run(
-            [sys.executable, "-I", "-c", code],
-            capture_output=True,
-            text=True,
-            timeout=CODE_RUN_TIMEOUT_SECONDS,
-            env=_code_run_env(),
-            cwd=tempfile.gettempdir(),
-            check=False,
-            **options,
+    """SEC-13: Run code strictly inside the hardened Docker container sandbox (never on host)."""
+    import sandbox
+
+    res = sandbox.run_python_code(code, timeout_s=CODE_RUN_TIMEOUT_SECONDS)
+    if not res.get("docker_available"):
+        raise HTTPException(
+            status_code=503,
+            detail=res.get("stderr") or "Docker sandbox erişilemiyor; ana makinede kod çalıştırma kapalı.",
         )
-        return CodeRunResponse(
-            stdout=result.stdout[-4000:],
-            stderr=result.stderr[-4000:],
-            exit_code=result.returncode,
-            timed_out=False,
-        )
-    except subprocess.TimeoutExpired as exc:
-        stderr = (exc.stderr or "") if isinstance(exc.stderr, str) else ""
-        return CodeRunResponse(
-            stdout=(exc.stdout or "") if isinstance(exc.stdout, str) else "",
-            stderr=stderr + f"\n[Zaman aşımı: kod {CODE_RUN_TIMEOUT_SECONDS} saniyede bitmedi.]",
-            exit_code=-1,
-            timed_out=True,
-        )
+    return CodeRunResponse(
+        stdout=str(res.get("stdout") or "")[-4000:],
+        stderr=str(res.get("stderr") or "")[-4000:],
+        exit_code=int(res.get("exit_code", -1)),
+        timed_out=bool(res.get("timed_out", False)),
+    )
 
 
 @router.get("/config")
 async def assistant_config():
-    """Tells the web UI which optional Assistant features this master has switched on."""
-    return {"code_run_enabled": config.CODE_RUN_ENABLED}
+    """Tells the web UI which optional Assistant features and sandbox isolation are available."""
+    import sandbox
+
+    sb = sandbox.status()
+    return {
+        "code_run_enabled": bool(config.CODE_RUN_ENABLED and sb["available"]),
+        "sandbox_available": sb["available"],
+        "sandbox_reason": sb["reason"],
+    }
 
 
 @router.post("/run-code", response_model=CodeRunResponse, dependencies=[Depends(require_local_or_admin)])
 async def run_code(body: CodeRunRequest):
-    """Run a code block (see the "Run" button) in an isolated subprocess.
+    """SEC-13: Execute Python snippet strictly inside the hardened Docker sandbox container."""
+    from audit_log import AuditTrail
 
-    Off unless CODE_RUN_ENABLED is set, because the web UI has no login yet (PB-56).
-
-    LIMIT (deliberate trade-off): this is not a full security sandbox -- no container or VM,
-    and network access is not blocked. It is subprocess isolation with a time (RLIMIT_CPU) and
-    memory (RLIMIT_AS) ceiling, a minimal environment and, inside Docker, the unprivileged
-    "nobody" user. That is enough for a team member to test code that came out of their own
-    prompt on their own machine -- NOT for a public/multi-tenant service. PB-41 (Sprint 4)
-    adds a real sandbox for agent-executed code.
-    """
     if not config.CODE_RUN_ENABLED:
         raise HTTPException(status_code=403, detail="Kod çalıştırma bu sunucuda kapalı (CODE_RUN_ENABLED).")
-    # subprocess.run is blocking; without a thread a running snippet could hold up another
-    # user's /chat request on the same event loop for up to CODE_RUN_TIMEOUT_SECONDS.
+    AuditTrail().append_event(actor="admin", action="SANDBOX_RUN_CODE", payload={"code_len": len(body.code or "")})
     return await asyncio.to_thread(_run_code_blocking, body.code)
 
 

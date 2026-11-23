@@ -8,18 +8,22 @@ from fastapi.staticfiles import StaticFiles
 
 import agents_api
 import assistant
+import audit_log
 import backup_manager
 import cnc_api
 import config
 import contract_check
 import db
 import llm
+import log_sanitizer
 import mcp_connector
 import memory_api
 import output_api
 import perf_api
+import preview_server
 import projects_api
 import scheduler
+import security_middleware
 import studio_api
 import tasks_api
 import user_api
@@ -27,14 +31,17 @@ import user_api
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
+    log_sanitizer.install_log_redaction()
     db.init_db()
     projects_api.recover_interrupted()
     tasks_api.start_lease_expiry()
     scheduler.start_dag_scheduler()
+    preview_server.start_preview_server_background()
     yield
 
 
 app = FastAPI(title="Distributed AI Software Development Platform - Master", lifespan=lifespan)
+app.add_middleware(security_middleware.SecurityHeadersAndCSRFMiddleware)
 app.include_router(agents_api.router)
 app.include_router(projects_api.router)
 app.include_router(assistant.router)
@@ -47,6 +54,7 @@ app.include_router(user_api.router)
 app.include_router(memory_api.router)
 app.include_router(mcp_connector.router)
 app.include_router(backup_manager.router)
+app.include_router(audit_log.router)
 
 
 @app.get("/api/admin/contract-check")
