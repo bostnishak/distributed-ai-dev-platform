@@ -46,6 +46,7 @@ export function renderMarkdown(raw) {
   text = escapeHtml(text);
   text = renderLatexMath(text);
 
+  text = text.replace(/^#### (.*)$/gm, '<h4>$1</h4>');
   text = text.replace(/^### (.*)$/gm, '<h3>$1</h3>');
   text = text.replace(/^## (.*)$/gm, '<h2>$1</h2>');
   text = text.replace(/^# (.*)$/gm, '<h1>$1</h1>');

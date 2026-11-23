@@ -10,16 +10,20 @@
 
 from __future__ import annotations
 
-import html
 import json
 import re
 import uuid
-import zipfile
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 import httpx
+from pptx import Presentation
+from pptx.dml.color import RGBColor
+from pptx.enum.shapes import MSO_SHAPE
+from pptx.oxml import parse_xml
+from pptx.oxml.ns import nsdecls
+from pptx.util import Inches, Pt
 
 import config
 import multimodal_studio as mms
@@ -98,15 +102,26 @@ def _safe_hex(val: Any, fallback: str) -> str:
 
 def _transition_xml(kind: str) -> str:
     k = (kind or "fade").strip().lower()
+    ns = nsdecls("p")
     if k == "push":
-        return '<p:transition spd="med"><p:push dir="l"/></p:transition>'
+        return f'<p:transition {ns} spd="med"><p:push dir="l"/></p:transition>'
     if k == "wipe":
-        return '<p:transition spd="med"><p:wipe dir="r"/></p:transition>'
+        return f'<p:transition {ns} spd="med"><p:wipe dir="r"/></p:transition>'
     if k == "cover":
-        return '<p:transition spd="med"><p:cover dir="l"/></p:transition>'
+        return f'<p:transition {ns} spd="med"><p:cover dir="l"/></p:transition>'
     if k == "split":
-        return '<p:transition spd="med"><p:split orient="horz" dir="out"/></p:transition>'
-    return '<p:transition spd="med"><p:fade/></p:transition>'
+        return f'<p:transition {ns} spd="med"><p:split orient="horz" dir="out"/></p:transition>'
+    return f'<p:transition {ns} spd="med"><p:fade/></p:transition>'
+
+
+def _rgb(hex_str: str) -> RGBColor:
+    return RGBColor(int(hex_str[0:2], 16), int(hex_str[2:4], 16), int(hex_str[4:6], 16))
+
+
+def _apply_slide_transition(slide: Any, kind: str) -> None:
+    """Attach a schema-valid PowerPoint slide transition element (<p:transition>) to the slide."""
+    trans_el = parse_xml(_transition_xml(kind))
+    slide._element.append(trans_el)
 
 
 def decompose_research_questions(topic: str) -> list[str]:
@@ -127,249 +142,183 @@ def build_pptx_presentation(
     out_path: Path | None = None,
     theme: dict[str, str] | None = None,
 ) -> Path:
-    """Build a themed, animated, multi-slide PowerPoint (.pptx) file using pure OpenXML ZIP packaging."""
+    """Build a 100% Microsoft PowerPoint-compliant 16:9 themed & animated .pptx deck using python-pptx."""
     if out_path is None:
         fid = f"pres-{datetime.now(UTC).strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:6]}.pptx"
         out_path = mms.media_dir() / fid
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     pal = theme or _pick_theme_for_topic(title)
-    bg_hex = _safe_hex(pal.get("bg"), "0F172A")
-    card_hex = _safe_hex(pal.get("card"), "1E293B")
-    acc_hex = _safe_hex(pal.get("accent"), "4F46E5")
-    acc2_hex = _safe_hex(pal.get("accent2"), "38BDF8")
-    txt_hex = _safe_hex(pal.get("text"), "F8FAFC")
-    muted_hex = _safe_hex(pal.get("muted"), "CBD5E1")
+    bg_rgb = _rgb(_safe_hex(pal.get("bg"), "0F172A"))
+    card_rgb = _rgb(_safe_hex(pal.get("card"), "1E293B"))
+    acc_rgb = _rgb(_safe_hex(pal.get("accent"), "4F46E5"))
+    acc2_rgb = _rgb(_safe_hex(pal.get("accent2"), "38BDF8"))
+    txt_rgb = _rgb(_safe_hex(pal.get("text"), "F8FAFC"))
+    muted_rgb = _rgb(_safe_hex(pal.get("muted"), "CBD5E1"))
     trans_kind = str(pal.get("transition") or "fade")
+
+    prs = Presentation()
+    prs.slide_width = Inches(13.333)
+    prs.slide_height = Inches(7.5)
+    blank_layout = prs.slide_layouts[6]
 
     all_slides = [{"_cover": True, "title": title, "subtitle": subtitle or "Yapay Zeka Araştırma Sunumu"}, *(slides or [])]
     n_slides = len(all_slides)
 
-    content_types_overrides = "\n".join(
-        f'  <Override PartName="/ppt/slides/slide{i}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>'
-        for i in range(1, n_slides + 1)
-    )
-    content_types_xml = f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
-  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
-  <Default Extension="xml" ContentType="application/xml"/>
-  <Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/>
-{content_types_overrides}
-</Types>"""
+    for idx, sdata in enumerate(all_slides, start=1):
+        slide = prs.slides.add_slide(blank_layout)
+        # Full-bleed themed background
+        bg_fill = slide.background.fill
+        bg_fill.solid()
+        bg_fill.fore_color.rgb = bg_rgb
+        _apply_slide_transition(slide, trans_kind)
 
-    root_rels_xml = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="ppt/presentation.xml"/>
-</Relationships>"""
+        stitle = str(sdata.get("title") or f"Slayt {idx}")
 
-    pres_rels_items = "\n".join(
-        f'  <Relationship Id="rId{i}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide{i}.xml"/>'
-        for i in range(1, n_slides + 1)
-    )
-    pres_rels_xml = f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-{pres_rels_items}
-</Relationships>"""
+        if sdata.get("_cover"):
+            ssub = str(sdata.get("subtitle") or "")
+            # Left vertical accent stripe
+            stripe = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0), Inches(0), Inches(0.38), Inches(7.5))
+            stripe.fill.solid()
+            stripe.fill.fore_color.rgb = acc_rgb
+            stripe.line.fill.background()
 
-    sld_id_items = "\n".join(
-        f'    <p:sldId id="{255 + i}" r:id="rId{i}"/>'
-        for i in range(1, n_slides + 1)
-    )
-    presentation_xml = f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<p:presentation xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
-                xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-                xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
-  <p:sldIdLst>
-{sld_id_items}
-  </p:sldIdLst>
-  <p:sldSz cx="9144000" cy="5143500" type="screen16x9"/>
-  <p:notesSz cx="6858000" cy="9144000"/>
-</p:presentation>"""
+            # Rounded cover card
+            card = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.05), Inches(1.35), Inches(11.2), Inches(4.8))
+            card.fill.solid()
+            card.fill.fore_color.rgb = card_rgb
+            card.line.color.rgb = acc_rgb
+            card.line.width = Pt(1.75)
 
-    trans_xml = _transition_xml(trans_kind)
+            # Accent bar inside cover card
+            bar = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(1.6), Inches(2.0), Inches(2.0), Inches(0.1))
+            bar.fill.solid()
+            bar.fill.fore_color.rgb = acc2_rgb
+            bar.line.fill.background()
 
-    with zipfile.ZipFile(out_path, "w", zipfile.ZIP_DEFLATED) as zf:
-        zf.writestr("[Content_Types].xml", content_types_xml)
-        zf.writestr("_rels/.rels", root_rels_xml)
-        zf.writestr("ppt/presentation.xml", presentation_xml)
-        zf.writestr("ppt/_rels/presentation.xml.rels", pres_rels_xml)
+            # Cover title
+            tb_title = slide.shapes.add_textbox(Inches(1.6), Inches(2.3), Inches(10.1), Inches(1.8))
+            tf = tb_title.text_frame
+            tf.word_wrap = True
+            p = tf.paragraphs[0]
+            r = p.add_run()
+            r.text = stitle
+            r.font.name = "Segoe UI"
+            r.font.size = Pt(38)
+            r.font.bold = True
+            r.font.color.rgb = txt_rgb
 
-        for idx, sdata in enumerate(all_slides, start=1):
-            stitle = html.escape(str(sdata.get("title") or f"Slayt {idx}"))
-            if sdata.get("_cover"):
-                ssub = html.escape(str(sdata.get("subtitle") or ""))
-                slide_xml = f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
-       xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-       xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
-  <p:cSld>
-    <p:bg><p:bgPr><a:solidFill><a:srgbClr val="{bg_hex}"/></a:solidFill><a:effectLst/></p:bgPr></p:bg>
-    <p:spTree>
-      <p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>
-      <p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>
-      <p:sp>
-        <p:nvSpPr><p:cNvPr id="2" name="LeftAccent"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
-        <p:spPr>
-          <a:xfrm><a:off x="0" y="0"/><a:ext cx="280000" cy="5143500"/></a:xfrm>
-          <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>
-          <a:solidFill><a:srgbClr val="{acc_hex}"/></a:solidFill>
-        </p:spPr>
-      </p:sp>
-      <p:sp>
-        <p:nvSpPr><p:cNvPr id="3" name="CoverCard"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
-        <p:spPr>
-          <a:xfrm><a:off x="720000" y="920000"/><a:ext cx="7700000" cy="3300000"/></a:xfrm>
-          <a:prstGeom prst="roundRect"><a:avLst/></a:prstGeom>
-          <a:solidFill><a:srgbClr val="{card_hex}"/></a:solidFill>
-          <a:ln w="19050"><a:solidFill><a:srgbClr val="{acc_hex}"/></a:solidFill></a:ln>
-        </p:spPr>
-      </p:sp>
-      <p:sp>
-        <p:nvSpPr><p:cNvPr id="4" name="AccentBar"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
-        <p:spPr>
-          <a:xfrm><a:off x="1100000" y="1380000"/><a:ext cx="1400000" cy="75000"/></a:xfrm>
-          <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>
-          <a:solidFill><a:srgbClr val="{acc2_hex}"/></a:solidFill>
-        </p:spPr>
-      </p:sp>
-      <p:sp>
-        <p:nvSpPr><p:cNvPr id="5" name="CoverTitle"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
-        <p:spPr>
-          <a:xfrm><a:off x="1100000" y="1600000"/><a:ext cx="6900000" cy="1200000"/></a:xfrm>
-          <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>
-        </p:spPr>
-        <p:txBody>
-          <a:bodyPr wrap="square"/>
-          <a:lstStyle/>
-          <a:p><a:r><a:rPr lang="tr-TR" sz="3800" b="1" dirty="0"><a:solidFill><a:srgbClr val="{txt_hex}"/></a:solidFill><a:latin typeface="Segoe UI"/></a:rPr><a:t>{stitle}</a:t></a:r></a:p>
-        </p:txBody>
-      </p:sp>
-      <p:sp>
-        <p:nvSpPr><p:cNvPr id="6" name="CoverSub"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
-        <p:spPr>
-          <a:xfrm><a:off x="1100000" y="2900000"/><a:ext cx="6900000" cy="950000"/></a:xfrm>
-          <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>
-        </p:spPr>
-        <p:txBody>
-          <a:bodyPr wrap="square"/>
-          <a:lstStyle/>
-          <a:p><a:r><a:rPr lang="tr-TR" sz="2000" dirty="0"><a:solidFill><a:srgbClr val="{muted_hex}"/></a:solidFill><a:latin typeface="Segoe UI"/></a:rPr><a:t>{ssub}</a:t></a:r></a:p>
-        </p:txBody>
-      </p:sp>
-    </p:spTree>
-  </p:cSld>
-  {trans_xml}
-</p:sld>"""
-                zf.writestr(f"ppt/slides/slide{idx}.xml", slide_xml)
-                continue
+            # Cover subtitle
+            tb_sub = slide.shapes.add_textbox(Inches(1.6), Inches(4.25), Inches(10.1), Inches(1.35))
+            tf2 = tb_sub.text_frame
+            tf2.word_wrap = True
+            p2 = tf2.paragraphs[0]
+            r2 = p2.add_run()
+            r2.text = ssub
+            r2.font.name = "Segoe UI"
+            r2.font.size = Pt(20)
+            r2.font.color.rgb = muted_rgb
+            continue
 
-            kicker = html.escape(str(sdata.get("kicker") or f"BÖLÜM {idx - 1}"))
-            key_fact = html.escape(str(sdata.get("key_fact") or ""))
-            bullets = [html.escape(str(b).strip()) for b in (sdata.get("bullets") or []) if str(b).strip()]
-            if not bullets:
-                bullets = [html.escape(str(sdata.get("content") or ""))]
+        kicker = str(sdata.get("kicker") or f"BÖLÜM {idx - 1}")
+        key_fact = str(sdata.get("key_fact") or "").strip()
+        notes_txt = str(sdata.get("notes") or "").strip()
+        bullets = [str(b).strip() for b in (sdata.get("bullets") or []) if str(b).strip()]
+        if not bullets:
+            bullets = [str(sdata.get("content") or "")]
 
-            paragraphs_xml = "\n".join(
-                f"""          <a:p>
-            <a:pPr spcAft="120000"/>
-            <a:r><a:rPr lang="tr-TR" sz="1750" dirty="0"><a:solidFill><a:srgbClr val="{txt_hex}"/></a:solidFill><a:latin typeface="Segoe UI"/></a:rPr><a:t>• {b}</a:t></a:r>
-          </a:p>"""
-                for b in bullets[:6]
-            )
+        # Top accent bar
+        top_bar = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0), Inches(0), Inches(13.333), Inches(0.16))
+        top_bar.fill.solid()
+        top_bar.fill.fore_color.rgb = acc_rgb
+        top_bar.line.fill.background()
 
-            has_callout = bool(key_fact)
-            left_w = 5200000 if has_callout else 8229600
-            callout_xml = ""
-            if has_callout:
-                callout_xml = f"""      <p:sp>
-        <p:nvSpPr><p:cNvPr id="7" name="CalloutCard"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
-        <p:spPr>
-          <a:xfrm><a:off x="5880000" y="1380000"/><a:ext cx="2800000" cy="3180000"/></a:xfrm>
-          <a:prstGeom prst="roundRect"><a:avLst/></a:prstGeom>
-          <a:solidFill><a:srgbClr val="{card_hex}"/></a:solidFill>
-          <a:ln w="19050"><a:solidFill><a:srgbClr val="{acc2_hex}"/></a:solidFill></a:ln>
-        </p:spPr>
-        <p:txBody>
-          <a:bodyPr wrap="square" lIns="180000" rIns="180000" tIns="220000" bIns="180000"/>
-          <a:lstStyle/>
-          <a:p><a:pPr spcAft="140000"/><a:r><a:rPr lang="tr-TR" sz="1300" b="1" dirty="0"><a:solidFill><a:srgbClr val="{acc2_hex}"/></a:solidFill><a:latin typeface="Segoe UI"/></a:rPr><a:t>ÖNEMLİ NOT / DÖNÜM NOKTASI</a:t></a:r></a:p>
-          <a:p><a:r><a:rPr lang="tr-TR" sz="1650" dirty="0"><a:solidFill><a:srgbClr val="{txt_hex}"/></a:solidFill><a:latin typeface="Segoe UI"/></a:rPr><a:t>{key_fact}</a:t></a:r></a:p>
-        </p:txBody>
-      </p:sp>"""
+        # Kicker label
+        tb_kick = slide.shapes.add_textbox(Inches(0.65), Inches(0.36), Inches(8.0), Inches(0.4))
+        p_k = tb_kick.text_frame.paragraphs[0]
+        r_k = p_k.add_run()
+        r_k.text = kicker.upper()
+        r_k.font.name = "Segoe UI"
+        r_k.font.size = Pt(12)
+        r_k.font.bold = True
+        r_k.font.color.rgb = acc2_rgb
 
-            slide_xml = f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
-       xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-       xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
-  <p:cSld>
-    <p:bg><p:bgPr><a:solidFill><a:srgbClr val="{bg_hex}"/></a:solidFill><a:effectLst/></p:bgPr></p:bg>
-    <p:spTree>
-      <p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>
-      <p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>
-      <p:sp>
-        <p:nvSpPr><p:cNvPr id="2" name="TopBar"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
-        <p:spPr>
-          <a:xfrm><a:off x="0" y="0"/><a:ext cx="9144000" cy="110000"/></a:xfrm>
-          <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>
-          <a:solidFill><a:srgbClr val="{acc_hex}"/></a:solidFill>
-        </p:spPr>
-      </p:sp>
-      <p:sp>
-        <p:nvSpPr><p:cNvPr id="3" name="Kicker"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
-        <p:spPr>
-          <a:xfrm><a:off x="457200" y="250000"/><a:ext cx="6000000" cy="300000"/></a:xfrm>
-          <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>
-        </p:spPr>
-        <p:txBody>
-          <a:bodyPr/>
-          <a:lstStyle/>
-          <a:p><a:r><a:rPr lang="tr-TR" sz="1200" b="1" dirty="0"><a:solidFill><a:srgbClr val="{acc2_hex}"/></a:solidFill><a:latin typeface="Segoe UI"/></a:rPr><a:t>{kicker}</a:t></a:r></a:p>
-        </p:txBody>
-      </p:sp>
-      <p:sp>
-        <p:nvSpPr><p:cNvPr id="4" name="Title"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
-        <p:spPr>
-          <a:xfrm><a:off x="457200" y="540000"/><a:ext cx="8229600" cy="680000"/></a:xfrm>
-          <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>
-        </p:spPr>
-        <p:txBody>
-          <a:bodyPr wrap="square"/>
-          <a:lstStyle/>
-          <a:p><a:r><a:rPr lang="tr-TR" sz="2800" b="1" dirty="0"><a:solidFill><a:srgbClr val="{txt_hex}"/></a:solidFill><a:latin typeface="Segoe UI"/></a:rPr><a:t>{stitle}</a:t></a:r></a:p>
-        </p:txBody>
-      </p:sp>
-      <p:sp>
-        <p:nvSpPr><p:cNvPr id="5" name="ContentCard"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
-        <p:spPr>
-          <a:xfrm><a:off x="457200" y="1380000"/><a:ext cx="{left_w}" cy="3180000"/></a:xfrm>
-          <a:prstGeom prst="roundRect"><a:avLst/></a:prstGeom>
-          <a:solidFill><a:srgbClr val="{card_hex}"/></a:solidFill>
-        </p:spPr>
-        <p:txBody>
-          <a:bodyPr wrap="square" lIns="200000" rIns="180000" tIns="200000" bIns="160000"/>
-          <a:lstStyle/>
-{paragraphs_xml}
-        </p:txBody>
-      </p:sp>
-{callout_xml}
-      <p:sp>
-        <p:nvSpPr><p:cNvPr id="8" name="Footer"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
-        <p:spPr>
-          <a:xfrm><a:off x="457200" y="4720000"/><a:ext cx="8229600" cy="300000"/></a:xfrm>
-          <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>
-        </p:spPr>
-        <p:txBody>
-          <a:bodyPr/>
-          <a:lstStyle/>
-          <a:p><a:r><a:rPr lang="tr-TR" sz="1100" dirty="0"><a:solidFill><a:srgbClr val="{muted_hex}"/></a:solidFill><a:latin typeface="Segoe UI"/></a:rPr><a:t>{html.escape(title)}  ·  Slayt {idx} / {n_slides}</a:t></a:r></a:p>
-        </p:txBody>
-      </p:sp>
-    </p:spTree>
-  </p:cSld>
-  {trans_xml}
-</p:sld>"""
-            zf.writestr(f"ppt/slides/slide{idx}.xml", slide_xml)
+        # Slide title
+        tb_t = slide.shapes.add_textbox(Inches(0.65), Inches(0.76), Inches(12.0), Inches(0.95))
+        tf_t = tb_t.text_frame
+        tf_t.word_wrap = True
+        p_t = tf_t.paragraphs[0]
+        r_t = p_t.add_run()
+        r_t.text = stitle
+        r_t.font.name = "Segoe UI"
+        r_t.font.size = Pt(28)
+        r_t.font.bold = True
+        r_t.font.color.rgb = txt_rgb
 
+        # Main content card
+        has_callout = bool(key_fact)
+        card_w = Inches(7.7) if has_callout else Inches(12.0)
+        c_card = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.65), Inches(1.9), card_w, Inches(4.75))
+        c_card.fill.solid()
+        c_card.fill.fore_color.rgb = card_rgb
+        c_card.line.fill.background()
+        tf_c = c_card.text_frame
+        tf_c.word_wrap = True
+        tf_c.margin_left = Inches(0.32)
+        tf_c.margin_right = Inches(0.28)
+        tf_c.margin_top = Inches(0.28)
+        tf_c.margin_bottom = Inches(0.24)
+        for bi, btxt in enumerate(bullets[:6]):
+            pb = tf_c.paragraphs[0] if bi == 0 else tf_c.add_paragraph()
+            pb.space_after = Pt(11)
+            rb = pb.add_run()
+            rb.text = f"•  {btxt}"
+            rb.font.name = "Segoe UI"
+            rb.font.size = Pt(16.5)
+            rb.font.color.rgb = txt_rgb
+
+        # Right-hand Key Fact callout card
+        if has_callout:
+            k_card = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(8.65), Inches(1.9), Inches(4.0), Inches(4.75))
+            k_card.fill.solid()
+            k_card.fill.fore_color.rgb = card_rgb
+            k_card.line.color.rgb = acc2_rgb
+            k_card.line.width = Pt(1.75)
+            tf_k = k_card.text_frame
+            tf_k.word_wrap = True
+            tf_k.margin_left = Inches(0.28)
+            tf_k.margin_right = Inches(0.28)
+            tf_k.margin_top = Inches(0.35)
+
+            pk_head = tf_k.paragraphs[0]
+            pk_head.space_after = Pt(14)
+            rk_head = pk_head.add_run()
+            rk_head.text = "ÖNEMLİ NOT / DÖNÜM NOKTASI"
+            rk_head.font.name = "Segoe UI"
+            rk_head.font.size = Pt(12.5)
+            rk_head.font.bold = True
+            rk_head.font.color.rgb = acc2_rgb
+
+            pk_body = tf_k.add_paragraph()
+            rk_body = pk_body.add_run()
+            rk_body.text = key_fact
+            rk_body.font.name = "Segoe UI"
+            rk_body.font.size = Pt(16)
+            rk_body.font.color.rgb = txt_rgb
+
+        # Footer
+        tb_f = slide.shapes.add_textbox(Inches(0.65), Inches(6.92), Inches(12.0), Inches(0.35))
+        pf = tb_f.text_frame.paragraphs[0]
+        rf = pf.add_run()
+        rf.text = f"{title}   |   Slayt {idx} / {n_slides}"
+        rf.font.name = "Segoe UI"
+        rf.font.size = Pt(10.5)
+        rf.font.color.rgb = muted_rgb
+
+        if notes_txt:
+            slide.notes_slide.notes_text_frame.text = notes_txt
+
+    prs.save(str(out_path))
     return out_path
 
 

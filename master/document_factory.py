@@ -322,6 +322,8 @@ def _build_xlsx(
 def _shade_docx_cell(cell, fill_hex: str) -> None:
     tc_pr = cell._tc.get_or_add_tcPr()
     shd = OxmlElement("w:shd")
+    shd.set(qn("w:val"), "clear")
+    shd.set(qn("w:color"), "auto")
     shd.set(qn("w:fill"), fill_hex)
     tc_pr.append(shd)
 
@@ -498,5 +500,5 @@ def _build_pdf(
             color=(0.45, 0.5, 0.58),
         )
 
-    doc.save(str(out_path))
+    doc.save(str(out_path), deflate=True, garbage=3)
     doc.close()

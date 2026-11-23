@@ -814,7 +814,17 @@ async def get_assistant_media(filename: str):
         media_type = "image/svg+xml"
     elif safe.endswith(".png"):
         media_type = "image/png"
-    elif safe.endswith((".xlsx", ".docx", ".pptx", ".pdf")):
+    elif safe.endswith(".pptx"):
+        media_type = "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        headers["Content-Disposition"] = f'attachment; filename="{safe}"'
+    elif safe.endswith(".docx"):
+        media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        headers["Content-Disposition"] = f'attachment; filename="{safe}"'
+    elif safe.endswith(".xlsx"):
+        media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        headers["Content-Disposition"] = f'attachment; filename="{safe}"'
+    elif safe.endswith(".pdf"):
+        media_type = "application/pdf"
         headers["Content-Disposition"] = f'attachment; filename="{safe}"'
     return FileResponse(target, headers=headers, media_type=media_type)
 
