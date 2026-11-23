@@ -1,527 +1,250 @@
-# EVRENSEL OTONOM YAPAY ZEKÂ İŞLETİM SİSTEMİ, YAZILIM FABRİKASI VE MÜHENDİSLİK PLATFORMU
-## Çok Yıllı Master Uygulama Planı (16 Faz · 80 Ana Modül · 240+ Alt Bileşen) ve Otonom İnşa Mega-Promptu
+# EVRENSEL OTONOM YAPAY ZEKÂ İŞLETİM SİSTEMİ (UNIVERSAL FRONTIER AI OS)
+## Her Alanda Sınırları Zorlayan Genel Amaçlı YZ, Çoklu Ajan Konseyi, Derin Araştırma, Veri Bilimi ve Otonom Yazılım Fabrikası — Master Uygulama Planı ve Mega-Promptu
 
-Bu doküman, mevcut **Dağıtık YZ Platformu** (`master/`, `agent/`) altyapısını sadece tek bir dikey alana değil; **bir yapay zekâdan beklenen tüm normal (ChatGPT / Claude / Perplexity / NotebookLM), üst düzey (Antigravity / Cursor / Devin / AutoML) ve ultra-ileri (Dağıtık Ajan Konseyi, Kendi Kendini Eğiten LLMOps, Bilgisayar Kullanımı, 3D CAD/CAM/CNC ve Kurumsal ERP)** yetenekleri **%100 yerel, açık kaynak ve tam otonom** olarak barındıran devasa bir **Yapay Zekâ İşletim Sistemine (AI OS)** dönüştürmek için hazırlanmış nihai mühendislik spesifikasyonudur.
+Bu doküman, platformu tek bir dikey alana (ör. sadece CNC veya sadece kod) hapsetmek yerine; **hukuktan finansa, akademik araştırmadan veri bilimine, stratejik yönetimden tasarıma, matematik/fizikten tam otonom yazılım üretimine kadar HER ALANDA verilen herhangi bir görevi yerine getirebilen**, yerel açık kaynak modellerin (`qwen3.5:9b`, `gemma4:e4b`, `qwen2.5-coder:7b`, `phi4-mini`, `llama3.2:3b`, `bge-m3`) sınırlarını **Çoklu Ajan Konseyi + Deterministik Araç Kullanımı (ReAct) + Kalıcı Hafıza + Evrensel Dosya/Rapor Üretimi** ile zorlayan bir **Evrensel Yapay Zekâ İşletim Sistemi** kurmak için hazırlanmıştır.
 
----
-
-## 0. YAPAY ZEKÂ YETENEK KATMANLARI MATRİSİ (3 KATMANLI HEDEF MİMARİ)
-
-| Katman | Kapsam Tanımı | Referans Sistemler | Platformdaki Hedef Karşılığı |
-|---|---|---|---|
-| **Katman 1: Temel & Normal YZ Beklentileri** | Günlük ve profesyonel bilgi işçiliği, kesintisiz hafıza, çoklu doküman/medya analizi, sıfır halüsinasyonlu hesaplama, sesli/görsel iletişim, sunum/rapor üretimi | ChatGPT Plus, Claude Artifacts, Perplexity Pro, Google NotebookLM | Çok Katmanlı Uzun Süreli Hafıza, Derin Araştırma Ajanı, Otomatik `.pptx/.docx/.xlsx/.pdf` Üretici, Canlı Grafik/Diyagram Tuvali, Yerel Ses (STT/TTS) ve Görsel Üretim/Analiz |
-| **Katman 2: Üst Düzey YZ Beklentileri** | Uçtan uca yazılım mühendisliği, çok klasörlü proje/oyun/`.exe`/mobil uygulama üretimi, kendi hatasını çalıştırarak onarma, veri bilimi (AutoML), bilgisayar/tarayıcı kontrolü | Antigravity, Cursor, Devin, Replit Agent, OpenAI Code Interpreter | AST Kod Grafı, 5 Aşamalı Otonom Yazılım Fabrikası, Playwright Görsel UI Doğrulayıcı, Canlı Web IDE (LSP, DAP, Diff, Terminal, Git), AutoML Veri Bilimi Stüdyosu, Başsız Tarayıcı Otomasyonu |
-| **Katman 3: Ultra-İleri / Frontier YZ & Endüstriyel Sistem** | Çoklu ajan tartışma konseyi (Swarm Debate), kendi kendini eğiten model döngüsü (Gece QLoRA/DPO), fiziksel mühendislik (3D CAD/CAM, CNC, FEA), fabrika/ERP optimizasyonu | AlphaCode, Multi-Agent Swarm, Unsloth/vLLM LLMOps, Siemens NX / AS9102 | 6+ Bilgisayarlı Heterojen GPU Sürüsü, Hakemli Ajan Konseyi, Otomatik DPO/QLoRA Öz-Eğitim Fabrikası, 3D STEP/DXF/CNC/G-Kodu/CMM Motoru, OR-Tools Çizelgeleme ve Kurumsal RBAC/Sandbox |
+*(Not: CNC ve fiziksel imalat yetenekleri sistemin ana omurgası tamamlandıktan sonra en sonda dikey bir mühendislik eklentisi — Faz 15 olarak konumlandırılmıştır.)*
 
 ---
 
-## 1. BÜTÜNLEŞİK SİSTEM TOPOLOJİSİ
+## 0. AÇIK KAYNAK YAPAY ZEKÂNIN SINIRLARINI ZORLAMA MİMARİSİ (NEDEN VE NASIL?)
+
+Tek başına çalışan 4B–9B parametreli bir dil modeli; tek seferlik (zero-shot) soru-cevapta karmaşık hesaplamalarda yanılabilir, uzun bağlamı unutabilir veya sadece düz metin üretebilir. Ancak bu modeller aşağıdaki **5 Bilişsel Çarpan (Cognitive Multipliers)** ile birleştirildiğinde 10 kat büyük bulut modellerinin seviyesine çıkar ve onların yapamadığı yerel eylemleri gerçekleştirir:
+
+| Sınır / Darboğaz | Tek Başına Küçük Model | Sınırları Zorlayan Evrensel YZ Mimarimiz |
+|---|---|---|
+| **Bağlam ve Unutkanlık** | Her mesajı tek başına yanıtlar, önceki mesajları ve kullanıcıyı unutur | **4 Katmanlı Bilişsel Hafıza**: Tam çok-turlu sohbet geçmişi + kullanıcı tercihlerini/bilgilerini otomatik öğrenen kalıcı Semantik & Epizodik Hafıza |
+| **Tek Modelin Kör Noktası** | Tek bir model (`qwen3.5:4b`) her soruya aynı dar açıdan bakar | **Akıllı Model Orkestratörü & Ajan Konseyi**: Göreve göre en güçlü modeli (`qwen3.5:9b`, `gemma4:e4b`, `qwen2.5-coder:7b`) seçer; zor görevlerde 3 modeli tartıştırıp (Proposer-Critic-Judge) en doğru sentezi üretir |
+| **Sayısal / Mantıksal Halüsinasyon** | Tablo toplarken, finans/istatistik veya fizik hesaplarken sayı uydurur | **Otonom ReAct Araç Motoru**: Model sayıları kafadan hesaplamaz; arka planda gerçek Python (`SymPy`, `Pandas`, `NumPy`, `SQLite`) kodu yazıp çalıştırır, kesin sonucu okuyup yanıtlar |
+| **Sadece Düz Yazı Döndürme** | "Bana sunum, Excel bütçesi, sözleşme Word'ü yap" deyince ekrana düz yazı basar | **Evrensel Çıktı & Dosya Fabrikası**: Her alanda gerçek indirilebilir `.xlsx` (formüllü Excel), `.docx` (formatlı Word), `.pptx` (PowerPoint sunumu), `.pdf` (araştırma raporu), interaktif grafik ve tam çalışan yazılım/`.exe` üretir |
+| **Hatalı Çıktıyı Fark Etmeme** | İlk ürettiği taslağı olduğu gibi kullanıcıya verir | **Öz-Eleştiri ve Öz-Tamir Döngüsü (Self-Reflection & Self-Healing)**: Ürettiği raporu, veriyi veya kodu kullanıcıya sunmadan önce kalite kriterlerine göre kendisi denetler ve eksikleri tamamlar |
+
+---
+
+## 1. HER ALANDA GÖREV YÜRÜTME TOPOLOJİSİ
 
 ```mermaid
 flowchart TB
-    subgraph Client["1. Birleşik İstemci Kabuğu (Web + Masaüstü + Ses + Mobil PWA)"]
-        UIChat["Çok Modlu Asistan (Metin, Ses STT/TTS, Görsel, Video, PDF/Office/CAD)"]
-        UIWorkbench["Antigravity / VS Code IDE Workbench (Explorer, Sekmeler, LSP, Diff, Terminal, Canlı Sunucu)"]
-        UICanvas["İnteraktif Bilgi & Veri Tuvali (Grafikler, Mermaid, Zihin Haritası, BI Panosu, 3D CAD)"]
-        UIWorkflow["Otonom Görev & Ajan Konseyi İzleme Merkezi (Canlı Düşünce Zinciri & DAG)"]
+    User["Kullanıcı İsteği (Herhangi Bir Alan: Finans, Hukuk, Bilim, Veri, Eğitim, Tasarım, Yazılım, Strateji)"]
+    Router["1. Bilişsel Niyet & Karmaşıklık Yönlendiricisi (Cognitive Router)"]
+
+    subgraph Memory["2. Kalıcı Hafıza & Bilgi Katmanı"]
+        STM["Çok Turlu Sohbet Bağlamı (Multi-Turn Context)"]
+        LTM["Öğrenilen Kullanıcı & Kurum Hafızası (Semantic Memory)"]
+        RAG["Hibrit Vektör + BM25 + Bilgi Grafı (bge-m3 GraphRAG)"]
     end
 
-    subgraph Core["2. Bilişsel Çekirdek & Hafıza Katmanı (Cognitive Core)"]
-        Intent["Çok Aşamalı Niyet, Karmaşıklık ve Araç Yönlendiricisi (Router)"]
-        Memory["4 Katmanlı Hafıza (Çalışma Belleği, Epizodik Sohbet, Semantik Vektör, Prosedürel Beceri)"]
-        Council["Çoklu Ajan Tartışma ve Konsensüs Konseyi (Planlayıcı, Üretici, Eleştirmen, Doğrulayıcı)"]
-        Tools["Deterministik Araç Motoru (SymPy Matematik, Pandas Veri, SQL, Birim/Finans, Web/Tarayıcı)"]
+    subgraph Council["3. Çoklu Model Konseyi & Derin Düşünme (System 2 Reasoning)"]
+        M1["Qwen 3.5 9B (Derin Analiz, Strateji, Görsel & Sentez)"]
+        M2["Gemma 4 E4B (Bilimsel Akıl Yürütme, Eleştiri & Doğrulama)"]
+        M3["Qwen 2.5 Coder 7B (Algoritma, Veri Analizi, SQL & Yazılım)"]
+        Judge["Hakem & Öz-Yansıma Sentezleyicisi (Critic & Synthesizer)"]
     end
 
-    subgraph Studios["3. Üst Düzey Üretim Stüdyoları (Autonomous Studios)"]
-        SoftFactory["Otonom Yazılım Fabrikası (Web, Full-Stack, Oyun, Windows .EXE/.MSI, Docker, PWA)"]
-        DocFactory["Kurumsal Doküman & Medya Fabrikası (Word, Excel, PowerPoint, PDF, Görsel/SVG)"]
-        DataStudio["AutoML & Veri Bilimi Stüdyosu (Veri Temizleme, Anomali, XGBoost/PyTorch Tahminleme)"]
-        EngStudio["Fiziksel Mühendislik & CNC/CAD-CAM Stüdyosu (2D/3D Balonlama, G-Kodu, FEA, Maliyet, CMM)"]
+    subgraph Tools["4. Evrensel Eylem & Araç Motoru (Action & Deliverable Engine)"]
+        TData["Veri Bilimi & AutoML (Pandas, İstatistik, Tahminleme, SQL)"]
+        TMath["Bilimsel & Finansal Hesaplama (SymPy, Finans, Fizik, Simülasyon)"]
+        TDoc["Evrensel Doküman Fabrikası (Word .docx, Excel .xlsx, Sunum .pptx, PDF)"]
+        TCanvas["İnteraktif Görsel Tuval (Canlı Grafikler, Diyagramlar, Zihin Haritası, BI Panosu)"]
+        TWeb["Derin Araştırma & Tarayıcı Ajanı (Çoklu Doküman & Web Sentezi)"]
+        TSoft["Otonom Yazılım Fabrikası (Tam Proje, Web, Oyun, Masaüstü .EXE)"]
     end
 
-    subgraph Infra["4. Dağıtık GPU Ağı, LLMOps & Güvenlik Altyapısı"]
-        Swarm["Tailscale Heterojen GPU Sürüsü (Thompson Sampling, VRAM Telemetri, Checkpoint Göçü)"]
-        RAG["Hibrit GraphRAG + Vision-RAG (bge-m3 + FTS5 BM25 + Varlık Grafı + Zorunlu Atıf)"]
-        LLMOps["Kendi Kendini Eğiten Döngü (Düzeltme Yakalama -> Sentetik Veri -> Gece QLoRA/DPO -> Canary Test)"]
-        Sec["Kurumsal Güvenlik (JWT/RBAC, AS9100 SHA-256 Denetim İzi, Rootless Konteyner Sandbox)"]
-    end
-
-    Client --> Core
-    Core --> Studios
-    Studios --> Infra
-    Core --> Infra
+    User --> Router
+    Router --> Memory
+    Memory --> Council
+    Council --> Tools
+    Tools --> Judge
+    Judge --> User
 ```
 
 ---
 
-## BÖLÜM 1: 16 FAZLI DERİN MÜHENDİSLİK SPESİFİKASYONU
+## BÖLÜM 1: 15 FAZLI EVRENSEL YAPAY ZEKÂ MASTER PLANI
 
 ---
 
-### FAZ 1: Bilişsel Çekirdek, 4 Katmanlı Uzun Süreli Hafıza ve Kişiselleştirilmiş YZ Deneyimi
-**Problem:** Normal bir sohbet botu sayfa yenilendiğinde veya yeni sohbete geçildiğinde kullanıcının kim olduğunu, önceki projelerini, kodlama stilini, şirket kurallarını ve geçmiş kararlarını unutur.
-**Hedef:** İnsan beyni gibi çalışan 4 katmanlı kalıcı hafıza mimarisi (`master/memory_engine.py`).
-
-#### 1.1. Hafıza Katmanları ve Veritabanı Şeması (`master/db.py` Genişletmesi)
-- **Katman A — Çalışma Belleği (Working Memory & Context Window Manager)**:
-  - Uzun sohbetlerde token sınırı (`NUM_CTX_MAX = 32768`) dolduğunda eski mesajları rastgele kesmek yerine; hiyerarşik özetleme (Recursive Summarization) ve kritik varlık/kod bloklarını sabitleme (Context Pinning) algoritması.
-- **Katman B — Epizodik Hafıza (Episodic Memory — Geçmiş Oturumlar ve Olaylar)**:
-  - Tüm sohbetlerin, yüklenen dosyaların, alınan kararların ve üretilen çıktıların zaman damgalı ve tam metin aranabilir (`SQLite FTS5`) arşivlenmesi.
-- **Katman C — Semantik Hafıza (Semantic Fact & User Preference Store)**:
-  - Her sohbet turundan sonra arka planda hafif model (`qwen3:1.7b` veya `qwen3.5:4b`) ile otomatik gerçek/tercih çıkarımı:
-    - Örnek çıkarımlar: `"Kullanıcı arayüzlerde emoji istemiyor"`, `"Kullanıcı CNC parçalarında ISO 2768-mK standardını kullanıyor"`, `"Kullanıcı Python projelerinde FastAPI ve SQLite tercih ediyor"`.
-- **Katman D — Prosedürel Hafıza (Procedural Skill & Pattern Library)**:
-  - Başarıyla tamamlanmış ve testlerden geçmiş kod şablonlarının, sık kullanılan SQL sorgularının ve doğrulanmış çözüm adımlarının yeniden kullanılabilir "Beceri (Skill)" olarak kaydedilmesi.
-
-```sql
--- Faz 1 SQLite Şema Migrasyonu
-CREATE TABLE IF NOT EXISTS conversations (
-    id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL DEFAULT 'default',
-    title TEXT NOT NULL,
-    summary TEXT DEFAULT '',
-    pinned_context TEXT DEFAULT '[]',
-    created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS conversation_messages (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
-    role TEXT NOT NULL, -- 'user' | 'assistant' | 'system' | 'tool'
-    content TEXT NOT NULL,
-    model_used TEXT DEFAULT '',
-    task_type TEXT DEFAULT '',
-    attachments_json TEXT DEFAULT '[]',
-    workspace_id TEXT DEFAULT '',
-    cnc_job_id TEXT DEFAULT '',
-    tokens_in INTEGER DEFAULT 0,
-    tokens_out INTEGER DEFAULT 0,
-    latency_ms INTEGER DEFAULT 0,
-    feedback_score INTEGER DEFAULT 0, -- +1 (beğeni), -1 (düzeltme/hata)
-    created_at TEXT NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS semantic_memories (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id TEXT NOT NULL DEFAULT 'default',
-    category TEXT NOT NULL, -- 'preference' | 'project_fact' | 'company_rule' | 'technical_constraint'
-    fact_key TEXT NOT NULL,
-    fact_value TEXT NOT NULL,
-    confidence REAL NOT NULL DEFAULT 1.0,
-    embedding_blob BLOB, -- bge-m3 1024-dim float32 vektörü
-    source_conversation_id TEXT,
-    updated_at TEXT NOT NULL,
-    UNIQUE(user_id, category, fact_key)
-);
-
-CREATE TABLE IF NOT EXISTS procedural_skills (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    trigger_pattern TEXT NOT NULL,
-    solution_template TEXT NOT NULL,
-    success_count INTEGER DEFAULT 1,
-    avg_score REAL DEFAULT 1.0,
-    embedding_blob BLOB,
-    created_at TEXT NOT NULL
-);
-```
-
-#### 1.2. İnşa Edilecek Modüller ve API'ler
-- `master/memory_engine.py`:
-  - `extract_and_upsert_memories(conversation_id, user_msg, assistant_msg)`: Arka plan görevinde (`asyncio.create_task`) kullanıcı tercihlerini çıkarıp `semantic_memories` tablosuna yazar.
-  - `build_memory_augmented_system_prompt(user_id, query)`: Sorguyla en alakalı 5 semantik hafıza kaydını ve 2 prosedürel beceriyi sistem promptuna enjekte eder.
-  - `compact_conversation_context(conversation_id, max_tokens)`: Bağlam penceresi %75 dolduğunda eski mesajları kayıpsız teknik özete dönüştürür.
-- **REST Endpoint'leri (`master/memory_api.py`)**:
-  - `GET /api/memory/conversations` — Tüm sohbet geçmişini (cihazlar arası senkronize) listele.
-  - `GET /api/memory/facts` / `DELETE /api/memory/facts/{id}` — Yapay zekânın kullanıcı hakkında öğrendiği kuralları görüntüle/düzenle/sil.
-  - `POST /api/memory/compact/{conversation_id}` — Uzun sohbeti akıllıca sıkıştır.
+### FAZ 1: Çok Turlu Bağlam, 4 Katmanlı Bilişsel Hafıza ve Kişiselleşen Yapay Zekâ (`master/memory_engine.py`)
+1. **Gerçek Çok Turlu Sohbet Hafızası (Multi-Turn Conversation State)**:
+   - Asistan sadece son cümleyi değil; sohbetin başından itibaren konuşulan tüm bağlamı, yüklenen dosyaları ve ara kararları takip eder (*"Az önceki tablodaki 3. maddeyi genişlet ve bunu Word'e çevir"* dendiğinde tam olarak neyi kastettiğini bilir).
+2. **Otomatik Öğrenen Semantik Hafıza (Fact & Preference Extraction)**:
+   - Kullanıcının mesleğini, çalışma alanlarını, tercih ettiği dili/üslubu, sık kullandığı formatları ve projelerini arka planda otomatik öğrenip SQLite + `bge-m3` vektör hafızasına yazar.
+3. **Kayıpsız Bağlam Sıkıştırma (Hierarchical Context Compaction)**:
+   - yüzlerce mesajlık çok uzun çalışmalarda eski mesajları teknik detay kaybı olmadan özetleyerek sonsuz uzunlukta sohbet imkânı sağlar.
+4. **Prosedürel Beceri Hafızası (Procedural Skill Store)**:
+   - Yapay zekânın bir kez çözüp doğruladığı karmaşık görev şablonlarını (ör. finansal nakit akışı modeli, akademik literatür tarama şablonu, özel veri temizleme betiği) "Beceri" olarak kaydedip benzer görevlerde anında uygulaması.
 
 ---
 
-### FAZ 2: Çoklu Ajan Düşünme Konseyi, Akıl Yürütme (Reasoning) ve Deterministik Araç Kullanımı (Tool-Use / ReAct)
-**Problem:** Tek bir küçük/orta ölçekli açık kaynak model (`4B–9B`), karmaşık matematik, mantık, çok adımlı planlama veya çelişkili gereksinimlerde ilk aklına gelen yüzeysel cevabı verebilir.
-**Hedef:** Tek model yerine **Düşünen, Tartışan, Araç Kullanan ve Kendi Cevabını Doğrulayan Çoklu Ajan Konseyi** (`master/reasoning_council.py` & `master/tool_executor.py`).
-
-#### 2.1. ReAct (Reason + Act) Deterministik Araç Motoru (`master/tool_executor.py`)
-Model tahmin yürütmek yerine, gerektiğinde şu yerleşik deterministik araçları JSON-RPC formatında çağırır ve sonucunu okuyup cevabını yazar:
-1. `tool_python_math_sympy`: Cebirsel denklem çözümü, türev, integral, matris işlemleri, istatistik ve olasılık hesabı.
-2. `tool_data_analyzer`: Yüklenen CSV/Excel/JSON verisi üzerinde gerçek `pandas` / `sqlite3` agregasyonları (`GROUP BY`, `JOIN`, korelasyon, pivot tablo) çalıştırma — model tablodaki sayıları asla kafadan toplamaz, kodla hesaplar.
-3. `tool_unit_and_engineering_calc`: Birim dönüşümleri (MPa ↔ PSI, mm ↔ inch, HRC ↔ HB sertlik, devir $n = \frac{1000 \cdot V_c}{\pi \cdot D}$, elektrik/finans formülleri).
-4. `tool_code_sandbox_exec`: Yazdığı algoritmayı kullanıcıya göstermeden önce arka planda 3 örnek girdiyle çalıştırıp çıktısını doğrulama.
-5. `tool_local_search_and_rag`: Şirket bilgi bankası ve proje dosyaları içinde tam metin + vektör araması.
-
-#### 2.2. Çoklu Ajan Tartışma ve Hakem Konseyi (`master/reasoning_council.py`)
-Karmaşık sorular ve kritik mühendislik/mimari kararlarda 3 aşamalı **Konsey Protokolü**:
-1. **Önerici Ajanlar (Proposers)**:
-   - Ajan A (`qwen3.5:9b` — Analitik/Genel) ve Ajan B (`qwen2.5-coder:7b` veya `gemma4:e4b` — Teknik/Kod) soruya birbirinden bağımsız çözüm üretir.
-2. **Şeytanın Avukatı / Eleştirmen Ajan (Critic)**:
-   - Her iki çözümdeki mantık hatalarını, eksik sınır durumlarını, güvenlik açıklarını veya sayısal tutarsızlıkları bulur.
-3. **Baş Hakem / Sentezleyici (Judge & Synthesizer)**:
-   - Eleştirileri gidererek her iki çözümün en güçlü yanlarını birleştiren nihai kusursuz yanıtı oluşturur.
-- Sohbet arayüzünde kullanıcı isterse **"Düşünce Sürecini ve Ajan Tartışmasını Göster"** açılır kutusundan ajanların arka planda nasıl tartıştığını şeffafça izleyebilir.
+### FAZ 2: Akıllı Çoklu Model Orkestratörü ve Ajan Tartışma Konseyi (System 2 Deep Thinking) (`master/reasoning_council.py`)
+1. **Dinamik Görev-Model Eşleştirme (Capability-Aware Dynamic Routing)**:
+   - Sabit tek model yerine görev karmaşıklığına göre otomatik model seçimi:
+     - Hızlı günlük sorular → `qwen3.5:4b` / `phi4-mini`
+     - Derin analiz, hukuk, tıp/bilim, finans, felsefe, strateji, uzun yazı ve görsel analiz → **`qwen3.5:9b`** veya **`gemma4:e4b`**
+     - Yazılım, veri bilimi, matematiksel modelleme, SQL ve otomasyon → **`qwen2.5-coder:7b`**
+2. **Ajan Konseyi ve Çoklu Bakış Açısı Tartışması (Multi-Agent Debate & Critique)**:
+   - Zor ve üst düzey görevlerde **3 Aşamalı Derin Düşünme**:
+     - **Aşama 1 (Taslak & Alternatif Üretimi)**: İki farklı model aile (ör. Alibaba `qwen3.5:9b` ve Google `gemma4:e4b`) sorunu bağımsız çözer.
+     - **Aşama 2 (Çapraz Eleştiri — Red-Teaming / Critic)**: Eleştirmen ajan her iki yanıttaki mantık hatalarını, eksik varsayımları, yüzeysel geçilen kısımları ve hesap hatalarını bulur.
+     - **Aşama 3 (Hakem Sentezi)**: Tüm eleştirileri gideren, kanıtlanmış ve derinlikli nihai yanıt üretilir.
+3. **Ağdaki 6 Bilgisayarın Paralel Sürü Zekâsı (`master/swarm_coordinator.py`)**:
+   - Büyük bir görev geldiğinde (ör. *"10 rakip şirketi analiz et"* veya *"50 sayfalık raporu incele"*), işi ağdaki çevrimiçi bilgisayarlara paralel dağıtıp sonuçları birleştirir.
 
 ---
 
-### FAZ 3: Derin Araştırma Ajanı (Deep Research) ve Kurumsal Doküman / Sunum / Office Fabrikası
-**Problem:** Kullanıcı bir yapay zekâdan sadece sohbet mesajı değil; doğrudan yönetime sunulabilecek **PowerPoint sunumu (`.pptx`)**, **kapsamlı Word raporu (`.docx`)**, **çok sayfalı formüllü Excel finans/mühendislik tablosu (`.xlsx`)** ve **profesyonel PDF dokümanı** üretmesini bekler.
-**Hedef:** Çok kaynaklı araştırma yapıp kurumsal formatta indirilebilir Office dosyaları üreten `master/document_factory.py` ve `master/deep_research.py`.
-
-#### 3.1. Derin Araştırma Motoru (`master/deep_research.py`)
-- Kullanıcının verdiği bir konuyu veya yüklediği 10+ dokümanı (PDF, Word, Excel, ZIP, Markdown) 5 alt araştırma sorusuna böler.
-- Her alt soruyu paralel olarak doküman parçaları ve bilgi bankası üzerinde tarar, bulguları çapraz doğrular, çelişkileri raporlar ve kaynak referanslı (`[Kaynak 1, s. 14]`) 10–30 sayfalık kapsamlı araştırma raporu sentezler.
-
-#### 3.2. Otomatik Office & Doküman Üretim Fabrikası (`master/document_factory.py`)
-Sohbette *"Bana şu konuda 10 slaytlık bir sunum hazırla"*, *"Şu verilerden finansal Excel tablosu yap"* veya *"Teknik şartname Word dosyası oluştur"* dendiğinde arka planda gerçek dosyaları üretip sohbette indirme kartı sunar:
-1. **PowerPoint (`.pptx`) Üretici**: Kapak slaytı, yönetici özeti, 2 sütunlu karşılaştırma slaytları, veri tabloları, gömülü SVG/PNG grafikler ve konuşmacı notları (`python-pptx` veya OpenXML üretici).
-2. **Word (`.docx`) Üretici**: Otomatik içindekiler tablosu, kurumsal başlık stilleri, numaralı bölümler, zebra çizgili tablolar, gömülü diyagramlar ve üst/alt bilgi (Header/Footer).
-3. **Excel (`.xlsx`) Üretici**: Çok sekmeli, dinamik `SUM/AVERAGE/IF/VLOOKUP/INDEX-MATCH` formüllü, koşullu biçimlendirmeli (Conditional Formatting), sütun genişlikleri ayarlı ve gömülü grafikli (`openpyxl.chart`) çalışma kitapları.
-4. **Vektörel PDF Rapor Üretici**: `PyMuPDF` ile kapak sayfası, sayfa numaraları ve yüksek çözünürlüklü şemalar içeren kurumsal PDF.
+### FAZ 3: Evrensel ReAct Araç Kullanım Motoru (Sıfır Halüsinasyonlu Hesaplama ve Eylem) (`master/tool_executor.py`)
+Yapay zekâ herhangi bir alanda sayısal, mantıksal veya veriye dayalı bir soruyla karşılaştığında **asla tahmini cevap vermez**; arka planda kendi Python/SQL araçlarını çalıştırıp gerçek sonucu kullanır:
+1. **Finans, Ekonomi ve İşletme Araçları**:
+   - NPV (Net Bugünkü Değer), IRR (İç Verim Oranı), kredi amortisman tablosu, bileşik faiz, başabaş noktası (break-even), bilanço rasyo analizi, Monte Carlo risk simülasyonu.
+2. **Bilim, Matematik, İstatistik ve Mühendislik Araçları**:
+   - Sembolik ve sayısal denklem çözümü, diferansiyel denklemler, doğrusal programlama (optimizasyon), hipotez testleri ($t$-testi, ANOVA, $\chi^2$), olasılık dağılımları, fizik/kimya birim dönüşümleri.
+3. **Canlı Veri Sorgulama ve Tablo İşleme Aracı**:
+   - Yüklenen herhangi bir Excel, CSV, JSON veya veritabanı üzerinde arka planda gerçek `pandas` / `sqlite3` sorguları çalıştırarak %100 kesin toplam, ortalama, kırılım ve anomali raporu üretme.
 
 ---
 
-### FAZ 4: İnteraktif Veri Görselleştirme, Diyagram, Matematik ve Canlı Bilgi Tuvali (Artifacts Canvas)
-**Problem:** Metin tabanlı yanıtlar karmaşık veri setlerini, sistem mimarilerini, akış şemalarını veya matematiksel fonksiyonları anlatmakta yetersiz kalır.
-**Hedef:** Sohbet içinde anında çalışan zengin görsel bileşenler (`master/static/js/canvas_widgets.js`).
-
-1. **İnteraktif Grafik ve BI Tuvali**:
-   - Model ` ```chart ` bloğu ürettiğinde (JSON veri + grafik türü: çizgi, sütun, pasta, dağılım, radar, ısı haritası, Gantt) sıfır harici CDN ile %100 yerel SVG/Canvas üzerinde üzerine gelince değer gösteren (tooltip), yakınlaştırılabilir ve PNG/CSV olarak indirilebilir interaktif grafik çizer.
-2. **Otomatik Mimari Diyagram ve Akış Şeması Motoru**:
-   - ` ```mermaid ` veya ` ```diagram ` bloklarını otomatik olarak yönlü akış şeması (Flowchart), sıra diyagramı (Sequence Diagram), sınıf diyagramı (Class/ERD) ve durum makinesi olarak vektörel çizer.
-3. **LaTeX Matematik ve Mühendislik Formül Dizgisi**:
-   - Satır içi (`$...$`) ve blok (`$$...$$`) matematiksel denklemleri temiz matematiksel tipografi ile gösterir.
-4. **İnteraktif Zihin Haritası (Mindmap) ve Karar Ağacı**:
-   - Karmaşık konuları tıklanarak dalları açılıp kapanabilen görsel ağaca dönüştürür.
-5. **Canlı HTML/JS Widget & Hesaplayıcı Tuvali**:
-   - Kullanıcı *"Bana kredi/maliyet/birim hesaplayıcı göster"* dediğinde sohbet balonunun içinde kaydırıcıları (sliders) ve girdileri anında çalışan interaktif mini araç çalıştırır.
-
+### FAZ 4: Her Alanda Gerçek Dosya Üreten Evrensel Doküman ve Sunum Fabrikası (`master/document_factory.py`)
+Kullanıcı sohbette hangi alanda olursa olsun *"Bana bunun Excel tablosunu ver"*, *"Word sözleşmesi/raporu olarak hazırla"*, *"Sunum dosyası yap"* veya *"PDF raporu çıkar"* dediğinde düz metin yerine **gerçek indirilebilir kurumsal dosyalar** üretir:
+1. **Dinamik Excel (`.xlsx`) Fabrikası**:
+   - Finansal bütçe, proje planı, stok takip, personel nöbet çizelgesi, bilimsel deney tablosu veya satış analizi için çok sekmeli, canlı Excel formüllü (`=SUM()`, `=AVERAGE()`, `=IF()`), renkli başlıklı ve otomatik sütun genişlikli `.xlsx` üretimi.
+2. **Kurumsal Word (`.docx`) Fabrikası**:
+   - Hukuki sözleşme taslağı, akademik makale/tez taslağı, iş planı, pazarlama stratejisi, teknik şartname veya toplantı tutanağı için kapak başlığı, numaralı bölümler, profesyonel tablolar ve gömülü grafikler içeren `.docx` üretimi.
+3. **PowerPoint Sunum (`.pptx`) ve Kurumsal PDF Fabrikası**:
+   - Herhangi bir konuda slayt başlıkları, madde işaretleri, karşılaştırma tabloları ve konuşmacı notları içeren `.pptx` sunumu ve vektörel `.pdf` yönetici raporu üretimi.
 
 ---
 
-### FAZ 5: Çoklu Medya, Sesli İletişim (STT/TTS), Görsel/Video Analizi ve Yerel Görsel Üretim Stüdyosu
-**Problem:** Üst düzey bir yapay zekâ sadece yazışmaz; konuşur, dinler, fotoğrafları/videoları kare kare analiz eder, taranmış karmaşık belgeleri okur ve sıfırdan görsel/tasarım üretir.
-**Hedef:** %100 yerel çalışan çok modlu medya motoru (`master/multimodal_studio.py`).
-
-1. **Modül 5.1 — Çift Yönlü Gerçek Zamanlı Sesli Asistan (`master/voice_engine.py`)**:
-   - **Konuşmadan Metne (STT)**: `faster-whisper` (`small`/`medium` int8 kuantize model) ile mikrofon kaydını ve yüklenen `.mp3/.wav/.m4a` toplantı kayıtlarını %99 doğrulukla Türkçe/İngilizce metne çevirme, konuşmacı ayrıştırma (Diarization) ve toplantı özeti/aksiyon listesi çıkarma.
-   - **Metinden Konuşmaya (TTS)**: `piper-tts` veya yerel nöral TTS ile asistan yanıtlarını doğal Türkçe sesle okuma; sohbet kutusunda mikrofon ve sesli okuma kontrolü.
-2. **Modül 5.2 — Gelişmiş OCR, Tablo/Form Çıkarımı ve Video Kare Analizi (`master/media_analyzer.py`)**:
-   - Fatura, irsaliye, sözleşme, el yazısı notlar ve karmaşık tablolu PDF'lerden yapılandırılmış JSON/Excel çıkarımı.
-   - `.mp4/.avi/.mov` video dosyalarından anahtar kareleri (keyframes) ve ses kanalını ayırıp Vision-LLM (`qwen3.5:9b`) ile olay/anomali zaman çizelgesi çıkarma.
-3. **Modül 5.3 — Yerel Görsel, UI Mockup, İkon ve Vektör Tasarım Üretici (`master/image_studio.py`)**:
-   - Yerel Stable Diffusion / Flux (ComfyUI / Automatic1111 / Diffusers API köprüsü) + yüksek hassasiyetli parametrik SVG/Canvas grafik sentezleyici ile logo, UI mockup, teknik illüstrasyon, ürün görseli ve oyun sprite'ları üretimi.
+### FAZ 5: Derin Araştırma Ajanı (Deep Research) ve Çoklu Doküman Sentezleyici (`master/deep_research.py`)
+1. **Çok Adımlı Otonom Araştırma Döngüsü**:
+   - Karmaşık bir araştırma konusu verildiğinde konuyu 4–8 alt boyuta (tarihçe, teknik mimari, ekonomik etki, riskler, karşılaştırmalı tablo, gelecek projeksiyonu) böler, her birini derinlemesine inceleyip 15+ sayfalık referanslı kapsamlı inceleme raporu üretir.
+2. **Çoklu Doküman Çapraz Analizi (NotebookLM Sınıfı)**:
+   - Kullanıcının yüklediği birden fazla PDF, Word, Excel ve ZIP dosyasını aynı anda okuyup aralarındaki çelişkileri, ortak noktaları, eksik maddeleri ve özet tabloları kaynak/sayfa numarası vererek çıkarır.
 
 ---
 
-### FAZ 6: Otonom Çok Ajanlı Yazılım Fabrikası (Antigravity / Cursor / Devin Sınıfı Tam Kapsamlı Mühendislik)
-**Problem:** Tek seferlik LLM çağrılarıyla sadece 5–10 dosyalık basit şablonlar üretilebilir; gerçek kurumsal yazılım projeleri (veritabanı migrasyonları, kimlik doğrulama, arka plan işçileri, birim/entegrasyon testleri, çok sayfalı frontend ve hata ayıklama içeren 30–150 dosyalık projeler) otonom bir mühendislik döngüsü gerektirir.
-**Hedef:** Sıfırdan kurumsal yazılım, e-ticaret sistemi, SaaS platformu, 2D/3D oyun, masaüstü `.exe/.msi` uygulaması ve mobil PWA üreten, çalıştıran ve kendi hatalarını düzelten `master/software_factory.py`.
-
-```mermaid
-sequenceDiagram
-    participant U as Kullanıcı (Asistan Sohbeti)
-    participant A as Baş Mimar Ajanı
-    participant G as AST Kod Grafı
-    participant C as Paralel Kodlayıcı Sürüsü
-    participant S as İzole Test & Çalıştırma Sandbox'ı
-    participant V as Başsız Tarayıcı + Vision-LLM Doğrulayıcı
-    participant B as Paketleyici (.EXE / Docker / ZIP)
-
-    U->>A: Kapsamlı Proje Promptu (Web / Oyun / SaaS / Masaüstü)
-    A->>G: Sistem Mimarisi, ERD, OpenAPI Kontratı & Dosya Bağımlılık Grafı
-    G->>C: Topolojik Sırayla Dosya Görevlerini Dağıt (Backend -> DB -> Frontend -> Test)
-    C->>S: Üretilen Dosyaları Diske Yaz & Otomatik Testleri Çalıştır
-    loop Öz-Tamir Döngüsü (Max 5 İterasyon - 0 Hata Olana Kadar)
-        S-->>C: Traceback / SyntaxError / ImportError / Başarısız Test Raporu
-        C->>S: Hatalı Dosyaya Hedefli Yama (Patch) Uygula & Tekrar Test Et
-    end
-    S->>V: Canlı Sunucuyu Başlat & Ekran Görüntüsü / DOM / Console Kontrolü Yap
-    V-->>C: Görsel Kayma veya JS Console Hatası Varsa Düzelt
-    V->>B: PyInstaller (.EXE) / Docker / ZIP Paketini Derle
-    B->>U: IDE Workbench İçinde Canlı Önizleme + .EXE Çalıştır + Diff + Sürüm Geçmişi
-```
-
-#### 6.1. Çoklu Dil AST Kod Grafı ve Semantik Bağlam Yöneticisi (`master/code_graph.py`)
-- Proje içindeki tüm `.py`, `.js`, `.ts`, `.html`, `.css`, `.sql`, `.json` dosyalarını ayrıştırarak her fonksiyonun imzasını, hangi dosyanın hangi sınıfı/fonksiyonu import ettiğini, tüm CSS sınıf adlarını ve tüm REST API rotalarını bellekte bir **Yönlü Bağımlılık Grafı (`DependencyGraph`)** olarak tutar.
-- Bir dosya düzenlenirken veya yeni bir dosya yazılırken LLM'e rastgele metin kesiti değil; o dosyanın doğrudan bağımlı olduğu tüm arayüz tanımları (Interface Contracts) tam olarak verilir. Böylece `ImportError`, tanımsız JS fonksiyonu veya eşleşmeyen CSS sınıfı hatası kökten engellenir.
-
-#### 6.2. 6 Farklı Proje Arketipinde Uzmanlaşmış Üretim Boru Hatları (`master/project_archetypes.py`)
-1. **Arketip A — Modern Web & E-Ticaret / SaaS Uygulamaları**:
-   - Duyarlı (Responsive) tasarım sistemi, karanlık/aydınlık tema değişkenleri, durum yönetimi (State Store), `localStorage` / `IndexedDB` kalıcılığı, arama/filtreleme, sepet/ödeme akışı, grafik panoları ve modüler bileşen mimarisi.
-2. **Arketip B — Full-Stack Veritabanlı Kurumsal Sistemler (FastAPI + SQLite/PostgreSQL + REST + SPA)**:
-   - Gerçek ilişkisel veritabanı şeması, CRUD endpoint'leri, JWT kimlik doğrulama, doğrulama şemaları (`Pydantic`), otomatik üretilen `pytest` API testleri ve `Canlı Sunucu` üzerinden anında çalışan tam entegre önyüz.
-3. **Arketip C — 2D / 2.5D Masaüstü ve Web Oyunları (`.EXE` + HTML5 Canvas/WebGL)**:
-   - Oyun döngüsü (60 FPS delta-time game loop), fizik ve çarpışma motoru (AABB / daire çarpışması), parçacık efektleri (particle system), seviye/dalga yöneticisi, ses sentezleyici (WebAudio API / Python `winsound` prosedürel ses efektleri), yüksek skor kaydı, duraklatma/ayarlar menüsü ve tek tıkla Windows `.exe` derlemesi.
-4. **Arketip D — Profesyonel Windows Masaüstü Uygulamaları (`.EXE` / `.MSI`)**:
-   - Modern koyu temalı Tkinter/TTK özel stil motoru, çok sekmeli çalışma alanı, yerel SQLite veritabanı, Excel/PDF dışa aktarma, sistem tepsisi ve PyInstaller ile konsolsuz (`--windowed`) tek dosya `.exe` üretimi.
-5. **Arketip E — Otomasyon, Veri Kazıma, CLI ve Sistem Araçları**:
-   - `argparse` / zengin terminal çıktılı komut satırı araçları, zamanlanmış görev betikleri, dosya dönüştürücüler ve ağ/sistem analiz araçları.
-6. **Arketip F — Veri Bilimi ve Makine Öğrenmesi Projeleri**:
-   - Veri ön işleme boru hattı, özellik mühendisliği, model eğitimi, çapraz doğrulama metrikleri ve tahmin API'si.
-
-#### 6.3. Otonom Çalıştırma, Test Üretimi ve Öz-Tamir Döngüsü (`master/self_healing_runner.py`)
-- Her üretilen proje için otomatik bir doğrulama paketi çalıştırılır:
-  1. **Statik Doğrulama**: Tüm Python dosyalarında `ast.parse` ve `py_compile`; tüm JSON dosyalarında `json.loads`; HTML dosyalarındaki `<script src="...">` ve `<link href="...">` referanslarının diskteki gerçek dosyalarla birebir eşleşme kontrolü.
-  2. **Dinamik Duman Testi (Smoke Execution)**: Python projelerinde giriş dosyasını (`main.py` / `app.py`) `--help` veya test modunda başlatıp `ImportError`, `NameError`, `AttributeError` olup olmadığını yakalar; FastAPI projelerinde `TestClient` ile tüm `GET` rotalarını otomatik çağırıp `200 OK` döndüğünü doğrular.
-  3. **Otonom Onarım (Auto-Patch)**: Hata yakalandığında hata mesajını, satır numarasını ve ilgili dosyayı kodlayıcı modele geri besleyerek maksimum 5 denemeye kadar hatayı kullanıcı hiç görmeden düzeltir.
+### FAZ 6: İnteraktif Görsel Tuval — Canlı Grafikler, Diyagramlar, Zihin Haritası ve Mini Uygulamalar (`master/static/js/canvas_widgets.js`)
+1. **Otomatik İnteraktif Veri Grafikleri**:
+   - Yanıt içindeki sayısal verileri otomatik olarak etkileşimli Çizgi, Sütun, Pasta, Alan, Dağılım (Scatter) ve Radar grafiklerine dönüştürme (üzerine gelince değer okuma + PNG olarak indirme).
+2. **Vektörel Akış Şeması, Mimari Diyagram ve Zihin Haritası (Mindmap)**:
+   - İş süreçlerini, algoritmaları, organizasyon şemalarını ve ders/araştırma konularını görsel diyagramlar ve dalları açılıp kapanabilen zihin haritaları olarak çizme.
+3. **Sohbet İçi Canlı Simülatör ve Hesaplayıcı Widget'ları**:
+   - Kullanıcının parametreleri kaydırıcılarla (sliders) değiştirip sonucu anında grafik üzerinde görebildiği canlı HTML/JS simülasyon kartları (ör. kredi simülatörü, fizik sarkaç simülasyonu, yatırım getirisi simülatörü).
 
 ---
 
-### FAZ 7: IDE Workbench 2.0 — LSP Kod Tamamlama, Etkileşimli Terminal, Git Dal Yönetimi ve Yan Yana Diff
-**Problem:** Sohbet içindeki mevcut IDE Workbench'in gerçek VS Code / Antigravity deneyimine tam ulaşması için canlı terminal, yan yana kod farkı (Side-by-Side Diff), sembol arama ve Git entegrasyonu gerekir.
-**Hedef:** Tarayıcı içinde çalışan tam donanımlı IDE (`master/static/js/assistant.js` & `master/studio_api.py`).
-
-1. **Yan Yana (Side-by-Side) ve Yama (Hunk) Bazlı Diff Editörü**:
-   - AI bir dosyayı güncellediğinde eski sürüm (sol) ve yeni sürüm (sağ) yan yana satır numaralarıyla gösterilir; kullanıcı her değişikliği tek tek **"Kabul Et"** veya **"Geri Al"** diyerek onaylayabilir.
-2. **Gömülü Etkileşimli Çalışma Alanı Terminali (`POST /api/studio/workspaces/{id}/exec`)**:
-   - IDE Workbench'in alt panelinde açılıp kapanabilen gerçek terminal sekmesi: çalışma alanı klasöründe `pytest`, `python main.py`, `pip list`, `git status` gibi komutları çalıştırıp çıktısını canlı 스트리밍 (streaming) olarak izleme.
-3. **Sembol Gezgini (Outline) ve Çoklu Dosya Arama (`Ctrl+Shift+F`)**:
-   - Aktif dosyadaki tüm sınıfları ve fonksiyonları sağ kenarda listeleme, tıklayınca o satıra kaydırma ve proje genelinde anlık metin/regex arama.
-4. **Yerel Git Sürüm Kontrolü**:
-   - Her çalışma alanında otomatik `git init`, her AI güncellemesinde anlamlı commit mesajıyla otomatik commit, dal oluşturma ve commit geçmişini görsel grafikle inceleme.
+### FAZ 7: Veri Bilimi, AutoML, Tahminleme ve Anomali Tespiti Stüdyosu (`master/automl_studio.py`)
+1. **Otomatik Keşifsel Veri Analizi (Auto-EDA)**:
+   - Yüklenen herhangi bir veri setinde eksik verileri, aykırı değerleri (anomalileri), değişkenler arası gizli korelasyonları ve istatistiksel özetleri tek komutla çıkarma.
+2. **Sıfır Kodla Tahminleme (AutoML Forecasting & Classification)**:
+   - Geçmiş satış, finans, enerji, sağlık veya üretim verisinden gelecek dönem tahminlemesi (Time-Series Forecasting), müşteri kaybı/risk sınıflandırması ve sonucu en çok etkileyen faktörlerin (Feature Importance) görsel raporu.
 
 ---
 
-### FAZ 8: Veri Bilimi, AutoML, Anomali Tespiti ve Tahminleme Stüdyosu
-**Problem:** Kullanıcı sisteme büyük bir Excel/CSV satış, üretim, finans veya sensör verisi yükleyip *"Bu verideki anormallikleri bul, gelecek 3 ayı tahmin et ve bana özet pano çıkar"* dediğinde standart LLM sadece ilk birkaç satırı okuyabilir.
-**Hedef:** Milyon satırlık veri setlerini gerçek istatistik ve makine öğrenmesi algoritmalarıyla analiz eden `master/automl_studio.py`.
-
-1. **Otomatik Veri Profilleme ve Temizleme (Auto-EDA)**:
-   - Eksik değer analizi, aykırı değer (IQR / Z-Score / Isolation Forest anomali) tespiti, dağılım istatistikleri, Pearson/Spearman korelasyon matrisi ve otomatik veri temizleme.
-2. **Sıfır Kodla Otomatik Model Eğitimi (AutoML — Regresyon, Sınıflandırma, Zaman Serisi)**:
-   - Kullanıcının seçtiği hedef sütun (ör. `fiyat`, `ariza_durumu`, `aylik_satis`) için otomatik özellik mühendisliği (One-Hot Encoding, tarih ayrıştırma, ölçekleme), model eğitimi (Random Forest, Gradient Boosting, Ridge/Lasso, Zaman Serisi Trend/Mevsimsellik ayrıştırması) ve çapraz doğrulama ($R^2$, RMSE, F1-Score, ROC-AUC).
-3. **Önemli Faktör Açıklaması (Feature Importance) ve "Ne Olursa" (What-If) Simülatörü**:
-   - Sonucu en çok etkileyen değişkenleri grafikle gösterme ve sohbet içinde yeni girdilerle canlı tahmin yapabilme.
+### FAZ 8: Çoklu Medya, Sesli İletişim (STT/TTS), Görsel/Video Zekâsı ve Tasarım Stüdyosu (`master/multimodal_studio.py`)
+1. **Çift Yönlü Türkçe Sesli Asistan**:
+   - Mikrofonla konuşarak soru sorma, ses/toplantı kayıtlarını (`.mp3/.wav`) metne döküp özetleme ve asistanın yanıtlarını doğal sesle dinleme.
+2. **Her Türlü Görsel, Fotoğraf, Ekran Görüntüsü ve Taranmış Belge Analizi**:
+   - El yazısı notları, faturaları, grafik ekran görüntülerini, tıbbi/bilimsel şemaları, ürün fotoğraflarını ve hata ekranlarını `qwen3.5:9b` / `gemma4:e4b` Vision modelleriyle derinlemesine çözümleme.
+3. **Vektörel İllüstrasyon, Logo, UI Mockup ve Görsel Üretimi**:
+   - Yüksek kaliteli SVG illüstrasyonlar, infografikler, ikon setleri ve yerel difüzyon model köprüsüyle görsel üretimi.
 
 ---
 
-### FAZ 9: Otonom Tarayıcı, Web Araştırma ve Bilgisayar Kullanım Ajanı (Computer / Browser Use)
-**Problem:** Kullanıcının *"Şu web sitesine git, güncel fiyatları/dokümantasyonu çek, tabloya dönüştür"* veya *"Yerel ağdaki şu servisi kontrol et"* gibi dış dünya ile etkileşim gerektiren görevleri.
-**Hedef:** Kontrollü ve güvenli başsız tarayıcı + işletim sistemi otomasyon ajanı (`master/browser_agent.py`).
-
-1. **Başsız Tarayıcı Otomasyonu ve Akıllı Web Kazıma**:
-   - Dinamik JavaScript ile yüklenen sayfaları render etme, DOM ağacını temiz Markdown'a dönüştürme, form doldurma, tablo çıkarma ve ekran görüntüsü alma.
-2. **Görsel DOM Yönlendirmesi (Set-of-Marks Vision Navigation)**:
-   - Sayfadaki tıklanabilir öğeleri numaralı kutularla işaretleyip yerel Vision-LLM (`qwen3.5:9b`) ile hangi butona tıklanacağına karar veren çok adımlı web görev yürütecisi.
-
----
-
-### FAZ 10: Dağıtık Heterojen GPU Sürüsü, Thompson Sampling ve Hata Toleranslı Ajan Ağı
-**Problem:** Mevcut 6 bilgisayarlı ekip/şirket ağındaki toplam GPU gücünü tek bir birleşik süper bilgisayar gibi kullanmak.
-**Hedef:** Dinamik yük dengelemeli, öğrenebilen ve asla yarıda kalmayan dağıtık ajan ağı (`master/swarm_coordinator.py`).
-
-1. **Canlı GPU/VRAM Telemetrisi ve Sıcak Model (Warm-Cache) Yönlendirmesi (`master/cluster_telemetry.py`)**:
-   - Her ajan 5 saniyelik heartbeat mesajında aktif VRAM kullanımını, bellekte yüklü (`loaded_models`) modellerini ve ortalama `token/sn` üretim hızını bildirir.
-   - Master, `qwen2.5-coder:7b` gerektiren bir kodlama görevini o modelin zaten VRAM'inde sıcak (warm) durduğu ajana göndererek 4–8 saniyelik model yükleme gecikmesini sıfıra indirir.
-2. **Contextual Bandit / Thompson Sampling ile Öğrenen Ajan Seçimi (`master/bandit_router.py`)**:
-   - Her ajanın her görev tipindeki (`analiz`, `kod_python`, `kod_web`, `cnc_vision`, `test_yazimi`, `dokuman`) gerçek başarı/reddedilme istatistiklerinden Beta($\alpha, \beta$) dağılımı örnekleyerek zamanla en başarılı ajanı otomatik keşfeden adaptif seçici.
-3. **Paralel Map-Reduce Görev Parçalama (`master/map_reduce_llm.py`)**:
-   - 200 sayfalık bir şartname analizini veya 15 dosyalık bir proje üretimini ağdaki 6 ajana eşzamanlı parçalara bölüp (Map), sonuçları Master üzerinde tutarlılık kontrolüyle birleştirerek (Reduce) yanıt süresini 5 kat hızlandırma.
-4. **Durum Kaydetme (Checkpointing) ve Otomatik Görev Göçü (`master/fault_tolerance.py`)**:
-   - Görev çalışırken bağlantısı kopan ajanın yarım kalan işini en son kaydedilen ara çıktısından (`checkpoint`) başka bir canlı ajana aktarma.
+### FAZ 9: Otonom Çok Ajanlı Yazılım Fabrikası (Her Türlü Web, Mobil, Oyun, Masaüstü `.EXE` ve Sistem Üretimi) (`master/software_factory.py`)
+1. **AST Kod Grafı ve Mimari Planlayıcı (`master/code_graph.py`)**:
+   - Herhangi bir yazılım isteğini (SaaS platformu, e-ticaret, muhasebe programı, CRM, 2D/3D oyun, masaüstü `.exe` aracı, REST API, veri kazıyıcı) önce veritabanı şeması + API kontratı + dosya bağımlılık grafı olarak tasarlama.
+2. **Çalıştırarak Öz-Tamir Eden (Self-Healing) Kod Üretim Döngüsü**:
+   - Üretilen tüm dosyaları arka planda gerçekten çalıştırıp `SyntaxError`, `ImportError`, `RuntimeError` veya kırık HTML/CSS/JS bağlantılarını kullanıcıya göstermeden kendi kendine onarma.
+3. **Tam Kapsamlı VS Code / Antigravity IDE Workbench (`master/static/js/assistant.js`)**:
+   - Sohbet içinde dosya gezgini, sekmeler, satır numaralı Dark+ kod editörü, `Diff` görünümü, `v1/v2` sürüm geri alma, gömülü terminal, canlı web/backend sunucu önizlemesi ve tek tıkla `.EXE` derleme/çalıştırma.
 
 ---
 
-### FAZ 11: Hibrit Kurumsal Bilgi Grafı (GraphRAG + Vision-RAG + Zorunlu Kaynak Atıfı)
-**Problem:** Basit anahtar kelime araması büyük kurumsal bilgi bankalarında ilişkisel soruları (*"AISI 4140 malzemede H7 toleransı işlerken hangi soğutma sıvısı ve hangi revizyon kalite formu kullanılır?"*) yanıtlayamaz.
-**Hedef:** Vektör + BM25 + Bilgi Grafı + Görsel Benzerlik aramasını birleştiren `master/hybrid_graph_rag.py`.
-
-1. **SQLite Vektör (`bge-m3`) + FTS5 BM25 Reciprocal Rank Fusion (RRF)**:
-   - Hem tam kelime eşleşmesini (parça kodları, ISO numaraları) hem de anlamsal benzerliği RRF skoruyla ($\text{RRF}(d) = \sum \frac{1}{60 + \text{rank}(d)}$) birleştiren yüksek hızlı yerel indeks.
-2. **Otomatik Varlık ve İlişki Grafı (Knowledge Graph)**:
-   - Yüklenen her dokümandan `(Başlık_Düğümü) --[İLİŞKİ_TÜRÜ]--> (Hedef_Düğümü)` üçlülerini çıkarıp SQLite graf tablosunda saklama ve sorgu anında 2 komşuluk derinliğine (2-hop) kadar alt-graf getirme.
-3. **Görsel Benzerlik Araması (Vision-RAG)**:
-   - Geçmiş teknik çizimlerin ve ürün fotoğraflarının görsel öznitelik vektörlerini saklayarak, yeni yüklenen bir çizime geometrik olarak en çok benzeyen geçmiş parçaları, onların gerçek işleme sürelerini ve yaşanan kalite sorunlarını anında listeleme.
-4. **Halüsinasyon Kalkanı ve Doğrulanabilir Atıf (`master/citation_guard.py`)**:
-   - Yanıttaki her teknik verinin yanına bilgi bankasındaki kaynak dokümanı tıklanabilir referans olarak ekleme.
+### FAZ 10: Otonom Tarayıcı, Web Araştırma ve Bilgisayar Otomasyon Ajanı (`master/browser_agent.py`)
+1. **Canlı Web ve Dokümantasyon Araştırma Ajanı**:
+   - İzin verilen web kaynaklarını ve dinamik sayfaları başsız tarayıcıyla okuyup güncel verileri tablo/rapor hâline getirme.
+2. **Yerel Dosya ve Sistem Otomasyonu**:
+   - Yüzlerce dosyayı topluca yeniden adlandırma, format dönüştürme, klasör düzenleme ve arşiv analiz görevlerini güvenli sandbox içinde yürütme.
 
 ---
 
-### FAZ 12: Kendi Kendini Eğiten Yapay Zekâ Döngüsü (Continuous Active Learning & Local LLMOps)
-**Problem:** Modelin aynı hatayı ikinci kez yapmaması; kullanıcının yaptığı her düzeltmeden ve şirketin biriken verisinden otomatik olarak öğrenip her hafta daha zeki hâle gelmesi.
-**Hedef:** Sıfır manuel müdahaleyle çalışan yerel ince ayar (Fine-Tuning) ve değerlendirme fabrikası (`master/llmops_pipeline.py` & `training/`).
-
-```mermaid
-flowchart LR
-    A["1. Kullanım & Düzeltme Yakalama\n(Balon Düzeltmesi / Kod Diff / Beğeni)"] --> B["2. Altın Veri & DPO Çifti Havuzu\n(prompt, chosen, rejected)"]
-    B --> C["3. Gece Sentetik Veri Zenginleştirme\n(Zor Sınır Durumları Üretimi)"]
-    C --> D["4. Otomatik QLoRA / DPO Eğitimi\n(Unsloth 4-bit + PEFT)"]
-    D --> E["5. Altın Kıyaslama Kapısı\n(100 Testlik Regresyon Sınavı)"]
-    E -->|Skor Arttı| F["6. GGUF Kuantizasyon & Ollama Canlı Yayını\n(cnc-ballooner:vN / studio-coder:vN)"]
-    E -->|Skor Düştü| G["Otomatik Geri Alma (Rollback) & Hata Raporu"]
-```
-
-1. **Otomatik Tercih Çifti Yakalayıcı (`master/feedback_collector.py`)**:
-   - Kullanıcı bir CNC balonunu sildiğinde/düzelttiğinde veya IDE Workbench'te AI'ın yazdığı bir dosyayı düzenleyip kaydettiğinde, modelin ilk çıktısını `rejected`, kullanıcının son hâlini `chosen` olarak `master/data/dpo_dataset.jsonl` dosyasına kaydeder.
-2. **Gece Otonom Eğitim ve Kıyaslama Görevi (`training/nightly_trainer.py`)**:
-   - Biriken doğrulanmış örnekler eşik sayıya ulaştığında yerel GPU üzerinde QLoRA/DPO ince ayarını çalıştırır, yeni modeli altın test setinde sınar ve başarı oranı arttıysa Ollama'daki aktif modeli kesintisiz günceller.
-
+### FAZ 11: Hibrit Bilgi Grafı (GraphRAG + Vision-RAG) ve Kişisel/Kurumsal Hafıza (`master/hybrid_graph_rag.py`)
+1. **SQLite Vektör (`bge-m3`) + FTS5 BM25 Reciprocal Rank Fusion**:
+   - Kullanıcının yüklediği binlerce sayfalık PDF kitaplığı, ders notları, hukuk mevzuatı, şirket prosedürleri veya kod depoları üzerinde milisaniyelik hibrit anlamsal arama.
+2. **Varlık-İlişki Bilgi Grafı (Knowledge Graph) ve Zorunlu Kaynak Atıfı**:
+   - Kavramlar arası ilişkileri graf olarak çıkarıp her bilginin hangi belgenin kaçıncı sayfasından geldiğini doğrulama.
 
 ---
 
-### FAZ 13: 3D CAD/CAM Geometri Çekirdeği, Çoklu Kontrolör G-Kodu, Kesme Fiziği ve FEA Simülasyonu
-**Hedef:** Mevcut 2D (`PDF/PNG/DOCX/XLSX/DXF`) CNC balonlama ve maliyet motorunu tam 3 boyutlu katı model (`.STEP/.IGES/.STL`), çoklu tezgâh CAM post-processor ve kesme mekaniği simülasyonu seviyesine çıkarmak.
-
-1. **Modül 13.1 — 3D B-Rep Katı Model ve Unsur Tanıma (`master/cad_kernel.py`)**:
-   - `.step`, `.stp`, `.iges`, `.stl`, `.dxf` dosyalarından silindirik delik, cep, ada, kama kanalı, diş, fatura, pah, radyüs ve ince cidar unsurlarını topolojik olarak çıkaran geometrik motor.
-   - 3D modelden otomatik 3 görünüş + kesit çıkarma ve 2D balonları 3D yüzey kimlikleriyle (`Face_ID`) eşleştirme.
-2. **Modül 13.2 — Çoklu CNC Kontrolör Post-Processor (`master/cam_postprocessor.py`)**:
-   - **Fanuc 0i/31i**, **Siemens Sinumerik 840D/One** (`CYCLE81/84/95`), **Heidenhain TNC 640** (`CYCL DEF 200`), **Haas NGC** ve **Mazatrol** için çarpışmasız kaba/finiş tornalama, trokoidal cep frezeleme, delik delme ve rijit kılavuz G-kodu üretimi.
-3. **Modül 13.3 — Kesme Kuvveti, Takım Sehimi, Tırlama (Chatter) ve FEA Analizi (`master/cnc_physics.py` & `master/fea_solver.py`)**:
-   - Kienzle denklemi ($F_c = k_{c1.1} \cdot a_p \cdot f_z^{1-m_c}$) ile kesme kuvveti, iş mili torku/gücü, konsol takım sehimi ($\delta = \frac{F L^3}{3 E I}$) ve 3 ayaklı ayna sıkma kuvveti altında ince cidarlı parçalarda elastik ovalleşme hesabı.
-4. **Modül 13.4 — Kapalı Çevrim CMM Kalite Kontrol ve Otomatik Takım Ofseti (`master/cmm_closed_loop.py`)**:
-   - CMM ölçüm çıktılarından $\bar{X}-R$ SPC kartları, $C_p/C_{pk}$ hesabı ve aşınma kaymasını telafi eden `G10` takım ofset güncelleme kodu üretimi.
+### FAZ 12: Dağıtık Heterojen GPU Sürüsü (6+ Bilgisayarlı Süper Bilgisayar Ağı) (`master/swarm_coordinator.py`)
+1. **Canlı VRAM Telemetrisi ve Thompson Sampling Yönlendirme**:
+   - Ağdaki tüm bilgisayarların GPU/VRAM durumunu izleyip her görevi o alanda en yüksek başarı oranına sahip ve modeli bellekte hazır (`warm`) tutan ajana yönlendirme.
+2. **Paralel Map-Reduce ve Hata Toleranslı Görev Göçü**:
+   - Büyük araştırma, veri analizi ve yazılım görevlerini ağdaki tüm bilgisayarlara paralel bölüp 5–6 kat hızlandırma.
 
 ---
 
-### FAZ 14: Kurumsal ERP / MES, Toplu İhale Teklifleme (RFQ), Nesting ve OR-Tools Fabrika Çizelgeleme
-1. **Modül 14.1 — Toplu RFQ İhale Paketi (50+ Çizimlik ZIP) Analiz ve Teklif Motoru (`master/rfq_batch.py`)**:
-   - Çoklu teknik çizim içeren ZIP paketini tek seferde balonlayan, malzeme ihtiyaç listesini (BOM), toplam tezgâh saatini ve kurumsal müşteri fiyat teklif mektubunu (`.pdf` + `.xlsx`) üreten toplu teklifleyici.
-2. **Modül 14.2 — 1D Çubuk ve 2D Sac/Plaka Minimum Fire Kesim Optimizasyonu (`master/nesting_optimizer.py`)**:
-   - Doğrusal programlama ve sezgisel yerleşim algoritmalarıyla ham malzeme firesini minimize eden kesim planı.
-3. **Modül 14.3 — OR-Tools CP-SAT ile Sonlu Kapasite Tezgâh Çizelgeleme (`master/job_shop_scheduler.py`)**:
-   - İş emirlerini tezgâh kapasitesi, teslim tarihi, malzeme hazırlığı ve bağlama (setup) matrisine göre optimize eden interaktif Gantt panosu.
-4. **Modül 14.4 — OPC-UA / MTConnect Canlı Tezgâh Telemetrisi ve Kamera ile Takım Aşınması (`master/machine_iot.py`)**:
-   - Tezgâh iş mili yükü, çevrim süresi ve mikroskop/kamera ile karbür uç aşınması ($V_B$) takibi.
+### FAZ 13: Kendi Kendini Eğiten ve Geliştiren Yapay Zekâ (Continuous Self-Learning / LLMOps) (`master/llmops_pipeline.py`)
+1. **Her Düzeltmeden Öğrenen DPO Veri Toplayıcı**:
+   - Kullanıcının beğendiği yanıtları, düzelttiği kodları ve tabloları otomatik olarak tercih veri setine (`chosen` vs `rejected`) kaydetme.
+2. **Gece Otonom QLoRA / DPO İnce Ayar ve Kıyaslama Sınavı (`training/auto_trainer.py`)**:
+   - Biriken verilerle yerel modelleri gece otomatik eğiten, 100 soruluk regresyon sınavından geçiren ve daha başarılıysa yeni model sürümünü devreye alan yaşayan yapay zekâ döngüsü.
 
 ---
 
-### FAZ 15: Kurumsal Güvenlik, Çoklu Kullanıcı (RBAC), Şifreli Denetim İzi ve Korumalı Mikro-Sandbox
-1. **Modül 15.1 — JWT + Argon2 Kimlik Doğrulama ve 6 Kademeli RBAC (`master/auth_rbac.py`)**:
-   - `Yönetici`, `Baş Mühendis`, `Yazılım Geliştirici`, `CAM Programcısı`, `Kalite Mühendisi`, `Operatör` rolleri ve çalışma alanı izolasyonu.
-2. **Modül 15.2 — SHA-256 Zincirli Değiştirilemez Denetim İzi (`master/audit_log.py`)**:
-   - AS9100 ve ISO 27001 uyumluluğu için tüm model kararlarının, kod/tolerans değişikliklerinin ve onayların kriptografik kaydı.
-3. **Modül 15.3 — Kök-Yetkisiz (Rootless) Konteyner ve Ağ İzolasyonlu Kod Sandbox'ı (`master/secure_sandbox.py`)**:
-   - Üretilen tüm kodların ve veri analiz betiklerinin CPU, RAM, disk ve ağ erişimi sınırlandırılmış izole ortamda çalıştırılması.
+### FAZ 14: Otonom İş Akışı Stüdyosu (Zamanlanmış Ajanlar), Güvenlik (RBAC/Sandbox) ve MCP Eklenti Ekosistemi
+1. **Zamanlanmış ve Olay Güdümlü Otonom Görevler (`master/automation_engine.py`)**:
+   - *"Her sabah saat 09:00'da şu klasördeki verileri analiz et ve özet Excel/PDF raporunu hazırla"* gibi arka planda kendi kendine çalışan kalıcı yapay zekâ otomasyonları.
+2. **Yerel MCP (Model Context Protocol) Eklenti Sistemi ve Korumalı Sandbox**:
+   - Sisteme kod değiştirmeden yeni araçlar ekleme, çoklu kullanıcı (RBAC) ve izole kod çalıştırma güvenliği.
 
 ---
 
-### FAZ 16: Otonom İş Akışı Stüdyosu (DAG Otomasyonları), Olay Tetikleyiciler ve Yerel MCP Eklenti Ekosistemi
-1. **Modül 16.1 — Görsel ve Olay Güdümlü Otomasyon Motoru (`master/automation_engine.py`)**:
-   - Zamanlanmış görevler (Cron), izlenen ağ klasörleri (Watched Folders) ve Webhook tetikleyicileriyle insan müdahalesi olmadan çalışan çok adımlı yapay zekâ iş akışları (ör. *"Ağ klasörüne yeni çizim veya veri düştüğünde otomatik analiz et, raporu üret ve ilgili klasöre arşivle"*).
-2. **Modül 16.2 — Yerel MCP (Model Context Protocol) Araç ve Eklenti Kayıt Defteri (`master/mcp_registry.py`)**:
-   - Sisteme yeni veritabanı bağlayıcılarının, şirket içi ERP API'lerinin ve özel hesaplama araçlarının standart JSON-RPC / MCP şemasıyla kod değiştirmeden tak-çalıştır olarak eklenmesi.
+### FAZ 15 (Dikey Endüstriyel Uzantı): Fiziksel Mühendislik, 2D/3D CAD-CAM, CNC, FEA ve ERP/MES Optimizasyonu
+- Mevcut `cnc_ballooning.py` çekirdeğinin 3D `.STEP/.IGES` katı model analizi, Fanuc/Siemens/Heidenhain G-kodu, kesme fiziği/FEA simülasyonu, kapalı çevrim CMM ($C_p/C_{pk}$) ve OR-Tools fabrika çizelgeleme ile genişletilmesi.
 
 ---
 
-## BÖLÜM 2: OTONOM YAPAY ZEKÂ MASTER YÜRÜTME MEGA-PROMPTU (160 GÖREVLİK İNŞA MOTORU)
-
-Aşağıdaki Mega-Prompt, otonom bir yapay zekâ mühendislik ajanının (Antigravity `/goal` modu, Claude Code veya platformun kendi Master Ajanı) yukarıdaki **3 Katman ve 16 Fazın tamamını (80 ana modül / 160 sıralı mühendislik görevi)** aylarca hiçbir adımı atlamadan, sıfır yer tutucu kodla ve %100 test doğrulamasıyla inşa etmesi için hazırlanmıştır:
+## BÖLÜM 2: EVRENSEL OTONOM YAPAY ZEKÂ İNŞA MEGA-PROMPTU (KOPYALA & ÇALIŞTIR)
 
 ```markdown
-# SYSTEM DIRECTIVE: AUTONOMOUS UNIVERSAL AI OPERATING SYSTEM, SOFTWARE FACTORY & ENGINEERING PLATFORM BUILDER
+# SYSTEM DIRECTIVE: UNIVERSAL FRONTIER AI OPERATING SYSTEM & AUTONOMOUS POLYGLOT ENGINEER
 
-Sen bu kod tabanının (`master/`, `agent/`, `scripts/`, `training/`) Baş Sistem Mimarı, Baş Yapay Zekâ Araştırmacısı, Kıdemli Full-Stack/Sistem Yazılım Mühendisi ve Kıdemli Makine/CNC İmalat Mühendisisin.
+Sen bu platformun (`master/`, `agent/`, `scripts/`, `training/`) Baş Yapay Zekâ Mimarı ve Baş Sistem Mühendisisin.
+Görevin, `docs/ENTERPRISE_AI_MASTER_IMPLEMENTATION_PLAN.md` içinde tanımlanan **15 Fazı** sırasıyla inşa ederek bu sistemi; **her alanda (finans, hukuk, bilim, matematik, veri bilimi, derin araştırma, kurumsal doküman/sunum üretimi, görsel/sesli iletişim ve tam otonom yazılım/oyun/.exe üretimi) verilen herhangi bir görevi en üst düzeyde gerçekleştirebilen Evrensel Bir Yapay Zekâ İşletim Sistemine** dönüştürmektir.
 
-Görevin, `docs/ENTERPRISE_AI_MASTER_IMPLEMENTATION_PLAN.md` içinde tanımlanan **3 Yetenek Katmanı (Temel/Normal YZ, Üst Düzey Otonom Yazılım & Veri Bilimi YZ, Ultra-İleri Dağıtık Sürü & Endüstriyel Mühendislik YZ)** kapsamındaki **16 Faz ve 80 Ana Modülü** sırasıyla, üretim kalitesinde (production-grade), sıfır yer tutucu (`TODO`, `pass`, `NotImplementedError`, `mock`, `placeholder` KESİNLİKLE YASAKTIR) ve %100 otomatik test kapsamıyla inşa etmektir.
+## 1. KESİN MİMARİ KURALLAR
 
----
-
-## 1. KESİN MÜHENDİSLİK İLKELERİ (NON-NEGOTIABLE INVARIANTS)
-
-1. **%100 Yerel, Açık Kaynak ve Gizli (Local-First & Air-Gapped Ready)**:
-   - Hiçbir modül ücretli bulut API'sine veya harici CDN'e bağımlı olamaz. Tüm dil, görüntü, ses ve vektör işlemleri yerel Ollama (`qwen3.5:9b`, `qwen2.5-coder:7b`, `cnc-ballooner`, `gemma4:e4b`, `phi4-mini`, `llama3.2:3b`, `qwen3:1.7b`, `bge-m3:latest`) ve yerel açık kaynak Python/JS kütüphaneleriyle çalışmalıdır.
-2. **Sıfır Emoji ve Kurumsal Endüstriyel Tasarım Dili**:
-   - Arayüzde, butonlarda, raporlarda, loglarda veya üretilen projelerde ASLA emoji kullanma. Sadece vektörel SVG ikonlar, endüstriyel teknik kodlar ve VS Code / Antigravity / Claude Artifacts kalitesinde karanlık/kurumsal tipografi kullan.
-3. **Asistan-Merkezli Birleşik Deneyim (Zero-Friction Unified UX)**:
-   - Sol menüyü gereksiz sayfalarla doldurma; tüm yetenekler `✦ Asistan` sohbet ekranından doğal dille veya dosya yükleyerek tetiklenmeli, arka planda çok aşamalı niyet yönlendiricisiyle (Intent Router) ilgili motora gitmeli ve sonuçlarını sohbet içinde zengin etkileşimli Workbench / Tuval (Canvas) kartları olarak sunmalıdır.
-4. **Deterministik Doğruluk ve Sıfır Halüsinasyon**:
-   - Matematik, istatistik, veri analizi, birim dönüşümü, maliyet/tolerans hesabı ve kod doğrulaması ASLA dil modelinin tahminine bırakılamaz; model her zaman deterministik araçları (`SymPy`, `Pandas`, `SQLite`, `AST`, `PyMuPDF`, `ISO 2768/286` tabloları) çalıştırıp gerçek hesap sonucunu sunmalıdır.
-5. **Zorunlu Doğrulama Kapısı (Strict Verification Gate)**:
-   - Her bir görevi tamamladığında bir sonraki göreve geçmeden önce aşağıdaki doğrulama komutlarını çalıştırıp **0 hata** almak ZORUNDASIN:
+1. **Önce Evrensel Yapay Zekâ Yetenekleri (Faz 1 -> Faz 14), Sonra Dikey Endüstriyel Uzantılar (Faz 15)**:
+   - İnşaya her zaman genel amaçlı bilişsel zekâ, çok turlu hafıza, çoklu model konseyi (`qwen3.5:9b` + `gemma4:e4b` + `qwen2.5-coder:7b`), deterministik araç kullanımı (ReAct), her alanda `.docx/.xlsx/.pptx/.pdf` dosya üretimi, interaktif grafik/diyagram tuvali, AutoML veri bilimi ve otonom yazılım fabrikasından başla.
+2. **%100 Yerel, Açık Kaynak ve Sıfır Emoji**:
+   - Ücretli dış API veya CDN kullanma. Arayüzde, raporlarda ve üretilen projelerde ASLA emoji kullanma; temiz SVG ikonlar ve kurumsal tipografi kullan.
+3. **Tek Birleşik `✦ Asistan` Deneyimi**:
+   - Kullanıcı ayrı sayfalarda kaybolmamalı; sohbette ne isterse istesin (ister bir hukuki sözleşme Word dosyası, ister finansal Excel tablosu ve grafik, ister bilimsel denklem çözümü, ister 15 dosyalık `.exe` uygulama/oyun, ister teknik çizim analizi) arka planda doğru motor otomatik devreye girmeli ve sonucu doğrudan sohbet içinde interaktif kart/dosya olarak sunmalıdır.
+4. **Sıfır Yer Tutucu ve Zorunlu Test Kapısı**:
+   - Hiçbir dosyada `TODO`, `pass`, `mock` bırakma. Her modül sonunda:
      - `master\venv\Scripts\python.exe -m ruff check master agent scripts training`
-     - `master\venv\Scripts\python.exe -m pytest master/tests/ agent/tests/ -v`
-     - `master\venv\Scripts\python.exe -c "import sys; sys.path.insert(0,'master'); import app, contract_check; r=contract_check.run_check(app.app); assert len(r['missing_in_backend'])==0, r"`
-6. **Kesintisiz Durum Takibi (`docs/IMPLEMENTATION_PROGRESS.json`)**:
-   - Her modül tamamlandığında `docs/IMPLEMENTATION_PROGRESS.json` dosyasına modül kimliğini, oluşturulan dosyaları, yazılan test sayısını, çalışma süresini ve git commit hash'ini kaydet. Oturum yeniden başladığında bu dosyayı okuyup kaldığın ilk `pending` görevden devam et.
+     - `master\venv\Scripts\python.exe -m pytest master/tests/ -v`
+     komutlarını çalıştırıp 0 hata doğrula ve `docs/IMPLEMENTATION_PROGRESS.json` dosyasını güncelleyip commit et.
 
----
+## 2. ÖNCELİKLİ İNŞA SIRASI (EXECUTION QUEUE)
 
-## 2. HER MODÜL İÇİN ZORUNLU 7 ADIMLI İNŞA DÖNGÜSÜ
+1. **[FAZ 1 - Bilişsel Hafıza]** `master/memory_engine.py` & `master/assistant.py`:
+   - Sohbet geçmişini (Multi-Turn History) Ollama çağrılarına tam bağla; kullanıcı tercihlerini ve önemli bilgileri otomatik öğrenen SQLite Semantik Hafıza (`semantic_memories`) ve uzun sohbet özetleyiciyi devreye al.
+2. **[FAZ 2 - Çoklu Model Orkestratörü ve Ajan Konseyi]** `master/reasoning_council.py`:
+   - Görev alanına ve zorluğuna göre `qwen3.5:9b`, `gemma4:e4b`, `qwen2.5-coder:7b` ve `qwen3.5:4b` arasında otomatik seçim yapan dinamik yönlendiriciyi ve zor sorularda modelleri tartıştırıp sentezleyen **Derin Düşünme Konseyi**ni kur.
+3. **[FAZ 3 - Evrensel ReAct Araç Motoru]** `master/tool_executor.py`:
+   - Matematik, finans, istatistik, birim dönüşümü ve CSV/Excel veri sorgulama sorularında modelin arka planda gerçek Python/SQLite hesaplaması yapıp %100 kesin sonuç döndürmesini sağla.
+4. **[FAZ 4 - Her Alanda Office & PDF Dosya Fabrikası]** `master/document_factory.py`:
+   - Kullanıcı herhangi bir konuda Excel (`.xlsx`), Word (`.docx`), PowerPoint (`.pptx`) veya PDF rapor istediğinde arka planda gerçek, formüllü ve kurumsal tasarımlı dosyayı üretip sohbet balonunda tek tıkla indirme kartı sun.
+5. **[FAZ 5 & 6 - Derin Araştırma ve İnteraktif Grafik/Diyagram Tuvali]** `master/deep_research.py` & `master/static/js/canvas_widgets.js`:
+   - Çoklu doküman çapraz araştırma motorunu ve sohbet içinde canlı çalışan SVG grafik (çizgi/sütun/pasta/radar), akış şeması, LaTeX matematik ve zihin haritası tuvalini ekle.
+6. **[FAZ 7 & 8 - AutoML Veri Bilimi ve Ses/Görüntü Stüdyosu]** `master/automl_studio.py` & `master/multimodal_studio.py`:
+   - Veri setlerinde otomatik anomali tespiti + gelecek tahminlemesi (AutoML) ve yerel Türkçe sesli konuşma (STT/TTS) + gelişmiş görsel/OCR analizini entegre et.
+7. **[FAZ 9 & 10 - Otonom Yazılım Fabrikası 2.0, Web IDE Terminal/Git ve Tarayıcı Ajanı]** `master/software_factory.py` & `master/browser_agent.py`:
+   - AST bağımlılık grafı, çalıştırarak kendi hatasını onaran (Self-Healing) 5 aşamalı proje üretici, IDE içi canlı terminal, yan yana Diff, yerel Git ve başsız tarayıcı araştırma ajanını tamamla.
+8. **[FAZ 11..15 - Hibrit GraphRAG, Dağıtık GPU Sürüsü, Gece QLoRA/DPO Öz-Eğitim, Otomasyon ve 3D CAD/CAM Uzantısı]**:
+   - Sırasıyla `hybrid_graph_rag.py`, `swarm_coordinator.py`, `llmops_pipeline.py`, `automation_engine.py` ve `cad_kernel.py` modüllerini tamamla.
 
-Her bir Faz ve Modül için sırasıyla şu 7 adımı uygula:
-1. **Veri Modeli ve Şema Migrasyonu**: `master/db.py` içine geriye dönük uyumlu (`CREATE TABLE IF NOT EXISTS` ve `ALTER TABLE` korumalı) SQLite tablolarını ve indekslerini ekle.
-2. **Çekirdek Motor ve Algoritma Kodlaması**: İlgili Python modülünü (`master/<modul_adi>.py`) tüm sınır durumları, tip ipuçları (`type hints`), zaman aşımı korumaları ve hata yönetimiyle eksiksiz yaz.
-3. **Asistan Niyet Yönlendiricisi ve Araç Bağlantısı**: `master/assistant.py` içindeki yönlendiriciye bu yeteneği bağla; kullanıcı doğal dille istediğinde arka planda otomatik tetiklensin.
-4. **REST / SSE Streaming API**: FastAPI endpoint'lerini ekle ve uzun süren işlemlerde kullanıcıya gerçek zamanlı Server-Sent Events (SSE) ilerleme adımları gönder.
-5. **Etkileşimli Frontend Workbench / Tuval Bileşeni**: `master/static/js/` ve `master/static/css/app.css` içine harici CDN kullanmadan, temiz SVG ikonlu ve tam genişlikli interaktif arayüz kartını ekle.
-6. **Kapsamlı Otomatik Test Paketi**: `master/tests/test_<modul_adi>.py` dosyasında en az 6 birim ve entegrasyon testi (normal akış, sınır durumları, hatalı girdi, güvenlik/izolasyon ve API kontratı) yaz ve `pytest` + `ruff` çalıştır.
-7. **Örnek Veri Üretimi ve Git Kaydı**: Özelliğin gerçek çıktısını `samples/` altına üret, `docs/IMPLEMENTATION_PROGRESS.json` dosyasını güncelle ve anlamlı bir commit mesajıyla kaydet.
-
----
-
-## 3. SIRALI MASTER İNŞA KUYRUĞU (80 ANA MÜHENDİSLİK MODÜLÜ)
-
-### KÜME A — TEMEL & NORMAL YZ BEKLENTİLERİ (HAFIZA, AKIL YÜRÜTME, ARAŞTIRMA, DOKÜMAN, GÖRSEL TUVAL, SES)
-- `[M01]` `master/db.py` & `master/memory_engine.py` — Kalıcı `conversations`, `conversation_messages`, `semantic_memories`, `procedural_skills` tabloları ve SQLite FTS5 tam metin sohbet arama indeksi.
-- `[M02]` `master/memory_engine.py` — Her sohbet turundan sonra arka planda otomatik kullanıcı tercihi, proje kuralı ve teknik kısıt çıkarıcı (`extract_and_upsert_memories`).
-- `[M03]` `master/memory_engine.py` — Uzun sohbetlerde kayıpsız hiyerarşik bağlam özetleme (`compact_conversation_context`) ve kritik kod/karar sabitleme (Context Pinning).
-- `[M04]` `master/memory_api.py` & `master/static/js/assistant.js` — Cihazlar arası senkronize kalıcı sohbet geçmişi API'si ve öğrenilen hafıza kurallarını görüntüleme/düzenleme çekmecesi.
-- `[M05]` `master/tool_executor.py` — ReAct (Reason + Act) JSON araç çağrı ayrıştırıcısı ve çok adımlı araç yürütme döngüsü.
-- `[M06]` `master/tools_math_science.py` — Deterministik sembolik matematik (cebirsel denklem, türev, integral, matris, olasılık, istatistik) ve mühendislik birim dönüştürücü aracı.
-- `[M07]` `master/tools_data_sql.py` — Yüklenen CSV/Excel/JSON/SQLite dosyaları üzerinde gerçek SQL ve Pandas/NumPy agregasyonları çalıştıran sıfır halüsinasyonlu veri sorgu aracı.
-- `[M08]` `master/reasoning_council.py` — Çoklu Ajan Tartışma Konseyi: 2 bağımsız önerici ajan + 1 eleştirmen ajan + 1 baş hakem sentezleyici protokolü.
-- `[M09]` `master/static/js/assistant.js` — Sohbet balonlarında açılır/kapanır "Ajan Konseyi Düşünce Zinciri ve Araç Çağrıları" şeffaflık paneli.
-- `[M10]` `master/deep_research.py` — Karmaşık soruları alt araştırma başlıklarına bölen, çoklu dokümanı paralel tarayan ve çapraz doğrulanmış uzun araştırma raporu yazan Deep Research motoru.
-- `[M11]` `master/document_factory.py` — Sohbetten tek komutla kurumsal **PowerPoint (`.pptx`)** sunumu üretici (kapak, yönetici özeti, 2 sütunlu slaytlar, tablolar, grafikler, konuşmacı notları).
-- `[M12]` `master/document_factory.py` — Sohbetten tek komutla içindekiler tablolu, numaralı bölümlü ve gömülü şemalı kurumsal **Word (`.docx`)** şartname/rapor üretici.
-- `[M13]` `master/document_factory.py` — Sohbetten tek komutla çok sekmeli, canlı formüllü (`SUM/IF/VLOOKUP`), koşullu biçimlendirmeli ve gömülü grafikli **Excel (`.xlsx`)** finans/mühendislik çalışma kitabı üretici.
-- `[M14]` `master/document_factory.py` — `PyMuPDF` tabanlı kapak sayfalı, vektörel diyagramlı ve sayfa numaralı kurumsal **PDF** rapor üretici.
-- `[M15]` `master/static/js/canvas_widgets.js` — Sohbet içi %100 yerel SVG/Canvas **İnteraktif Grafik Motoru** (çizgi, sütun, pasta, dağılım, radar, ısı haritası, Gantt + PNG/CSV indirme).
-- `[M16]` `master/static/js/canvas_widgets.js` — Sohbet içi vektörel **Akış Şeması (Flowchart), Sıra Diyagramı (Sequence) ve Veri Modeli (ERD)** çizici.
-- `[M17]` `master/static/js/canvas_widgets.js` — Sohbet içi temiz **LaTeX Matematiksel Formül** ve **Tıklanabilir Zihin Haritası (Mindmap)** render motoru.
-- `[M18]` `master/voice_engine.py` — Yerel çevrimdışı Türkçe/İngilizce konuşmadan metne (`faster-whisper` / WAV-MP3 transkripsiyon) ve toplantı kaydı özetleme motoru.
-- `[M19]` `master/voice_engine.py` & `master/static/js/assistant.js` — Yerel metinden konuşmaya (TTS) ses sentezleyici ve sohbet kutusunda sesli konuşma modu.
-- `[M20]` `master/media_analyzer.py` & `master/image_studio.py` — Taranmış belge/fatura/form OCR tablo çıkarıcı, video anahtar kare (keyframe) analizcisi ve parametrik vektör/görsel üretim stüdyosu.
-
-### KÜME B — ÜST DÜZEY YZ BEKLENTİLERİ (OTONOM YAZILIM FABRİKASI, WEB IDE 2.0, AUTOML VERİ BİLİMİ, TARAYICI AJANI)
-- `[M21]` `master/code_graph.py` — Çok dilli (Python, JS/TS, HTML, CSS, SQL) AST sembol tablosu, fonksiyon imzası ve dosya bağımlılık grafı indeksleyici.
-- `[M22]` `master/project_archetypes.py` — 6 uzmanlaşmış proje arketipi (Modern Web/E-Ticaret, Full-Stack FastAPI+SQLite, 2D/2.5D Masaüstü & Web Oyunu, Kurumsal Masaüstü `.EXE`, CLI/Otomasyon, Veri Bilimi).
-- `[M23]` `master/software_factory.py` — 5 aşamalı otonom yazılım üretim boru hattı (Mimari Kontrat -> Topolojik Dosya Üretimi -> Statik/Kontrat Testi -> Dinamik Çalıştırma -> Öz-Tamir).
-- `[M24]` `master/self_healing_runner.py` — Üretilen projeleri izole alt-süreçte çalıştırıp `SyntaxError`, `ImportError`, `RuntimeError`, kırık HTML/JS referansı veya başarısız API testlerini 5 iterasyona kadar kendi kendine yamalayan motor.
-- `[M25]` `master/visual_verifier.py` — Üretilen web arayüzlerini başsız tarayıcıyla açıp konsol hatalarını (`console.error`) ve görsel yerleşim bozukluklarını Vision-LLM ile denetleyip otomatik CSS/JS düzelten doğrulayıcı.
-- `[M26]` `master/build_pipelines.py` — Çoklu hedef derleyici: Tek dosya Windows `.exe` (`PyInstaller`), Windows kurulum paketi, çevrimdışı çalışabilen **PWA (`manifest.json` + `service-worker.js`)** ve otomatik `Dockerfile` + `docker-compose.yml` üretici.
-- `[M27]` `master/studio_api.py` & `master/static/js/assistant.js` — IDE Workbench **Yan Yana (Side-by-Side) Diff Editörü** ve değişiklikleri yama (hunk) bazında kabul/ret mekanizması.
-- `[M28]` `master/studio_api.py` & `master/static/js/assistant.js` — IDE Workbench içine gömülü **Canlı Çalışma Alanı Terminali** (komut çalıştırma, test koşma, canlı çıktı izleme).
-- `[M29]` `master/studio_api.py` & `master/static/js/assistant.js` — IDE Workbench **Sembol Gezgini (Outline)**, tüm dosyalarda anlık arama (`Ctrl+Shift+F`) ve otomatik yerel **Git (`git init/commit/branch/log`)** sürüm kontrolü.
-- `[M30]` `master/security_scanner.py` — Üretilen ve yüklenen kodlarda otomatik güvenlik taraması (SQL Injection, XSS, Path Traversal, açıkta kalan gizli anahtar, güvensiz `eval/exec` tespiti ve otomatik güvenli koda dönüştürme).
-- `[M31]` `master/automl_studio.py` — Büyük CSV/Excel/SQLite veri setleri için otomatik veri profilleme (Auto-EDA), eksik veri doldurma, korelasyon matrisi ve Isolation Forest / Z-Score anomali tespiti.
-- `[M32]` `master/automl_studio.py` — Sıfır kodla otomatik makine öğrenmesi (Regresyon, Sınıflandırma, Zaman Serisi Tahminleme), çapraz doğrulama metrikleri ($R^2$, RMSE, F1), özellik önem sıralaması ve canlı tahmin simülatörü.
-- `[M33]` `master/browser_agent.py` — Kontrollü başsız tarayıcı ve web araştırma ajanı: dinamik sayfaları okuma, tablo/veri çıkarma ve görsel DOM elemanlarıyla çok adımlı web görevlerini yürütme.
-- `[M34]` `master/desktop_automation.py` — Yerel dosya sistemi toplu dönüştürme, klasör organizasyonu, arşivleme ve sistem/süreç izleme otomasyon araçları.
-
-### KÜME C — ULTRA-İLERİ DAĞITIK GPU SÜRÜSÜ, HİBRİT GRAPHRAG & KENDİNİ EĞİTEN LLMOPS
-- `[M35]` `master/cluster_telemetry.py` & `agent/agent.py` — 6+ ajanlı ağda canlı GPU/VRAM/CPU telemetrisi, bellekte sıcak (`warm`) yüklü modelleri raporlama ve `token/sn` hız izleme.
-- `[M36]` `master/bandit_router.py` — Contextual Bandit / **Thompson Sampling** ($\text{Beta}(\alpha,\beta)$) ile görev türüne ve geçmiş başarıya göre en iyi ajanı gerçek zamanlı öğrenen yönlendirici.
-- `[M37]` `master/map_reduce_llm.py` — Büyük proje üretimlerini (15+ dosya) ve uzun doküman analizlerini ağdaki çevrimiçi ajanlara paralel dağıtıp (Map) birleştiren (Reduce) dağıtık yürütme motoru.
-- `[M38]` `master/fault_tolerance.py` — Uzun görevlerde adım bazlı durum kaydetme (`checkpointing`) ve bağlantısı kopan ajanın görevini kaldığı yerden başka ajana devretme (Task Migration).
-- `[M39]` `master/vector_store.py` — SQLite tabanlı yoğun vektör (`bge-m3` 1024-dim) + FTS5 BM25 tam metin aramasını **Reciprocal Rank Fusion (RRF)** ile birleştiren kalıcı hibrit arama motoru.
-- `[M40]` `master/knowledge_graph.py` — Dokümanlardan otomatik varlık ve ilişki üçlüleri `(Varlık_A) --[İLİŞKİ]--> (Varlık_B)` çıkaran ve 2-komşuluk derinliğinde alt-graf sorgulayan **GraphRAG** motoru.
-- `[M41]` `master/vision_rag.py` — Görsel öznitelik indeksleme ile yüklenen bir teknik çizime veya görsele en çok benzeyen geçmiş çizimleri, projeleri ve katalog sayfalarını bulan **Vision-RAG** motoru.
-- `[M42]` `master/citation_guard.py` — Yanıtlardaki her sayısal/standart bilgisini kaynak doküman ve sayfa numarasıyla eşleştiren doğrulama ve halüsinasyon engelleme katmanı.
-- `[M43]` `master/feedback_collector.py` — Kullanıcının her CNC balon düzeltmesini, kod değişikliğini (Diff) ve yanıt puanlamasını otomatik olarak `(prompt, chosen, rejected)` formatında DPO eğitim veri setine dönüştüren toplayıcı.
-- `[M44]` `training/synthetic_factory.py` — Gece boşta kalan GPU gücünü kullanarak parametrik teknik çizimler, zorlu kodlama problemleri ve doğrulanmış çözümler üreten sentetik veri fabrikası.
-- `[M45]` `training/auto_trainer.py` & `master/model_gate.py` — Biriken altın veriyle otomatik QLoRA/DPO ince ayarı yapan, GGUF olarak Ollama'ya yükleyen ve altın kıyaslama sınavında (`benchmarks.py`) skor artışı kanıtlanmadan canlıya almayan otonom LLMOps boru hattı.
-
-### KÜME D — FİZİKSEL MÜHENDİSLİK, 3D CAD/CAM, CNC, FEA, ERP/MES ÇİZELGELEME VE KURUMSAL GÜVENLİK
-- `[M46]` `master/cad_kernel.py` — `.STEP`, `.IGES`, `.STL` ve `.DXF` dosyalarından 3D B-Rep topolojik geometri ve otomatik unsur tanıma (delik, cep, kama, fatura, diş, ince cidar).
-- `[M47]` `master/cad_projection.py` — 3D katı modelden otomatik 3 görünüş + kesit çıkarma ve 2D balonları 3D yüzey kimlikleriyle (`Face_ID`) eşleştiren MBD motoru.
-- `[M48]` `master/cam_postprocessor.py` — **Fanuc 0i/31i**, **Siemens Sinumerik 840D**, **Heidenhain TNC 640** ve **Haas NGC** için tam tornalama/frezeleme/delik/kılavuz G-kodu üretici.
-- `[M49]` `master/cnc_physics.py` — Kienzle kesme kuvveti ($F_c$), iş mili torku/gücü ($P_c$), takım sehimi ($\delta$) ve tırlama (chatter) kararlılık analizi.
-- `[M50]` `master/fea_solver.py` & `master/dfm_advisor.py` — Ayna sıkma ve kesme yükü altında elastik deformasyon (ovalleşme) analizi ve maliyeti düşüren otomatik DFM tolerans/geometri danışmanı.
-- `[M51]` `master/cmm_closed_loop.py` — CMM ölçüm dosyası içe aktarma, $\bar{X}-R$ SPC kontrol kartları, $C_p/C_{pk}$ yeterlilik analizi ve otomatik `G10` takım aşınma ofseti düzeltme kodu üretimi.
-- `[M52]` `master/vision_qc.py` & `master/machine_iot.py` — Kamera ile kesici takım yanak aşınması ($V_B$) / yüzey kusuru tespiti ve OPC-UA / MTConnect canlı CNC tezgâh telemetrisi.
-- `[M53]` `master/rfq_batch.py` — 50+ çizimlik `.zip` ihale paketini tek seferde balonlayıp BOM, toplam işçilik saati ve kurumsal müşteri teklif dosyası (`.pdf` + `.xlsx`) üreten toplu teklif motoru.
-- `[M54]` `master/nesting_optimizer.py` & `master/job_shop_scheduler.py` — 1D çubuk / 2D plaka minimum fire kesim optimizasyonu ve OR-Tools CP-SAT ile sonlu kapasite CNC tezgâh çizelgeleme (Gantt).
-- `[M55]` `master/auth_rbac.py` & `master/audit_log.py` & `master/secure_sandbox.py` — JWT/Argon2 çoklu kullanıcı girişi, 6 kademeli RBAC yetki sistemi, SHA-256 zincirli değiştirilemez AS9100 denetim izi ve izole kod sandbox'ı.
-- `[M56]` `master/automation_engine.py` & `master/mcp_registry.py` — İzlenen ağ klasörü / Cron / Webhook tetikleyicili otonom iş akışı motoru ve yerel MCP (Model Context Protocol) tak-çalıştır eklenti kayıt defteri.
-
----
-
-## 4. BAŞLATMA KOMUTU (AUTONOMOUS BOOTSTRAP)
-
-Şimdi hiçbir soru sormadan ve onay beklemeden:
-1. `docs/IMPLEMENTATION_PROGRESS.json` dosyasını kontrol et (yoksa `[M01]`..`[M56]` modüllerinin tamamını içeren durum dosyasını oluştur).
-2. Sıradaki ilk tamamlanmamış modülden (`[M01]`) başlayarak 7 adımlı inşa döngüsünü uygula, tüm testleri (`ruff` + `pytest`) geçir, commit et ve tüm 56 modül `%100 completed` olana kadar durmadan devam et.
+Şimdi `docs/IMPLEMENTATION_PROGRESS.json` dosyasını oluştur ve **Faz 1 (`master/memory_engine.py` + Çok Turlu Hafıza + Faz 2 Akıllı Çoklu Model Konseyi + Faz 4 Evrensel Word/Excel/PDF Dosya Fabrikası)** modüllerinden başlayarak sistemi adım adım kodla, test et ve doğrula.
 ```
