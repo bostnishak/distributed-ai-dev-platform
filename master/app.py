@@ -14,6 +14,7 @@ import config
 import contract_check
 import db
 import llm
+import mcp_connector
 import memory_api
 import output_api
 import perf_api
@@ -44,6 +45,7 @@ app.include_router(cnc_api.router)
 app.include_router(studio_api.router)
 app.include_router(user_api.router)
 app.include_router(memory_api.router)
+app.include_router(mcp_connector.router)
 app.include_router(backup_manager.router)
 
 

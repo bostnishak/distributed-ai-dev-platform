@@ -844,6 +844,11 @@ async def get_assistant_media(filename: str):
     elif safe.endswith(".pdf"):
         media_type = "application/pdf"
         headers["Content-Disposition"] = f'attachment; filename="{safe}"'
+    elif safe.endswith(".zip"):
+        media_type = "application/zip"
+        headers["Content-Disposition"] = f'attachment; filename="{safe}"'
+    elif safe.endswith((".csv", ".txt", ".md", ".json")):
+        headers["Content-Disposition"] = f'attachment; filename="{safe}"'
     return FileResponse(target, headers=headers, media_type=media_type)
 
 
@@ -1007,6 +1012,148 @@ async def _chat_stream_impl(
         return StreamingResponse(_cad3d_gen(), media_type="text/event-stream")
 
     lower_p = prompt.lower()
+
+    # Universal File Converter & ZIP Archive Manager (PDF/DOCX/PPTX/XLSX/CSV/TXT <-> ZIP pack/extract)
+    import file_converter as fc
+
+    conv_act = fc.detect_conversion_or_archive_action(prompt, file.filename if has_file and file else None)
+    if conv_act and not is_prompt_conv:
+        act = conv_act["action"]
+        if act == "zip_project":
+            import workspace_builder as wb
+
+            async def _zip_proj_gen():
+                ws_list = wb.list_workspaces()
+                if not ws_list:
+                    msg = "Henüz sıkıştırılacak bir proje çalışma alanı bulunamadı. Önce bir proje oluşturun."
+                else:
+                    target_ws = ws_list[0]
+                    for w in ws_list:
+                        if (w.get("name") or "").lower() in lower_p or (w.get("id") or "").lower() in lower_p:
+                            target_ws = w
+                            break
+                    msg = (
+                        f"## Proje ZIP Arşivi Hazır: {target_ws.get('name', target_ws['id'])}\n"
+                        f"- **Çalışma Alanı:** `{target_ws['id']}`\n"
+                        f"- **ZIP İndirme Bağlantısı:** [Projeyi İndir (.ZIP)](/api/studio/workspaces/{target_ws['id']}/download.zip)"
+                    )
+                yield f"data: {json.dumps({'type': 'token', 'content': msg}, ensure_ascii=False)}\n\n"
+                yield f"data: {json.dumps({'type': 'done', 'model': 'file-converter', 'task_type': 'dokuman'})}\n\n"
+
+            return StreamingResponse(_zip_proj_gen(), media_type="text/event-stream")
+
+        raw_upload = await file.read()  # type: ignore[union-attr]
+        up_name = (file.filename or "dosya") if file else "dosya"
+
+        async def _conv_gen():
+            try:
+                if act == "extract_zip":
+                    res = fc.extract_zip_to_media(up_name, raw_upload)
+                    lines = [
+                        f"## ZIP Arşivi Açıldı: `{res['zip_filename']}` ({res['file_count']} dosya)",
+                        "",
+                    ]
+                    if res["files"]:
+                        lines.append("| Dosya | Boyut | İndirme Bağlantısı |")
+                        lines.append("|---|---|---|")
+                        for fitem in res["files"]:
+                            lines.append(
+                                f"| `{fitem['original_path']}` | {fitem['size_kb']} KB | [İndir]({fitem['url']}) |"
+                            )
+                    else:
+                        lines.append("Arşiv içinde çıkarılacak dosya bulunamadı.")
+                    out_md = "\n".join(lines)
+                elif act == "pack_zip":
+                    res = fc.pack_files_to_folder_zip(up_name, [(up_name, raw_upload)])
+                    out_md = "\n".join([
+                        f"## Klasör ve ZIP Arşivi Hazır (`{res['folder_name']}/`)",
+                        f"- **Arşiv İçeriği:** `{', '.join(res['included_files'])}` ({res['size_kb']} KB)",
+                        f"- **İndirme Bağlantısı:** [{res['zip_filename']} (.ZIP İndir)]({res['url']})",
+                    ])
+                elif act == "convert_and_zip":
+                    tfmt = conv_act["target_fmt"]
+                    cres = fc.convert_uploaded_file(up_name, raw_upload, tfmt)
+                    conv_bytes = cres["output_path"].read_bytes()
+                    zres = fc.pack_files_to_folder_zip(
+                        up_name,
+                        [(up_name, raw_upload), (cres["output_filename"], conv_bytes)],
+                    )
+                    out_md = "\n".join([
+                        f"## Dosya `.{tfmt.upper()}` Formatına Dönüştürüldü ve Klasörlenip Ziplendi",
+                        f"- **Kaynak Dosya:** `{up_name}` · **Dönüştürülen:** [{cres['output_filename']} (.{tfmt.upper()} İndir)]({cres['url']})",
+                        f"- **ZIP Arşivi (`{zres['folder_name']}/`):** [{zres['zip_filename']} (.ZIP İndir)]({zres['url']}) ({zres['size_kb']} KB)",
+                    ])
+                else:
+                    tfmt = conv_act["target_fmt"]
+                    cres = fc.convert_uploaded_file(up_name, raw_upload, tfmt)
+                    out_md = "\n".join([
+                        f"## Dosya Dönüştürme Tamamlandı (`{up_name}` -> `.{tfmt.upper()}`)",
+                        f"- **Çıktı Boyutu:** `{cres['size_kb']} KB` · **Bölüm Sayısı:** `{cres['section_count']}`",
+                        f"- **İndirme Bağlantısı:** [{cres['output_filename']} (.{tfmt.upper()} İndir)]({cres['url']})",
+                    ])
+                yield f"data: {json.dumps({'type': 'token', 'content': out_md}, ensure_ascii=False)}\n\n"
+                yield f"data: {json.dumps({'type': 'done', 'model': 'file-converter', 'task_type': 'dokuman'})}\n\n"
+            except Exception as exc:
+                yield f"data: {json.dumps({'type': 'error', 'content': f'Dosya dönüştürme hatası: {exc}'}, ensure_ascii=False)}\n\n"
+
+        return StreamingResponse(_conv_gen(), media_type="text/event-stream")
+
+    # External MCP Connector Live Tool Discovery & Execution from Chat
+    if not has_file and not is_prompt_conv and "mcp" in lower_p and any(
+        k in lower_p for k in ("araç", "arac", "listele", "bağlı", "bagli", "çalıştır", "calistir", "kullan", "çağır", "cagir", "bağlan", "baglan")
+    ):
+        import mcp_connector as mcpc
+
+        async def _mcp_chat_gen():
+            try:
+                conns = mcpc.list_connectors()
+                enabled_tools = mcpc.list_enabled_tools_summary()
+                matched = next(
+                    (
+                        t
+                        for t in enabled_tools
+                        if t["tool_name"].lower() in lower_p
+                    ),
+                    None,
+                )
+                if matched:
+                    m_args = re.search(r"\{[\s\S]*\}", prompt)
+                    args = {}
+                    if m_args:
+                        try:
+                            args = json.loads(m_args.group(0))
+                        except json.JSONDecodeError:
+                            args = {}
+                    call_res = await mcpc.call_connector_tool(matched["connector_id"], matched["tool_name"], args)
+                    md = (
+                        f"## MCP Araç Çağrısı: `{matched['connector_name']}` -> `{matched['tool_name']}`\n\n"
+                        f"```json\n{json.dumps(call_res, ensure_ascii=False, indent=2)}\n```"
+                    )
+                elif not conns:
+                    md = (
+                        "## Kayıtlı Harici MCP Bağlayıcısı Yok\n"
+                        "Sol alttaki **Kullanıcı Profili -> MCP Bağlantıları** sekmesinden harici bir MCP sunucu URL'si ve "
+                        "API anahtarı ekleyip **Araçları Keşfet** butonuna tıklayarak doğrudan sohbetten MCP araçlarını çalıştırabilirsiniz."
+                    )
+                else:
+                    lines = ["## Bağlı Harici MCP Sunucuları ve Araçları", ""]
+                    for c in conns:
+                        st = "Aktif" if c["enabled"] else "Pasif"
+                        lines.append(f"### {c['name']} ({st}) — `{c['url']}`")
+                        lines.append(f"- **Durum:** {c['last_status']} · **API Anahtarı:** {'Tanımlı (' + c['api_key_masked'] + ')' if c['has_api_key'] else 'Yok'}")
+                        if c["tools"]:
+                            for t in c["tools"][:15]:
+                                lines.append(f"  - `{t['name']}`: {t.get('description') or 'Açıklama yok'}")
+                        else:
+                            lines.append("  - Henüz keşfedilen araç yok (**Kişisel Alan -> MCP Bağlantıları -> Araçları Keşfet**).")
+                        lines.append("")
+                    md = "\n".join(lines)
+                yield f"data: {json.dumps({'type': 'token', 'content': md}, ensure_ascii=False)}\n\n"
+                yield f"data: {json.dumps({'type': 'done', 'model': 'mcp-connector', 'task_type': 'genel'})}\n\n"
+            except Exception as exc:
+                yield f"data: {json.dumps({'type': 'error', 'content': f'MCP hatası: {exc}'}, ensure_ascii=False)}\n\n"
+
+        return StreamingResponse(_mcp_chat_gen(), media_type="text/event-stream")
 
     # 50+ Drawing RFQ Batch ZIP Quoting Engine ([M53])
     if (
