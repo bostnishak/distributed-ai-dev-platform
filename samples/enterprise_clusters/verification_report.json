@@ -1,0 +1,742 @@
+{
+  "cad_3d": {
+    "filename": "flange_4140_h7.step",
+    "format": "STEP",
+    "product_name": "FLG-4140-H7",
+    "entity_counts": {
+      "CYLINDRICAL_SURFACE": 3,
+      "PLANE": 2,
+      "CONICAL_SURFACE": 1,
+      "TOROIDAL_SURFACE": 1,
+      "CIRCLE": 0,
+      "CARTESIAN_POINT": 2,
+      "ADVANCED_FACE": 0,
+      "CLOSED_SHELL": 0
+    },
+    "bounding_box_mm": {
+      "x": 85.0,
+      "y": 85.0,
+      "z": 35.0,
+      "min": [
+        -42.5,
+        -42.5,
+        0.0
+      ],
+      "max": [
+        42.5,
+        42.5,
+        35.0
+      ]
+    },
+    "volume_cm3": 163.274,
+    "surface_area_cm2": 263.5,
+    "features": [
+      {
+        "feature_id": "FEAT-01",
+        "type": "THROUGH_HOLE",
+        "face_id": "#F100",
+        "diameter_mm": 8.5,
+        "depth_mm": 35.0,
+        "axis": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "tolerance_class": "H7"
+      },
+      {
+        "feature_id": "FEAT-02",
+        "type": "BLIND_HOLE",
+        "face_id": "#F101",
+        "diameter_mm": 42.0,
+        "depth_mm": 17.5,
+        "tip_angle_deg": 118.0,
+        "tolerance_class": "H8"
+      },
+      {
+        "feature_id": "FEAT-03",
+        "type": "TURNED_OD",
+        "face_id": "#F102",
+        "diameter_mm": 85.0,
+        "length_mm": 35.0,
+        "tolerance_class": "g6"
+      },
+      {
+        "feature_id": "FEAT-04",
+        "type": "POCKET",
+        "face_id": "#F103",
+        "width_mm": 38.25,
+        "length_mm": 38.25,
+        "depth_mm": 8.75,
+        "corner_radius_mm": 4.0,
+        "tolerance_class": "+/-0.05"
+      },
+      {
+        "feature_id": "FEAT-05",
+        "type": "BOSS",
+        "face_id": "#F104",
+        "diameter_mm": 29.75,
+        "height_mm": 7.0,
+        "tolerance_class": "h7"
+      },
+      {
+        "feature_id": "FEAT-06",
+        "type": "CHAMFER",
+        "face_id": "#F100",
+        "width_mm": 1.5,
+        "angle_deg": 45.0,
+        "tolerance_class": "ISO 2768-m"
+      },
+      {
+        "feature_id": "FEAT-07",
+        "type": "FILLET",
+        "face_id": "#F101",
+        "radius_mm": 2.5,
+        "tolerance_class": "ISO 2768-m"
+      }
+    ],
+    "feature_types": [
+      "THROUGH_HOLE",
+      "BLIND_HOLE",
+      "TURNED_OD",
+      "POCKET",
+      "BOSS",
+      "CHAMFER",
+      "FILLET"
+    ],
+    "mbd_2d_3d_matches": [
+      {
+        "balloon_no": 1,
+        "feature_id": "FEAT-01",
+        "feature_type": "THROUGH_HOLE",
+        "face_id": "#F100",
+        "view": "FRONT",
+        "nominal_mm": 8.5,
+        "tolerance": "H7"
+      },
+      {
+        "balloon_no": 2,
+        "feature_id": "FEAT-02",
+        "feature_type": "BLIND_HOLE",
+        "face_id": "#F101",
+        "view": "TOP",
+        "nominal_mm": 42.0,
+        "tolerance": "H8"
+      },
+      {
+        "balloon_no": 3,
+        "feature_id": "FEAT-03",
+        "feature_type": "TURNED_OD",
+        "face_id": "#F102",
+        "view": "SECTION_A-A",
+        "nominal_mm": 85.0,
+        "tolerance": "g6"
+      },
+      {
+        "balloon_no": 4,
+        "feature_id": "FEAT-04",
+        "feature_type": "POCKET",
+        "face_id": "#F103",
+        "view": "RIGHT",
+        "nominal_mm": 38.25,
+        "tolerance": "+/-0.05"
+      },
+      {
+        "balloon_no": 5,
+        "feature_id": "FEAT-05",
+        "feature_type": "BOSS",
+        "face_id": "#F104",
+        "view": "DETAIL_B",
+        "nominal_mm": 29.75,
+        "tolerance": "h7"
+      },
+      {
+        "balloon_no": 6,
+        "feature_id": "FEAT-06",
+        "feature_type": "CHAMFER",
+        "face_id": "#F100",
+        "view": "FRONT",
+        "nominal_mm": 1.5,
+        "tolerance": "ISO 2768-m"
+      },
+      {
+        "balloon_no": 7,
+        "feature_id": "FEAT-07",
+        "feature_type": "FILLET",
+        "face_id": "#F101",
+        "view": "TOP",
+        "nominal_mm": 2.5,
+        "tolerance": "ISO 2768-m"
+      }
+    ]
+  },
+  "cutting_physics_fea": {
+    "material": "AISI 4140",
+    "cutting_force_fc_n": 1686.461,
+    "radial_force_fr_n": 674.584,
+    "spindle_power_kw": 6.1176,
+    "spindle_torque_nm": 42.162,
+    "taylor_tool_life_min": 2.83,
+    "tool_deflection_mm": 0.012884,
+    "tool_moment_of_inertia_mm4": 3216.991,
+    "chuck_ovalization_mm": 1.014028,
+    "surface_roughness_ra_um": 1.891,
+    "is_chatter_stable": true,
+    "dfm_warnings": [
+      "Tool deflection exceeds 25% of tolerance band; use tungsten carbide boring bar or reduce L/D ratio.",
+      "3-jaw chuck elastic ovalization exceeds 30% of tolerance; use 6-jaw chuck or full-wrap pie jaws and reduce clamping pressure."
+    ]
+  },
+  "cmm_closed_loop": {
+    "controller": "fanuc",
+    "tool_no": 2,
+    "nominal_mm": 42.0,
+    "measured_mean_mm": 42.012,
+    "deviation_mm": 0.012,
+    "wear_compensation_mm": -0.012,
+    "offset_gcode": "G10 L11 P02 R-0.0120",
+    "spc": {
+      "usl_mm": 42.025,
+      "lsl_mm": 41.975,
+      "cp": 1.333,
+      "cpk": 0.693,
+      "action_required": true
+    }
+  },
+  "nesting_1d": {
+    "stock_length_mm": 3000.0,
+    "kerf_mm": 3.0,
+    "total_parts_nested": 20,
+    "bar_count": 2,
+    "bars": [
+      {
+        "bar_index": 1,
+        "stock_length_mm": 3000.0,
+        "cuts": [
+          {
+            "part_id": "MILI-A",
+            "instance_id": "MILI-A#1",
+            "length_mm": 420.0
+          },
+          {
+            "part_id": "MILI-A",
+            "instance_id": "MILI-A#2",
+            "length_mm": 420.0
+          },
+          {
+            "part_id": "MILI-A",
+            "instance_id": "MILI-A#3",
+            "length_mm": 420.0
+          },
+          {
+            "part_id": "MILI-A",
+            "instance_id": "MILI-A#4",
+            "length_mm": 420.0
+          },
+          {
+            "part_id": "MILI-A",
+            "instance_id": "MILI-A#5",
+            "length_mm": 420.0
+          },
+          {
+            "part_id": "MILI-A",
+            "instance_id": "MILI-A#6",
+            "length_mm": 420.0
+          },
+          {
+            "part_id": "MILI-A",
+            "instance_id": "MILI-A#7",
+            "length_mm": 420.0
+          }
+        ],
+        "used_net_mm": 2940.0,
+        "kerf_loss_mm": 18.0,
+        "remaining_mm": 42.0,
+        "utilization_percent": 98.0,
+        "scrap_mm": 42.0
+      },
+      {
+        "bar_index": 2,
+        "stock_length_mm": 3000.0,
+        "cuts": [
+          {
+            "part_id": "MILI-A",
+            "instance_id": "MILI-A#8",
+            "length_mm": 420.0
+          },
+          {
+            "part_id": "BURC-B",
+            "instance_id": "BURC-B#1",
+            "length_mm": 185.0
+          },
+          {
+            "part_id": "BURC-B",
+            "instance_id": "BURC-B#2",
+            "length_mm": 185.0
+          },
+          {
+            "part_id": "BURC-B",
+            "instance_id": "BURC-B#3",
+            "length_mm": 185.0
+          },
+          {
+            "part_id": "BURC-B",
+            "instance_id": "BURC-B#4",
+            "length_mm": 185.0
+          },
+          {
+            "part_id": "BURC-B",
+            "instance_id": "BURC-B#5",
+            "length_mm": 185.0
+          },
+          {
+            "part_id": "BURC-B",
+            "instance_id": "BURC-B#6",
+            "length_mm": 185.0
+          },
+          {
+            "part_id": "BURC-B",
+            "instance_id": "BURC-B#7",
+            "length_mm": 185.0
+          },
+          {
+            "part_id": "BURC-B",
+            "instance_id": "BURC-B#8",
+            "length_mm": 185.0
+          },
+          {
+            "part_id": "BURC-B",
+            "instance_id": "BURC-B#9",
+            "length_mm": 185.0
+          },
+          {
+            "part_id": "BURC-B",
+            "instance_id": "BURC-B#10",
+            "length_mm": 185.0
+          },
+          {
+            "part_id": "BURC-B",
+            "instance_id": "BURC-B#11",
+            "length_mm": 185.0
+          },
+          {
+            "part_id": "BURC-B",
+            "instance_id": "BURC-B#12",
+            "length_mm": 185.0
+          }
+        ],
+        "used_net_mm": 2640.0,
+        "kerf_loss_mm": 36.0,
+        "remaining_mm": 324.0,
+        "utilization_percent": 88.0,
+        "scrap_mm": 324.0
+      }
+    ],
+    "total_stock_mm": 6000.0,
+    "total_net_part_mm": 5580.0,
+    "total_kerf_mm": 54.0,
+    "total_scrap_mm": 366.0,
+    "material_utilization_percent": 93.0,
+    "scrap_percent": 7.0
+  },
+  "job_shop_gantt": {
+    "machines": [
+      "CNC-TURN-01",
+      "CNC-MILL-01"
+    ],
+    "total_operations_scheduled": 2,
+    "makespan_min": 110.0,
+    "machine_utilization_percent": {
+      "CNC-TURN-01": 45.45,
+      "CNC-MILL-01": 54.55
+    },
+    "gantt_bars": [
+      {
+        "job_id": "JOB-101",
+        "op_code": "OP10",
+        "machine": "CNC-TURN-01",
+        "start_min": 0.0,
+        "end_min": 50.0,
+        "setup_min": 15.0,
+        "run_min": 35.0,
+        "duration_min": 50.0,
+        "due_min": 240.0,
+        "is_late": false
+      },
+      {
+        "job_id": "JOB-101",
+        "op_code": "OP20",
+        "machine": "CNC-MILL-01",
+        "start_min": 50.0,
+        "end_min": 110.0,
+        "setup_min": 20.0,
+        "run_min": 40.0,
+        "duration_min": 60.0,
+        "due_min": 240.0,
+        "is_late": false
+      }
+    ]
+  },
+  "automl_forecast": {
+    "target_column": "uretim",
+    "sample_count": 8,
+    "feature_columns": [
+      "ay",
+      "maliyet",
+      "__time_index__"
+    ],
+    "metrics": {
+      "r2": 1.0,
+      "rmse": 0.000455,
+      "mae": 0.000397,
+      "residual_std": 0.000643
+    },
+    "weights": {
+      "__intercept__": -29.163801,
+      "ay": 0.833322,
+      "maliyet": 3.333289,
+      "__time_index__": 0.833322
+    },
+    "feature_means": {
+      "ay": 4.5,
+      "maliyet": 63.0,
+      "__time_index__": 3.5
+    },
+    "feature_importance": {
+      "maliyet": 0.888889,
+      "ay": 0.055556,
+      "__time_index__": 0.055556
+    },
+    "forecasts": [
+      {
+        "step": 1,
+        "time_index": 8,
+        "prediction": 254.999082,
+        "lower_ci": 254.997745,
+        "upper_ci": 255.000419,
+        "projected_features": {
+          "__time_index__": 8.0,
+          "ay": 9.0,
+          "maliyet": 81.0
+        }
+      },
+      {
+        "step": 2,
+        "time_index": 9,
+        "prediction": 269.998882,
+        "lower_ci": 269.997473,
+        "upper_ci": 270.000291,
+        "projected_features": {
+          "__time_index__": 9.0,
+          "ay": 10.0,
+          "maliyet": 85.0
+        }
+      },
+      {
+        "step": 3,
+        "time_index": 10,
+        "prediction": 284.998682,
+        "lower_ci": 284.997204,
+        "upper_ci": 285.00016,
+        "projected_features": {
+          "__time_index__": 10.0,
+          "ay": 11.0,
+          "maliyet": 89.0
+        }
+      }
+    ]
+  },
+  "cfo_dcf_monte_carlo": {
+    "ratios": {
+      "current_ratio": 2.0,
+      "quick_ratio": 1.4,
+      "gross_margin": 0.4,
+      "ebitda_margin": 0.25,
+      "roe": 0.2154,
+      "roa": 0.1167,
+      "debt_to_equity": 0.5385
+    },
+    "dcf": {
+      "base_fcf": 1625000.0,
+      "wacc": 0.1,
+      "terminal_growth_rate": 0.03,
+      "projected_fcfs": [
+        1820000.0,
+        2038400.0,
+        2283008.0,
+        2556968.96,
+        2863805.24
+      ],
+      "discounted_fcfs": [
+        1654545.45,
+        1684628.1,
+        1715257.7,
+        1746444.2,
+        1778197.74
+      ],
+      "pv_of_fcfs": 8579073.19,
+      "terminal_value": 42138848.53,
+      "pv_terminal_value": 26164909.58,
+      "enterprise_value": 34743982.77,
+      "base_npv": 29743982.77
+    },
+    "monte_carlo": {
+      "runs": 500,
+      "p10_npv": 20856970.5,
+      "p50_npv": 28993522.49,
+      "p90_npv": 43700859.91,
+      "mean_npv": 30860509.85,
+      "std_npv": 9758488.93,
+      "prob_positive_npv": 1.0
+    }
+  },
+  "taguchi_doe": {
+    "orthogonal_array": "L9",
+    "num_factors": 3,
+    "num_runs": 9,
+    "objective": "smaller-is-better",
+    "experiments": [
+      {
+        "run": 1,
+        "levels": {
+          "Vc": 1,
+          "Feed": 1,
+          "ap": 1
+        },
+        "factors": {
+          "Vc": 150,
+          "Feed": 0.12,
+          "ap": 1.0
+        },
+        "observations": [
+          49.3659,
+          50.3733,
+          51.3808
+        ],
+        "sn_ratio_db": -34.0452,
+        "sn_breakdown": {
+          "smaller_is_better": -34.0452,
+          "larger_is_better": 34.0405,
+          "nominal_is_best": 33.9795
+        }
+      },
+      {
+        "run": 2,
+        "levels": {
+          "Vc": 1,
+          "Feed": 2,
+          "ap": 2
+        },
+        "factors": {
+          "Vc": 150,
+          "Feed": 0.18,
+          "ap": 2.0
+        },
+        "observations": [
+          49.7121,
+          50.7267,
+          51.7412
+        ],
+        "sn_ratio_db": -34.1059,
+        "sn_breakdown": {
+          "smaller_is_better": -34.1059,
+          "larger_is_better": 34.1013,
+          "nominal_is_best": 33.9793
+        }
+      },
+      {
+        "run": 3,
+        "levels": {
+          "Vc": 1,
+          "Feed": 3,
+          "ap": 3
+        },
+        "factors": {
+          "Vc": 150,
+          "Feed": 0.24,
+          "ap": 3.0
+        },
+        "observations": [
+          50.0584,
+          51.08,
+          52.1016
+        ],
+        "sn_ratio_db": -34.1662,
+        "sn_breakdown": {
+          "smaller_is_better": -34.1662,
+          "larger_is_better": 34.1615,
+          "nominal_is_best": 33.9794
+        }
+      },
+      {
+        "run": 4,
+        "levels": {
+          "Vc": 2,
+          "Feed": 1,
+          "ap": 2
+        },
+        "factors": {
+          "Vc": 180,
+          "Feed": 0.12,
+          "ap": 2.0
+        },
+        "observations": [
+          59.4925,
+          60.7067,
+          61.9208
+        ],
+        "sn_ratio_db": -35.6659,
+        "sn_breakdown": {
+          "smaller_is_better": -35.6659,
+          "larger_is_better": 35.6613,
+          "nominal_is_best": 33.9793
+        }
+      },
+      {
+        "run": 5,
+        "levels": {
+          "Vc": 2,
+          "Feed": 2,
+          "ap": 3
+        },
+        "factors": {
+          "Vc": 180,
+          "Feed": 0.18,
+          "ap": 3.0
+        },
+        "observations": [
+          59.8388,
+          61.06,
+          62.2812
+        ],
+        "sn_ratio_db": -35.7163,
+        "sn_breakdown": {
+          "smaller_is_better": -35.7163,
+          "larger_is_better": 35.7117,
+          "nominal_is_best": 33.9794
+        }
+      },
+      {
+        "run": 6,
+        "levels": {
+          "Vc": 2,
+          "Feed": 3,
+          "ap": 1
+        },
+        "factors": {
+          "Vc": 180,
+          "Feed": 0.24,
+          "ap": 1.0
+        },
+        "observations": [
+          59.2051,
+          60.4133,
+          61.6216
+        ],
+        "sn_ratio_db": -35.6238,
+        "sn_breakdown": {
+          "smaller_is_better": -35.6238,
+          "larger_is_better": 35.6192,
+          "nominal_is_best": 33.9795
+        }
+      },
+      {
+        "run": 7,
+        "levels": {
+          "Vc": 3,
+          "Feed": 1,
+          "ap": 3
+        },
+        "factors": {
+          "Vc": 210,
+          "Feed": 0.12,
+          "ap": 3.0
+        },
+        "observations": [
+          69.6192,
+          71.04,
+          72.4608
+        ],
+        "sn_ratio_db": -37.0312,
+        "sn_breakdown": {
+          "smaller_is_better": -37.0312,
+          "larger_is_better": 37.0266,
+          "nominal_is_best": 33.9794
+        }
+      },
+      {
+        "run": 8,
+        "levels": {
+          "Vc": 3,
+          "Feed": 2,
+          "ap": 1
+        },
+        "factors": {
+          "Vc": 210,
+          "Feed": 0.18,
+          "ap": 1.0
+        },
+        "observations": [
+          68.9855,
+          70.3933,
+          71.8012
+        ],
+        "sn_ratio_db": -36.9518,
+        "sn_breakdown": {
+          "smaller_is_better": -36.9518,
+          "larger_is_better": 36.9472,
+          "nominal_is_best": 33.9795
+        }
+      },
+      {
+        "run": 9,
+        "levels": {
+          "Vc": 3,
+          "Feed": 3,
+          "ap": 2
+        },
+        "factors": {
+          "Vc": 210,
+          "Feed": 0.24,
+          "ap": 2.0
+        },
+        "observations": [
+          69.3317,
+          70.7467,
+          72.1616
+        ],
+        "sn_ratio_db": -36.9953,
+        "sn_breakdown": {
+          "smaller_is_better": -36.9953,
+          "larger_is_better": 36.9906,
+          "nominal_is_best": 33.9793
+        }
+      }
+    ],
+    "optimal_run": {
+      "run": 1,
+      "factors": {
+        "Vc": 150,
+        "Feed": 0.12,
+        "ap": 1.0
+      },
+      "sn_ratio_db": -34.0452
+    },
+    "citations": {
+      "apa": "Taguchi, G., Phadke, M. S. (1989). Quality Engineering Using Robust Design. IEEE Transactions on Reliability, 38, 145-158.",
+      "ieee": "[1] Taguchi, G., Phadke, M. S., \"Quality Engineering Using Robust Design,\" IEEE Transactions on Reliability, vol. 38, pp. 145-158, 1989."
+    }
+  },
+  "kvkk_redaction": {
+    "cleaned_text": "Musteri TC [REDACTED_TC_KIMLIK], IBAN [REDACTED_IBAN], Tel [REDACTED_PHONE]",
+    "counts": {
+      "iban": 1,
+      "credit_card": 0,
+      "tc_kimlik": 1,
+      "phone": 1,
+      "email": 0
+    },
+    "total_redacted": 3,
+    "has_pii": true
+  }
+}
