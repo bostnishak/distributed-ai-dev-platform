@@ -1224,7 +1224,7 @@ async function sendMessage() {
     <div class="sp-think-head">
       <span class="sp-think-ring"></span>
       <span class="sp-think-label">${stages[0]}<span class="sp-think-dots"><i></i><i></i><i></i></span></span>
-      <span class="sp-think-timer">0,0 sn</span>
+      <span class="sp-think-timer">0 sn</span>
     </div>
     <div class="sp-think-skel"><span></span><span></span><span></span></div>
   `;
@@ -1235,7 +1235,7 @@ async function sendMessage() {
   let stageIdx = 0;
   const thinkTicker = setInterval(() => {
     const sec = (performance.now() - startedAt) / 1000;
-    const secStr = sec.toFixed(1).replace('.', ',') + ' sn';
+    const secStr = `${Math.floor(sec)} sn`;
     if (!streaming) {
       if (thinkTimerEl) thinkTimerEl.textContent = secStr;
       const nextIdx = Math.min(stages.length - 1, Math.floor(sec / 2.2));
@@ -1246,7 +1246,7 @@ async function sendMessage() {
     } else if (streamTextEl) {
       streamTextEl.textContent = `Yanıt yazılıyor · ${secStr}`;
     }
-  }, 150);
+  }, 250);
 
   wrap.append(streamBar, bubble);
   row.appendChild(wrap);
