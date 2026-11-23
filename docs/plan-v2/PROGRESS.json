@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-23T20:56:03+00:00",
+ "generated_at": "2026-11-23T20:58:24+00:00",
  "items": {
   "DEF-01": {
    "status": "done",
@@ -1351,7 +1351,7 @@
      "master/tests/test_rag_hallucination_ml.py"
     ],
     "commit": "6e838fc",
-    "eval_report": "eval/reports/eval_live70_guarded_qwen35_4b.json"
+    "eval_report": "eval/reports/eval_live70_guarded_v2_qwen35_4b.json"
    }
   },
   "HAL-04": {
@@ -1401,7 +1401,7 @@
      "master/tests/test_rag_hallucination_ml.py"
     ],
     "commit": "6e838fc",
-    "eval_report": "eval/reports/eval_live70_guarded_qwen35_4b.json"
+    "eval_report": "eval/reports/eval_live70_guarded_v2_qwen35_4b.json"
    }
   },
   "HAL-09": {
@@ -1465,13 +1465,15 @@
    }
   },
   "HAL-15": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": "eval/reports/eval_live70_guarded_qwen35_4b.json"
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "16a1578",
+    "eval_report": "eval/reports/eval_live70_guarded_v2_qwen35_4b.json"
    },
-   "note": "canlı ölçüm: cevaplanamazda doğru kaçınma %70, hedef %85 (docs/plan-v2/EVAL_OLCUMU.md)"
+   "note": "ölçüm şişik: cevaplanamaz kümesi 3 kalıp (EVAL_OLCUMU.md)"
   },
   "HAL-16": {
    "status": "done",
@@ -1480,7 +1482,7 @@
      "master/tests/test_rag_hallucination_ml.py"
     ],
     "commit": "6e838fc",
-    "eval_report": "eval/reports/eval_live70_guarded_qwen35_4b.json"
+    "eval_report": "eval/reports/eval_live70_guarded_v2_qwen35_4b.json"
    }
   },
   "HAL-17": {
