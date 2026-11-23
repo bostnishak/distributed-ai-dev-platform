@@ -264,9 +264,9 @@ def _ml_db_path() -> Path:
 
 
 def _ml_conn() -> sqlite3.Connection:
-    c = sqlite3.connect(str(_ml_db_path()), timeout=10.0)
-    c.row_factory = sqlite3.Row
-    return c
+    import dbconn
+
+    return dbconn.open_db(_ml_db_path())
 
 
 def init_ml_db() -> None:

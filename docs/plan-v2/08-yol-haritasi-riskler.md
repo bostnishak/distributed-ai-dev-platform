@@ -156,24 +156,24 @@ MVP 21 madde; ön koşullarıyla birlikte **46 madde, 176,0 kişi-gün** (planı
 
 Gösterimden önce `OPS-23` kontrol listesi çalıştırılır (Tailscale, Ollama, modeller, port, ajan kaydı). **MVP dışındaki hiçbir madde MVP maddesinin önüne geçmez.**
 
-## 5. Risk kaydı
+## 5. Risk kaydı (güncellenmiş durum — 23 Kasım 2026)
 
-| Kod | Risk | Olasılık | Etki | Azaltma |
+| Kod | Risk | Olasılık | Etki | Durum ve Azaltma |
 |---|---|---|---|---|
-| R1 | Plan büyüklüğü (376 madde) kapsam kaymasına yol açar | Yüksek | Yüksek | MVP çizgisi (Bölüm 4), faz kapıları, haftalık gözden geçirme (PROC-10) |
-| R2 | Yerel 4B–9B modellerin kalite tavanı hedefin altında kalır | Yüksek | Yüksek | Gateway kademeleri (GW-19), dağıtık büyük ajan, isteğe bağlı bulut (D1), dürüst sınır beyanı (HAL-30) |
-| R3 | GPU/VRAM/ısı kısıtı; çok modelli akışlar OOM veya aşırı yavaşlık verir | Yüksek | Orta | VRAM yönetimi ve kuyruk (GW-06/09/10), donanım politikası (DIST-12), güç profili (OPS-24) |
-| R4 | Aynı ağaçta eşzamanlı araçlar dosyaları sessizce ezer (**yaşandı**) | Yüksek | Yüksek | Şerit/dal/worktree kuralı (README Bölüm 8, madde 9), PR ile birleştirme |
-| R5 | Eval kümesi sızıntısı veya güvenilmez hakem, ölçümü anlamsızlaştırır | Orta | Yüksek | Hakem kalibrasyonu κ ≥ 0,7 (HAL-04), eğitim/eval ayrımı (ML-07), sürümlü veri kümesi |
-| R6 | Ağ/Tailscale sorunları gösterimi bozar (**yaşandı**: IPv6/TLS, ev ağı) | Yüksek | Yüksek | Tanılama (DIST-13), runbook (OPS-15), çevrimdışı demo ve yedek video (OPS-23/PROC-06) |
-| R7 | Güvenlik regresyonu (yeni route kimliksiz kalır; **yaşandı**) | Orta | Yüksek | OpenAPI yetki matrisi CI'da (SEC-22), eş zamanlı araç denetimi |
-| R8 | Frontend yeniden yapılandırması regresyon üretir | Orta | Orta | e2e önce (UX-28), kademeli geçiş, görsel regresyon |
-| R9 | Bağımlılık/lisans sorunları (model lisansları, Monaco/three.js/Playwright) | Orta | Orta | Lisans tablosu (PROC-08), SBOM ve denetim (OPS-13, SEC-19) |
-| R10 | Docker/sandbox kullanılamayan makineler | Orta | Orta | Özellik kapalı + açık mesaj (DEF-15), Docker'sız güvenli alt küme |
-| R11 | Web erişiminin etik/hukuki/robots sorunları | Orta | Orta | Telif/robots politikası (RES-11), kısa alıntı sınırı, kaynak gösterme |
-| R12 | Takvim: ders teslimi ile plan çakışır | Orta | Yüksek | MVP asgarisi, Faz 0'da bile PROC-06 senaryosu |
-| R13 | "Halüsinasyon biter" beklentisi yanlış yönlendirir | Yüksek | Orta | HAL-30 şeffaflık sayfası, ML-14 dürüstlük notu, ölçülmüş oranlar |
-| R14 | Eski planın "DONE" iddialarına güvenmek | Orta | Yüksek | Kanıta dayalı `PROGRESS.json`, bağlantı kapısı (DEF-01), `plan_tool.py status` |
+| R1 | Plan büyüklüğü (376 madde) kapsam kaymasına yol açar | Orta | Yüksek | **Azaltıldı:** MVP kesme çizgisi (Bölüm 4), izlenebilirlik matrisi (`docs/scrum/traceability.md`, PROC-01) ve `PROGRESS.json` takibi aktif |
+| R2 | Yerel 4B–9B modellerin kalite tavanı hedefin altında kalır | Yüksek | Yüksek | **Kontrol altında:** Gateway kademeleri (`GW-19`), dağıtık ajan yönlendirmesi, isteğe bağlı bulut (`ADR-0001`), dürüst sınır beyanı (`HAL-30`) |
+| R3 | GPU/VRAM/ısı kısıtı; çok modelli akışlar OOM veya aşırı yavaşlık verir | Yüksek | Orta | **Kontrol altında:** VRAM kuyruğu (`GW-06`/`GW-09`), donanım politikası (`DIST-12`), boşta model boşaltma ve güç profili (`master/power_manager.py`, OPS-24) |
+| R4 | Aynı ağaçta eşzamanlı araçlar dosyaları sessizce ezer (**yaşandı**) | Düşük | Yüksek | **Azaltıldı:** Paralel `git worktree` / dal akışı uygulandı (`ishak/plan-part7-8` çakışmasız birleşti); `CONTRIBUTING.md` (PROC-05) zorunlu kural içerir |
+| R5 | Eval kümesi sızıntısı veya güvenilmez hakem, ölçümü anlamsızlaştırır | Orta | Yüksek | **Kontrol altında:** 300 altın + 150 kırmızı takım + 200 retrieval örneği (`eval/`), CI hızlı eval kapısı (`HAL-05`) ve `docs/runbooks/eval-regression.md` |
+| R6 | Ağ/Tailscale sorunları gösterimi bozar (**yaşandı**: IPv6/TLS, ev ağı) | Orta | Yüksek | **Azaltıldı:** `scripts/demo_checklist.ps1` (OPS-23), `docs/runbooks/tailscale-connectivity.md` (OPS-15), yerel staging + `fake_ollama.py` çevrimdışı yedek (PROC-06) |
+| R7 | Güvenlik regresyonu (yeni route kimliksiz kalır; **yaşandı**) | Düşük | Yüksek | **Azaltıldı:** OpenAPI yetki matrisi (`pytest -m security`, SEC-22), `gitleaks`, `pip-audit`, Trivy ve `memory_api` `403` sahiplik denetimi CI'da zorunlu |
+| R8 | Frontend yeniden yapılandırması regresyon üretir | Orta | Orta | **Kontrol altında:** `frontend/package.json`, `sanitizer.js`, `store.js`, `ux_shell.js` ile kademeli geçiş (`ADR-0004`) |
+| R9 | Bağımlılık/lisans sorunları (model lisansları, Monaco/three.js/Playwright) | Düşük | Orta | **Azaltıldı:** `docs/plan-v2/model-licenses-ethics.md` (PROC-08) ve `scripts/generate_sbom.py` (OPS-13) eklendi |
+| R10 | Docker/sandbox kullanılamayan makineler | Orta | Orta | **Azaltıldı:** `master/sandbox/runner.py` imaj ve daemon kontrolü yapar; yoksa açık gerekçe ile kapatır (`ADR-0007`, DEF-15) |
+| R11 | Web erişiminin etik/hukuki/robots sorunları | Orta | Orta | **Kontrol altında:** SearXNG + `safe_fetch` SSRF/robots koruması (`ADR-0002`, `RES-11`) ve kaynak gösterme zorunluluğu |
+| R12 | Takvim: ders teslimi ile plan çakışır | Düşük | Yüksek | **Azaltıldı:** Tüm 21 MVP maddesi ve 8 ADR / 8 runbook / demo kiti tamamlanıp test edildi |
+| R13 | "Halüsinasyon biter" beklentisi yanlış yönlendirir | Orta | Orta | **Azaltıldı:** `halusinasyon-tanim-ve-sinirlar.md` (`HAL-30`) ve `ince-ayar-sinirlari.md` (`ML-14`) şeffaflık belgeleri yayında |
+| R14 | Eski planın "DONE" iddialarına güvenmek | Düşük | Yüksek | **Azaltıldı:** `plan_tool.py status` kanıtsız `done` kaydını reddeder (`PROC-09`); tüm ilerleme `PROGRESS.json` + test + commit kanıtlıdır |
 
 ## 6. Kapsam dışı (bu planda yapılmayacaklar)
 

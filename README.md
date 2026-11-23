@@ -2,100 +2,118 @@
 
 CM6453 Software Engineering Process and DevOps (instructor: Ensar Gül) — term project of **team6**.
 
-A web-based platform where a **master agent** turns a long software requirements document into a plan of development tasks and, over the course of the project, distributes those tasks to **LLM-based agents running on each team member's computer**, chosen by the measured capabilities of their models. The agents' results are integrated, tested and reviewed into a working web application. The project is managed with **Scrum** (5 sprints × 2 weeks), **Trello** and **GitHub**.
+A local-first, privacy-preserving web platform where a **master agent** decomposes software requirements into a DAG of development tasks, evaluates each teammate's local LLM capabilities, and orchestrates distributed execution, verification, conflict resolution, grounded research, document/slide/data studios, and an autonomous software factory. Managed with **Scrum** (5 sprints x 2 weeks), **Trello**, and **GitHub**.
 
-## Principles
+## Core Principles
 
-- **100% local and private.** Every model runs on the team's own computers with [Ollama](https://ollama.com). No cloud LLM API is used and no document or prompt leaves the team's machines.
-- **Open-source, pretrained models only.** No training or fine-tuning; the models are used for inference only.
-- **Different model per member.** Six different open models from four vendors, so capability-based assignment is meaningful.
+- **100% local and private by default.** Models run on the team's own computers with [Ollama](https://ollama.com). External cloud LLM escalation is disabled by default (`CLOUD_PROVIDERS_ENABLED=false`, [ADR-0001](docs/adr/0001-cloud-providers.md)).
+- **No external LiteLLM proxy.** Inference is managed by an in-process Python LLM Gateway (`master/gateway/`) supporting Ollama and distributed team agents.
+- **Evidence-driven reliability.** Hallucinations are controlled architecturally via hybrid FTS5 + vector RAG, web citations, deterministic tools (SymPy/pandas), Docker sandbox verification, confidence calibration, and explicit abstention ([docs/plan-v2/halusinasyon-tanim-ve-sinirlar.md](docs/plan-v2/halusinasyon-tanim-ve-sinirlar.md)).
+- **Different open-source model per member.** Six open models across four vendors so capability-based routing and empirical comparison are meaningful ([docs/plan-v2/model-licenses-ethics.md](docs/plan-v2/model-licenses-ethics.md)).
 
 ## Team
 
-| Name | Student no. | Role (assigned by the instructor) | Agent · model |
+| Name | Student no. | Role (assigned by the instructor) | Agent · Model |
 |---|---|---|---|
-| İshak Bostan | 2304010592 | Master agent's LLM (the master runs on this computer) | `uye1` · Qwen3.5 4B (Alibaba) |
-| Zeynep Duru Küçük | 2304010588 | Scrum Master · Trello, backend | `uye2` · Phi-4-mini 3.8B (Microsoft) |
-| Furkan Kaan Özbeyli | 2304010585 | Sub-agent interface | `uye3` · Llama 3.2 3B (Meta) |
-| Semih Sarıca | 2304010590 | LLM model selection | `uye4` · Gemma 4 E4B (Google) |
-| Işıl Karademir | 2304010607 | GitHub processes | `uye5` · Qwen2.5-Coder 7B (Alibaba) |
-| Berfin Yiğit | 2304010589 | Web interface, dashboard | `uye6` · Qwen3 1.7B (Alibaba) |
+| İshak Bostan | 2304010592 | Master agent's LLM (the master runs on this computer) | `uye1` · `qwen3.5:4b` (Alibaba) |
+| Zeynep Duru Küçük | 2304010588 | Scrum Master · Trello, backend | `uye2` · `phi4-mini` (Microsoft) |
+| Furkan Kaan Özbeyli | 2304010585 | Sub-agent interface | `uye3` · `llama3.2:3b` (Meta) |
+| Semih Sarıca | 2304010590 | LLM model selection | `uye4` · `gemma4:e4b` (Google) |
+| Işıl Karademir | 2304010607 | GitHub processes | `uye5` · `qwen2.5-coder:7b` (Alibaba) |
+| Berfin Yiğit | 2304010589 | Web interface, dashboard | `uye6` · `qwen3:1.7b` (Alibaba) |
 
-Every member is also a Developer. No Product Owner: the instructor asked the team not to have one, so the Developers agree on the Product Goal and the order of the Product Backlog together and accept work at the Sprint Review. Work outside a role title is listed as an additional responsibility in [docs/scrum/README.md](docs/scrum/README.md).
+## Platform Capabilities (v2.0)
 
-## Status — Sprint 1 (8 – 21 Oct 2026)
+- **Web Interface (Turkish, 5 tabs + Personal Space):** *Yeni Proje*, *Projeler*, *Ajanlar*, *Pano*, *Asistan*, plus Personal Space (usage stats, profile, theme, personalization, memory, privacy/data controls) with XSS sanitization (`master/static/js/sanitizer.js`), PWA support, and zero external CDNs.
+- **In-Process LLM Gateway & 8-Stage Orchestrator (`master/gateway/`, `master/orchestrator/`, `master/prompts/`):** Model registry synced with Ollama, capability/tier routing, input guards, DAG planner, tool registry, SSE v2 streaming, durable background jobs, artifact store, and strict output mode contracts.
+- **Grounded RAG, Hallucination Control & ML Ops (`master/rag/`, `master/hallucination/`, `master/ml_ops/`, `eval/`):** Turkish FTS5 + versioned vector search, relevance gating, SearXNG + SSRF-safe web fetch, citation resolution, NLI & numeric verification, confidence calibration, abstention policy, and a 650-sample eval suite (`eval/run.py`).
+- **Studios, Software Factory & Domain Engines (`master/studios/`, `master/factory/`, `master/games/`, `master/domains/`):** Multi-step cited Deep Research, quality-gated PPTX/DOCX/XLSX/PDF generation, statistical Data Science sandbox, signed Media pipeline, unified autonomous Software Factory (plan -> scaffold -> generate -> verify -> repair -> package), Game Studio, and strict no-fabricated-defaults domain engines.
+- **Distributed Agent Orchestration (`master/distributed/`, `agent/`):** Versioned capability profiles, Thompson/UCB bandit assignment with explanations, pull-based task leasing & failover, per-agent tokens & result ownership, provenance tags, conflict resolution, performance comparison, and chaos scripts (`scripts/chaos/chaos_scenarios.ps1`).
+- **Security, Unified Data & Operations (`master/auth/`, `master/sandbox/`, `master/dbconn.py`, `master/ops.py`):** Local session auth + RBAC + `owner_id` isolation, Fernet secret store, AES-encrypted backups, isolated Docker Python sandbox, shared SQLite WAL with versioned SQL migrations (`master/migrate.py`), content-addressed blobstore, structured JSON logging with `request_id`, Prometheus `/metrics`, deep `/ready` with runbook links (`docs/runbooks/`), and OpenAPI security matrix (`pytest -m security`).
 
-**Sprint 1 in progress** (8 – 21 Oct 2026, Week 1 of 2). Sprint Review and Retrospective scheduled for 21 October.
+## Architecture (Summary)
 
-Working now (Sprint 1 increment):
-
-- **Web interface** (Turkish) with four tabs: *Yeni Proje* (new project), *Projeler* (projects), *Ajanlar* (agents), *Asistan* (assistant).
-- **Master agent prototype:** REST API, SQLite storage, agent registry.
-- **Agent registration:** each agent reads its model's capabilities from Ollama (context window, vision, thinking, tools) and registers with the master using a shared token. The master never connects to agents (pull model).
-- **Basic task decomposition:** the master's own model (Qwen3.5 4B) extracts a structured specification from a requirements document (entities, API endpoints, pages, non-functional requirements and **open questions** instead of guesses), then builds a dependency graph of tasks: requirements analysis → database / backend / frontend → testing + code review → integration → documentation. In Sprint 1 tasks are planned, not executed.
-- **Assistant tab:** the earlier chat assistant (automatic model routing, content moderation, PDF/DOCX/TXT/CSV/XLSX upload, a built-in calculator, tables and diagrams, and an optional Run button for Python code that is off by default).
-
-Measured on the master's computer (Intel Core i7-13700H, 32 GB RAM; Ollama runs the models on its NVIDIA RTX 4060 Laptop GPU with 8 GB): the three sample requirements documents in [`docs/examples/`](docs/examples/) are decomposed in 44–117 s into 7–13 entities, 11–25 endpoints, 9–10 pages and 15–19 tasks. Details: [Sprint 1 test report](docs/scrum/sprint-1/test-report.md).
-
-Sprint 1 focus: requirements and architecture documents, platform web interface (4 tabs), master-agent prototype with SQLite and background analysis, agent service and registration, basic task decomposition, GitHub CI and collaboration setup, Trello board, and Tailscale network. See the [Product Backlog](docs/scrum/product-backlog.md) and [Sprint 1 backlog](docs/scrum/sprint-1/sprint-backlog.md).
-
-## Architecture (summary)
-
-```
-Browser (Turkish UI)
-   │ REST
-Master (FastAPI, Docker, İshak's computer) ── local Ollama: Qwen3.5 4B for requirements analysis
-   ├─ agent registry · decomposition · (Sprint 2+) capability evaluation and selection
-   └─ SQLite
-   ▲ agents connect to the master only (Bearer AGENT_TOKEN), over Tailscale (WireGuard, end-to-end encrypted)
-Agent × 6 (each member's computer, Python) ── its own Ollama, listening on localhost only
+```text
+Browser (Turkish UI, 5 tabs + Personal Space, PWA, XSS-sanitized)
+   │ REST + SSE v2
+Master (FastAPI, 127.0.0.1:8000 / Tailnet IP)
+   ├─ Auth/RBAC · Secrets (Fernet) · Audit · Rate/Size Limits · /metrics · /ready
+   ├─ 8-Stage Orchestrator -> RAG/Web (FTS5+Vec+SearXNG) · Studios · Factory · Verifier
+   ├─ In-Process LLM Gateway -> Local Ollama + Distributed Agents (+ Opt-In Cloud Off)
+   ├─ Unified SQLite WAL (dbconn + versioned migrations + blobstore)
+   └─ Docker Code Sandbox (ephemeral, --network none, non-root)
+   ▲ Pull-only agents (per-agent Bearer auth over Tailscale WireGuard mesh)
+Agent x 6 (each member's machine) ── local Ollama on localhost:11434
 ```
 
-Details: [docs/architecture.md](docs/architecture.md) · Requirements: [docs/SRS.md](docs/SRS.md)
+Details: [docs/architecture.md](docs/architecture.md) · [docs/plan-v2/README.md](docs/plan-v2/README.md) · [docs/plan-v2/erd.md](docs/plan-v2/erd.md) · [docs/adr/](docs/adr/)
 
-## Quick start (master computer)
+## Quick Start
 
-Requirements: Docker Desktop, Ollama with `qwen3.5:4b`, a `.env` file created from `.env.example` (`LITELLM_MASTER_KEY`, `AGENT_TOKEN`).
+### 1. Local Development (Single Command)
+Requirements: Python 3.12, Ollama with `qwen3.5:4b` (and `bge-m3` for embeddings), `.env` created from `.env.example`.
 
+- **Windows (PowerShell):**
+  ```powershell
+  .\scripts\dev.ps1
+  ```
+- **Linux / macOS:**
+  ```bash
+  ./scripts/dev.sh
+  ```
+- **Pre-Demo Readiness Checklist:**
+  ```powershell
+  .\scripts\demo_checklist.ps1
+  ```
+
+### 2. Docker Compose (Hardened Profiles, Zero LiteLLM)
 ```bash
-docker compose up -d --build          # master + LiteLLM gateway + uye1's agent
+docker compose --profile core up -d --build                  # Master (in-process gateway)
+docker compose --profile core --profile agents up -d --build # Master + uye1 node agent
+docker compose --profile staging up -d --build               # Master + staging agents uye2..uye6
+docker compose --profile web-search up -d                    # Local SearXNG search engine
+docker compose --profile sandbox build                       # Isolated Python sandbox image
 ```
 
-Open <http://localhost:8000>. To also run the other five members' agents on this computer until their own machines are connected:
+Open `http://127.0.0.1:8000` (health: `/health`, deep readiness: `/ready`, metrics: `/metrics`).
+Team members configure remote agents using [agent-node/README.md](agent-node/README.md).
 
-```bash
-docker compose --profile staging up -d --build
+## Testing, Verification & CI Gates
+
+```powershell
+# Lint
+.\master\venv\Scripts\python.exe -m ruff check master agent scripts
+
+# Full Master test suite
+.\master\venv\Scripts\python.exe -m pytest master/tests/ -q
+
+# Security & OpenAPI route authorization matrix (SEC-22)
+.\master\venv\Scripts\python.exe -m pytest -m security master/tests/ -v
+
+# Plan v2 integrity, module wiring & evidence-based progress
+.\master\venv\Scripts\python.exe scripts/plan_tool.py check
+.\master\venv\Scripts\python.exe scripts/plan_tool.py wiring --fail-on-new
+.\master\venv\Scripts\python.exe scripts/plan_tool.py status
+
+# Offline hallucination/grounding eval gate
+.\master\venv\Scripts\python.exe eval/run.py --limit 50 --offline
 ```
 
-On Windows, `scripts\start-docker.ps1` starts Docker Desktop and works around a stale-socket start-up failure seen on the master's computer.
-
-Team members set up their own agent with [agent-node/README.md](agent-node/README.md) (Turkish).
-
-### Development and tests
-
-```bash
-cd master                              # or: cd agent
-python -m venv .venv
-.venv\Scripts\pip install -r requirements-dev.txt     # Linux/macOS: .venv/bin/pip
-.venv\Scripts\python -m pytest tests/ -v
-.venv\Scripts\python -m ruff check .
-```
-
-CI (GitHub Actions) runs lint and tests for `master` and `agent` and builds both Docker images on every pull request. `main` is protected: changes arrive through pull requests that need passing CI and one approving review.
-
-## Repository layout
+## Repository Layout
 
 | Path | Contents |
 |---|---|
-| `master/` | Master agent: FastAPI app, decomposition, agent registry, web UI (`static/`), tests |
-| `agent/` | Agent service that runs on each member's computer, tests |
-| `agent-node/` | Setup and start scripts for members' computers (Windows / macOS / Linux) |
-| `gateway/` | LiteLLM gateway configuration (Assistant tab only; removed in Sprint 3) |
-| `docs/` | SRS, architecture, Scrum artifacts, example requirements document |
-| `scripts/` | Helper scripts for the master computer |
+| `master/` | FastAPI Master: `gateway/`, `orchestrator/`, `rag/`, `hallucination/`, `ml_ops/`, `studios/`, `factory/`, `games/`, `domains/`, `distributed/`, `auth/`, `sandbox/`, `migrations/`, `static/`, `tests/` |
+| `agent/` | Distributed agent service running on each member's computer + tests |
+| `agent-node/` | Setup and startup scripts for team members (Windows / macOS / Linux) |
+| `docker/` | Isolated execution sandbox Dockerfile (`docker/sandbox/`) |
+| `eval/` | Golden QA, red-team, and retrieval datasets + offline/live eval runner |
+| `frontend/` | Vite + TypeScript `checkJs` + Playwright incremental UI toolchain |
+| `scripts/` | Dev launchers, `plan_tool.py`, `quality_gate.py`, SBOM, chaos/load bench, Scrum & academic report generators |
+| `docs/` | `plan-v2/` (Master Plan v2 + `PROGRESS.json` + ERD), `adr/` (D1-D8), `runbooks/`, `scrum/` (traceability, DoD, demo script) |
 
-## Process
+## Process & Documentation
 
-- **Scrum:** roles, events, calendar, Product Backlog, Definition of Done and sprint records are in [docs/scrum/](docs/scrum/README.md).
-- **Trello:** planning board with the same backlog items (IDs `PB-xx`).
-- **GitHub:** branch → pull request → CI → review by a teammate; see [CONTRIBUTING.md](CONTRIBUTING.md) (Turkish).
+- **Master Plan v2 & Evidence Progress:** [docs/plan-v2/README.md](docs/plan-v2/README.md) · [docs/plan-v2/08-yol-haritasi-riskler.md](docs/plan-v2/08-yol-haritasi-riskler.md) · [docs/plan-v2/PROGRESS.json](docs/plan-v2/PROGRESS.json)
+- **Scrum & Traceability:** [docs/scrum/traceability.md](docs/scrum/traceability.md) · [docs/scrum/definition-of-done.md](docs/scrum/definition-of-done.md) · [docs/scrum/demo-script.md](docs/scrum/demo-script.md)
+- **Operations:** [docs/runbooks/README.md](docs/runbooks/README.md) · [CHANGELOG.md](CHANGELOG.md) · [CONTRIBUTING.md](CONTRIBUTING.md)

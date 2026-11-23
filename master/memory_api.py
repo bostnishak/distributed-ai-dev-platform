@@ -80,12 +80,20 @@ def delete_memory_fact(
 @router.post("/compact/{conversation_id}")
 def compact_conversation(
     conversation_id: str,
+    user_id: str | None = Query(default=None),
     max_chars: int = Query(default=12000, ge=64, le=200000),
 ) -> dict[str, Any]:
     """Compact a conversation's message history and store the summary in `conversations.summary`."""
     cid = (conversation_id or "").strip()
     if not cid:
         raise HTTPException(status_code=400, detail="conversation_id is required.")
+
+    uid = None
+    if user_id is not None:
+        try:
+            uid = user_profile.valid_user_id(user_id)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     memory_engine.init_memory_db()
     with memory_engine._connect() as conn:
@@ -95,6 +103,8 @@ def compact_conversation(
         ).fetchone()
         if conv_row is None:
             raise HTTPException(status_code=404, detail=f"Conversation '{cid}' not found.")
+        if uid is not None and str(conv_row["user_id"]) != uid:
+            raise HTTPException(status_code=403, detail="Bu sohbeti sıkıştırma yetkiniz yok.")
 
         msg_rows = conn.execute(
             "SELECT role, content FROM conversation_messages WHERE conversation_id = ? ORDER BY id ASC",

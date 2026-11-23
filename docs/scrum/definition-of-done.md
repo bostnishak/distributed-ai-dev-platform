@@ -1,15 +1,15 @@
-# Definition of Done
+# Definition of Done (PROC-04)
 
-**Status: draft.** The Scrum Team agrees on it or changes it at the next Sprint Planning. Work that does not meet the Definition of Done is not part of the Increment and is not shown at the Sprint Review.
+**Status: active (v2).** Work that does not meet every gate below is not part of the Increment, cannot be marked `done` in `docs/plan-v2/PROGRESS.json`, and is not demonstrated at the Sprint Review.
 
-A backlog item is **Done** when all of the following hold:
+A backlog or plan item is **Done** only when all of the following hold:
 
-1. **Acceptance criteria** of the item are met and the team accepted it at the Sprint Review.
-2. **Code is on `main`** through a pull request that:
-   - has passing CI (lint + unit tests for `master` and `agent`, Docker builds);
-   - was reviewed and approved by at least one teammate other than the author.
-3. **Tests.** New logic has unit tests that run without a real model; behaviour involving a model was also tried with the real local model and the result is noted in the pull request.
-4. **Runs in the real setup.** `docker compose up -d --build` starts the system and the feature works in the browser on desktop and mobile widths.
-5. **Privacy and security.** No secrets in the repository, no data sent to external AI services, model output treated as untrusted.
-6. **Documentation.** README, SRS, architecture or the member guides are updated when the item changes them. Code comments are in English and user-facing text in Turkish.
-7. **Trello** card moved to *Bitti* with a link to the pull request.
+1. **Acceptance criteria & automated tests.** Every acceptance criterion has at least one deterministic automated test (unit/contract/integration) that runs offline without a live LLM or internet access (`pytest master/tests/ agent/tests/`).
+2. **Module wiring gate (`DEF-01`).** `python scripts/plan_tool.py wiring --fail-on-new` exits 0; no orphaned or facade-only dead modules are introduced.
+3. **Security & route authorization (`SEC-22`).** `pytest -m security master/tests/` exits 0. Every new or modified mutating endpoint enforces authentication/ownership (`require_local_or_admin` or session `owner_id`) and never executes arbitrary commands on the host.
+4. **No silent failures or fabricated defaults.** Zero `except Exception: pass` blocks, zero placeholder/TODO stubs, and zero silent fallback to sample/fabricated numbers when user input is missing (`DOM-01`).
+5. **Grounding & eval gate (`HAL-05`).** Changes affecting prompts, RAG, verification, or studio outputs pass `eval/run.py` without regressing factual accuracy, citation support, abstention, or prompt-injection resilience.
+6. **Lint, complexity, and plan integrity (`OPS-07`, `OPS-20`).** `ruff check master agent scripts`, `python scripts/plan_tool.py check`, and `python scripts/quality_gate.py --check-allowlist` all pass with 0 errors.
+7. **Privacy, secrets, and UI hygiene.** Zero secrets in git (`.env`, tokens, keys blocked by `gitleaks`), zero external CDN scripts, zero emojis in UI/code/docs, Turkish UI labels and English code comments.
+8. **Evidence & documentation (`PROC-09`).** `docs/plan-v2/PROGRESS.json` records real `tests` + `commit` (and `eval_report` where applicable), verified by `python scripts/plan_tool.py status`. Relevant ADRs/runbooks/README updates are included.
+9. **Demonstrable.** Works in the live setup (`scripts/dev.ps1` / `docker compose --profile core up`) with `/ready` green and is reviewed/approved on a pull request.

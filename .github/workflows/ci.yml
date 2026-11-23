@@ -6,10 +6,31 @@ on:
     branches: [main]
   push:
     branches: [main]
+  schedule:
+    # Nightly extended eval and load check (OPS-07, OPS-16)
+    - cron: "0 2 * * *"
 
 jobs:
+  plan-and-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate Master Plan v2 consistency (PROC-09)
+        run: python scripts/plan_tool.py check
+      - name: Module wiring gate (DEF-01)
+        run: python scripts/plan_tool.py wiring --fail-on-new
+      - name: Code complexity & function length gate (OPS-20)
+        run: python scripts/quality_gate.py
+
   master:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12"]
     defaults:
       run:
         working-directory: master
@@ -17,15 +38,20 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: pip install -r requirements-dev.txt -r requirements.txt
+        run: pip install -r requirements-dev.txt -r requirements.txt pytest-cov
       - name: Lint (ruff)
         run: ruff check .
-      - name: Unit tests (pytest)
-        run: pytest tests/ -v
+      - name: Unit & integration tests with coverage (OPS-08, OPS-09)
+        run: pytest tests/ -v --cov=. --cov-report=xml --cov-report=term-missing:skip-covered
       - name: Security test suite & route auth matrix (SEC-22)
         run: pytest -m security tests/ -v
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: master-coverage-${{ matrix.python-version }}
+          path: master/coverage.xml
 
   agent:
     runs-on: ubuntu-latest
@@ -43,6 +69,23 @@ jobs:
         run: ruff check .
       - name: Unit tests (pytest)
         run: pytest tests/ -v
+
+  eval-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install eval dependencies
+        run: pip install -r master/requirements.txt
+      - name: Fast offline hallucination & grounding eval gate (HAL-05)
+        run: python eval/run.py --limit 50 --offline --report eval/reports/ci_latest.json
+      - name: Upload eval report
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-report
+          path: eval/reports/ci_latest.json
 
   security-scan:
     runs-on: ubuntu-latest
@@ -65,12 +108,12 @@ jobs:
             echo "Forbidden .env file tracked: $tracked"
             exit 1
           fi
-      - name: Python dependency vulnerability audit & CycloneDX SBOM (SEC-19)
+      - name: Python dependency audit & SBOM generation (SEC-19, OPS-13)
         run: |
-          pip install pip-audit cyclonedx-bom
+          pip install pip-audit
           pip-audit -r master/requirements.txt --strict --progress-spinner off
-          cyclonedx-py requirements master/requirements.txt --of JSON -o sbom-master.json
-      - name: Upload CycloneDX SBOM artifact (SEC-19)
+          python scripts/generate_sbom.py --output sbom-master.json
+      - name: Upload CycloneDX SBOM artifact
         uses: actions/upload-artifact@v4
         with:
           name: sbom-cyclonedx
@@ -80,12 +123,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Validate Compose file (all profiles)
+      - name: Validate Compose profiles (OPS-06)
         env:
           AGENT_TOKEN: ci-placeholder
         run: |
           cp .env.example .env
+          docker compose --profile core config --quiet
+          docker compose --profile agents config --quiet
           docker compose --profile staging config --quiet
+          docker compose --profile web-search config --quiet
       - name: Build master, agent, and sandbox images
         run: |
           docker build -t dadp-master:ci master

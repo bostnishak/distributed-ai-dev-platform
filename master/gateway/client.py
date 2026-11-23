@@ -167,9 +167,9 @@ def _gw_db_path() -> Path:
 
 
 def _gw_conn() -> sqlite3.Connection:
-    conn = sqlite3.connect(str(_gw_db_path()), timeout=10.0)
-    conn.row_factory = sqlite3.Row
-    return conn
+    import dbconn
+
+    return dbconn.open_db(_gw_db_path())
 
 
 def init_gateway_db() -> None:

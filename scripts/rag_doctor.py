@@ -9,8 +9,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "master"))
 
-from rag.api import diagnose_and_repair_rag  # noqa: E402
-from rag.store import default_rag_store  # noqa: E402
+from rag.api import diagnose_and_repair_rag
+from rag.store import default_rag_store
 
 
 def main() -> int:

@@ -1,19 +1,20 @@
-# Distributed AI Software Development Platform (runs on the master's computer)
+# Distributed AI Software Development Platform (CM6453)
+# Hardened Compose stack with profiles (OPS-06, SEC-19, SEC-24, ADR-0001):
 #
-#   docker compose up -d --build                      master + LiteLLM gateway + uye1's agent
-#   docker compose --profile staging up -d --build    also runs uye2..uye6 on this computer
-#
-# uye1 (İshak Bostan) really runs on this computer, so its agent is part of the normal stack.
-# The "staging" profile keeps the other five members' agents here until each member's own
-# computer is connected (see agent-node/README.md). Staging agents register with mode=staging,
-# so the UI never presents them as running on the members' machines.
+#   docker compose --profile core up -d --build          master only (in-process LLM gateway, no LiteLLM)
+#   docker compose --profile core --profile agents up -d master + uye1 node agent
+#   docker compose --profile staging up -d --build       master + staging agents uye2..uye6
+#   docker compose --profile web-search up -d            local SearXNG metasearch engine (ADR-0002)
+#   docker compose --profile sandbox build               builds isolated Python execution sandbox (ADR-0007)
+#   docker compose --profile gpu up -d                   local Ollama GPU service (optional)
 
 x-staging-agent: &staging-agent
   build: ./agent
   profiles: ["staging"]
   restart: unless-stopped
   depends_on:
-    - master
+    master:
+      condition: service_healthy
   extra_hosts:
     - "host.docker.internal:host-gateway"
 
@@ -24,49 +25,46 @@ x-staging-env: &staging-env
   AGENT_TOKEN: ${AGENT_TOKEN:?AGENT_TOKEN must be set in .env}
 
 services:
-  # Serves the Assistant tab until it moves onto the agent infrastructure (Sprint 3, PB-36/37).
-  litellm-gateway:
-    image: docker.litellm.ai/berriai/litellm:latest
-    container_name: litellm-gateway
-    restart: unless-stopped
-    ports:
-      - "127.0.0.1:4000:4000"
-    volumes:
-      - ./gateway/litellm_config.yaml:/app/config.yaml:ro
-    env_file:
-      - .env
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    command: ["--config", "/app/config.yaml"]
-
   master:
     build: ./master
     container_name: dadp-master
+    profiles: ["core", "agents", "staging", "web-search", "gpu"]
     restart: unless-stopped
     ports:
       - "127.0.0.1:8000:8000"
     environment:
-      GATEWAY_BASE_URL: http://litellm-gateway:4000
       OLLAMA_URL: http://host.docker.internal:11434
-      MASTER_MODEL: qwen3.5:4b
+      MASTER_MODEL: ${MASTER_MODEL:-qwen3.5:4b}
       DB_PATH: /data/platform.db
+      SEARXNG_URL: http://searxng:8080
+      CLOUD_PROVIDERS_ENABLED: "false"
     env_file:
       - .env
     volumes:
       - master-data:/data
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    depends_on:
-      - litellm-gateway
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
   agent-uye1:
     build: ./agent
     container_name: dadp-agent-uye1
+    profiles: ["agents", "staging"]
     restart: unless-stopped
     depends_on:
-      - master
+      master:
+        condition: service_healthy
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    security_opt:
+      - no-new-privileges:true
     environment:
       <<: *staging-env
       AGENT_MODE: node
@@ -119,5 +117,34 @@ services:
       MEMBER_NAME: Berfin Yiğit
       MODEL: qwen3:1.7b
 
+  searxng:
+    image: searxng/searxng:latest
+    container_name: dadp-searxng
+    profiles: ["web-search"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8888:8080"
+    environment:
+      SEARXNG_BASE_URL: http://127.0.0.1:8888/
+    security_opt:
+      - no-new-privileges:true
+
+  ollama-gpu:
+    image: ollama/ollama:latest
+    container_name: dadp-ollama-gpu
+    profiles: ["gpu"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+
+  sandbox-image:
+    build: ./docker/sandbox
+    image: platform-sandbox:latest
+    profiles: ["sandbox"]
+    command: ["python", "-c", "print('sandbox-ready')"]
+
 volumes:
   master-data:
+  ollama-models:

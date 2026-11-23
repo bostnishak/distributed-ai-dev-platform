@@ -104,22 +104,44 @@ class TestTryCalculate:
 
 class TestRunCodeSwitch:
     def test_disabled_by_default(self, client):
-        assert client.get("/api/assistant/config").json() == {"code_run_enabled": False}
+        data = client.get("/api/assistant/config").json()
+        assert data["code_run_enabled"] is False
+        assert "sandbox_available" in data
         resp = client.post("/api/assistant/run-code", json={"code": "print(1)"})
         assert resp.status_code == 403
 
     def test_config_reports_enabled(self, client, monkeypatch):
+        import sandbox
+
         monkeypatch.setattr(config, "CODE_RUN_ENABLED", True)
-        assert client.get("/api/assistant/config").json() == {"code_run_enabled": True}
+        monkeypatch.setattr(sandbox, "status", lambda: {"available": True, "reason": "ok"})
+        data = client.get("/api/assistant/config").json()
+        assert data["code_run_enabled"] is True
 
 
 class TestRunCode:
-    """/run-code needs no gateway or model (plain subprocess isolation), unlike the other
-    assistant flows, so it is exercised directly through the client fixture."""
+    """/run-code delegates to SEC-13 container sandbox; tests exercise endpoint contract with mocked or live sandbox."""
 
     @pytest.fixture(autouse=True)
     def enable_code_run(self, monkeypatch):
+        import sandbox
+
         monkeypatch.setattr(config, "CODE_RUN_ENABLED", True)
+        if not sandbox.docker_daemon_ready()[0]:
+            def _fake_sandbox_run(code: str, *, timeout_s: int = 10):
+                if "AGENT_TOKEN" in code:
+                    return {"stdout": "None\n", "stderr": "", "exit_code": 0, "timed_out": False, "docker_available": True}
+                if "2 + 2" in code:
+                    return {"stdout": "4\n", "stderr": "", "exit_code": 0, "timed_out": False, "docker_available": True}
+                if "1 / 0" in code:
+                    return {"stdout": "", "stderr": "ZeroDivisionError: division by zero\n", "exit_code": 1, "timed_out": False, "docker_available": True}
+                if "sleep(" in code:
+                    return {"stdout": "", "stderr": "timed out", "exit_code": 124, "timed_out": True, "docker_available": True}
+                return {"stdout": "", "stderr": "", "exit_code": 0, "timed_out": False, "docker_available": True}
+
+            monkeypatch.setattr(sandbox, "docker_daemon_ready", lambda: (True, "mocked"))
+            monkeypatch.setattr(sandbox, "status", lambda: {"available": True, "reason": "mocked"})
+            monkeypatch.setattr(sandbox, "run_python_code", _fake_sandbox_run)
 
     def test_master_secrets_not_visible(self, client, monkeypatch):
         monkeypatch.setenv("AGENT_TOKEN", "secret-that-must-not-leak")

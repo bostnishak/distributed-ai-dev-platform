@@ -19,14 +19,19 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel
 
 import config
+import db_doctor
 import dbconn
+import erd
 import error_tracker
 import events_log
 import features
 import logging_setup
 import maintenance
+import memory_maintenance
 import metrics
+import portability
 import readiness
+import search_index
 from access_control import require_local_or_admin
 
 log = logging.getLogger(__name__)
@@ -155,6 +160,30 @@ async def operational_events(
 @router.get("/api/admin/maintenance", dependencies=[Depends(require_local_or_admin)])
 async def maintenance_state():
     return maintenance.status()
+
+
+@router.get("/api/admin/db-doctor", dependencies=[Depends(require_local_or_admin)])
+async def admin_db_doctor():
+    findings = db_doctor.diagnose(Path(config.DB_PATH))
+    return {
+        "ok": not any(f.severity == "error" for f in findings),
+        "findings": [{"severity": f.severity, "check": f.check, "detail": f.detail} for f in findings],
+    }
+
+
+@router.get("/api/admin/erd", dependencies=[Depends(require_local_or_admin)])
+async def admin_erd():
+    with dbconn.connection(config.DB_PATH) as conn:
+        return PlainTextResponse(erd.render(conn), media_type="text/markdown; charset=utf-8")
+
+
+@router.get("/api/admin/data-services", dependencies=[Depends(require_local_or_admin)])
+async def admin_data_services(query: str = Query(default="")):
+    return {
+        "portability_format": portability.FORMAT,
+        "memory_consolidation_available": callable(memory_maintenance.consolidate),
+        "sample_tokens": search_index.tokens(query) if query else [],
+    }
 
 
 def install(app) -> None:

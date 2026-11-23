@@ -539,9 +539,9 @@ def _hal_db_path() -> Path:
 
 
 def _hal_conn() -> sqlite3.Connection:
-    c = sqlite3.connect(str(_hal_db_path()), timeout=10.0)
-    c.row_factory = sqlite3.Row
-    return c
+    import dbconn
+
+    return dbconn.open_db(_hal_db_path())
 
 
 def init_hallucination_db() -> None:

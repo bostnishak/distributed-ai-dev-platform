@@ -1,91 +1,52 @@
-# Katkıda Bulunma Rehberi
+# Katkıda Bulunma Rehberi (PROC-05)
 
-Bu rehber git/GitHub'a hiç aşina olmayanlar için yazıldı; adım adım takip edin.
+Bu rehber hem takım üyeleri hem de projede çalışan yapay zekâ kodlama araçları için ortak kuralları tanımlar.
 
 ## İlk kurulum (bir kere yapılır)
 
-1. [Git'i indirin](https://git-scm.com/downloads) (yoksa).
-2. GitHub'dan gelen **collaborator davetini** kabul edin (e-postanıza veya GitHub bildirimlerinize gelir).
-3. Repoyu bilgisayarınıza indirin (klonlayın):
+1. [Git](https://git-scm.com/downloads) ve Python 3.12 kurun.
+2. Repoyu klonlayın ve pre-commit kancalarını etkinleştirin:
    ```bash
    git clone https://github.com/bostnishak/distributed-ai-dev-platform.git
    cd distributed-ai-dev-platform
+   pip install pre-commit && pre-commit install
    ```
-4. Git'e kendinizi tanıtın (bir kere):
-   ```bash
-   git config --global user.name "Adınız Soyadınız"
-   git config --global user.email "github-hesabinizdaki-email@example.com"
+3. Yerel geliştirme ortamını tek komutla başlatın:
+   - Windows: `.\scripts\dev.ps1`
+   - Linux/macOS: `./scripts/dev.sh`
+
+Kendi bilgisayarınıza ajan kurmak için [agent-node/README.md](agent-node/README.md) rehberine bakın.
+
+## Değişiklik akışı
+
+**`main` branch'ine doğrudan commit atılmaz.** Her değişiklik kendi branch'inde (veya paralel araçlar için ayrı `git worktree` içinde) yapılır ve Pull Request (PR) ile birleştirilir.
+
+1. Güncel daldan yeni branch açın (`isminiz/PB-xx-kisa-aciklama`).
+2. Önce kabul kriterini doğrulayan testi yazın, sonra kodu uygulayın.
+3. PR açmadan önce tüm kapıları yerelde çalıştırın:
+   ```powershell
+   .\master\venv\Scripts\python.exe -m ruff check master agent scripts
+   .\master\venv\Scripts\python.exe -m pytest master/tests/ -q
+   .\master\venv\Scripts\python.exe -m pytest -m security master/tests/ -v
+   .\master\venv\Scripts\python.exe scripts/plan_tool.py check
+   .\master\venv\Scripts\python.exe scripts/plan_tool.py wiring --fail-on-new
    ```
+4. Commit mesajları İngilizce (Conventional Commits: `feat:`, `fix:`, `docs:`, `test:`, `chore:`) yazılır.
+5. PR şablonundaki **Definition of Done** ve **Kanıt** bölümlerini eksiksiz doldurun.
 
-Kendi bilgisayarınıza ajan kurmak için ayrıca [agent-node/README.md](agent-node/README.md)'ye bakın.
+## Yapay zekâ araçları için zorunlu kurallar
 
-## Değişiklik yapmak istediğinizde (her seferinde bu akış)
+Projede birden fazla yapay zekâ aracı (Antigravity, Claude vb.) katkı yapabilir. Her araç şu kurallara uymak zorundadır:
 
-**`main` branch'ine doğrudan değişiklik yapılamaz.** Herkes kendi branch'inde çalışır ve bir **Pull Request (PR)** açar. CI (otomatik kontrol) yeşil olunca ve bir takım arkadaşı onaylayınca PR `main`'e birleşir (merge).
+1. **Kanıtsız "tamam" yasağı:** Bir plan maddesi yalnızca kabul testi node ID'si + commit hash'i `docs/plan-v2/PROGRESS.json` içine yazıldığında ve `python scripts/plan_tool.py status` doğruladığında `done` sayılır. Plan dosyalarındaki `Durum: açık` satırı asla elle değiştirilmez.
+2. **Yer tutucu ve sessiz hata yasağı:** `TODO`, boş `pass` gövde, `except Exception: pass` veya eksik girdide uydurma varsayılan veri üretimi kesinlikle yasaktır.
+3. **Eş zamanlı çalışma izolasyonu:** Aynı çalışma ağacında birden fazla araç aynı dosyalara yazmamalıdır; ayrı dal / `git worktree` kullanılır ve başkasının çalışması geri alınmaz.
+4. **Sıfır sır, sıfır emoji, sıfır CDN:** Repoya `.env`, token veya anahtar yazılmaz; arayüzde/belgelerde emoji ve dış CDN kullanılmaz.
+5. **Mimari karar değişikliği:** `docs/adr/` altındaki bir karar (D1-D8) değişiyorsa yeni bir ADR eklenir.
 
-1. **Güncel `main`'i çekin:**
-   ```bash
-   git checkout main
-   git pull
-   ```
-2. **Trello'da üzerinde çalışacağınız kartı** "Yapılıyor" listesine taşıyın ve kartın ID'sini not edin (ör. `PB-24`).
-3. **Kendinize yeni bir branch açın.** İsim `isminiz/kart-id-kisa-aciklama` biçiminde olsun:
-   ```bash
-   git checkout -b duru/PB-22-yetenek-degerlendirme
-   ```
-4. **Değişikliklerinizi yapın** ve bilgisayarınızda test edin (aşağıdaki "Testler").
-5. **Değişiklikleri kaydedin (commit).** Commit mesajları İngilizce yazılır:
-   ```bash
-   git add .
-   git commit -m "Add capability evaluation runner"
-   ```
-6. **Branch'inizi GitHub'a gönderin (push):**
-   ```bash
-   git push -u origin duru/PB-22-yetenek-degerlendirme
-   ```
-7. **Pull Request açın.** Push sonrası terminalde çıkan linke tıklayın ya da GitHub'da "Compare & pull request" butonuna basın.
-   - Başlık kart ID'siyle başlasın: `PB-22: Capability evaluation runner`.
-   - Açıklamada ne yaptığınızı ve nasıl test ettiğinizi yazın.
-8. **Review isteyin:** PR sayfasında sağdaki "Reviewers" kısmından bir takım arkadaşınızı seçin.
-9. Trello kartını "İnceleme / Test" listesine taşıyın ve kartta PR linkini paylaşın.
-10. Onay gelince PR'ı birleştirin ve kartı "Bitti"ye taşıyın.
+## İnceleme (Review) kontrol listesi
 
-## Review yaparken
-
-- Kod anlaşılır mı? Test var mı? CI yeşil mi?
-- [Definition of Done](docs/scrum/definition-of-done.md) maddeleri sağlanıyor mu?
-- Gerekirse değişiklik isteyin ("Request changes"). Uygunsa "Approve" deyin.
-
-## Yazım kuralları
-
-- **Arayüz metinleri Türkçe**, **kod yorumları İngilizce**, **commit mesajları İngilizce**.
-- Hocaya giden dokümanlar (README, `docs/` altı) İngilizce. Takım rehberleri (bu dosya, `agent-node/README.md`) Türkçe.
-
-## Testler
-
-Kod değiştirdiyseniz PR açmadan önce çalıştırın (Windows; macOS/Linux'ta `.venv/bin/...`):
-
-```bash
-cd master
-python -m venv .venv
-.venv\Scripts\pip install -r requirements-dev.txt
-.venv\Scripts\python -m pytest tests/ -v
-.venv\Scripts\python -m ruff check .
-```
-
-`agent` klasörü için de aynısı geçerli.
-
-## Sık karşılaşılan durumlar
-
-- **"Merge conflict" hatası aldım:** Panik yapmayın, ekipten yardım isteyin. Genelde aynı dosyanın aynı satırını iki kişi değiştirince olur.
-- **Yanlış branch'te çalıştım:** `git status` ile hangi branch'te olduğunuzu görün. `git checkout main` ile ana branch'e dönebilirsiniz.
-- **`.env` dosyalarını asla commit etmeyin.** İçlerinde gizli anahtarlar (`AGENT_TOKEN` vb.) var. `.gitignore` bunları engelliyor, yine de `git status` çıktısında `.env` görmediğinizden emin olun.
-
-## CI (otomatik kontrol)
-
-Her PR'da GitHub Actions şunları çalıştırır:
-
-- `master` ve `agent` için lint (ruff) ve birim testleri (pytest)
-- Docker imajlarının derlenmesi
-
-Kırmızı (başarısız) çıkarsa PR birleştirilemez. Hata mesajı GitHub'da PR'ın "Checks" sekmesinde görünür.
+- **Yetki ve güvenlik:** Yeni değiştirici endpoint `SEC-22` matrisinden geçiyor mu? Kullanıcı izolasyonu (`owner_id`) korunuyor mu?
+- **Halüsinasyon ve doğrulama:** İddialar kaynaklı mı, eksik girdide dürüstçe reddediyor mu, eval gerilemesi var mı?
+- **Bağlantı ve test:** Yeni modüller canlı uygulamaya bağlı mı (`plan_tool.py wiring`), testler gerçek LLM/ağ olmadan geçiyor mu?
+- **Belgeler:** [Definition of Done](docs/scrum/definition-of-done.md) maddelerinin tümü karşılandı mı?

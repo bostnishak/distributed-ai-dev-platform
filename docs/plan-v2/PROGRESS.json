@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-23T17:08:04+00:00",
+ "generated_at": "2026-11-23T18:35:36+00:00",
  "items": {
   "DEF-01": {
    "status": "open",
@@ -194,2538 +194,3211 @@
    }
   },
   "SEC-01": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_access_control.py",
+     "master/tests/test_security_matrix.py"
+    ],
+    "commit": "fd32d3e",
     "eval_report": ""
    }
   },
   "SEC-02": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_access_control.py",
+     "master/tests/test_security_matrix.py"
+    ],
+    "commit": "fd32d3e",
     "eval_report": ""
    }
   },
   "SEC-03": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_access_control.py",
+     "master/tests/test_security_matrix.py"
+    ],
+    "commit": "fd32d3e",
     "eval_report": ""
    }
   },
   "SEC-04": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_access_control.py",
+     "master/tests/test_security_matrix.py"
+    ],
+    "commit": "fd32d3e",
     "eval_report": ""
    }
   },
   "SEC-05": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_access_control.py",
+     "master/tests/test_security_matrix.py"
+    ],
+    "commit": "fd32d3e",
     "eval_report": ""
    }
   },
   "SEC-06": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_access_control.py",
+     "master/tests/test_security_matrix.py"
+    ],
+    "commit": "fd32d3e",
     "eval_report": ""
    }
   },
   "SEC-07": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_access_control.py",
+     "master/tests/test_security_matrix.py"
+    ],
+    "commit": "fd32d3e",
     "eval_report": ""
    }
   },
   "SEC-08": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_access_control.py",
+     "master/tests/test_security_matrix.py"
+    ],
+    "commit": "fd32d3e",
     "eval_report": ""
    }
   },
   "SEC-09": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_access_control.py",
+     "master/tests/test_security_matrix.py"
+    ],
+    "commit": "fd32d3e",
     "eval_report": ""
    }
   },
   "SEC-10": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_access_control.py",
+     "master/tests/test_security_matrix.py"
+    ],
+    "commit": "fd32d3e",
     "eval_report": ""
    }
   },
   "SEC-11": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_security_matrix.py",
+     "master/tests/test_access_control.py"
+    ],
+    "commit": "fe349f3",
     "eval_report": ""
    }
   },
   "SEC-12": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_security_matrix.py",
+     "master/tests/test_access_control.py"
+    ],
+    "commit": "fe349f3",
     "eval_report": ""
    }
   },
   "SEC-13": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_security_matrix.py",
+     "master/tests/test_access_control.py"
+    ],
+    "commit": "fe349f3",
     "eval_report": ""
    }
   },
   "SEC-14": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_security_matrix.py",
+     "master/tests/test_access_control.py"
+    ],
+    "commit": "fe349f3",
     "eval_report": ""
    }
   },
   "SEC-15": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_security_matrix.py",
+     "master/tests/test_access_control.py"
+    ],
+    "commit": "fe349f3",
     "eval_report": ""
    }
   },
   "SEC-16": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_security_matrix.py",
+     "master/tests/test_access_control.py"
+    ],
+    "commit": "fe349f3",
     "eval_report": ""
    }
   },
   "SEC-17": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_security_matrix.py",
+     "master/tests/test_access_control.py"
+    ],
+    "commit": "fe349f3",
     "eval_report": ""
    }
   },
   "SEC-18": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_security_matrix.py",
+     "master/tests/test_access_control.py"
+    ],
+    "commit": "fe349f3",
     "eval_report": ""
    }
   },
   "SEC-19": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_security_matrix.py",
+     "master/tests/test_access_control.py"
+    ],
+    "commit": "fe349f3",
     "eval_report": ""
    }
   },
   "SEC-20": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_security_matrix.py",
+     "master/tests/test_access_control.py"
+    ],
+    "commit": "fe349f3",
     "eval_report": ""
    }
   },
   "SEC-21": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_security_matrix.py",
+     "master/tests/test_access_control.py"
+    ],
+    "commit": "fe349f3",
     "eval_report": ""
    }
   },
   "SEC-22": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_security_matrix.py",
+     "master/tests/test_access_control.py"
+    ],
+    "commit": "fe349f3",
     "eval_report": ""
    }
   },
   "SEC-23": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_security_matrix.py",
+     "master/tests/test_access_control.py"
+    ],
+    "commit": "fe349f3",
     "eval_report": ""
    }
   },
   "SEC-24": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_security_matrix.py",
+     "master/tests/test_access_control.py"
+    ],
+    "commit": "fe349f3",
     "eval_report": ""
    }
   },
   "GW-01": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "GW-02": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "GW-03": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "GW-04": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "GW-05": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "GW-06": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "GW-07": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "GW-08": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "GW-09": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "GW-10": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "GW-11": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "GW-12": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "GW-13": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "GW-14": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "GW-15": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "GW-16": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "GW-17": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "GW-18": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "GW-19": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "GW-20": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "ORC-01": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "ORC-02": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "ORC-03": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "ORC-04": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "ORC-05": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "ORC-06": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "ORC-07": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "ORC-08": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "ORC-09": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "ORC-10": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "ORC-11": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "ORC-12": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "ORC-13": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "ORC-14": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "ORC-15": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "ORC-16": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "ORC-17": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "ORC-18": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "ORC-19": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "ORC-20": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "ORC-21": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "ORC-22": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "ORC-23": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "ORC-24": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "MODE-01": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "MODE-02": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "MODE-03": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "MODE-04": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "MODE-05": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "MODE-06": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "MODE-07": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "MODE-08": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_gateway_orchestrator_modes.py"
+    ],
+    "commit": "839c4da",
     "eval_report": ""
    }
   },
   "RAG-01": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-02": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-03": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-04": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-05": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-06": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-07": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-08": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-09": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-10": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-11": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-12": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-13": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-14": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-15": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-16": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-17": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-18": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-19": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-20": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-21": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-22": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-23": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-24": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-25": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-26": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-27": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-28": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-29": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RAG-30": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "HAL-01": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-02": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-03": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-04": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-05": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-06": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-07": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-08": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-09": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-10": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-11": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-12": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-13": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-14": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-15": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-16": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-17": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-18": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-19": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-20": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-21": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-22": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-23": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-24": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-25": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-26": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-27": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-28": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-29": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "HAL-30": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
-    "eval_report": ""
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
+    "eval_report": "eval/reports/baseline.json"
    }
   },
   "ML-01": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "ML-02": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "ML-03": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "ML-04": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "ML-05": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "ML-06": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "ML-07": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "ML-08": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "ML-09": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "ML-10": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "ML-11": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "ML-12": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "ML-13": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "ML-14": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_rag_hallucination_ml.py"
+    ],
+    "commit": "6e838fc",
     "eval_report": ""
    }
   },
   "RES-01": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "RES-02": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "RES-03": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "RES-04": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "RES-05": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "RES-06": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "RES-07": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "RES-08": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "RES-09": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "RES-10": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "RES-11": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "RES-12": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "PPT-01": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "PPT-02": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "PPT-03": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "PPT-04": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "PPT-05": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "PPT-06": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "PPT-07": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "PPT-08": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "PPT-09": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "PPT-10": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "DOC-01": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "DOC-02": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "DOC-03": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "DOC-04": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "DOC-05": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "DOC-06": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "DOC-07": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "DOC-08": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "DOC-09": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "DOC-10": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "DS-01": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "DS-02": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "DS-03": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "DS-04": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "DS-05": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "DS-06": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "DS-07": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "DS-08": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "DS-09": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "DS-10": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "MM-01": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "MM-02": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "MM-03": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "MM-04": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "MM-05": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "MM-06": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "MM-07": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "MM-08": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "MM-09": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "MM-10": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "MM-11": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "MM-12": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "MM-13": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "MM-14": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_studios_parca4.py"
+    ],
+    "commit": "50c03e8",
     "eval_report": ""
    }
   },
   "IDE-01": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "IDE-02": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "IDE-03": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "IDE-04": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "IDE-05": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "IDE-06": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "IDE-07": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "IDE-08": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "IDE-09": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "IDE-10": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "IDE-11": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "IDE-12": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "IDE-13": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "IDE-14": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "IDE-15": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "IDE-16": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "IDE-17": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "IDE-18": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "IDE-19": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "IDE-20": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "IDE-21": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "IDE-22": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "IDE-23": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "IDE-24": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "GAME-01": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "GAME-02": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "GAME-03": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "GAME-04": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "GAME-05": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "GAME-06": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "GAME-07": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "GAME-08": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "GAME-09": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "GAME-10": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "DOM-01": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "DOM-02": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "DOM-03": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "DOM-04": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "DOM-05": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "DOM-06": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "DOM-07": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "DOM-08": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "DOM-09": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "DOM-10": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "DOM-11": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "DOM-12": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_factory_games_domains.py"
+    ],
+    "commit": "8ddddb9",
     "eval_report": ""
    }
   },
   "DIST-01": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "DIST-02": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "DIST-03": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "DIST-04": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "DIST-05": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "DIST-06": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "DIST-07": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "DIST-08": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "DIST-09": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "DIST-10": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "DIST-11": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "DIST-12": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "DIST-13": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "DIST-14": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "DIST-15": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "DIST-16": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "DIST-17": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "DIST-18": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "DIST-19": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "DIST-20": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "DIST-21": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "DIST-22": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-01": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-02": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-03": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-04": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-05": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-06": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-07": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-08": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-09": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-10": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-11": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-12": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-13": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-14": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-15": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-16": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-17": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-18": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-19": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-20": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-21": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-22": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-23": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-24": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-25": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-26": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-27": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "UX-28": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_distributed_and_ux.py"
+    ],
+    "commit": "d87a69b",
     "eval_report": ""
    }
   },
   "DAT-01": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_data_layer.py",
+     "master/tests/test_data_services.py"
+    ],
+    "commit": "bb0ba53",
     "eval_report": ""
    }
   },
   "DAT-02": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_data_layer.py",
+     "master/tests/test_data_services.py"
+    ],
+    "commit": "bb0ba53",
     "eval_report": ""
    }
   },
   "DAT-03": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_data_layer.py",
+     "master/tests/test_data_services.py"
+    ],
+    "commit": "bb0ba53",
     "eval_report": ""
    }
   },
   "DAT-04": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_data_layer.py",
+     "master/tests/test_data_services.py"
+    ],
+    "commit": "bb0ba53",
     "eval_report": ""
    }
   },
   "DAT-05": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_data_layer.py",
+     "master/tests/test_data_services.py"
+    ],
+    "commit": "bb0ba53",
     "eval_report": ""
    }
   },
   "DAT-06": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_data_layer.py",
+     "master/tests/test_data_services.py"
+    ],
+    "commit": "bb0ba53",
     "eval_report": ""
    }
   },
   "DAT-07": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_data_layer.py",
+     "master/tests/test_data_services.py"
+    ],
+    "commit": "bb0ba53",
     "eval_report": ""
    }
   },
   "DAT-08": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_data_layer.py",
+     "master/tests/test_data_services.py"
+    ],
+    "commit": "bb0ba53",
     "eval_report": ""
    }
   },
   "DAT-09": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_data_layer.py",
+     "master/tests/test_data_services.py"
+    ],
+    "commit": "bb0ba53",
     "eval_report": ""
    }
   },
   "DAT-10": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_data_layer.py",
+     "master/tests/test_data_services.py"
+    ],
+    "commit": "bb0ba53",
     "eval_report": ""
    }
   },
   "DAT-11": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_data_layer.py",
+     "master/tests/test_data_services.py"
+    ],
+    "commit": "bb0ba53",
     "eval_report": ""
    }
   },
   "DAT-12": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_data_layer.py",
+     "master/tests/test_data_services.py"
+    ],
+    "commit": "bb0ba53",
     "eval_report": ""
    }
   },
   "DAT-13": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_data_layer.py",
+     "master/tests/test_data_services.py"
+    ],
+    "commit": "bb0ba53",
     "eval_report": ""
    }
   },
   "DAT-14": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_data_layer.py",
+     "master/tests/test_data_services.py"
+    ],
+    "commit": "bb0ba53",
     "eval_report": ""
    }
   },
   "DAT-15": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_data_layer.py",
+     "master/tests/test_data_services.py"
+    ],
+    "commit": "bb0ba53",
     "eval_report": ""
    }
   },
@@ -2738,274 +3411,342 @@
    }
   },
   "OPS-01": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops.py"
+    ],
+    "commit": "7417c6d",
     "eval_report": ""
    }
   },
   "OPS-02": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops.py"
+    ],
+    "commit": "7417c6d",
     "eval_report": ""
    }
   },
   "OPS-03": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops.py"
+    ],
+    "commit": "7417c6d",
     "eval_report": ""
    }
   },
   "OPS-04": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   },
   "OPS-05": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   },
   "OPS-06": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   },
   "OPS-07": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   },
   "OPS-08": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   },
   "OPS-09": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   },
   "OPS-10": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   },
   "OPS-11": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops.py"
+    ],
+    "commit": "7417c6d",
     "eval_report": ""
    }
   },
   "OPS-12": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   },
   "OPS-13": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   },
   "OPS-14": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   },
   "OPS-15": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   },
   "OPS-16": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   },
   "OPS-17": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   },
   "OPS-18": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops.py"
+    ],
+    "commit": "7417c6d",
     "eval_report": ""
    }
   },
   "OPS-19": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops.py"
+    ],
+    "commit": "7417c6d",
     "eval_report": ""
    }
   },
   "OPS-20": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   },
   "OPS-21": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   },
   "OPS-22": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   },
   "OPS-23": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   },
   "OPS-24": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   },
   "PROC-01": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   },
   "PROC-02": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   },
   "PROC-03": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   },
   "PROC-04": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   },
   "PROC-05": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   },
   "PROC-06": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   },
   "PROC-07": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   },
   "PROC-08": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   },
   "PROC-09": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   },
   "PROC-10": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_ops_and_proc_parca7.py"
+    ],
+    "commit": "a79a08a",
     "eval_report": ""
    }
   }

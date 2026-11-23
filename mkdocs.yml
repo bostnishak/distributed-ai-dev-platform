@@ -1,0 +1,42 @@
+site_name: Distributed AI Software Development Platform (CM6453)
+site_description: Güvenilir, Dağıtık, Evrensel Yapay Zekâ Platformu Belgelendirmesi
+docs_dir: docs
+use_directory_urls: false
+nav:
+  - Giriş:
+      - Mimari Genel Bakış: architecture.md
+      - Kullanıcı Kılavuzu: user-guide.md
+      - SRS Gereksinimler: SRS.md
+  - Master Plan v2:
+      - Plan Özeti: plan-v2/README.md
+      - Yol Haritası ve Riskler: plan-v2/08-yol-haritasi-riskler.md
+      - Veri Modeli (ERD): plan-v2/erd.md
+      - Halüsinasyon Taksonomisi: plan-v2/halusinasyon-taksonomisi.md
+      - Halüsinasyon Mimarisi: plan-v2/halusinasyon-mimarisi.md
+      - Prompt Deneyleri: plan-v2/prompt-deneyleri.md
+      - İnce Ayar Sınırları: plan-v2/ince-ayar-sinirlari.md
+      - Model Lisansları ve Etik: plan-v2/model-licenses-ethics.md
+  - Mimari Kararlar (ADR):
+      - D1 Bulut Sağlayıcıları: adr/0001-cloud-providers.md
+      - D2 Web Arama Sağlayıcısı: adr/0002-web-search.md
+      - D3 Kimlik ve Oturum: adr/0003-auth-strategy.md
+      - D4 Frontend Mimarisi: adr/0004-frontend-toolchain.md
+      - D5 Vektör Deposu: adr/0005-vector-store.md
+      - D6 Gömme Modeli: adr/0006-embedding-model.md
+      - D7 Kod Sandbox: adr/0007-code-sandbox.md
+      - D8 Veritabanı Stratejisi: adr/0008-database-strategy.md
+  - Çalıştırma Kılavuzları (Runbooks):
+      - Dizin: runbooks/README.md
+      - Ollama Çöktü: runbooks/ollama-down.md
+      - Model Eksik: runbooks/model-missing.md
+      - Veritabanı Kilitli: runbooks/database-locked.md
+      - Disk Doldu: runbooks/disk-full.md
+      - Tailscale Bağlantı Sorunu: runbooks/tailscale-connectivity.md
+  - Güvenlik:
+      - Tehdit Modeli: security/threat-model.md
+      - Ağ ve Güvenlik Duvarı: security/network-firewall.md
+  - Scrum ve Teslim:
+      - Gereksinim İzlenebilirlik Matrisi: scrum/traceability.md
+      - Definition of Done: scrum/definition-of-done.md
+      - Canlı Demo Senaryosu: scrum/demo-script.md
+      - Akademik Rapor Şablonu: scrum/academic-report-template.md

@@ -136,9 +136,9 @@ class RAGStore:
         self._init_db()
 
     def _conn(self) -> sqlite3.Connection:
-        c = sqlite3.connect(str(self.db_path), timeout=10.0)
-        c.row_factory = sqlite3.Row
-        return c
+        import dbconn
+
+        return dbconn.open_db(self.db_path)
 
     def _init_db(self) -> None:
         with self._conn() as conn:

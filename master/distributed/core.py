@@ -59,9 +59,9 @@ def _dist_db_path() -> Path:
 
 
 def _conn(db_path: Path | None = None) -> sqlite3.Connection:
-    c = sqlite3.connect(str(db_path or _dist_db_path()), timeout=10.0)
-    c.row_factory = sqlite3.Row
-    return c
+    import dbconn
+
+    return dbconn.open_db(db_path or _dist_db_path())
 
 
 def init_distributed_db(db_path: Path | None = None) -> None:

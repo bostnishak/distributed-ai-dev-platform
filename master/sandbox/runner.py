@@ -40,8 +40,22 @@ def _docker_available() -> bool:
     return shutil.which("docker") is not None
 
 
+def _sandbox_image_present() -> bool:
+    try:
+        proc = subprocess.run(
+            ["docker", "image", "inspect", SANDBOX_IMAGE],
+            capture_output=True,
+            text=True,
+            timeout=4,
+            check=False,
+        )
+        return proc.returncode == 0
+    except Exception:
+        return False
+
+
 def docker_daemon_ready() -> tuple[bool, str]:
-    """Check whether Docker CLI exists AND the Docker daemon is responsive."""
+    """Check whether Docker CLI exists, daemon is responsive, AND platform-sandbox image is built."""
     if not _docker_available():
         return False, "Docker kurulu değil — güvenli konteyner sandbox kapalı."
     try:
@@ -53,6 +67,8 @@ def docker_daemon_ready() -> tuple[bool, str]:
             check=False,
         )
         if proc.returncode == 0 and proc.stdout.strip():
+            if not _sandbox_image_present():
+                return False, f"Docker {proc.stdout.strip()} aktif ancak `{SANDBOX_IMAGE}` imajı derlenmedi (`docker build -t {SANDBOX_IMAGE} docker/sandbox`)."
             return True, f"Docker {proc.stdout.strip()} aktif"
         return False, "Docker daemon çalışmıyor — güvenli konteyner sandbox kapalı."
     except Exception as exc:
