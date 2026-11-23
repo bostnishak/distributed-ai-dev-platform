@@ -1,0 +1,16 @@
+{
+  "config_name": "broken_test",
+  "judge_version": "2.0.0",
+  "dataset_hash": "547bc7a76c1fa71e",
+  "total_examples": 50,
+  "overall_score": 0.0,
+  "category_scores": {
+    "answerable_factual": 0.0,
+    "unanswerable": 0.0
+  },
+  "hallucination_rates": {
+    "fabricated_fact": 0.9,
+    "overconfidence": 0.1
+  },
+  "timestamp": "2026-11-23T17:43:34.845723+00:00"
+}
