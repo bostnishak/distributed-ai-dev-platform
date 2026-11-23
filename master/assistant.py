@@ -850,6 +850,72 @@ async def chat_stream(
     return resp
 
 
+def _is_prompt_conversion_request(prompt: str) -> bool:
+    """Detect when the user wants to convert the current (or another) chat into a reusable master prompt."""
+    low = (prompt or "").lower()
+    has_prompt_word = any(k in low for k in ("prompt", "istem"))
+    if not has_prompt_word:
+        return False
+    conv_verbs = (
+        "haline çevir",
+        "haline cevir",
+        "haline getir",
+        "prompt yap",
+        "prompta çevir",
+        "prompta cevir",
+        "prompta dönüştür",
+        "prompta donustur",
+        "prompt olarak",
+        "prompt oluştur",
+        "prompt olustur",
+        "master prompt",
+        "tek prompt",
+        "başka yerde kullan",
+        "baska yerde kullan",
+        "turn this chat",
+        "convert this chat",
+        "convert conversation",
+    )
+    chat_refs = (
+        "sohbet",
+        "chat",
+        "geçmiş",
+        "gecmis",
+        "konuşma",
+        "konusma",
+        "baştan sona",
+        "bastan sona",
+        "başka yerde",
+        "baska yerde",
+        "master prompt",
+        "tek prompt",
+        "prompt haline",
+        "prompta çevir",
+        "prompta cevir",
+        "prompta dönüştür",
+        "prompta donustur",
+        "this chat",
+        "conversation",
+    )
+    return any(v in low for v in conv_verbs) and any(r in low for r in chat_refs)
+
+
+PROMPT_CONVERSION_SYSTEM_INSTRUCTION = (
+    "--- SOHBETI MASTER PROMPTA DONUSTURME GOREVI ---\n"
+    "Kullanici bu sohbet gecmisinin tamamini (veya belirttigi baska bir sohbeti) baska yapay zeka "
+    "araclarinda bastan sona kullanabilecegi tek, eksiksiz ve kopyalanabilir bir Master Prompt haline "
+    "cevirmeni istiyor.\n"
+    "KURALLAR:\n"
+    "1. Sohbetteki tum amaclari, kullanici tercihlerini, teknik/icerik kararlarini, kisitlamalari, "
+    "ornekleri ve simdiye kadar uretilen ciktilari eksiksiz ozetle; hicbir onemli detayi atlama.\n"
+    "2. Ciktiyi dogrudan kopyalanip baska bir modele yapistirilabilecek tek bir ```text ... ``` kod "
+    "blogu icinde ver.\n"
+    "3. Master Prompt su bolumleri icersin: [ROL VE UZMANLIK], [BAGLAM VE AMAC], "
+    "[GEREKSINIMLER VE KISITLAMALAR], [SIMDIYE KADAR YAPILANLAR / KARARLAR], [BEKLENEN CIKTI VE SONRAKI ADIM].\n"
+    "4. Kod blogunun altina en fazla 2 cumlelik kisa bir kullanim notu ekle. Emoji kullanma."
+)
+
+
 async def _chat_stream_impl(
     prompt: str,
     file: UploadFile | None,
@@ -858,6 +924,7 @@ async def _chat_stream_impl(
     conversation_id: str,
 ):
     has_file = bool(file is not None and file.filename)
+    is_prompt_conv = (not has_file) and _is_prompt_conversion_request(prompt)
 
     if _is_3d_cad_request(file):
         report_md = await _run_3d_cad_cam_from_chat(file, prompt)  # type: ignore[arg-type]
@@ -911,6 +978,7 @@ async def _chat_stream_impl(
     # PowerPoint (.pptx) Presentation & Deep Research Synthesizer ([M10]/[M11])
     if (
         not has_file
+        and not is_prompt_conv
         and any(k in lower_p for k in ("sunum", "slayt", "pptx", "powerpoint"))
         and any(a in lower_p for a in ("yap", "oluştur", "olustur", "hazırla", "hazirla", "üret", "uret"))
     ):
@@ -1050,7 +1118,7 @@ async def _chat_stream_impl(
     import document_factory as df
     import multimodal_studio as mms
 
-    if mms.is_image_generation_request(prompt, has_file):
+    if not is_prompt_conv and mms.is_image_generation_request(prompt, has_file):
         async def _img_gen():
             try:
                 res = await mms.generate_ai_image(prompt)
@@ -1070,7 +1138,7 @@ async def _chat_stream_impl(
         return StreamingResponse(_img_gen(), media_type="text/event-stream")
 
     # Universal Office & PDF Document Deliverable Factory (.xlsx, .docx, .pdf)
-    doc_fmt = df.detect_document_request(prompt, has_file)
+    doc_fmt = None if is_prompt_conv else df.detect_document_request(prompt, has_file)
     if doc_fmt:
         async def _doc_gen():
             try:
@@ -1097,7 +1165,7 @@ async def _chat_stream_impl(
 
         return StreamingResponse(_doc_gen(), media_type="text/event-stream")
 
-    if _is_project_build_request(prompt, file):
+    if not is_prompt_conv and _is_project_build_request(prompt, file):
         import workspace_builder as wb
 
         detected_type, wants_exe = _detect_project_type(prompt)
@@ -1192,21 +1260,25 @@ async def _chat_stream_impl(
     if user_settings.get("auto_learn_facts"):
         mem.extract_and_upsert_memories(prompt, user_id=user_id)
     extra_blocks.append(mem.build_memory_context_block(prompt, user_id=user_id))
-    if user_settings.get("cross_chat_memory"):
+    if user_settings.get("cross_chat_memory", True):
         extra_blocks.append(up.cross_chat_context_block(user_id, prompt, exclude_conversation=conversation_id))
+    if is_prompt_conv:
+        extra_blocks.append(PROMPT_CONVERSION_SYSTEM_INSTRUCTION)
     mem_ctx = "\n\n".join(b for b in extra_blocks if b)
     if mem_ctx and messages and messages[0]["role"] == "system":
         messages[0]["content"] = f"{messages[0]['content']}\n\n{mem_ctx}"
 
+    hist_window = 40 if is_prompt_conv else 16
     try:
         hist_items = json.loads(history) if history else []
         if isinstance(hist_items, list):
-            for h_msg in hist_items[-10:]:
+            for h_msg in hist_items[-hist_window:]:
                 if isinstance(h_msg, dict) and h_msg.get("role") in ("user", "assistant") and h_msg.get("text"):
                     messages.append({"role": h_msg["role"], "content": str(h_msg["text"])[:3000]})
     except Exception:
         pass
-    messages = mem.compact_conversation_context(messages)
+    if not is_prompt_conv:
+        messages = mem.compact_conversation_context(messages)
 
     # If an image was processed/edited or a deterministic file inspection ran, prepend it before LLM analysis
     pre_note = ""

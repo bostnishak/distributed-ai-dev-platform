@@ -862,6 +862,8 @@ let started = false;
 let currentChatId = null;
 let currentMessages = []; // {role: 'user'|'assistant', text, modelBadge?, fileName?}
 let pendingDeleteId = null;
+const activeStreams = new Map(); // chatId -> stream state for concurrent background chats
+const unreadCompletedChats = new Set(); // chatIds that finished in background while viewing another chat
 
 function loadChats() {
   try {
@@ -877,28 +879,39 @@ function saveChats(chats) {
   } catch { /* storage may be full or unavailable; history is a convenience only */ }
 }
 
-function persistCurrentChat() {
-  if (!currentChatId || currentMessages.length === 0) return;
+function persistChatById(chatId, messages) {
+  if (!chatId || !Array.isArray(messages) || messages.length === 0) return;
   const chats = loadChats();
-  const firstUserMsg = currentMessages.find((m) => m.role === 'user');
-  const title = firstUserMsg ? firstUserMsg.text.slice(0, 40) : 'Yeni sohbet';
+  const firstUserMsg = messages.find((m) => m.role === 'user');
+  const title = firstUserMsg ? firstUserMsg.text.slice(0, 42) : 'Yeni sohbet';
   const updatedAt = Date.now();
-  const record = { title, updatedAt, messages: currentMessages };
-  chats[currentChatId] = record;
+  const record = { title, updatedAt, messages: messages.slice() };
+  chats[chatId] = record;
   saveChats(chats);
-  try { localStorage.setItem(LAST_CHAT_KEY, currentChatId); } catch { /* ignore */ }
+  if (chatId === currentChatId) {
+    try { localStorage.setItem(LAST_CHAT_KEY, chatId); } catch { /* ignore */ }
+  }
   renderChatList();
   // Persist to local SQLite server disk so chats never disappear across restarts or browsers
   const uid = getActiveUserId();
-  const cid = currentChatId;
-  fetch(`/api/user/${encodeURIComponent(uid)}/chats/${encodeURIComponent(cid)}`, {
+  fetch(`/api/user/${encodeURIComponent(uid)}/chats/${encodeURIComponent(chatId)}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(record),
   }).catch(() => { /* offline fallback already in localStorage */ });
 }
 
+function persistCurrentChat() {
+  persistChatById(currentChatId, currentMessages);
+}
+
 function deleteChat(id) {
+  const running = activeStreams.get(id);
+  if (running) {
+    running.controller.abort();
+    activeStreams.delete(id);
+  }
+  unreadCompletedChats.delete(id);
   const chats = loadChats();
   delete chats[id];
   saveChats(chats);
@@ -984,7 +997,19 @@ function renderChatList() {
       no.addEventListener('click', (e) => { e.stopPropagation(); pendingDeleteId = null; renderChatList(); });
       item.appendChild(no);
     } else {
+      if (activeStreams.has(id)) {
+        const busy = document.createElement('span');
+        busy.className = 'sp-chat-busy';
+        busy.title = 'Arka planda yanıt üretiliyor';
+        item.appendChild(busy);
+      } else if (unreadCompletedChats.has(id)) {
+        const dot = document.createElement('span');
+        dot.className = 'sp-chat-unread';
+        dot.title = 'Yanıt hazır';
+        item.appendChild(dot);
+      }
       const titleSpan = document.createElement('span');
+      titleSpan.className = 'sp-chat-title';
       titleSpan.textContent = chat.title || 'Sohbet';
       item.appendChild(titleSpan);
 
@@ -1005,12 +1030,26 @@ function renderChatList() {
   }
 }
 
+function syncSendBtnState() {
+  if (!els || !els.sendBtn) return;
+  if (activeStreams.has(currentChatId)) {
+    els.sendBtn.textContent = '■';
+    els.sendBtn.title = 'Bu sohbetin yanıtını durdur';
+    els.sendBtn.classList.add('ready');
+  } else {
+    els.sendBtn.textContent = '↑';
+    els.sendBtn.title = 'Gönder';
+    els.sendBtn.classList.toggle('ready', els.promptInput.value.trim().length > 0);
+  }
+}
+
 function openChat(id) {
   const chat = loadChats()[id];
   if (!chat) return;
   currentChatId = id;
+  unreadCompletedChats.delete(id);
   try { localStorage.setItem(LAST_CHAT_KEY, id); } catch { /* ignore */ }
-  currentMessages = chat.messages.slice();
+  currentMessages = (chat.messages || []).slice();
   els.messages.innerHTML = '';
   ensureStarted();
   for (const m of currentMessages) {
@@ -1022,6 +1061,13 @@ function openChat(id) {
       }
     }
   }
+  // If this chat is still streaming in the background, re-attach its live bubble seamlessly
+  const live = activeStreams.get(id);
+  if (live && live.row) {
+    els.messages.appendChild(live.row);
+    els.messages.scrollTop = els.messages.scrollHeight;
+  }
+  syncSendBtnState();
   renderChatList();
   closeSidebar();
 }
@@ -1036,12 +1082,13 @@ function startNewChat(clearLastActive = false) {
   els.messages.classList.remove('active');
   els.centerStage.style.display = 'flex';
   started = false;
+  syncSendBtnState();
   renderChatList();
   closeSidebar();
 }
 
 function updateSendState() {
-  els.sendBtn.classList.toggle('ready', els.promptInput.value.trim().length > 0);
+  syncSendBtnState();
 }
 
 function ensureStarted() {
@@ -1165,7 +1212,17 @@ function createMessageActions(text) {
     window.speechSynthesis.speak(utt);
   });
 
-  bar.append(copyBtn, ttsBtn, dl);
+  const promptifyBtn = document.createElement('span');
+  promptifyBtn.className = 'download-link';
+  promptifyBtn.textContent = 'Sohbeti Prompt Yap';
+  promptifyBtn.title = 'Bu sohbet geçmişini başka yapay zeka araçlarında kullanabileceğin tek bir master prompt haline çevir';
+  promptifyBtn.addEventListener('click', () => {
+    sendMessage(
+      'Bu sohbet geçmişinin tamamını başka bir yapay zeka aracında baştan sona kullanabileceğim, eksiksiz ve kopyalanabilir tek bir master prompt haline çevir.'
+    );
+  });
+
+  bar.append(copyBtn, ttsBtn, dl, promptifyBtn);
   return bar;
 }
 
@@ -1179,30 +1236,49 @@ function downloadAsFile(text) {
   URL.revokeObjectURL(url);
 }
 
-let activeStreamAbortController = null;
+function appendAssistantMessageToChat(chatId, msgObj) {
+  const chats = loadChats();
+  const existing = chats[chatId] && Array.isArray(chats[chatId].messages)
+    ? chats[chatId].messages.slice()
+    : (chatId === currentChatId ? currentMessages.slice() : []);
+  existing.push(msgObj);
+  if (chatId === currentChatId) {
+    currentMessages = existing.slice();
+  } else {
+    unreadCompletedChats.add(chatId);
+  }
+  persistChatById(chatId, existing);
+}
 
-async function sendMessage() {
-  if (activeStreamAbortController) {
-    activeStreamAbortController.abort();
-    activeStreamAbortController = null;
+async function sendMessage(overridePrompt = null) {
+  const isOverride = typeof overridePrompt === 'string' && overridePrompt.trim().length > 0;
+  // If user clicked the Stop button for the CURRENTLY active chat, abort ONLY this chat's stream
+  if (!isOverride && activeStreams.has(currentChatId)) {
+    const running = activeStreams.get(currentChatId);
+    if (running && running.controller) running.controller.abort();
     return;
   }
-  const prompt = els.promptInput.value.trim();
+  const prompt = isOverride ? overridePrompt.trim() : els.promptInput.value.trim();
   if (!prompt) return;
 
   ensureStarted();
-  addUserMessage(prompt, selectedFile ? selectedFile.name : null);
+  const targetChatId = currentChatId;
+  const fileToSend = isOverride ? null : selectedFile;
+  addUserMessage(prompt, fileToSend ? fileToSend.name : null);
 
-  const fileToSend = selectedFile;
-  els.promptInput.value = '';
-  els.promptInput.style.height = 'auto';
-  selectedFile = null;
-  els.fileInput.value = '';
-  els.fileChip.classList.remove('active');
-  activeStreamAbortController = new AbortController();
-  els.sendBtn.textContent = '■';
-  els.sendBtn.title = 'Yanıtı durdur';
-  els.sendBtn.classList.add('ready');
+  // Persist IMMEDIATELY so this chat appears in the left "Son sohbetler" sidebar before the reply arrives
+  persistChatById(targetChatId, currentMessages);
+  const historySnapshot = currentMessages.slice(0, -1).slice(-40);
+
+  if (!isOverride) {
+    els.promptInput.value = '';
+    els.promptInput.style.height = 'auto';
+    selectedFile = null;
+    els.fileInput.value = '';
+    els.fileChip.classList.remove('active');
+  }
+
+  const controller = new AbortController();
 
   // Create an animated thinking + streaming bubble with spinning wheel, stages, and live timer
   const row = document.createElement('div');
@@ -1219,7 +1295,7 @@ async function sendMessage() {
   bubble.className = 'msg assistant thinking';
   const stages = fileToSend
     ? ['Dosya okunuyor ve denetleniyor', 'Bağlam ve hafıza taranıyor', 'Düşünüyor ve analiz ediyor', 'Yanıt hazırlanıyor']
-    : ['Düşünüyor', 'Hafıza ve bilgi bankası taranıyor', 'Yanıt hazırlanıyor'];
+    : ['Düşünüyor', 'Hafıza ve sohbetler taranıyor', 'Yanıt hazırlanıyor'];
   bubble.innerHTML = `
     <div class="sp-think-head">
       <span class="sp-think-ring"></span>
@@ -1233,6 +1309,7 @@ async function sendMessage() {
   const streamTextEl = streamBar.querySelector('.sp-stream-text');
   const startedAt = performance.now();
   let stageIdx = 0;
+  let streaming = false;
   const thinkTicker = setInterval(() => {
     const sec = (performance.now() - startedAt) / 1000;
     const secStr = `${Math.floor(sec)} sn`;
@@ -1253,10 +1330,13 @@ async function sendMessage() {
   els.messages.appendChild(row);
   els.messages.scrollTop = els.messages.scrollHeight;
 
+  activeStreams.set(targetChatId, { controller, row, thinkTicker });
+  syncSendBtnState();
+  renderChatList();
+
   let fullText = '';
   let usedModel = '';
   let taskType = '';
-  let streaming = false;
   let builtWorkspace = null;
   let usageInfo = null;
   let latencyMs = 0;
@@ -1267,20 +1347,24 @@ async function sendMessage() {
   try {
     const formData = new FormData();
     formData.append('prompt', prompt);
-    formData.append('history', JSON.stringify(currentMessages.slice(-11, -1)));
+    formData.append('history', JSON.stringify(historySnapshot));
     formData.append('user_id', getActiveUserId());
-    formData.append('conversation_id', currentChatId || '');
+    formData.append('conversation_id', targetChatId || '');
     if (fileToSend) formData.append('file', fileToSend);
 
     const resp = await fetch('/api/assistant/chat/stream', {
       method: 'POST',
       body: formData,
-      signal: activeStreamAbortController.signal,
+      signal: controller.signal,
     });
     if (!resp.ok) {
       const data = await resp.json().catch(() => ({}));
+      const errText = data.detail || 'Bilinmeyen hata';
       row.remove();
-      addAssistantMessage(data.detail || 'Bilinmeyen hata', null, true, false);
+      if (currentChatId === targetChatId) {
+        addAssistantMessage(errText, null, true, false, false);
+      }
+      appendAssistantMessageToChat(targetChatId, { role: 'assistant', text: errText, modelBadge: null, isError: true });
       return;
     }
 
@@ -1311,7 +1395,9 @@ async function sendMessage() {
           }
           fullText += evt.content;
           bubble.innerHTML = renderMarkdown(fullText);
-          els.messages.scrollTop = els.messages.scrollHeight;
+          if (currentChatId === targetChatId) {
+            els.messages.scrollTop = els.messages.scrollHeight;
+          }
         } else if (evt.type === 'council') {
           councilTrace = evt.council;
         } else if (evt.type === 'workspace') {
@@ -1322,14 +1408,18 @@ async function sendMessage() {
           usageInfo = evt.usage || null;
           latencyMs = evt.latency_ms || 0;
         } else if (evt.type === 'error') {
+          const errText = 'Model hatası: ' + evt.content;
           row.remove();
-          addAssistantMessage('Model hatası: ' + evt.content, null, true, false);
+          if (currentChatId === targetChatId) {
+            addAssistantMessage(errText, null, true, false, false);
+          }
+          appendAssistantMessageToChat(targetChatId, { role: 'assistant', text: errText, modelBadge: null, isError: true });
           return;
         }
       }
     }
 
-    // Finalise the bubble: add badge, inline workspace explorer (if built), and download link
+    // Finalise the bubble: add badge, inline workspace explorer (if built), and actions
     if (fullText || builtWorkspace) {
       bubble.innerHTML = renderMarkdown(fullText);
       if (builtWorkspace) {
@@ -1363,7 +1453,7 @@ async function sendMessage() {
         ];
         if (ttftMs) parts.push(`TTFT ${ttftMs} ms`);
         if (latencyMs) {
-          parts.push(`${(latencyMs / 1000).toFixed(1).replace('.', ',')} sn`);
+          parts.push(`${Math.floor(latencyMs / 1000)} sn`);
           const tokPerSec = ((usageInfo.completion_tokens || 1) / Math.max(0.1, latencyMs / 1000)).toFixed(1).replace('.', ',');
           parts.push(`${tokPerSec} tok/sn`);
         }
@@ -1376,7 +1466,13 @@ async function sendMessage() {
       }
       wrap.appendChild(createMessageActions(fullText));
 
-      currentMessages.push({ role: 'assistant', text: fullText, modelBadge: MODEL_LABELS[usedModel] || usedModel, isError: false, workspace: builtWorkspace });
+      appendAssistantMessageToChat(targetChatId, {
+        role: 'assistant',
+        text: fullText,
+        modelBadge: MODEL_LABELS[usedModel] || usedModel,
+        isError: false,
+        workspace: builtWorkspace,
+      });
     }
   } catch (err) {
     if (err && err.name === 'AbortError') {
@@ -1384,22 +1480,30 @@ async function sendMessage() {
       bubble.classList.remove('thinking');
       bubble.innerHTML = renderMarkdown(fullText);
       wrap.appendChild(createMessageActions(fullText));
-      currentMessages.push({ role: 'assistant', text: fullText, modelBadge: MODEL_LABELS[usedModel] || usedModel, isError: false });
+      appendAssistantMessageToChat(targetChatId, {
+        role: 'assistant',
+        text: fullText,
+        modelBadge: MODEL_LABELS[usedModel] || usedModel,
+        isError: false,
+      });
     } else {
+      const errText = 'Bağlantı hatası: ' + err.message;
       row.remove();
-      addAssistantMessage('Bağlantı hatası: ' + err.message, null, true, false);
+      if (currentChatId === targetChatId) {
+        addAssistantMessage(errText, null, true, false, false);
+      }
+      appendAssistantMessageToChat(targetChatId, { role: 'assistant', text: errText, modelBadge: null, isError: true });
     }
   } finally {
     clearInterval(thinkTicker);
     bubble.classList.remove('thinking', 'streaming');
     streamBar.remove();
-    activeStreamAbortController = null;
-    els.sendBtn.textContent = '↑';
-    els.sendBtn.title = '';
-    els.sendBtn.disabled = false;
-    updateSendState();
-    els.promptInput.focus();
-    persistCurrentChat();
+    activeStreams.delete(targetChatId);
+    syncSendBtnState();
+    renderChatList();
+    if (currentChatId === targetChatId) {
+      els.promptInput.focus();
+    }
     document.dispatchEvent(new CustomEvent('usage-updated'));
   }
 }

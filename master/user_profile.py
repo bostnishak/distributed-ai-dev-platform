@@ -450,13 +450,144 @@ def cross_chat_snippets(
     return [dict(r) for r in rows]
 
 
+_TR_FOLD = str.maketrans("ÇĞİÖŞÜçğıöşüİ", "cgiosucgiosui")
+
+_CROSS_CHAT_CUES = (
+    "sohbet",
+    "chat",
+    "gecmis",
+    "diger",
+    "onceki",
+    "adli",
+    "baslikli",
+    "karsilastir",
+    "birlestir",
+    "aktar",
+    "prompt",
+    "analiz",
+    "oku",
+)
+
+_GENERIC_RECENT_CUES = (
+    "diger sohbet",
+    "diger chat",
+    "onceki sohbet",
+    "onceki chat",
+    "son sohbet",
+    "son chat",
+    "tum sohbet",
+    "butun sohbet",
+    "iki sohbet",
+    "2 sohbet",
+    "2 chat",
+    "iki chat",
+)
+
+
+def _fold_tr(text: str) -> str:
+    return (text or "").translate(_TR_FOLD).lower()
+
+
+def _tr_tokens(text: str) -> list[str]:
+    return [t for t in re.findall(r"[a-z0-9]+", _fold_tr(text)) if len(t) > 2]
+
+
+def _token_root_match(q_tok: str, t_tok: str) -> bool:
+    if q_tok == t_tok:
+        return True
+    if len(q_tok) >= 4 and len(t_tok) >= 4:
+        root_len = min(5, len(q_tok), len(t_tok))
+        if q_tok[:root_len] == t_tok[:root_len]:
+            return True
+    return False
+
+
 def cross_chat_context_block(user_id: str, query: str, exclude_conversation: str = "") -> str:
-    hits = cross_chat_snippets(user_id, query, exclude_conversation, limit=3)
-    if not hits:
-        return ""
-    lines = ["--- Kullanicinin Diger Sohbetlerinden Ilgili Bilgiler ---"]
-    for h in hits:
-        lines.append(f"- ({h['title']}) {h['role']}: {h['snippet']}")
+    """Provide a directory of saved chats and inject full transcripts of referenced/matched chats."""
+    uid = valid_user_id(user_id)
+    saved = list_saved_chats(uid)
+    other_chats = [
+        (cid, rec)
+        for cid, rec in saved.items()
+        if cid != (exclude_conversation or "") and (rec.get("messages") or [])
+    ]
+
+    q_folded = _fold_tr(query or "")
+    q_tokens = _tr_tokens(query or "")
+    explicit_ref = any(cue in q_folded for cue in _CROSS_CHAT_CUES)
+    generic_recent = any(cue in q_folded for cue in _GENERIC_RECENT_CUES)
+
+    lines: list[str] = []
+
+    if other_chats:
+        # Always expose a compact directory of the user's saved chats so the AI can reason across them
+        lines.append("--- Kullanicinin Kayitli Diger Sohbetleri ---")
+        for _cid, rec in other_chats[:15]:
+            title = (rec.get("title") or "Sohbet").strip()
+            msg_count = len(rec.get("messages") or [])
+            lines.append(f"- \"{title}\" ({msg_count} mesaj)")
+
+        # Score chats against the query (title match + content overlap)
+        scored: list[tuple[int, str, dict[str, Any]]] = []
+        for cid, rec in other_chats:
+            title = (rec.get("title") or "").strip()
+            title_folded = _fold_tr(title)
+            title_tokens = _tr_tokens(title)
+            score = 0
+            if title_folded and len(title_folded) >= 4 and title_folded in q_folded:
+                score += 30
+            for qt in q_tokens:
+                if any(_token_root_match(qt, tt) for tt in title_tokens):
+                    score += 8
+            if explicit_ref or score > 0:
+                msg_blob = " ".join(str(m.get("text") or "")[:400] for m in (rec.get("messages") or [])[:12])
+                msg_tokens = set(_tr_tokens(msg_blob))
+                overlap = sum(1 for qt in q_tokens if any(_token_root_match(qt, mt) for mt in msg_tokens))
+                score += min(overlap * 2, 14)
+            if score > 0:
+                scored.append((score, cid, rec))
+
+        scored.sort(key=lambda x: x[0], reverse=True)
+        selected: list[tuple[str, dict[str, Any]]] = [(cid, rec) for _sc, cid, rec in scored[:3]]
+
+        if not selected and (generic_recent or explicit_ref):
+            # User asked about "previous/other chat" without quoting exact title: load 2 most recent
+            selected = other_chats[:2]
+
+        if selected:
+            lines.append("")
+            lines.append(
+                "--- Eslesen Diger Sohbet Gecmisleri (Kullanici bu sohbetleri okumani, analiz etmeni, "
+                "karsilastirmani veya buna gore istemini degistirmeni istediginde dogrudan kullan) ---"
+            )
+            char_budget = 6000
+            used_chars = 0
+            for _cid, rec in selected:
+                title = (rec.get("title") or "Sohbet").strip()
+                msgs = rec.get("messages") or []
+                header = f"\n### Sohbet: \"{title}\" ({len(msgs)} mesaj)"
+                lines.append(header)
+                used_chars += len(header)
+                for m in msgs[-16:]:
+                    role_lbl = "Kullanici" if m.get("role") == "user" else "Asistan"
+                    body = str(m.get("text") or "").strip()
+                    if len(body) > 750:
+                        body = body[:750] + "..."
+                    entry = f"{role_lbl}: {body}"
+                    if used_chars + len(entry) > char_budget:
+                        lines.append("[... kalan kisim ozetlendi ...]")
+                        break
+                    lines.append(entry)
+                    used_chars += len(entry)
+                if used_chars >= char_budget:
+                    break
+
+    hits = cross_chat_snippets(uid, query, exclude_conversation, limit=3)
+    if hits:
+        lines.append("\n--- FTS5 Sohbet Arasi Ek Eslesmeler ---")
+        for h in hits:
+            lines.append(f"- ({h['title']}) {h['role']}: {h['snippet']}")
+
     return "\n".join(lines)
 
 
