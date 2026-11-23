@@ -465,3 +465,26 @@ def test_parca3_http_endpoints():
         rel = client.get("/api/hallucination/reliability")
         assert rel.status_code == 200 and "honest_limits" in rel.json()
         assert client.get("/api/ml/models").status_code == 200
+
+
+def test_hal15_detect_unanswerable_refuses_private_and_future_but_not_ordinary_questions():
+    from hallucination import detect_unanswerable
+
+    assert detect_unanswerable("XyzCorp 2029 üçüncü çeyrek gizli Ar-Ge bütçesi tam olarak kaç dolardır?")["unanswerable"]
+    assert detect_unanswerable("Yarın saat 14:32'de ABC99 hissesinin kapanış fiyatı ne olacak?")["unanswerable"]
+    assert detect_unanswerable("What is the private phone number of the lead architect?")["unanswerable"]
+    for ok in ("Türkiye Cumhuriyeti hangi yılda kuruldu?", "Python 1991'de yayımlandı mı?", "Fransa'nın başkenti neresidir?",
+               "Yarın hava durumunu nereden öğrenebilirim?"):
+        assert not detect_unanswerable(ok)["unanswerable"], ok
+
+
+def test_hal15_chat_stream_abstains_without_calling_the_model():
+    from fastapi.testclient import TestClient
+
+    import app as master_app
+
+    r = TestClient(master_app.app).post(
+        "/api/assistant/chat/stream", data={"prompt": "ABC99 hissesinin yarın kapanış fiyatı ne olacak?"}
+    )
+    assert r.status_code == 200
+    assert "doğrulayamadım" in r.text and "abstention-policy" in r.text

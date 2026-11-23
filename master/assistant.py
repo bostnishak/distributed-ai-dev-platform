@@ -1158,6 +1158,19 @@ async def _chat_stream_impl(
     has_file = bool(file is not None and file.filename)
     is_prompt_conv = (not has_file) and _is_prompt_conversion_request(prompt)
 
+    if not has_file:
+        # HAL-15: private data or an exact future value cannot be answered truthfully; say so before the model can invent one.
+        from hallucination.verifier import detect_unanswerable
+
+        gap = detect_unanswerable(prompt)
+        if gap["unanswerable"]:
+
+            async def _abstain_gen():
+                yield f"data: {json.dumps({'type': 'token', 'content': gap['message']}, ensure_ascii=False)}\n\n"
+                yield f"data: {json.dumps({'type': 'done', 'model': 'abstention-policy', 'task_type': 'abstain'})}\n\n"
+
+            return StreamingResponse(_abstain_gen(), media_type="text/event-stream")
+
     if _is_3d_cad_request(file):
         report_md = await _run_3d_cad_cam_from_chat(file, prompt)  # type: ignore[arg-type]
 

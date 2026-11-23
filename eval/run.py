@@ -18,6 +18,7 @@ from hallucination.eval_runner import (
 )
 from hallucination.verifier import (
     detect_false_premise,
+    detect_unanswerable,
     enforce_citation_policy,
 )
 
@@ -53,6 +54,9 @@ def _make_live_ollama_predictor(model: str, ollama_url: str, *, guarded: bool = 
             premise = detect_false_premise(prompt)
             if premise.get("false_premise"):
                 return str(premise["correction"])
+            gap = detect_unanswerable(prompt)
+            if gap["unanswerable"]:
+                return str(gap["message"])
         src_block = ""
         if sources:
             lines = [f"[{s.get('id', 'S1')}] {s.get('content', '')}" for s in sources]

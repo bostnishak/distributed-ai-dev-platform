@@ -1,0 +1,22 @@
+{
+  "config_name": "live70_plain_qwen35_4b",
+  "judge_version": "2.0.0",
+  "dataset_hash": "547bc7a76c1fa71e",
+  "total_examples": 70,
+  "overall_score": 0.7286,
+  "category_scores": {
+    "answerable_factual": 0.8,
+    "citation_required": 0.0,
+    "code": 1.0,
+    "false_premise": 0.6,
+    "instruction_compliance": 1.0,
+    "numeric_calc": 1.0,
+    "unanswerable": 0.7
+  },
+  "hallucination_rates": {
+    "fabricated_citation": 0.1429,
+    "fabricated_fact": 0.0857,
+    "overconfidence": 0.0429
+  },
+  "timestamp": "2026-11-23T20:53:20.019855+00:00"
+}

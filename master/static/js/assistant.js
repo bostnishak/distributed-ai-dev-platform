@@ -187,8 +187,7 @@ function addAssistantMessage(text, modelBadge, isError, isThinking, record = tru
 
 function messageBar(text) {
   const bar = createMessageActions(text, sendMessage);
-  const reopen = (id) => openChat(id);
-  bar.append(buildExtraActions({ messages: () => state.currentMessages, regenerate: () => regenerateLast({ state, persist: persistCurrentChat, reopen, send: sendMessage }) }));
+  bar.append(buildExtraActions({ messages: () => state.currentMessages, regenerate: () => regenerateLast({ els, state, send: sendMessage }) }));
   return bar;
 }
 

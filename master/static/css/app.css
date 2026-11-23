@@ -870,3 +870,6 @@ ul.plain { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.6; }
 .card progress { width: 100%; height: 8px; margin-top: 10px; accent-color: var(--accent); }
 .card input[type=file] { font: inherit; max-width: 100%; }
 .hub-doc .btn { padding: 4px 10px; }
+
+.hub-endpoint code { overflow-wrap: anywhere; }
+@media (max-width: 860px) { .data-table { display: block; overflow-x: auto; max-width: 100%; } }

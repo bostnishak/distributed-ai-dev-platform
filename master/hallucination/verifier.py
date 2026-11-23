@@ -426,6 +426,37 @@ def decide_abstention(*, confidence_score: float, has_sources: bool, risk: str, 
     return {"abstain": False, "message": ""}
 
 
+_FUTURE_MARKERS = ("yarın", "gelecek hafta", "gelecek yıl", "haftaya", "önümüzdeki", "tomorrow", "next week", "next year", "will be")
+_PRIVATE_MARKERS = (
+    "gizli", "özel telefon", "ev adresi", "şifresi", "parolası", "kimlik numarası", "private", "confidential",
+    "home address", "password", "phone number of",
+)
+_FORECAST_VERBS = ("ne olacak", "kaç olacak", "kapanış fiyatı", "closing price", "will close", "will it")
+
+
+def detect_unanswerable(question: str, *, current_year: int | None = None) -> dict[str, Any]:
+    """HAL-15: questions nobody can answer truthfully (private data, exact future values) get an abstention up front.
+
+    Conservative on purpose: it fires only on explicit private-data wording or a *specific future value*
+    (a future marker together with a forecast phrase, or a year after ``current_year``), so ordinary factual
+    questions are never refused.
+    """
+    year = current_year or datetime.now(UTC).year
+    low = tr_lower(question)
+    private = [m for m in _PRIVATE_MARKERS if m in low]
+    future = any(m in low for m in _FUTURE_MARKERS) and any(v in low for v in _FORECAST_VERBS)
+    future_year = any(int(y) > year + 1 for y in _DATE_RE.findall(low)) and ("tam olarak" in low or "kaç" in low or "exact" in low)
+    if private or future or future_year:
+        reason = "private_data" if private else "future_value"
+        return {
+            "unanswerable": True,
+            "reason": reason,
+            "message": "Bu konuda güvenilir kaynak bulamadım ve bilgiyi doğrulayamadım; "
+            + ("gizli/özel bir bilgi olduğu için paylaşamam." if private else "gelecekteki bir değeri tahmin edemem."),
+        }
+    return {"unanswerable": False, "reason": "", "message": ""}
+
+
 # ---------------------------------------------------------------- HAL-16 False Premise, HAL-17 Entity/Standard, HAL-18 Clock
 
 _KNOWN_TIMELINE_FACTS: tuple[tuple[str, int, int, str], ...] = (

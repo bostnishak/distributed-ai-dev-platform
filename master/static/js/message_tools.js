@@ -78,13 +78,17 @@ export function buildBranchLink({ els, state, row, msgIdx, text, sync }) {
   return link;
 }
 
-// Drops the last answer and asks the same question again.
-export function regenerateLast({ state, persist, reopen, send }) {
+// Drops the last question and its answer from the screen and the state, then asks the same question again.
+// The screen is cut directly: an emptied chat is never written to storage, so re-rendering from storage would
+// bring the old pair back.
+export function regenerateLast({ els, state, send }) {
   const idx = state.currentMessages.map((m) => m.role).lastIndexOf('user');
   if (idx < 0 || state.activeStreams.has(state.currentChatId)) return;
   const prompt = state.currentMessages[idx].text;
   state.currentMessages = state.currentMessages.slice(0, idx);
-  persist();
-  reopen(state.currentChatId);
+  const rows = [...els.messages.querySelectorAll('.msg-row.user')];
+  const lastUser = rows[rows.length - 1];
+  while (lastUser && lastUser.nextSibling) lastUser.nextSibling.remove();
+  if (lastUser) lastUser.remove();
   send(prompt);
 }
