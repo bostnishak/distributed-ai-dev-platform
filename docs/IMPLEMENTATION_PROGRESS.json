@@ -1,0 +1,67 @@
+{
+  "project": "Universal Autonomous AI Operating System, Software Factory & CNC Engineering Platform",
+  "plan_document": "docs/ENTERPRISE_AI_MASTER_IMPLEMENTATION_PLAN.md",
+  "updated_at": "2026-11-23T17:25:00Z",
+  "completed_foundation": [
+    {
+      "id": "M00-A",
+      "module": "master/cnc_ballooning.py & master/cnc_api.py",
+      "title": "2D PDF/PNG/DOCX/XLSX/DXF CNC Ballooning, ISO 2768/286, 4-Sheet AS9102 Excel, Word, PDF, Auto-Cost/Cycle-Time, Fanuc G-Code & CMM Cp/Cpk",
+      "status": "completed"
+    },
+    {
+      "id": "M00-B",
+      "module": "master/workspace_builder.py & master/studio_api.py",
+      "title": "2-Stage Multi-Folder Project Builder, Syntax Self-Healing, PyInstaller .EXE Builder/Launcher, v1/v2 Snapshot Rollback, .ZIP Import, Live Server & Unified Diff",
+      "status": "completed"
+    },
+    {
+      "id": "M00-C",
+      "module": "master/static/js/assistant.js & master/static/css/app.css",
+      "title": "Inline VS Code / Antigravity IDE Workbench (Seti SVG Icons, Multi-Tab Bar, Line-Number Gutter, Dark+ Highlighter, Code/Preview/Split, Diff, Fullscreen, Status Bar)",
+      "status": "completed"
+    },
+    {
+      "id": "M00-D",
+      "module": "master/multimodal_studio.py & master/document_factory.py",
+      "title": "CV Image Processing/Editing, AI Vector/Raster Image Generation, Live Mic + Audio File (.wav/.mp3) STT, Multi-Turn History & Universal .xlsx/.docx/.pdf Deliverable Factory",
+      "status": "completed"
+    },
+    {
+      "id": "M00-E",
+      "module": "master/company_rag.py & training/cnc_ballooning/",
+      "title": "Company Engineering Knowledge Base (bge-m3 + Hybrid Search), cnc-ballooner Custom Ollama Model, Synthetic Dataset Generator & QLoRA Fine-Tuning Script",
+      "status": "completed"
+    }
+  ],
+  "next_up": "M01",
+  "queue": [
+    {"id": "M01", "cluster": "A", "target": "master/memory_engine.py", "title": "SQLite 4-Layer Persistent Memory Schema & FTS5 Conversation Search", "status": "pending"},
+    {"id": "M02", "cluster": "A", "target": "master/memory_engine.py", "title": "Automatic User Preference, Project Fact & Constraint Extractor", "status": "pending"},
+    {"id": "M03", "cluster": "A", "target": "master/memory_engine.py", "title": "Hierarchical Context Compaction & Context Pinning", "status": "pending"},
+    {"id": "M04", "cluster": "A", "target": "master/memory_api.py", "title": "Cross-Device Synced Chat History & Memory Management Drawer", "status": "pending"},
+    {"id": "M05", "cluster": "A", "target": "master/tool_executor.py", "title": "ReAct Multi-Step Deterministic Tool Call Loop", "status": "pending"},
+    {"id": "M06", "cluster": "A", "target": "master/tools_math_science.py", "title": "Symbolic Math, Statistics, Finance & Engineering Unit Converter Tool", "status": "pending"},
+    {"id": "M07", "cluster": "A", "target": "master/tools_data_sql.py", "title": "Zero-Hallucination Pandas/SQLite Data Aggregation Tool for CSV/Excel/JSON", "status": "pending"},
+    {"id": "M08", "cluster": "A", "target": "master/reasoning_council.py", "title": "Multi-Agent Debate & Synthesis Council (Proposer A + Proposer B + Critic + Judge)", "status": "pending"},
+    {"id": "M09", "cluster": "A", "target": "master/static/js/assistant.js", "title": "Collapsible Council Reasoning Chain & AbortController Stop Button", "status": "pending"},
+    {"id": "M10", "cluster": "A", "target": "master/deep_research.py", "title": "Multi-Document Cross-Verification & Deep Research Synthesizer", "status": "pending"},
+    {"id": "M11", "cluster": "A", "target": "master/document_factory.py", "title": "PowerPoint (.pptx) Presentation Generator with Charts & Speaker Notes", "status": "pending"},
+    {"id": "M15", "cluster": "A", "target": "master/static/js/canvas_widgets.js", "title": "Interactive Local SVG/Canvas Chart, Flowchart, LaTeX & Mindmap Widgets", "status": "pending"},
+    {"id": "M21", "cluster": "B", "target": "master/code_graph.py", "title": "Multi-Language AST Symbol Table & Dependency Graph Indexer", "status": "pending"},
+    {"id": "M24", "cluster": "B", "target": "master/self_healing_runner.py", "title": "5-Iteration Autonomous Execution & Traceback Auto-Patch Loop", "status": "pending"},
+    {"id": "M25", "cluster": "B", "target": "master/visual_verifier.py", "title": "Headless Browser + Vision-LLM UI Layout & Console Verifier", "status": "pending"},
+    {"id": "M27", "cluster": "B", "target": "master/static/js/assistant.js", "title": "Side-by-Side Diff Editor, Embedded Workspace Terminal & Local Git Control", "status": "pending"},
+    {"id": "M31", "cluster": "B", "target": "master/automl_studio.py", "title": "Auto-EDA, Anomaly Detection & Zero-Code Forecasting/Classification Studio", "status": "pending"},
+    {"id": "M33", "cluster": "B", "target": "master/browser_agent.py", "title": "Headless Browser Web Research & Set-of-Marks Vision Navigation Agent", "status": "pending"},
+    {"id": "M35", "cluster": "C", "target": "master/cluster_telemetry.py", "title": "Live GPU/VRAM Telemetry, Warm-Cache Affinity & Thompson Sampling Router", "status": "pending"},
+    {"id": "M39", "cluster": "C", "target": "master/vector_store.py", "title": "SQLite bge-m3 Vector + FTS5 BM25 RRF + GraphRAG + Vision-RAG", "status": "pending"},
+    {"id": "M43", "cluster": "C", "target": "master/feedback_collector.py", "title": "Automatic DPO Preference Pair Collector & Nightly QLoRA Auto-Trainer", "status": "pending"},
+    {"id": "M46", "cluster": "D", "target": "master/cad_kernel.py", "title": "3D STEP/IGES B-Rep Feature Recognition & 2D-3D MBD Matcher", "status": "pending"},
+    {"id": "M48", "cluster": "D", "target": "master/cam_postprocessor.py", "title": "Fanuc, Siemens Sinumerik 840D, Heidenhain TNC 640 & Haas G-Code Post-Processor", "status": "pending"},
+    {"id": "M49", "cluster": "D", "target": "master/cnc_physics.py", "title": "Kienzle Cutting Force, Tool Deflection, Chuck Ovalization FEA & CMM Closed-Loop G10", "status": "pending"},
+    {"id": "M53", "cluster": "D", "target": "master/rfq_batch.py", "title": "50+ Drawing RFQ Batch Quoting, 1D/2D Nesting & OR-Tools CP-SAT Job-Shop Gantt", "status": "pending"},
+    {"id": "M55", "cluster": "D", "target": "master/auth_rbac.py", "title": "JWT/Argon2 6-Role RBAC, AS9100 SHA-256 Audit Log, Rootless Sandbox & MCP Registry", "status": "pending"},
+    {"id": "M57", "cluster": "E", "target": "master/domain_experts.py", "title": "Legal Contract Redline, CFO DCF/Monte Carlo Finance, Academic DoE, Cyber SAST, Text-to-SQL & 12-Discipline ELO Arena", "status": "pending"}
+  ]
+}

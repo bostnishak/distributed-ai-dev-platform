@@ -670,3 +670,24 @@ Aşağıdaki matris, otonom ajanın (`docs/IMPLEMENTATION_PROGRESS.json`) hangi 
 | **M35–M45** | Küme C (`cluster_telemetry.py`, `bandit_router.py`, `map_reduce_llm.py`, `vector_store.py`, `knowledge_graph.py`, `vision_rag.py`, `auto_trainer.py`) | 6+ Bilgisayarlı GPU/VRAM Telemetrisi, Thompson Sampling Yönlendirme, Paralel Map-Reduce, SQLite Vektör+BM25 RRF, GraphRAG, Görsel Çizim Benzerlik Araması, Gece Otomatik QLoRA/DPO Öz-Eğitim | **PENDING (Sırada)** |
 | **M46–M56** | Küme D (`cad_kernel.py`, `cad_projection.py`, `cam_postprocessor.py`, `cnc_physics.py`, `fea_solver.py`, `cmm_closed_loop.py`, `rfq_batch.py`, `nesting_optimizer.py`, `job_shop_scheduler.py`) | 3D STEP/IGES Unsur Tanıma, 2D-3D MBD Eşleştirme, Fanuc/Siemens/Heidenhain/Haas G-Kodu, Kienzle/Taylor/Sehim/Ovalleşme FEA, CMM SPC + G10 Ofset, 50+ Çizimlik RFQ Toplu Teklif, Nesting, OR-Tools Gantt | **PENDING (Sırada)** |
 | **M57–M80** | Küme E (`domain_experts.py`, `legal_expert.py`, `finance_expert.py`, `academic_expert.py`, `cyber_expert.py`, `media_factory_v2.py`, `enterprise_connectors.py`, `cognitive_arena.py`) | Hukuk Sözleşme Risk/Redline Ajanı, CFO DCF/Monte Carlo Finans Motoru, Akademik Literatür/DoE Motoru, Siber Güvenlik Denetçisi, Belge Perspektif Düzeltme & Revizyon Pixel-Diff, Text-to-SQL Veritabanı Stüdyosu, 12 Disiplinli Model ELO Arenası | **PENDING (Sırada)** |
+
+
+---
+
+## BÖLÜM 5: DONANIM / VRAM ORKESTRASYONU, GERÇEK ZAMANLI UX KONTROLLERİ VE FELAKET KURTARMA (SON KRİTİK KATMAN)
+
+Bir yapay zekâ ajanının bu planı kodlarken donanım darboğazına (Out-Of-Memory / VRAM şişmesi) takılmaması ve son kullanıcı deneyiminin ticari ürün (ChatGPT / Claude / Cursor) kalitesinde olması için aşağıdaki 3 altyapı kuralı zorunludur:
+
+### 5.1. Akıllı VRAM Bütçe Yönetimi ve Model Ölçekleme Matrisi (`master/vram_manager.py`)
+Tek bir bilgisayarda (ör. 8 GB VRAM RTX 4060 + 32 GB RAM) birden fazla büyük model aynı anda VRAM'de tutulamaz. Bu nedenle orkestratör şu kurallarla çalışır:
+- **Tek Düğüm (Single-Node) Modu**: Ajan Konseyi çalışırken modeller ardışık (`sequential`) çağrılır veya `bge-m3` (1.2 GB) + `qwen3.5:4b` (3.3 GB) birlikte VRAM'de tutulurken, `qwen3.5:9b` (6.6 GB) veya `qwen2.5-coder:7b` (4.7 GB) çağrıldığında Ollama `keep_alive="5m"` parametresiyle yönetilir.
+- **Çoklu Düğüm (Multi-Node / 6 Bilgisayar) Sürü Modu**: Ağdaki diğer bilgisayarlar (`uye2..uye6`) çevrimiçi olduğunda her bilgisayar kendi VRAM'inde tek bir uzman modeli kalıcı (`keep_alive="-1"`) tutar; böylece Ajan Konseyi model yükleme beklemesi olmadan **0 sn gecikmeyle gerçek paralel** çalışır.
+- **Şirket Sunucusu Yükseltme Yolu (Scale-Up)**: Şirkette 24 GB / 48 GB VRAM'li bir iş istasyonu eklendiğinde kodda hiçbir değişiklik yapmadan sadece `.env` içindeki `MASTER_MODEL` ve `STUDIO_CODER_MODEL` değişkenleri `qwen2.5-coder:32b` veya `deepseek-r1:32b` olarak güncellenir.
+
+### 5.2. Ticari Seviye Sohbet UX Kontrolleri (`master/static/js/assistant.js`)
+- **`Durdur` (AbortController) Butonu**: Uzun yanıt veya proje üretimi sırasında gönder (`↑`) butonu **`■ Durdur`** butonuna dönüşür; tıklandığında `AbortController.abort()` ile hem tarayıcı akışı hem de Ollama üretimi anında kesilir.
+- **Mesaj Düzenleme ve Sohbet Dallanması (Conversation Branching)**: Kullanıcı geçmiş bir mesajını düzenleyip tekrar gönderdiğinde sohbet o noktadan yeni bir dal (`branch`) olarak devam eder.
+- **Canlı Hız ve Kaynak Rozeti**: Her yanıtın altında hangi modelin/aracın kullanıldığı, ilk token süresi (`TTFT ms`) ve üretim hızı (`tok/sn`) şeffafça gösterilir.
+
+### 5.3. Tek Tıkla Kurumsal Yedekleme ve Taşınabilirlik (`master/backup_manager.py`)
+- `GET /api/admin/backup.zip`: Tüm SQLite veritabanını (`platform.db`), öğrenilen kullanıcı hafızasını, şirket RAG bilgi bankasını, CNC balonlama işlerini ve üretilen yazılım çalışma alanlarını tek bir zaman damgalı arşiv olarak dışa/içe aktarır.
