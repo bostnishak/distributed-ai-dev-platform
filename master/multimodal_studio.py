@@ -227,12 +227,14 @@ def process_and_edit_image(raw_bytes: bytes, prompt: str) -> dict[str, Any]:
 # 2. AI IMAGE & VECTOR ILLUSTRATION GENERATOR
 # ============================================================================
 
-IMAGE_GEN_RE = re.compile(
-    r"(görsel\w*\s*(oluştur|olustur|üret|uret|çiz|ciz|tasarla|yap)|"
-    r"resim\s*(oluştur|olustur|üret|uret|çiz|ciz|yap)|"
-    r"illüstrasyon\s*(oluştur|olustur|çiz|yap)|"
-    r"logo\s*(tasarla|çiz|ciz|oluştur|olustur|yap)|"
-    r"poster\s*(tasarla|oluştur|yap)|afiş\s*(tasarla|oluştur|yap))",
+IMAGE_NOUN_RE = re.compile(
+    r"\b(görsel\w*|gorsel\w*|fotoğraf\w*|fotograf\w*|resim\w*|illüstrasyon\w*|illustrasyon\w*|"
+    r"logo\w*|poster\w*|afiş\w*|afis\w*|amblem\w*|banner\w*|kapak\s*tasarım\w*)\b",
+    re.IGNORECASE,
+)
+
+IMAGE_ACTION_RE = re.compile(
+    r"(oluştur\w*|olustur\w*|üret\w*|uret\w*|çiz\w*|ciz\w*|tasarla\w*|yap\w*|hazırla\w*|hazirla\w*)",
     re.IGNORECASE,
 )
 
@@ -241,9 +243,9 @@ def is_image_generation_request(prompt: str, has_file: bool) -> bool:
     if has_file:
         return False
     lower = prompt.lower()
-    if any(w in lower for w in ("web sitesi", "e-ticaret", "uygulama", "oyun", "exe", "kodunu")):
+    if any(w in lower for w in ("web sitesi", "e-ticaret", "uygulama", "oyun", "exe", "kodunu", "excel", "word", "pdf", "pptx", "sunum")):
         return False
-    return bool(IMAGE_GEN_RE.search(prompt))
+    return bool(IMAGE_NOUN_RE.search(prompt) and IMAGE_ACTION_RE.search(prompt))
 
 
 async def generate_ai_image(prompt: str) -> dict[str, Any]:

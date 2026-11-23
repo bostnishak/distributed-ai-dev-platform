@@ -92,8 +92,12 @@ export function renderMarkdown(raw) {
 
   text = text.replace(/\u0000CODEBLOCK(\d+)\u0000/g, (_, i) => {
     const block = codeBlocks[i];
-    if (block.lang === 'svg' && /^\s*<svg[\s>]/i.test(block.code)) {
-      return `<div class="svg-diagram">${sanitizeSvg(block.code)}</div>`;
+    if (
+      (block.lang === 'svg' || block.lang === 'xml' || block.lang === 'html' || !block.lang)
+      && /^\s*(?:<\?xml[^>]*>\s*)?<svg[\s>]/i.test(block.code)
+    ) {
+      const svgOnly = block.code.replace(/^\s*<\?xml[^>]*>\s*/i, '');
+      return `<div class="svg-diagram">${sanitizeSvg(svgOnly)}</div>`;
     }
     if (block.lang === 'chart') {
       const chartHtml = renderChartSvg(block.code);
