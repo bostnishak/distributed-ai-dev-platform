@@ -12,13 +12,20 @@ function buildExportBar(job, balloons, setStatus) {
   const evalBtn = h('button', {
     type: 'button', class: 'btn',
     onClick: async () => {
-      const sample = balloons.slice(0, 10).map((b, i) => ({ balloon: i + 1, measured: b.nominal ?? 0 }));
+      const measurements = {};
+      balloons.slice(0, 10).forEach((b, i) => {
+        const nom = Number(b.nominal);
+        measurements[String(b.balloon_no ?? (i + 1))] = [Number.isFinite(nom) ? nom : 0];
+      });
       try {
         const res = await api(`/api/cnc/jobs/${encodeURIComponent(job.id)}/evaluate-measurements`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ measurements: sample }),
+          body: JSON.stringify({ measurements }),
         });
-        setStatus(`Ölçüm değerlendirmesi tamamlandı (${res.evaluated ?? sample.length} karakteristik).`);
+        const total = res.evaluated_count ?? Object.keys(measurements).length;
+        const okCount = res.ok_count ?? 0;
+        const fpy = res.first_pass_yield_pct ?? 0;
+        setStatus(`Ölçüm değerlendirmesi tamamlandı (${total} karakteristik, ${okCount} uygun, FPY: %${fpy}).`);
         uiToast('CNC ölçüm değerlendirmesi tamamlandı', 'ok');
       } catch (err) {
         setStatus(`Ölçüm değerlendirme hatası: ${err.message}`, true);

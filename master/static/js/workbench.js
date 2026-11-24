@@ -16,11 +16,17 @@ export const WORKBENCH_TABS = [
   { id: 'ecosystem', label: 'Ekosistem, MCP, Mağaza & v1', tools: ECOSYSTEM_TOOLS },
 ];
 
-function buildUrl(tool, paramInputs) {
+function buildUrl(tool, paramInputs, queryInputs) {
   let url = tool.path;
   for (const [k, el] of Object.entries(paramInputs)) {
     url = url.replace(`{${k}}`, encodeURIComponent(el.value.trim() || 'demo'));
   }
+  const qs = new URLSearchParams();
+  for (const [k, el] of Object.entries(queryInputs || {})) {
+    const val = el.value.trim();
+    if (val !== '') qs.set(k, val);
+  }
+  if (qs.toString()) url += (url.includes('?') ? '&' : '?') + qs.toString();
   return url;
 }
 
@@ -46,10 +52,16 @@ function createToolCard(tool, getAdminToken) {
     paramInputs[k] = inp;
     return h('div', { class: 'hub-field' }, h('label', { class: 'hub-label' }, k), inp);
   });
+  const queryInputs = {};
+  const queryFields = Object.entries(tool.query || {}).map(([k, val]) => {
+    const inp = h('input', { type: 'text', value: String(val), 'aria-label': `${tool.title} sorgu - ${k}` });
+    queryInputs[k] = inp;
+    return h('div', { class: 'hub-field' }, h('label', { class: 'hub-label' }, `sorgu: ${k}`), inp);
+  });
 
   let bodyArea = null;
-  if (tool.method !== 'GET' && tool.method !== 'DELETE') {
-    bodyArea = h('textarea', { rows: 4, 'aria-label': `${tool.title} JSON gövdesi` });
+  if (tool.method !== 'GET' && tool.method !== 'DELETE' && tool.body !== undefined) {
+    bodyArea = h('textarea', { rows: 4, 'aria-label': `${tool.title} veri gövdesi` });
     bodyArea.value = JSON.stringify(tool.body || {}, null, 2);
   }
 
@@ -67,20 +79,27 @@ function createToolCard(tool, getAdminToken) {
     if (tok) headers['X-Admin-Token'] = tok;
     const opts = { method: tool.method, headers };
     if (bodyArea) {
-      try { JSON.parse(bodyArea.value); } catch (err) {
+      let parsed;
+      try { parsed = JSON.parse(bodyArea.value); } catch (err) {
         status.textContent = `Geçersiz JSON: ${err.message}`;
         status.className = 'hub-status err';
         return;
       }
-      headers['Content-Type'] = 'application/json';
-      opts.body = bodyArea.value;
+      if (tool.form) {
+        const fd = new FormData();
+        for (const [k, v] of Object.entries(parsed)) fd.append(k, String(v));
+        opts.body = fd;
+      } else {
+        headers['Content-Type'] = 'application/json';
+        opts.body = bodyArea.value;
+      }
     }
     runBtn.disabled = true;
     status.textContent = 'Çalıştırılıyor...';
     status.className = 'hub-status';
     const t0 = performance.now();
     try {
-      const data = await api(buildUrl(tool, paramInputs), opts);
+      const data = await api(buildUrl(tool, paramInputs, queryInputs), opts);
       renderResult(resultBox, data);
       status.textContent = `Başarılı · ${Math.round(performance.now() - t0)} ms`;
       status.className = 'hub-status ok';
@@ -100,7 +119,8 @@ function createToolCard(tool, getAdminToken) {
       h('strong', null, tool.title),
       h('code', { class: 'wb-path' }, tool.path)),
     ...paramFields,
-    bodyArea ? h('div', { class: 'hub-field' }, h('label', { class: 'hub-label' }, 'İstek Verisi (JSON)'), bodyArea) : null,
+    ...queryFields,
+    bodyArea ? h('div', { class: 'hub-field' }, h('label', { class: 'hub-label' }, tool.form ? 'Form Alanları (JSON)' : 'İstek Verisi (JSON)'), bodyArea) : null,
     h('div', { class: 'card-actions' }, runBtn, status),
     resultBox);
 }

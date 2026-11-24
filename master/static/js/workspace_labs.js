@@ -15,6 +15,7 @@ function buildNotebookPanel() {
   const titleInp = h('input', { type: 'text', value: 'Veri Analizi Defteri', 'aria-label': 'Not defteri başlığı' });
   const codeInp = h('textarea', { rows: 4, 'aria-label': 'Not defteri Python hücresi' }, 'x = [10, 20, 30, 40]\nprint("Ortalama:", sum(x) / len(x))');
   const outPre = h('pre', { class: 'hub-result', hidden: true });
+  let lastCode = null;
   let nbId = null;
 
   const runBtn = h('button', {
@@ -22,9 +23,15 @@ function buildNotebookPanel() {
     class: 'btn primary',
     onClick: async () => {
       runBtn.disabled = true;
-      if (!nbId) {
-        const cr = await jsonPost('/api/notebooks', { user_id: 'default', title: titleInp.value.trim() || 'Defter' });
+      const cellCode = codeInp.value;
+      if (!nbId || lastCode !== cellCode) {
+        const cr = await jsonPost('/api/notebooks', {
+          user_id: 'default',
+          title: titleInp.value.trim() || 'Defter',
+          cells: [{ cell_type: 'code', source: cellCode }],
+        });
         nbId = cr.ok && cr.data ? cr.data.notebook_id : null;
+        lastCode = nbId ? cellCode : null;
       }
       if (!nbId) {
         outPre.textContent = 'Not defteri oluşturulamadı.';
@@ -32,7 +39,7 @@ function buildNotebookPanel() {
         runBtn.disabled = false;
         return;
       }
-      const res = await jsonPost(`/api/notebooks/${encodeURIComponent(nbId)}/run`, { code: codeInp.value, cell_type: 'code' });
+      const res = await jsonPost(`/api/notebooks/${encodeURIComponent(nbId)}/run`, { user_id: 'default', cell_index: 0 });
       outPre.textContent = JSON.stringify(res.data || res.error, null, 2);
       outPre.hidden = false;
       runBtn.disabled = false;
@@ -78,7 +85,7 @@ function buildFlashcardPanel() {
     class: 'btn primary',
     onClick: async () => {
       if (!frontInp.value.trim() || !backInp.value.trim()) return;
-      const res = await jsonPost('/api/education/flashcards', { user_id: 'default', deck: 'genel', front: frontInp.value.trim(), back: backInp.value.trim() });
+      const res = await jsonPost('/api/education/flashcards', { user_id: 'default', topic: 'Genel', front: frontInp.value.trim(), back: backInp.value.trim() });
       if (res.ok && res.data) {
         deckHost.prepend(renderCard({ card_id: res.data.card_id, front: frontInp.value.trim(), back: backInp.value.trim() }));
         frontInp.value = '';

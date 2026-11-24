@@ -3,6 +3,7 @@ import { renderAgents } from './agents.js';
 import { focusAssistant, initAssistant } from './assistant.js';
 import { initAuthUi } from './auth_modal.js';
 import { initChatEnhancements } from './chat_enhancements.js';
+import { renderCnc } from './cnc.js';
 import { renderDashboard } from './dashboard.js';
 import { renderHub } from './hub.js';
 import { initPalette } from './palette.js';
@@ -11,6 +12,7 @@ import { initPersonalSpace } from './personal.js';
 import { renderNewProject, renderProjectDetail, renderProjects } from './projects.js';
 import { createReactiveStore } from './store.js';
 import { bindGlobalEvent, startManagedInterval } from './storage.js';
+import { renderStudio } from './studio.js';
 import { closeSidebar, isDesktop, openSidebar } from './util.js';
 import { announceAriaLive, fetchHealthWizardStatus } from './ux_shell.js';
 
@@ -33,6 +35,8 @@ const ROUTES = [
   { pattern: /^#\/agents$/, nav: 'agents', title: 'Ajanlar', render: (root, _m, ctx) => renderAgents(root, ctx) },
   { pattern: /^#\/dashboard$/, nav: 'dashboard', title: 'Performans Panosu', render: (root, _m, ctx) => renderDashboard(root, ctx) },
   { pattern: /^#\/studios$/, nav: 'studios', title: 'Stüdyolar ve Yönetim', render: (root, _m, ctx) => renderHub(root, ctx) },
+  { pattern: /^#\/studio$/, nav: 'studio', title: 'Kod Stüdyosu (IDE)', render: (root) => renderStudio(root), fullBleed: true },
+  { pattern: /^#\/cnc$/, nav: 'cnc', title: 'CNC Balonlama', render: (root) => renderCnc(root) },
   { pattern: /^#\/artifacts$/, nav: 'artifacts', title: 'Artefaktlar', render: (root, _m, ctx) => renderArtifacts(root, ctx) },
   { pattern: /^#\/files$/, nav: 'files', title: 'Dosyalar ve Bilgi Bankası', render: (root, _m, ctx) => renderFiles(root, ctx) },
   { pattern: /^#\/share\/([\w-]+)$/, nav: 'assistant', title: 'Paylaşılan Sohbet', render: (root, m) => renderShare(root, m[1]) },
