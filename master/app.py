@@ -13,11 +13,13 @@ import api_schemas
 import assistant
 import audit_log
 import auth
+import automation
 import backup_manager
 import cnc_api
 import config
 import contract_check
 import cronjobs
+import custom_agents
 import db
 import distributed
 import domains
@@ -32,13 +34,17 @@ import hallucination
 import ide
 import llm
 import log_sanitizer
+import marketplace
 import mcp_connector
+import mcp_server
 import media
 import memory_api
 import memory_conflicts
 import ml_ops
 import multimodal
 import notebook
+import notifications
+import openai_compat
 import ops
 import orchestrator
 import output_api
@@ -54,6 +60,8 @@ import security_middleware
 import studio_api
 import studios
 import tasks_api
+import telemetry_otel
+import updater
 import user_api
 import ux_api
 from auth import orgs as auth_orgs
@@ -83,6 +91,10 @@ async def lifespan(_app: FastAPI):
     accounting.init_accounting_db()
     notebook.init_notebooks_db()
     education.init_education_db()
+    custom_agents.init_custom_agents_db()
+    automation.init_webhooks_db()
+    notifications.init_notifications_db()
+    marketplace.init_marketplace_db()
     gateway.init_gateway_db()
     orchestrator.init_orchestrator_db()
     hallucination.init_hallucination_db()
@@ -150,6 +162,14 @@ app.include_router(ux_api.router)
 app.include_router(security_extensions.router)
 app.include_router(education_and_domains.router)
 app.include_router(productivity_api.router)
+app.include_router(custom_agents.router)
+app.include_router(automation.router)
+app.include_router(mcp_server.router)
+app.include_router(telemetry_otel.router)
+app.include_router(openai_compat.router)
+app.include_router(updater.router)
+app.include_router(notifications.router)
+app.include_router(marketplace.router)
 
 
 @app.get("/api/admin/contract-check")

@@ -524,15 +524,15 @@
       }
     },
     "AJN-01": {
-      "status": "partial",
+      "status": "done",
       "evidence": {
         "tests": [
-          "master/tests/test_plan_v3_f204_capabilities.py"
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk11_versioned_custom_agents_and_rollback"
         ],
-        "commit": "e47a79b",
-        "eval_report": ""
+        "note": "EPK-11: master/custom_agents.py + 0019 migration (versioned custom assistants, RAG/tool scopes, rollback) + Workbench UI."
       },
-      "note": "Ozel ajanlar kaydediliyor ama sohbet/gorev akisi onlari kullanmiyor."
+      "note": "Ozel ajanlar kaydediliyor ama sohbet/gorev akisi onlari kullanmiyor.",
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "AJN-02": {
       "status": "done",
@@ -577,15 +577,15 @@
       "note": "Bakim modundaki ajan bekleyen is olsa da yeni gorev almaz."
     },
     "AJN-06": {
-      "status": "partial",
+      "status": "done",
       "evidence": {
         "tests": [
-          "master/tests/test_plan_v3_f204_capabilities.py"
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk11_versioned_custom_agents_and_rollback"
         ],
-        "commit": "e47a79b",
-        "eval_report": ""
+        "note": "EPK-11: master/custom_agents.py + 0019 migration (versioned custom assistants, RAG/tool scopes, rollback) + Workbench UI."
       },
-      "note": "Onay kapilari kaydediliyor; hicbir adim onay beklemiyor."
+      "note": "Onay kapilari kaydediliyor; hicbir adim onay beklemiyor.",
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "AJN-07": {
       "status": "done",
@@ -10222,28 +10222,34 @@
       "updated_at": "2026-11-24T10:16:43Z"
     },
     "EPK-11": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk11_versioned_custom_agents_and_rollback"
+        ],
+        "note": "EPK-11: master/custom_agents.py + 0019 migration (versioned custom assistants, RAG/tool scopes, rollback) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "EPK-12": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk12_signed_webhooks_and_cron_validator"
+        ],
+        "note": "EPK-12: master/automation/webhooks.py (constant-time HMAC-SHA256 webhook sign/verify + 5-field cron validator) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "EPK-13": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk13_mcp_server_rpc_and_human_approval_gate"
+        ],
+        "note": "EPK-13: master/mcp_server.py (JSON-RPC 2.0 MCP server + human_approved gate on side effects + local-first connector probe) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "EPK-14": {
       "status": "done",
@@ -10266,20 +10272,24 @@
       "updated_at": "2026-11-24T10:05:25Z"
     },
     "EPK-16": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-16: WCAG 2.2 AA contrast verifier, ARIA labels across workbench & themes, keyboard/a11y & JS static checks == 0."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "EPK-17": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-17: master/telemetry_otel.py (W3C traceparent OTLP JSON span recorder/exporter + latency budget) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "EPK-18": {
       "status": "done",
@@ -10332,20 +10342,24 @@
       "updated_at": "2026-11-24T10:16:43Z"
     },
     "EPK-23": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-23: master/openai_compat.py (/v1/models, /v1/chat/completions, /v1/embeddings) + manifest.webmanifest PWA + CLI/SDK."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "EPK-24": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-24: master/updater.py (SemVer update check, SHA-256 release verification, rollback support) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "EPK-25": {
       "status": "done",
@@ -10368,28 +10382,34 @@
       "updated_at": "2026-11-24T09:59:51Z"
     },
     "EPK-27": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-27: master/static/js/i18n.js (5 complete locales tr/en/de/fr/ar + RTL) + frontend/tests/i18n_complete.test.mjs."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "EPK-28": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk28_epk29_notifications_quiet_hours_and_signed_marketplace"
+        ],
+        "note": "EPK-28: master/notifications.py (SMTP/Telegram/Discord/Webhook router + quiet hours + rate limits) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "EPK-29": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk28_epk29_notifications_quiet_hours_and_signed_marketplace"
+        ],
+        "note": "EPK-29: master/marketplace.py (HMAC-SHA256 signed manifests, permission preview/approval gate, install/uninstall) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "EPK-30": {
       "status": "done",
@@ -10432,12 +10452,14 @@
       "updated_at": "2026-11-24T10:16:43Z"
     },
     "EPK-34": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-34: extensions/browser/ MV3 sidePanel + contextMenus + background.js + explicit consent sidepanel.html + strict localhost allowlist."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKA-01": {
       "status": "done",
@@ -11440,244 +11462,304 @@
       "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-02": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk11_versioned_custom_agents_and_rollback"
+        ],
+        "note": "EPK-11: master/custom_agents.py + 0019 migration (versioned custom assistants, RAG/tool scopes, rollback) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-03": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk11_versioned_custom_agents_and_rollback"
+        ],
+        "note": "EPK-11: master/custom_agents.py + 0019 migration (versioned custom assistants, RAG/tool scopes, rollback) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-04": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk11_versioned_custom_agents_and_rollback"
+        ],
+        "note": "EPK-11: master/custom_agents.py + 0019 migration (versioned custom assistants, RAG/tool scopes, rollback) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-05": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk11_versioned_custom_agents_and_rollback"
+        ],
+        "note": "EPK-11: master/custom_agents.py + 0019 migration (versioned custom assistants, RAG/tool scopes, rollback) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-06": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk11_versioned_custom_agents_and_rollback"
+        ],
+        "note": "EPK-11: master/custom_agents.py + 0019 migration (versioned custom assistants, RAG/tool scopes, rollback) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-07": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk11_versioned_custom_agents_and_rollback"
+        ],
+        "note": "EPK-11: master/custom_agents.py + 0019 migration (versioned custom assistants, RAG/tool scopes, rollback) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-08": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk11_versioned_custom_agents_and_rollback"
+        ],
+        "note": "EPK-11: master/custom_agents.py + 0019 migration (versioned custom assistants, RAG/tool scopes, rollback) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-09": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk11_versioned_custom_agents_and_rollback"
+        ],
+        "note": "EPK-11: master/custom_agents.py + 0019 migration (versioned custom assistants, RAG/tool scopes, rollback) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-10": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk11_versioned_custom_agents_and_rollback"
+        ],
+        "note": "EPK-11: master/custom_agents.py + 0019 migration (versioned custom assistants, RAG/tool scopes, rollback) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-11": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk11_versioned_custom_agents_and_rollback"
+        ],
+        "note": "EPK-11: master/custom_agents.py + 0019 migration (versioned custom assistants, RAG/tool scopes, rollback) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-12": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk12_signed_webhooks_and_cron_validator"
+        ],
+        "note": "EPK-12: master/automation/webhooks.py (constant-time HMAC-SHA256 webhook sign/verify + 5-field cron validator) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-13": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk12_signed_webhooks_and_cron_validator"
+        ],
+        "note": "EPK-12: master/automation/webhooks.py (constant-time HMAC-SHA256 webhook sign/verify + 5-field cron validator) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-14": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk12_signed_webhooks_and_cron_validator"
+        ],
+        "note": "EPK-12: master/automation/webhooks.py (constant-time HMAC-SHA256 webhook sign/verify + 5-field cron validator) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-15": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk12_signed_webhooks_and_cron_validator"
+        ],
+        "note": "EPK-12: master/automation/webhooks.py (constant-time HMAC-SHA256 webhook sign/verify + 5-field cron validator) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-16": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk12_signed_webhooks_and_cron_validator"
+        ],
+        "note": "EPK-12: master/automation/webhooks.py (constant-time HMAC-SHA256 webhook sign/verify + 5-field cron validator) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-17": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk12_signed_webhooks_and_cron_validator"
+        ],
+        "note": "EPK-12: master/automation/webhooks.py (constant-time HMAC-SHA256 webhook sign/verify + 5-field cron validator) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-18": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk12_signed_webhooks_and_cron_validator"
+        ],
+        "note": "EPK-12: master/automation/webhooks.py (constant-time HMAC-SHA256 webhook sign/verify + 5-field cron validator) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-19": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk12_signed_webhooks_and_cron_validator"
+        ],
+        "note": "EPK-12: master/automation/webhooks.py (constant-time HMAC-SHA256 webhook sign/verify + 5-field cron validator) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-20": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk12_signed_webhooks_and_cron_validator"
+        ],
+        "note": "EPK-12: master/automation/webhooks.py (constant-time HMAC-SHA256 webhook sign/verify + 5-field cron validator) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-21": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk12_signed_webhooks_and_cron_validator"
+        ],
+        "note": "EPK-12: master/automation/webhooks.py (constant-time HMAC-SHA256 webhook sign/verify + 5-field cron validator) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-22": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk13_mcp_server_rpc_and_human_approval_gate"
+        ],
+        "note": "EPK-13: master/mcp_server.py (JSON-RPC 2.0 MCP server + human_approved gate on side effects + local-first connector probe) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-23": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk13_mcp_server_rpc_and_human_approval_gate"
+        ],
+        "note": "EPK-13: master/mcp_server.py (JSON-RPC 2.0 MCP server + human_approved gate on side effects + local-first connector probe) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-24": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk13_mcp_server_rpc_and_human_approval_gate"
+        ],
+        "note": "EPK-13: master/mcp_server.py (JSON-RPC 2.0 MCP server + human_approved gate on side effects + local-first connector probe) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-25": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk13_mcp_server_rpc_and_human_approval_gate"
+        ],
+        "note": "EPK-13: master/mcp_server.py (JSON-RPC 2.0 MCP server + human_approved gate on side effects + local-first connector probe) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-26": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk13_mcp_server_rpc_and_human_approval_gate"
+        ],
+        "note": "EPK-13: master/mcp_server.py (JSON-RPC 2.0 MCP server + human_approved gate on side effects + local-first connector probe) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-27": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk13_mcp_server_rpc_and_human_approval_gate"
+        ],
+        "note": "EPK-13: master/mcp_server.py (JSON-RPC 2.0 MCP server + human_approved gate on side effects + local-first connector probe) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-28": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk13_mcp_server_rpc_and_human_approval_gate"
+        ],
+        "note": "EPK-13: master/mcp_server.py (JSON-RPC 2.0 MCP server + human_approved gate on side effects + local-first connector probe) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-29": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk13_mcp_server_rpc_and_human_approval_gate"
+        ],
+        "note": "EPK-13: master/mcp_server.py (JSON-RPC 2.0 MCP server + human_approved gate on side effects + local-first connector probe) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-30": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk13_mcp_server_rpc_and_human_approval_gate"
+        ],
+        "note": "EPK-13: master/mcp_server.py (JSON-RPC 2.0 MCP server + human_approved gate on side effects + local-first connector probe) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-31": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk13_mcp_server_rpc_and_human_approval_gate"
+        ],
+        "note": "EPK-13: master/mcp_server.py (JSON-RPC 2.0 MCP server + human_approved gate on side effects + local-first connector probe) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-32": {
       "status": "done",
@@ -11880,164 +11962,204 @@
       "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKB-52": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-16: WCAG 2.2 AA contrast verifier, ARIA labels across workbench & themes, keyboard/a11y & JS static checks == 0."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-53": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-16: WCAG 2.2 AA contrast verifier, ARIA labels across workbench & themes, keyboard/a11y & JS static checks == 0."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-54": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-16: WCAG 2.2 AA contrast verifier, ARIA labels across workbench & themes, keyboard/a11y & JS static checks == 0."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-55": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-16: WCAG 2.2 AA contrast verifier, ARIA labels across workbench & themes, keyboard/a11y & JS static checks == 0."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-56": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-16: WCAG 2.2 AA contrast verifier, ARIA labels across workbench & themes, keyboard/a11y & JS static checks == 0."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-57": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-16: WCAG 2.2 AA contrast verifier, ARIA labels across workbench & themes, keyboard/a11y & JS static checks == 0."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-58": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-16: WCAG 2.2 AA contrast verifier, ARIA labels across workbench & themes, keyboard/a11y & JS static checks == 0."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-59": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-16: WCAG 2.2 AA contrast verifier, ARIA labels across workbench & themes, keyboard/a11y & JS static checks == 0."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-60": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-16: WCAG 2.2 AA contrast verifier, ARIA labels across workbench & themes, keyboard/a11y & JS static checks == 0."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-61": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-16: WCAG 2.2 AA contrast verifier, ARIA labels across workbench & themes, keyboard/a11y & JS static checks == 0."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-62": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-17: master/telemetry_otel.py (W3C traceparent OTLP JSON span recorder/exporter + latency budget) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-63": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-17: master/telemetry_otel.py (W3C traceparent OTLP JSON span recorder/exporter + latency budget) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-64": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-17: master/telemetry_otel.py (W3C traceparent OTLP JSON span recorder/exporter + latency budget) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-65": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-17: master/telemetry_otel.py (W3C traceparent OTLP JSON span recorder/exporter + latency budget) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-66": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-17: master/telemetry_otel.py (W3C traceparent OTLP JSON span recorder/exporter + latency budget) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-67": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-17: master/telemetry_otel.py (W3C traceparent OTLP JSON span recorder/exporter + latency budget) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-68": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-17: master/telemetry_otel.py (W3C traceparent OTLP JSON span recorder/exporter + latency budget) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-69": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-17: master/telemetry_otel.py (W3C traceparent OTLP JSON span recorder/exporter + latency budget) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-70": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-17: master/telemetry_otel.py (W3C traceparent OTLP JSON span recorder/exporter + latency budget) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-71": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-17: master/telemetry_otel.py (W3C traceparent OTLP JSON span recorder/exporter + latency budget) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKB-72": {
       "status": "done",
@@ -12540,164 +12662,204 @@
       "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-23": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-23: master/openai_compat.py (/v1/models, /v1/chat/completions, /v1/embeddings) + manifest.webmanifest PWA + CLI/SDK."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-24": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-23: master/openai_compat.py (/v1/models, /v1/chat/completions, /v1/embeddings) + manifest.webmanifest PWA + CLI/SDK."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-25": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-23: master/openai_compat.py (/v1/models, /v1/chat/completions, /v1/embeddings) + manifest.webmanifest PWA + CLI/SDK."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-26": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-23: master/openai_compat.py (/v1/models, /v1/chat/completions, /v1/embeddings) + manifest.webmanifest PWA + CLI/SDK."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-27": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-23: master/openai_compat.py (/v1/models, /v1/chat/completions, /v1/embeddings) + manifest.webmanifest PWA + CLI/SDK."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-28": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-23: master/openai_compat.py (/v1/models, /v1/chat/completions, /v1/embeddings) + manifest.webmanifest PWA + CLI/SDK."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-29": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-23: master/openai_compat.py (/v1/models, /v1/chat/completions, /v1/embeddings) + manifest.webmanifest PWA + CLI/SDK."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-30": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-23: master/openai_compat.py (/v1/models, /v1/chat/completions, /v1/embeddings) + manifest.webmanifest PWA + CLI/SDK."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-31": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-23: master/openai_compat.py (/v1/models, /v1/chat/completions, /v1/embeddings) + manifest.webmanifest PWA + CLI/SDK."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-32": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-23: master/openai_compat.py (/v1/models, /v1/chat/completions, /v1/embeddings) + manifest.webmanifest PWA + CLI/SDK."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-33": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-24: master/updater.py (SemVer update check, SHA-256 release verification, rollback support) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-34": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-24: master/updater.py (SemVer update check, SHA-256 release verification, rollback support) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-35": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-24: master/updater.py (SemVer update check, SHA-256 release verification, rollback support) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-36": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-24: master/updater.py (SemVer update check, SHA-256 release verification, rollback support) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-37": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-24: master/updater.py (SemVer update check, SHA-256 release verification, rollback support) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-38": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-24: master/updater.py (SemVer update check, SHA-256 release verification, rollback support) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-39": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-24: master/updater.py (SemVer update check, SHA-256 release verification, rollback support) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-40": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-24: master/updater.py (SemVer update check, SHA-256 release verification, rollback support) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-41": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-24: master/updater.py (SemVer update check, SHA-256 release verification, rollback support) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-42": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk17_epk23_epk24_otel_openai_compat_pwa_and_updater"
+        ],
+        "note": "EPK-24: master/updater.py (SemVer update check, SHA-256 release verification, rollback support) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-43": {
       "status": "done",
@@ -12900,244 +13062,304 @@
       "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKC-63": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-27: master/static/js/i18n.js (5 complete locales tr/en/de/fr/ar + RTL) + frontend/tests/i18n_complete.test.mjs."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-64": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-27: master/static/js/i18n.js (5 complete locales tr/en/de/fr/ar + RTL) + frontend/tests/i18n_complete.test.mjs."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-65": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-27: master/static/js/i18n.js (5 complete locales tr/en/de/fr/ar + RTL) + frontend/tests/i18n_complete.test.mjs."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-66": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-27: master/static/js/i18n.js (5 complete locales tr/en/de/fr/ar + RTL) + frontend/tests/i18n_complete.test.mjs."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-67": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-27: master/static/js/i18n.js (5 complete locales tr/en/de/fr/ar + RTL) + frontend/tests/i18n_complete.test.mjs."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-68": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-27: master/static/js/i18n.js (5 complete locales tr/en/de/fr/ar + RTL) + frontend/tests/i18n_complete.test.mjs."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-69": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-27: master/static/js/i18n.js (5 complete locales tr/en/de/fr/ar + RTL) + frontend/tests/i18n_complete.test.mjs."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-70": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-27: master/static/js/i18n.js (5 complete locales tr/en/de/fr/ar + RTL) + frontend/tests/i18n_complete.test.mjs."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-71": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-27: master/static/js/i18n.js (5 complete locales tr/en/de/fr/ar + RTL) + frontend/tests/i18n_complete.test.mjs."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-72": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-27: master/static/js/i18n.js (5 complete locales tr/en/de/fr/ar + RTL) + frontend/tests/i18n_complete.test.mjs."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-73": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk28_epk29_notifications_quiet_hours_and_signed_marketplace"
+        ],
+        "note": "EPK-28: master/notifications.py (SMTP/Telegram/Discord/Webhook router + quiet hours + rate limits) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-74": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk28_epk29_notifications_quiet_hours_and_signed_marketplace"
+        ],
+        "note": "EPK-28: master/notifications.py (SMTP/Telegram/Discord/Webhook router + quiet hours + rate limits) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-75": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk28_epk29_notifications_quiet_hours_and_signed_marketplace"
+        ],
+        "note": "EPK-28: master/notifications.py (SMTP/Telegram/Discord/Webhook router + quiet hours + rate limits) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-76": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk28_epk29_notifications_quiet_hours_and_signed_marketplace"
+        ],
+        "note": "EPK-28: master/notifications.py (SMTP/Telegram/Discord/Webhook router + quiet hours + rate limits) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-77": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk28_epk29_notifications_quiet_hours_and_signed_marketplace"
+        ],
+        "note": "EPK-28: master/notifications.py (SMTP/Telegram/Discord/Webhook router + quiet hours + rate limits) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-78": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk28_epk29_notifications_quiet_hours_and_signed_marketplace"
+        ],
+        "note": "EPK-28: master/notifications.py (SMTP/Telegram/Discord/Webhook router + quiet hours + rate limits) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-79": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk28_epk29_notifications_quiet_hours_and_signed_marketplace"
+        ],
+        "note": "EPK-28: master/notifications.py (SMTP/Telegram/Discord/Webhook router + quiet hours + rate limits) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-80": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk28_epk29_notifications_quiet_hours_and_signed_marketplace"
+        ],
+        "note": "EPK-28: master/notifications.py (SMTP/Telegram/Discord/Webhook router + quiet hours + rate limits) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-81": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk28_epk29_notifications_quiet_hours_and_signed_marketplace"
+        ],
+        "note": "EPK-28: master/notifications.py (SMTP/Telegram/Discord/Webhook router + quiet hours + rate limits) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-82": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk28_epk29_notifications_quiet_hours_and_signed_marketplace"
+        ],
+        "note": "EPK-28: master/notifications.py (SMTP/Telegram/Discord/Webhook router + quiet hours + rate limits) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-83": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk28_epk29_notifications_quiet_hours_and_signed_marketplace"
+        ],
+        "note": "EPK-29: master/marketplace.py (HMAC-SHA256 signed manifests, permission preview/approval gate, install/uninstall) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-84": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk28_epk29_notifications_quiet_hours_and_signed_marketplace"
+        ],
+        "note": "EPK-29: master/marketplace.py (HMAC-SHA256 signed manifests, permission preview/approval gate, install/uninstall) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-85": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk28_epk29_notifications_quiet_hours_and_signed_marketplace"
+        ],
+        "note": "EPK-29: master/marketplace.py (HMAC-SHA256 signed manifests, permission preview/approval gate, install/uninstall) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-86": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk28_epk29_notifications_quiet_hours_and_signed_marketplace"
+        ],
+        "note": "EPK-29: master/marketplace.py (HMAC-SHA256 signed manifests, permission preview/approval gate, install/uninstall) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-87": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk28_epk29_notifications_quiet_hours_and_signed_marketplace"
+        ],
+        "note": "EPK-29: master/marketplace.py (HMAC-SHA256 signed manifests, permission preview/approval gate, install/uninstall) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-88": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk28_epk29_notifications_quiet_hours_and_signed_marketplace"
+        ],
+        "note": "EPK-29: master/marketplace.py (HMAC-SHA256 signed manifests, permission preview/approval gate, install/uninstall) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-89": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk28_epk29_notifications_quiet_hours_and_signed_marketplace"
+        ],
+        "note": "EPK-29: master/marketplace.py (HMAC-SHA256 signed manifests, permission preview/approval gate, install/uninstall) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-90": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk28_epk29_notifications_quiet_hours_and_signed_marketplace"
+        ],
+        "note": "EPK-29: master/marketplace.py (HMAC-SHA256 signed manifests, permission preview/approval gate, install/uninstall) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-91": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk28_epk29_notifications_quiet_hours_and_signed_marketplace"
+        ],
+        "note": "EPK-29: master/marketplace.py (HMAC-SHA256 signed manifests, permission preview/approval gate, install/uninstall) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-92": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk28_epk29_notifications_quiet_hours_and_signed_marketplace"
+        ],
+        "note": "EPK-29: master/marketplace.py (HMAC-SHA256 signed manifests, permission preview/approval gate, install/uninstall) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKC-93": {
       "status": "done",
@@ -13540,84 +13762,104 @@
       "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-34": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-34: extensions/browser/ MV3 sidePanel + contextMenus + background.js + explicit consent sidepanel.html + strict localhost allowlist."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKD-35": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-34: extensions/browser/ MV3 sidePanel + contextMenus + background.js + explicit consent sidepanel.html + strict localhost allowlist."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKD-36": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-34: extensions/browser/ MV3 sidePanel + contextMenus + background.js + explicit consent sidepanel.html + strict localhost allowlist."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKD-37": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-34: extensions/browser/ MV3 sidePanel + contextMenus + background.js + explicit consent sidepanel.html + strict localhost allowlist."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKD-38": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-34: extensions/browser/ MV3 sidePanel + contextMenus + background.js + explicit consent sidepanel.html + strict localhost allowlist."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKD-39": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-34: extensions/browser/ MV3 sidePanel + contextMenus + background.js + explicit consent sidepanel.html + strict localhost allowlist."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKD-40": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-34: extensions/browser/ MV3 sidePanel + contextMenus + background.js + explicit consent sidepanel.html + strict localhost allowlist."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKD-41": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-34: extensions/browser/ MV3 sidePanel + contextMenus + background.js + explicit consent sidepanel.html + strict localhost allowlist."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKD-42": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-34: extensions/browser/ MV3 sidePanel + contextMenus + background.js + explicit consent sidepanel.html + strict localhost allowlist."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     },
     "PKD-43": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
+        ],
+        "note": "EPK-34: extensions/browser/ MV3 sidePanel + contextMenus + background.js + explicit consent sidepanel.html + strict localhost allowlist."
+      },
+      "updated_at": "2026-11-24T10:22:53Z"
     }
   }
 }

@@ -1,9 +1,10 @@
 {
-  "name": "Dağıtık YZ Yazılım Geliştirme Platformu",
-  "short_name": "YZ Platform",
+  "name": "DADP Yerel Yapay Zeka Platformu",
+  "short_name": "DADP AI",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",
-  "theme_color": "#0f766e",
-  "lang": "tr"
+  "theme_color": "#1e293b",
+  "lang": "tr",
+  "description": "Çevrimdışı öncelikli dağıtık yapay zeka yazılım geliştirme ve mühendislik platformu."
 }

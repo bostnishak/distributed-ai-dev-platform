@@ -106,6 +106,27 @@ erDiagram
         text created_at
         text updated_at
     }
+    custom_agent_versions {
+        integer id PK
+        text agent_id
+        text user_id  "sahip"
+        integer version
+        text instructions
+        text allowed_tools_json
+        text created_at
+    }
+    custom_agents {
+        text agent_id PK
+        text user_id  "sahip"
+        text name
+        integer current_version
+        text instructions
+        text rag_collections_json
+        text allowed_tools_json
+        text model_override
+        text shared_org_id
+        text updated_at
+    }
     edu_flashcards {
         text card_id PK
         text user_id  "sahip"
@@ -213,6 +234,17 @@ erDiagram
         text entity_type
         text doc_id
     }
+    marketplace_packages {
+        text package_id PK
+        text name
+        text version
+        text kind
+        text permissions_json
+        text sha256_digest
+        text signature_hmac
+        integer installed
+        text created_at
+    }
     memory_conflicts {
         integer id PK
         text user_id  "sahip"
@@ -242,6 +274,17 @@ erDiagram
         text cells_json
         text created_at
         text updated_at
+    }
+    notification_channels {
+        text channel_id PK
+        text kind
+        text name
+        text config_json
+        integer quiet_start_hour
+        integer quiet_end_hour
+        integer rate_limit_per_hour
+        integer enabled
+        text created_at
     }
     org_invites {
         text token_hash PK
@@ -415,6 +458,15 @@ erDiagram
         real credibility_score
         text fetched_at
     }
+    webhook_deliveries {
+        text delivery_id PK
+        text event_type
+        text target_url
+        text signature_hmac
+        text status
+        integer attempts
+        text created_at
+    }
     agents ||--o{ agent_scores : "agent_id"
     agents ||--o{ events : "agent_id"
     agents ||--o{ tasks : "assigned_to"
@@ -445,6 +497,8 @@ erDiagram
 | conflicts | ortak |
 | conversation_messages | conversations altında |
 | conversations | sahip: user_id |
+| custom_agent_versions | sahip: user_id |
+| custom_agents | sahip: user_id |
 | edu_flashcards | sahip: user_id |
 | error_events | ortak |
 | eval_annotations | ortak |
@@ -458,9 +512,11 @@ erDiagram
 | idempotent_results | ortak |
 | kg_edges | ortak |
 | kg_entities | ortak |
+| marketplace_packages | ortak |
 | memory_conflicts | sahip: user_id |
 | ml_model_promotions | ortak |
 | notebooks | sahip: user_id |
+| notification_channels | ortak |
 | org_invites | ortak |
 | org_members | ortak |
 | orgs | ortak |
@@ -480,3 +536,4 @@ erDiagram
 | user_quotas | sahip: user_id |
 | vision_drawings | ortak |
 | web_archive | ortak |
+| webhook_deliveries | ortak |

@@ -28,6 +28,8 @@ OWNED: dict[str, str] = {
     "user_quotas": "user_id",
     "notebooks": "user_id",
     "edu_flashcards": "user_id",
+    "custom_agents": "user_id",
+    "custom_agent_versions": "user_id",
 }
 
 # child table -> (its column, parent table, parent key)
@@ -38,9 +40,10 @@ CHILDREN: dict[str, tuple[str, str, str]] = {
 SHARED = frozenset({
     "agent_scores", "agents", "blobs", "cnc_cmm_measurements", "cnc_inspection_lots", "conflicts", "error_events",
     "eval_annotations", "eval_datasets", "eval_sessions", "events", "feature_flags", "ha_leases",
-    "idempotent_results", "kg_edges", "kg_entities", "mcp_connectors", "ml_model_promotions", "org_invites",
-    "org_members", "orgs", "procedural_skills", "projects", "rag_documents", "rtbf_erasure_proofs",
-    "schema_migrations", "schema_version", "secrets", "task_dependencies", "tasks", "vision_drawings", "web_archive",
+    "idempotent_results", "kg_edges", "kg_entities", "marketplace_packages", "mcp_connectors",
+    "ml_model_promotions", "notification_channels", "org_invites", "org_members", "orgs", "procedural_skills",
+    "projects", "rag_documents", "rtbf_erasure_proofs", "schema_migrations", "schema_version", "secrets",
+    "task_dependencies", "tasks", "vision_drawings", "web_archive", "webhook_deliveries",
 })
 
 # Infrastructure that must see every owner's rows (garbage collection, repair, retention, index upkeep).

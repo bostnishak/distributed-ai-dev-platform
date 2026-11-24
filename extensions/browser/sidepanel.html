@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <title>DADP Yerel Yan Panel</title>
+  <style>body{font-family:system-ui,sans-serif;margin:12px;background:#0f172a;color:#f8fafc}textarea,input{width:100%;box-sizing:border-box;margin:6px 0}button{padding:8px 12px;cursor:pointer}</style>
+</head>
+<body>
+  <h2>DADP Yerel Asistan (Yan Panel)</h2>
+  <p>Yalnızca yerel sunucuya gönderilir. Açık onay olmadan sayfa içeriği aktarılmaz.</p>
+  <label for="consent"><input id="consent" type="checkbox" /> Seçili metni yerel DADP sunucusuna göndermeyi onaylıyorum.</label>
+  <textarea id="sel" rows="6" aria-label="Seçili metin"></textarea>
+  <button id="sendBtn" type="button">Yerel DADP ile Özetle</button>
+  <pre id="out"></pre>
+</body>
+</html>
