@@ -13,6 +13,8 @@ import memory_engine
 import migrate
 import user_profile
 
+pytestmark = pytest.mark.integration
+
 
 def write(directory, name, sql):
     directory.mkdir(parents=True, exist_ok=True)

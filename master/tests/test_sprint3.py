@@ -14,6 +14,8 @@ import db
 import validation as val_module
 from task_prompts import _build_task_prompt  # type: ignore[import]
 
+pytestmark = pytest.mark.integration
+
 
 @pytest.fixture()
 def db_session(isolated_settings):

@@ -10,6 +10,8 @@ import config
 import security_extensions as se
 import security_middleware
 
+pytestmark = pytest.mark.integration
+
 
 @pytest.fixture()
 def f204_client(tmp_path, monkeypatch):

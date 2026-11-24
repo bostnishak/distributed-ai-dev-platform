@@ -5,6 +5,8 @@ from fastapi.testclient import TestClient
 
 import config
 
+pytestmark = pytest.mark.security
+
 REMOTE = ("100.84.159.80", 50000)
 
 GUARDED = [

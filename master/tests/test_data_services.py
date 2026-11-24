@@ -30,6 +30,8 @@ import search_index
 import user_profile
 import vector_meta
 
+pytestmark = pytest.mark.integration
+
 MASTER = Path(__file__).resolve().parents[1]
 ALLOWLIST = MASTER.parent / "docs" / "plan-v2" / "owner_lint_allowlist.txt"
 

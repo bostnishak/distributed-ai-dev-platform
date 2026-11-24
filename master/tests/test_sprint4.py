@@ -6,9 +6,13 @@ import json
 from datetime import UTC, datetime, timedelta
 from typing import ClassVar
 
+import pytest
+
 import db
 from conflict_detector import detect_and_save
 from selection import select_agent
+
+pytestmark = pytest.mark.integration
 
 # ---------------------------------------------------------------------------
 # Helpers

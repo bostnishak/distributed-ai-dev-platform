@@ -13,6 +13,8 @@ import config
 import security_middleware
 from auth import service as auth_service
 
+pytestmark = pytest.mark.integration
+
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
 STATIC_DIR = REPO_ROOT / "master" / "static"
 

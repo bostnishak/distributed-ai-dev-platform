@@ -5,6 +5,10 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
+pytestmark = pytest.mark.unit
+
 SCRIPT = Path(__file__).resolve().parents[2] / "scripts" / "plan_tool.py"
 spec = importlib.util.spec_from_file_location("plan_tool", SCRIPT)
 pt = importlib.util.module_from_spec(spec)

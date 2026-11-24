@@ -13,6 +13,8 @@ from extract import (
     extract_xlsx_text,
 )
 
+pytestmark = pytest.mark.unit
+
 
 def _docx_bytes(paragraphs: list[str], table: list[list[str]] | None = None) -> bytes:
     doc = Document()

@@ -1,7 +1,11 @@
 import sqlite3
 
+import pytest
+
 import config
 import db
+
+pytestmark = pytest.mark.integration
 
 
 def test_new_database_gets_latest_version():

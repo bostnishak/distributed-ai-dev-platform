@@ -8,6 +8,8 @@ from fastapi.testclient import TestClient
 import app as master_app
 from orchestrator.state import apply_targeted_edit, list_artifact_versions, save_artifact
 
+pytestmark = pytest.mark.integration
+
 
 @pytest.fixture
 def client():

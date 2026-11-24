@@ -5,11 +5,14 @@ from __future__ import annotations
 import io
 from pathlib import Path
 
+import pytest
 from openpyxl import Workbook, load_workbook
 
 import document_factory as df
 import extract
 import file_inspector as fi
+
+pytestmark = pytest.mark.unit
 
 TURKISH_PANGRAM = "Pijamalı hasta yağız şoföre çabucak güvendi - ÇĞİÖŞÜ çğıöşü"
 

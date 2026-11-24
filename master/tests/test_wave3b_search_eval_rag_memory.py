@@ -5,6 +5,7 @@ from __future__ import annotations
 import secrets
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 import app as master_app
@@ -12,6 +13,8 @@ import eval_studio
 import memory_conflicts
 from hallucination import numeric_check
 from rag import advanced as rag_advanced
+
+pytestmark = pytest.mark.integration
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 

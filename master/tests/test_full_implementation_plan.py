@@ -11,6 +11,8 @@ import pytest
 
 import config
 
+pytestmark = pytest.mark.integration
+
 
 @pytest.fixture(autouse=True)
 def isolated_data_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):

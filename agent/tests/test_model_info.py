@@ -1,4 +1,8 @@
+import pytest
+
 from model_info import collect_host_info, parse_show_response
+
+pytestmark = pytest.mark.unit
 
 # Trimmed from real /api/show responses on the master's computer (Ollama 0.34.4, 2026-09-27).
 QWEN35_SHOW = {

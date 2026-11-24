@@ -77,6 +77,8 @@ from orchestrator.state import (
 )
 from orchestrator.tools_registry import build_default_registry, run_react_loop
 
+pytestmark = pytest.mark.integration
+
 MASTER_DIR = Path(__file__).resolve().parents[1]
 
 

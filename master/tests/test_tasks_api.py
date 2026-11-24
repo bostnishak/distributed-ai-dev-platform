@@ -1,6 +1,10 @@
 """Tests for PB-25: Task distribution queue API."""
 
+import pytest
+
 import db
+
+pytestmark = pytest.mark.integration
 
 AGENT_PAYLOAD = {
     "agent_id": "uye-task1",

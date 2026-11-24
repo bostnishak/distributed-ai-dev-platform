@@ -1,7 +1,11 @@
 """Tests for PB-20: Agent heartbeat and online status."""
 
 
+import pytest
+
 import db
+
+pytestmark = pytest.mark.unit
 
 PAYLOAD = {
     "agent_id": "uye-hb1",

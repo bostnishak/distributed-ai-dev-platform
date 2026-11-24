@@ -10,6 +10,8 @@ import config
 import memory_engine
 import user_profile as up
 
+pytestmark = pytest.mark.integration
+
 
 @pytest.fixture(autouse=True)
 def isolated_data_dir(tmp_path, monkeypatch):

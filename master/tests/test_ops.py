@@ -19,6 +19,8 @@ import metrics
 import ops
 import readiness
 
+pytestmark = pytest.mark.integration
+
 REMOTE = ("100.84.159.80", 50000)
 
 

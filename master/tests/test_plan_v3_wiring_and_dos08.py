@@ -8,12 +8,15 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 from PIL import Image, ImageDraw
 
 import app as master_app
 import contract_check
 from rag.parsing import recognize_handwriting_image_bytes
+
+pytestmark = pytest.mark.integration
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 

@@ -6,6 +6,8 @@ import pytest
 
 import app as master_app
 
+pytestmark = pytest.mark.contract
+
 
 @pytest.mark.contract
 def test_sma_smb_ack_acl_every_openapi_route_has_200_schema_and_description():

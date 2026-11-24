@@ -8,12 +8,15 @@ from __future__ import annotations
 
 import io
 
+import pytest
 from PIL import Image, ImageDraw
 
 import cluster_telemetry
 import config
 import hybrid_graph_rag
 import llmops_pipeline
+
+pytestmark = pytest.mark.integration
 
 
 def _make_drawing_png(kind: str) -> bytes:

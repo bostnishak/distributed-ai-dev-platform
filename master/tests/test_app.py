@@ -1,4 +1,8 @@
+import pytest
+
 import llm
+
+pytestmark = pytest.mark.integration
 
 
 def test_health_ok(client):

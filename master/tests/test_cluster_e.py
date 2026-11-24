@@ -7,11 +7,14 @@ import sqlite3
 from pathlib import Path
 
 import numpy as np
+import pytest
 from PIL import Image, ImageDraw
 
 import config
 import domain_experts
 import media_lab_arena
+
+pytestmark = pytest.mark.integration
 
 
 def test_legal_contract_risk_and_redline_analyzer():

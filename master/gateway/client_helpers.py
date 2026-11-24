@@ -225,6 +225,9 @@ class ChatCallOptions:
         )
 
 
+_INITIALIZED_GW_PATHS: set[str] = set()
+
+
 def gw_db_path() -> Path:
     p = Path(config.DATA_DIR) / "gateway.db"
     p.parent.mkdir(parents=True, exist_ok=True)
@@ -234,7 +237,13 @@ def gw_db_path() -> Path:
 def gw_conn() -> sqlite3.Connection:
     import dbconn
 
-    return dbconn.open_db(gw_db_path())
+    p = gw_db_path()
+    conn = dbconn.open_db(p)
+    key = str(p.resolve())
+    if key not in _INITIALIZED_GW_PATHS:
+        conn.executescript(load_prompt("b1_gateway_schema.txt"))
+        _INITIALIZED_GW_PATHS.add(key)
+    return conn
 
 
 def init_gateway_db() -> None:

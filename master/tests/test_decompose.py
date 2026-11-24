@@ -19,6 +19,8 @@ from decompose import (
 )
 from spec_factory import make_spec
 
+pytestmark = pytest.mark.integration
+
 
 def run(coro):
     return asyncio.run(coro)

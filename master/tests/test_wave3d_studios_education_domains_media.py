@@ -6,12 +6,15 @@ import base64
 import io
 import secrets
 
+import pytest
 from fastapi.testclient import TestClient
 from PIL import Image
 
 import app as master_app
 from domains import engineering_bench
 from education import service as edu_service
+
+pytestmark = pytest.mark.integration
 
 
 def _solid_png_b64(color: tuple[int, int, int]) -> str:

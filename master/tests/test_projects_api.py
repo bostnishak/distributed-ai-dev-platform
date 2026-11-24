@@ -1,7 +1,11 @@
+import pytest
+
 import db
 import llm
 import projects_api
 from spec_factory import make_spec
+
+pytestmark = pytest.mark.integration
 
 
 def fake_chat_returning(spec_json: str):

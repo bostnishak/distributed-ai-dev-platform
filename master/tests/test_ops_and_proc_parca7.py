@@ -7,7 +7,10 @@ import importlib.util
 import sys
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
+
+pytestmark = pytest.mark.integration
 
 ROOT = Path(__file__).resolve().parents[2]
 MASTER_DIR = ROOT / "master"

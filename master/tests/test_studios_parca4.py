@@ -53,6 +53,8 @@ from studios import (
     what_if_predict,
 )
 
+pytestmark = pytest.mark.integration
+
 # ---------------------------------------------------------------- RES-01..RES-12 Tests
 
 @pytest.mark.anyio

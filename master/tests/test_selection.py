@@ -2,7 +2,11 @@
 
 from datetime import UTC, datetime, timedelta
 
+import pytest
+
 from selection import _is_online, score_agent, select_agent
+
+pytestmark = pytest.mark.integration
 
 
 def _make_agent(agent_id: str, context_length: int = 8192, heartbeat_status: str = "idle", last_seen_delta_seconds: int = 5) -> dict:

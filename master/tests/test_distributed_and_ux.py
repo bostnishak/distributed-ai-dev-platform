@@ -41,6 +41,8 @@ from distributed import (
 from orchestrator.classifier import load_intent_catalog
 from ux_api import build_health_wizard_report, create_readonly_share, fetch_readonly_share, validate_settings
 
+pytestmark = pytest.mark.integration
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 STATIC_JS = REPO_ROOT / "master" / "static" / "js"
 

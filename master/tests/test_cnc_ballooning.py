@@ -5,6 +5,7 @@ from __future__ import annotations
 import io
 from pathlib import Path
 
+import pytest
 from docx import Document
 from fastapi.testclient import TestClient
 from openpyxl import Workbook
@@ -12,6 +13,8 @@ from openpyxl import Workbook
 import app as app_mod
 import cnc_ballooning as cnc
 import config
+
+pytestmark = pytest.mark.integration
 
 
 def test_parse_cnc_dimensions():

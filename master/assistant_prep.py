@@ -91,7 +91,26 @@ def _process_image_upload(raw: bytes, prompt: str) -> tuple[str, str]:
     return base64.b64encode(raw).decode(), file_note
 
 
-def _extract_csv_with_automl(name: str, raw: bytes) -> str:
+_FORECAST_KEYWORDS = (
+    "tahmin",
+    "forecast",
+    "öngör",
+    "ongor",
+    "gelecek",
+    "projeksiyon",
+    "regresyon",
+    "predict",
+    "veri_analizi:tahmin",
+)
+
+
+def _wants_csv_forecast(prompt: str) -> bool:
+    low = (prompt or "").lower()
+    return any(k in low for k in _FORECAST_KEYWORDS)
+
+
+def _extract_csv_with_automl(name: str, raw: bytes, prompt: str = "") -> str:
+    """DEF-06: Attach profile summary by default; run forecast with uncertainty interval only when requested."""
     import automl_studio as aml
 
     extracted = extract_csv_text(raw)
@@ -102,14 +121,17 @@ def _extract_csv_with_automl(name: str, raw: bytes) -> str:
             prof = aml.profile_dataset(rows)
             num_cols = prof.get("numeric_columns", [])
             aml_lines = [
-                f"\n\n### AutoML Veri Bilimi ve Anomali Özeti ({prof['row_count']} satır, {prof['column_count']} sütun)",
+                f"\n\n### AutoML Veri Profili Özeti ({prof['row_count']} satır, {prof['column_count']} sütun)",
                 f"- **Sayısal Sütunlar:** `{', '.join(num_cols) or '-'}` | **Tespit Edilen Anomali:** `{len(prof.get('anomalies', []))}` satır",
             ]
-            if num_cols and len(rows) >= 4:
+            if _wants_csv_forecast(prompt) and num_cols and len(rows) >= 4:
                 fc = aml.train_and_forecast(rows, target_col=num_cols[-1], horizon=3)
-                preds = ", ".join(f"T+{p['step']}: {p['prediction']:.2f}" for p in fc.get("forecasts", []))
+                rmse = float(fc["metrics"]["rmse"])
+                ci = round(1.96 * rmse, 2)
+                preds = ", ".join(f"T+{p['step']}: {p['prediction']:.2f} (±{ci:.2f})" for p in fc.get("forecasts", []))
                 aml_lines.append(
-                    f"- **L2 Ridge Tahmin ({num_cols[-1]}):** R2=`{fc['metrics']['r2']:.3f}`, RMSE=`{fc['metrics']['rmse']:.2f}` -> `{preds}`"
+                    f"- **[Araç Çıktısı] L2 Ridge Tahmin ({num_cols[-1]}):** R2=`{fc['metrics']['r2']:.3f}`, "
+                    f"RMSE=`{rmse:.2f}`, 95% belirsizlik aralığı=`±{ci:.2f}` -> `{preds}`"
                 )
             extracted += "\n" + "\n".join(aml_lines)
     except (OSError, ValueError, TypeError, KeyError, ArithmeticError, IndexError, RuntimeError, ImportError) as exc:
@@ -160,7 +182,7 @@ def _extract_document_bytes(filename: str, content_type: str, raw: bytes, prompt
         if name.endswith(exts):
             return fn(raw), "analiz", ""
     if name.endswith((".csv", ".tsv")):
-        return _extract_csv_with_automl(name, raw), "analiz", ""
+        return _extract_csv_with_automl(name, raw, prompt), "analiz", ""
     if name.endswith((".db", ".sqlite", ".sqlite3")):
         return _extract_sqlite_upload(filename, raw, prompt), "analiz", ""
     if name.endswith(".zip"):

@@ -4,11 +4,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 import app as app_mod
 import config
 import workspace_builder as wb
+
+pytestmark = pytest.mark.integration
 
 
 def test_workspace_tree_file_crud_and_preview(tmp_path: Path, monkeypatch):

@@ -18,6 +18,8 @@ from injection import detect_injection
 from ratelimit import JobLimiter, TokenBucket
 from safe_archive import UnsafeArchive, declared_matches_content, inspect_zip, scan_active_content
 
+pytestmark = pytest.mark.security
+
 REPO = Path(__file__).resolve().parents[2]
 REMOTE = ("100.84.159.80", 50000)
 

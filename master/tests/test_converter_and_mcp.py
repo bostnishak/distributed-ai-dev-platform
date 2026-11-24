@@ -7,6 +7,7 @@ import tempfile
 import zipfile
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -15,6 +16,8 @@ import app as master_app
 import document_factory as df
 import file_converter as fc
 import mcp_connector as mcpc
+
+pytestmark = pytest.mark.integration
 
 
 def test_bidirectional_pdf_docx_pptx_and_zip_roundtrip(tmp_path: Path, monkeypatch):

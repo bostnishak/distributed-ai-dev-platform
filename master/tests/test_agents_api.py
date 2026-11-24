@@ -1,4 +1,8 @@
+import pytest
+
 import config
+
+pytestmark = pytest.mark.unit
 
 PAYLOAD = {
     "agent_id": "uye4",

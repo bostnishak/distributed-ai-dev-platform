@@ -4,10 +4,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 import config
 import deep_research as dr
 import memory_engine as mem
 import tool_executor as te
+
+pytestmark = pytest.mark.integration
 
 
 def test_four_layer_cognitive_memory(tmp_path: Path, monkeypatch):

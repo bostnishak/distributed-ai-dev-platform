@@ -32,12 +32,19 @@ _RULES: tuple[tuple[str, str, str], ...] = (
     (".*", r"^/(health|ready|metrics|docs|openapi\.json|redoc)$", "public"),
     (".*", r"^/api/auth/", "public"),
     (".*", r"^/api/agents/(register|heartbeat|tasks|results|poll|telemetry)", "agent"),
-    (".*", r"^/api/(admin|backup|audit|features|ops)", "admin"),
+    (".*", r"^/api/(admin|backup|audit|features|ops|updates)", "admin"),
+    (".*", r"^/api/ha/drain/", "admin"),
     (".*", r"^/api/(mcp|connectors)", "admin"),
     (".*", r".*/(exec|run-code|launch-exe|start-server|build-exe|git)(/|$)", "execute"),
+    ("POST", r"^/api/privacy/rtbf/", "delete"),
     ("DELETE", r".*", "delete"),
     ("GET|HEAD|OPTIONS", r".*", "read"),
-    ("POST|PUT|PATCH", r"^/api/(assistant|projects|studio|studios|research|presentations|documents|games|domains|orchestrator|rag|memory|ux|ml|hallucination|eval|cnc|dist|tasks|output|perf|user|agents|security|tools|productivity)", "write"),
+    (
+        "POST|PUT|PATCH",
+        r"^/api/(assistant|projects|studio|studios|research|presentations|documents|games|domains|orchestrator|rag|memory|ux|ml|hallucination|eval|cnc|dist|tasks|output|perf|user|agents|security|tools|productivity|accounting|automation|custom-agents|education|factory|ha|ide|marketplace|media|notebooks|notifications|orgs|privacy|telemetry|vqa)",
+        "write",
+    ),
+    ("POST", r"^/v1/(chat/completions|embeddings)", "write"),
 )
 _COMPILED = tuple((re.compile(m), re.compile(p), a) for m, p, a in _RULES)
 

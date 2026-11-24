@@ -5,6 +5,8 @@ import pytest
 import config
 from assistant import keyword_category_override, parse_classifier_response, try_calculate
 
+pytestmark = pytest.mark.integration
+
 
 class TestKeywordCategoryOverride:
     def test_detects_python_keyword(self):

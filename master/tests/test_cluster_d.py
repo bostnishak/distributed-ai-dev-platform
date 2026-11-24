@@ -11,6 +11,8 @@ import config
 import enterprise_security_mcp
 import erp_mes_scheduler
 
+pytestmark = pytest.mark.integration
+
 SAMPLE_STEP_CONTENT = b"""ISO-10303-21;
 HEADER;
 FILE_DESCRIPTION(('Aerospace Flanged Housing'),'2;1');

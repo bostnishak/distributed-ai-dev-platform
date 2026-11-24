@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import secrets
 
+import pytest
 from fastapi.testclient import TestClient
 
 import app as master_app
+
+pytestmark = pytest.mark.integration
 
 
 def test_epk05_eight_verified_factory_templates_and_repair_plan():

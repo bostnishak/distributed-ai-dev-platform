@@ -47,6 +47,8 @@ from games import (
     validate_level_solvability,
 )
 
+pytestmark = pytest.mark.integration
+
 # ---------------------------------------------------------------- IDE-01..IDE-24 Tests
 
 def test_ide01_to_ide24_factory_templates_topo_sast_hunks_packaging_zipslip_eval(tmp_path):

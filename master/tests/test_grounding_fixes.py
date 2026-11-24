@@ -10,6 +10,8 @@ import assistant
 import config
 import hybrid_graph_rag
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture(autouse=True)
 def _isolated_chat(monkeypatch, tmp_path):

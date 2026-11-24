@@ -10,6 +10,8 @@ import config
 import document_factory as df
 import multimodal_studio as mms
 
+pytestmark = pytest.mark.integration
+
 
 @pytest.mark.unit
 def test_dav01_dav02_dav03_dav04_dav05_prompt_constraints_and_repair():

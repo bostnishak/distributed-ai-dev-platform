@@ -9,6 +9,8 @@ import cronjobs
 import db
 import kvstore
 
+pytestmark = pytest.mark.integration
+
 
 @pytest.fixture(autouse=True)
 def _db():

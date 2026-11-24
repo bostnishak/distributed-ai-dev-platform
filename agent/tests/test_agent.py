@@ -8,6 +8,8 @@ import pytest
 import agent
 from agent import ConfigError, FatalError, Settings, load_settings, run
 
+pytestmark = pytest.mark.unit
+
 SETTINGS = Settings(
     agent_id="uye5", member_name="Işıl Karademir", model="qwen2.5-coder:7b",
     master_url="http://master:8000", agent_token="secret", ollama_url="http://ollama:11434", mode="staging",
