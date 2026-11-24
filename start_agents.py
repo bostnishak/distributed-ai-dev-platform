@@ -193,7 +193,7 @@ async def task_loop(client: httpx.AsyncClient, member: dict, log: logging.Logger
                 pass
 
             # Execute via Ollama (always use the locally installed model)
-            exec_model = member.get("execution_model", model)
+            exec_model = str(member.get("execution_model") or model)
             prompt = _build_prompt(task)
             ollama_ok = True
             try:

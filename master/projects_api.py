@@ -86,22 +86,22 @@ async def create_project(
         raise HTTPException(status_code=422, detail="Ya metin yapıştırın ya da bir dosya yükleyin (ikisi birden değil).")
 
     source_filename = None
-    if has_file:
+    if has_file and file is not None:
         raw = await file.read(config.MAX_UPLOAD_BYTES + 1)
         if len(raw) > config.MAX_UPLOAD_BYTES:
             raise HTTPException(status_code=413, detail="Dosya 5 MB sınırını aşıyor.")
         try:
-            document = extract_text(file.filename, raw)
+            document = extract_text(file.filename or "", raw)
         except UnsupportedFileError as exc:
             raise HTTPException(
                 status_code=415,
                 detail=f"Desteklenmeyen dosya türü. Desteklenenler: {', '.join(REQUIREMENT_EXTENSIONS)}",
             ) from exc
-        source_filename = file.filename
+        source_filename = file.filename if file is not None else None
     else:
         document = text
 
-    document = decompose.normalize_document(document)
+    document = decompose.normalize_document(document or "")
     if not document:
         raise HTTPException(status_code=422, detail="Dokümandan metin çıkarılamadı.")
     if len(document) > config.MAX_DOCUMENT_CHARS:

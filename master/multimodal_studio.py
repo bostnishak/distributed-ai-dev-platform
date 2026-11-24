@@ -840,7 +840,8 @@ def _decode_audio_to_float32_16k(raw_bytes: bytes, tmp_path: Path, suffix: str) 
             resampler = av.AudioResampler(format="fltp", layout="mono", rate=16000)
             chunks: list[np.ndarray] = []
             for frame in container.decode(stream):
-                for resampled in resampler.resample(frame):
+                audio_frame: Any = frame
+                for resampled in resampler.resample(audio_frame):
                     chunks.append(resampled.to_ndarray().reshape(-1).astype(np.float32))
             if not chunks:
                 return None, 0.0

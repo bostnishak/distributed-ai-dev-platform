@@ -267,7 +267,7 @@ def _score_benchmark_task(task: dict, output: str, tokens_per_second: float | No
     for dim, score in dim_scores.items():
         db.save_agent_score(
             agent_id=assigned_to,
-            eval_session_id=session_id,
+            eval_session_id=int(session_id or 0),
             dimension=dim,
             score=score,
             details={"task_id": task["id"], "benchmark_ids": benchmark_ids},

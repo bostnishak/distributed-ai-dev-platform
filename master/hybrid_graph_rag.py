@@ -292,7 +292,7 @@ class HybridGraphRAG:
 
             try:
                 prov = gateway.OllamaProvider(base_url=getattr(config, "OLLAMA_URL", "http://127.0.0.1:11434"))
-                emb = prov.embed_sync("bge-m3:latest", text, timeout=1.2)
+                emb = prov.embed_sync("bge-m3:latest", text, timeout_s=1.2)
                 if len(emb) >= 64:
                     return emb
             except Exception as _exc:

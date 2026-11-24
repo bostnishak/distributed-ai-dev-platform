@@ -36,7 +36,7 @@ def extract_pdf_text(raw: bytes) -> str:
     """Extract PDF text using PyMuPDF (better Turkish Unicode/CID support), falling back to pypdf."""
     try:
         doc = fitz.open(stream=raw, filetype="pdf")
-        pages = [page.get_text("text") or "" for page in doc]
+        pages = [str(page.get_text("text") or "") for page in doc]
         doc.close()
         text = "\n".join(pages).strip()
         if text:

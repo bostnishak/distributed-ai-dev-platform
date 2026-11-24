@@ -61,14 +61,11 @@ def build_health_wizard_report(
     bge_available: bool = True,
 ) -> dict[str, Any]:
     """UX-17: Actionable Turkish diagnostics for Ollama, models, embeddings, web search, sandbox & agents."""
+    import importlib.util
+
     sb = sandbox.status()
     web_on = os.environ.get("WEB_SEARCH_ENABLED", "false").lower() == "true" or bool(os.environ.get("SEARXNG_URL", "").strip())
-    ocr_ok = False
-    try:
-        import pytesseract  # noqa: F401
-        ocr_ok = True
-    except ImportError:
-        ocr_ok = False
+    ocr_ok = importlib.util.find_spec("pytesseract") is not None
     try:
         agents = db.list_agents() if hasattr(db, "list_agents") else []
     except Exception:

@@ -205,32 +205,43 @@ def is_grounded_research_request(prompt: str, has_file: bool) -> bool:
 
 def gather_research_sources(prompt: str) -> list[dict[str, str]]:
     """DAV-09: Collect live SearXNG + local RAG sources; fall back cleanly with explicit source metadata."""
-    sources: list[dict[str, str]] = []
-    try:
-        from rag.web import search_searxng
+    import json
+    import os
+    import urllib.parse
+    import urllib.request
 
-        web_hits = search_searxng(prompt, max_results=4)
-        for hit in web_hits:
-            url = str(hit.get("url") or "").strip()
-            title = str(hit.get("title") or url or "Web Kaynağı").strip()
-            snippet = str(hit.get("content") or hit.get("snippet") or "").strip()
-            if url:
-                sources.append({"id": f"S{len(sources) + 1}", "title": title, "url": url, "snippet": snippet[:400]})
-    except Exception as exc:
-        log.debug("SearXNG lookup skipped: %s", exc)
+    sources: list[dict[str, str]] = []
+    searx = os.environ.get("SEARXNG_URL", "").strip().rstrip("/")
+    if searx:
+        try:
+            q = urllib.parse.urlencode({"q": prompt, "format": "json", "language": "tr"})
+            req = urllib.request.Request(f"{searx}/search?{q}", headers={"User-Agent": "DADP-Research/1.0"})
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+            for hit in (data.get("results") or [])[:4]:
+                url = str(hit.get("url") or "").strip()
+                title = str(hit.get("title") or url or "Web Kaynağı").strip()
+                snippet = str(hit.get("content") or hit.get("snippet") or "").strip()
+                if url:
+                    sources.append({"id": f"S{len(sources) + 1}", "title": title, "url": url, "snippet": snippet[:400]})
+        except Exception as exc:
+            log.debug("SearXNG lookup skipped: %s", exc)
 
     if not sources:
         try:
             from rag.store import default_rag_store
 
-            rag_hits = default_rag_store.search(prompt, top_k=3)
-            for hit in rag_hits:
+            with default_rag_store._conn() as conn:
+                rows = conn.execute(
+                    "SELECT doc_id, title FROM rag_documents ORDER BY created_at DESC LIMIT 3"
+                ).fetchall()
+            for row in rows:
                 sources.append(
                     {
                         "id": f"S{len(sources) + 1}",
-                        "title": str(hit.get("doc_id") or "Yerel Bilgi Bankası"),
-                        "url": f"rag://{hit.get('doc_id', 'local')}",
-                        "snippet": str(hit.get("content") or "")[:400],
+                        "title": str(row["title"] or row["doc_id"] or "Yerel Bilgi Bankası"),
+                        "url": f"rag://{row['doc_id']}",
+                        "snippet": str(row["title"] or "")[:400],
                     }
                 )
         except Exception as exc:

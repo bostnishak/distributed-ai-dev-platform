@@ -200,9 +200,9 @@ def build_verified_pptx(
     sections_for_artifact: list[str] = []
 
     for spec in slides_spec:
-        sl = prs.slides.add_slide(blank_layout)
+        sl: Any = prs.slides.add_slide(blank_layout)
         if not template_path:
-            fill = sl.background.fill
+            fill: Any = sl.background.fill
             fill.solid()
             fill.fore_color.rgb = bg_rgb
 
@@ -232,10 +232,10 @@ def build_verified_pptx(
 
         # PPT-04: Native python-pptx chart when numeric data is present
         if spec.chart_data:
-            cd = CategoryChartData()
+            cd: Any = CategoryChartData()
             cd.categories = list(spec.chart_data["categories"])
             cd.add_series(str(spec.chart_data.get("series_name") or "Veri"), list(spec.chart_data["values"]))
-            chart_shape = sl.shapes.add_chart(
+            chart_shape: Any = sl.shapes.add_chart(
                 XL_CHART_TYPE.COLUMN_CLUSTERED, Inches(6.8), Inches(1.8), Inches(5.8), Inches(4.6), cd
             )
             chart_shape.name = spec.alt_text or f"Grafik: {spec.claim_title[:40]}"
@@ -243,7 +243,8 @@ def build_verified_pptx(
         # PPT-06: Speaker notes with source IDs and duration
         notes_frame = sl.notes_slide.notes_text_frame
         src_tag = ", ".join(spec.source_ids)
-        notes_frame.text = f"{spec.speaker_notes}\nSüre: {spec.duration_sec} sn | Kaynaklar: {src_tag}"
+        if notes_frame is not None:
+            notes_frame.text = f"{spec.speaker_notes}\nSüre: {spec.duration_sec} sn | Kaynaklar: {src_tag}"
 
         _apply_safe_transition(sl, transition)
         sections_for_artifact.append(f"{spec.claim_title}\n" + "\n".join(fitted["bullets"]))
@@ -253,11 +254,11 @@ def build_verified_pptx(
         [{"title": s.claim_title, "bullets": s.bullets} for s in slides_spec],
         sources,
     )
-    ref_sl = prs.slides.add_slide(blank_layout)
+    ref_sl: Any = prs.slides.add_slide(blank_layout)
     if not template_path:
-        fill = ref_sl.background.fill
-        fill.solid()
-        fill.fore_color.rgb = bg_rgb
+        fill_ref: Any = ref_sl.background.fill
+        fill_ref.solid()
+        fill_ref.fore_color.rgb = bg_rgb
     rtb = ref_sl.shapes.add_textbox(Inches(0.7), Inches(0.5), Inches(11.8), Inches(1.0))
     rp = rtb.text_frame.paragraphs[0]
     rp.text = "Kaynaklar"
@@ -272,7 +273,9 @@ def build_verified_pptx(
         p.text = line
         p.font.size = Pt(18)
         p.font.color.rgb = fg_rgb
-    ref_sl.notes_slide.notes_text_frame.text = "Kaynakça slaytı: tüm olgusal maddelerin doğrulama referansları."
+    ref_notes = ref_sl.notes_slide.notes_text_frame
+    if ref_notes is not None:
+        ref_notes.text = "Kaynakça slaytı: tüm olgusal maddelerin doğrulama referansları."
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     prs.save(str(output_path))
@@ -303,17 +306,19 @@ def inspect_pptx_quality(pptx_path: Path, *, theme_name: str = "nordic_light") -
         for shp in sl.shapes:
             if shp.has_chart:
                 has_chart = True
-            if shp.has_text_frame:
-                txt = shp.text_frame.text.strip()
+            tf_shp = getattr(shp, "text_frame", None)
+            if shp.has_text_frame and tf_shp is not None:
+                txt = str(getattr(tf_shp, "text", "") or "").strip()
                 if txt.lower() == "kaynaklar":
                     has_sources_slide = True
-                for para in shp.text_frame.paragraphs:
+                for para in tf_shp.paragraphs:
                     if para.font.size is not None:
                         min_pt = min(min_pt, para.font.size.pt)
                 words += len(txt.split())
         if not has_sources_slide:
             max_words = max(max_words, words)
-        notes = sl.notes_slide.notes_text_frame.text.strip() if sl.has_notes_slide else ""
+        notes_tf = sl.notes_slide.notes_text_frame if sl.has_notes_slide else None
+        notes = notes_tf.text.strip() if notes_tf is not None else ""
         if not notes:
             missing_notes += 1
 

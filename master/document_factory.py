@@ -221,7 +221,8 @@ def _build_xlsx(
     rows: list[list[Any]],
 ) -> None:
     wb = Workbook()
-    ws = wb.active
+    ws: Any = wb.active
+    assert ws is not None
     ws.title = "Veri ve Tablo"
 
     navy = PatternFill("solid", fgColor="1E293B")
@@ -234,14 +235,14 @@ def _build_xlsx(
     col_count = max(3, len(headers))
     last_col = get_column_letter(col_count)
     ws.merge_cells(f"A1:{last_col}1")
-    ws["A1"] = title
+    ws["A1"].value = title
     ws["A1"].font = Font(name="Calibri", size=13, bold=True, color="FFFFFF")
     ws["A1"].fill = navy
     ws["A1"].alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
     ws.row_dimensions[1].height = 30
 
     ws.merge_cells(f"A2:{last_col}2")
-    ws["A2"] = summary[:400]
+    ws["A2"].value = summary[:400]
     ws["A2"].font = Font(name="Calibri", size=10, italic=True, color="334155")
     ws["A2"].alignment = Alignment(vertical="center", wrap_text=True)
     ws.row_dimensions[2].height = 28
@@ -312,8 +313,8 @@ def _build_xlsx(
     ws.freeze_panes = f"A{start_r + 1}"
 
     if sections:
-        ws2 = wb.create_sheet("Yönetici Özeti ve Notlar")
-        ws2["A1"] = title
+        ws2: Any = wb.create_sheet("Yönetici Özeti ve Notlar")
+        ws2["A1"].value = title
         ws2["A1"].font = Font(name="Calibri", size=13, bold=True, color="1E293B")
         r_cursor = 3
         for sec in sections:
@@ -345,7 +346,7 @@ def _build_docx(
     rows: list[list[Any]],
 ) -> None:
     doc = Document()
-    normal_style = doc.styles["Normal"]
+    normal_style: Any = doc.styles["Normal"]
     normal_style.font.name = "Segoe UI"
     normal_style.font.size = Pt(10.5)
 
@@ -498,8 +499,9 @@ def _build_pdf(
             y += row_h
 
     # Page numbers footer
-    total_pages = len(doc)
-    for idx, pg in enumerate(doc, start=1):
+    doc_pages: Any = doc
+    total_pages = len(doc_pages)
+    for idx, pg in enumerate(doc_pages, start=1):
         pg.insert_text(
             (490, 824),
             f"Sayfa {idx} / {total_pages}",

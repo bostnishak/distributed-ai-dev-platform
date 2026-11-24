@@ -168,7 +168,7 @@ class OllamaProvider:
             return [float(x) for x in (data.get("embedding") or [])]
 
     def embed_sync(self, model: str, text: str, timeout_s: float = 1.5) -> list[float]:
-        with httpx.Client(timeout_s=timeout_s) as client:
+        with httpx.Client(timeout=timeout_s) as client:
             resp = client.post(f"{self.base_url}/api/embeddings", json={"model": model, "prompt": text})
             resp.raise_for_status()
             emb = resp.json().get("embedding")
@@ -217,11 +217,14 @@ class AgentProvider:
         prompt_blob = "\n\n".join(f"[{m.get('role', 'user')}] {m.get('content', '')}" for m in messages)
         pid = db.create_project("gateway-agent-dispatch", prompt_blob[:1000], None)
         with db.connect() as conn:
-            tid = conn.execute(
-                "INSERT INTO tasks (project_id, key, stage, type, title, description, details, status) "
-                "VALUES (?, 'GW1', 1, 'backend', 'Gateway Chat Dispatch', ?, ?, 'planned')",
-                (pid, prompt_blob[:4000], json.dumps({"model": model, "options": options})),
-            ).lastrowid
+            tid = int(
+                conn.execute(
+                    "INSERT INTO tasks (project_id, key, stage, type, title, description, details, status) "
+                    "VALUES (?, 'GW1', 1, 'backend', 'Gateway Chat Dispatch', ?, ?, 'planned')",
+                    (pid, prompt_blob[:4000], json.dumps({"model": model, "options": options})),
+                ).lastrowid
+                or 0
+            )
         if self.target_agent_id:
             db.assign_task(tid, self.target_agent_id, {"reason": "gateway_agent_provider"})
 

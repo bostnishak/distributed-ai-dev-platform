@@ -200,7 +200,7 @@ def _strip_code_fences(raw: str) -> str:
     # If there's a fenced block inside surrounding prose, extract the largest one
     blocks = re.findall(r"```[a-zA-Z0-9_+-]*\s*\n([\s\S]*?)\n```", text)
     if blocks:
-        return max(blocks, key=len)
+        return str(max(blocks, key=len))
     return text
 
 
@@ -331,7 +331,7 @@ async def stream_generate_project(
         if isinstance(f, dict) and f.get("path") and not str(f["path"]).lower().endswith(binary_exts)
     ]
 
-    meta = {
+    meta: dict[str, Any] = {
         "id": ws_id,
         "name": ws_name,
         "project_type": str(plan.get("project_type") or "web"),
@@ -714,7 +714,7 @@ def import_zip_workspace(filename: str, raw_bytes: bytes) -> tuple[dict[str, Any
     entry = "index.html" if "index.html" in rel_files else ("main.py" if "main.py" in rel_files else (rel_files[0] if rel_files else ""))
 
     create_snapshot(ws_dir, "ZIP içe aktarma")
-    meta = {
+    meta: dict[str, Any] = {
         "id": ws_id,
         "name": stem,
         "project_type": ptype,

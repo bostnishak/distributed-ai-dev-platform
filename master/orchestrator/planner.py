@@ -258,28 +258,29 @@ async def dispatch_to_agent_or_local(
         text = await local_fallback()
         return {"source": "local_gateway", "agent_id": "master", "content": text, "fallback": True}
 
-    task_id = f"orc-{uuid.uuid4().hex[:10]}"
+    task_key = f"orc-{uuid.uuid4().hex[:10]}"
     try:
-        db.create_task(
-            task_id=task_id,
-            project_id="orchestrator",
+        project_id = db.create_project("orchestrator", prompt[:1000], None)
+        db_task_id = db.create_task(
+            project_id=project_id,
+            key=task_key,
             title=prompt[:80],
             description=prompt,
             task_type=capability,
-            assigned_agent_id=agent["id"],
         )
+        db.assign_task(db_task_id, str(agent["id"]), {"reason": "orchestrator_dispatch"})
     except Exception:
         text = await local_fallback()
         return {"source": "local_gateway", "agent_id": "master", "content": text, "fallback": True}
 
     deadline = time.monotonic() + poll_timeout_s
     while time.monotonic() < deadline:
-        row = db.get_task(task_id)
-        if row and row.get("status") == "completed" and row.get("result"):
+        row = db.get_task(db_task_id)
+        if row and row.get("status") in ("done", "completed") and row.get("result"):
             return {
                 "source": "distributed_agent",
                 "agent_id": agent["id"],
-                "task_id": task_id,
+                "task_id": db_task_id,
                 "content": str(row["result"]),
                 "fallback": False,
             }
@@ -290,7 +291,7 @@ async def dispatch_to_agent_or_local(
     return {
         "source": "local_gateway",
         "agent_id": "master",
-        "task_id": task_id,
+        "task_id": db_task_id,
         "content": text,
         "fallback": True,
     }

@@ -1058,7 +1058,8 @@ def _extract_pdf_vector_balloons(pdf_bytes: bytes) -> tuple[Image.Image, list[Ba
     img = Image.open(io.BytesIO(pix.tobytes("png"))).convert("RGB")
 
     pw, ph = page.rect.width, page.rect.height
-    blocks = page.get_text("dict").get("blocks", [])
+    text_dict: Any = page.get_text("dict")
+    blocks = text_dict.get("blocks", []) if isinstance(text_dict, dict) else []
 
     all_texts: list[str] = []
     balloons: list[BalloonItem] = []
@@ -1465,11 +1466,12 @@ def export_excel_report(
     # =========================================================================
     # SHEET 1: AS9102 FORM 3 — DETAILED BALLOON INSPECTION SHEET (Primary Tab)
     # =========================================================================
-    ws = wb.active
+    ws: Any = wb.active
+    assert ws is not None
     ws.title = "Form 3 - Balonlama (FAI)"
 
     ws.merge_cells("A1:T1")
-    ws["A1"] = "AS9102 FORM 3 — CNC TEKNİK ÇİZİM BALONLAMA, TOLERANS VE KALİTE KONTROL RAPORU"
+    ws["A1"].value = "AS9102 FORM 3 — CNC TEKNİK ÇİZİM BALONLAMA, TOLERANS VE KALİTE KONTROL RAPORU"
     ws["A1"].font = Font(name="Calibri", size=14, bold=True, color="FFFFFF")
     ws["A1"].fill = navy_fill
     ws["A1"].alignment = Alignment(horizontal="center", vertical="center")
@@ -1545,16 +1547,16 @@ def export_excel_report(
     # =========================================================================
     # SHEET 2: CNC PROSES & OPERASYON PLANI + DFM RİSK ANALİZİ
     # =========================================================================
-    ws_op = wb.create_sheet("CNC Proses & Operasyon Planı")
+    ws_op: Any = wb.create_sheet("CNC Proses & Operasyon Planı")
     ws_op.merge_cells("A1:F1")
-    ws_op["A1"] = "CNC İMALAT PROSES ROTASI, KESME PARAMETRELERİ VE DFM RİSK ANALİZİ"
+    ws_op["A1"].value = "CNC İMALAT PROSES ROTASI, KESME PARAMETRELERİ VE DFM RİSK ANALİZİ"
     ws_op["A1"].font = Font(size=13, bold=True, color="FFFFFF")
     ws_op["A1"].fill = navy_fill
     ws_op["A1"].alignment = Alignment(horizontal="center", vertical="center")
     ws_op.row_dimensions[1].height = 28
 
     cp = plan["cutting_parameters"]
-    ws_op["A3"] = "MALZEME KESME PARAMETRE REHBERİ"
+    ws_op["A3"].value = "MALZEME KESME PARAMETRE REHBERİ"
     ws_op["A3"].font = Font(bold=True, size=11, color="1E293B")
     param_rows = [
         ("ISO Malzeme Grubu", cp["group"]),
@@ -1605,9 +1607,9 @@ def export_excel_report(
     # =========================================================================
     # SHEET 3: AS9102 FORM 1 & FORM 2 (PARÇA & MALZEME İZLENEBİLİRLİK)
     # =========================================================================
-    ws_f1 = wb.create_sheet("Form 1-2 - Parça & Malzeme")
+    ws_f1: Any = wb.create_sheet("Form 1-2 - Parça & Malzeme")
     ws_f1.merge_cells("A1:D1")
-    ws_f1["A1"] = "AS9102 FORM 1 & 2 — PARÇA TANIMLAMA, MALZEME VE İZLENEBİLİRLİK"
+    ws_f1["A1"].value = "AS9102 FORM 1 & 2 — PARÇA TANIMLAMA, MALZEME VE İZLENEBİLİRLİK"
     ws_f1["A1"].font = Font(size=12, bold=True, color="FFFFFF")
     ws_f1["A1"].fill = navy_fill
     ws_f1.row_dimensions[1].height = 26
@@ -1633,9 +1635,9 @@ def export_excel_report(
     # =========================================================================
     # SHEET 4: OTOMATİK MALİYET, SÜRE TEKLİFİ & FANUC G-KODU TASLAĞI
     # =========================================================================
-    ws_cost = wb.create_sheet("Maliyet & Fanuc G-Kodu")
+    ws_cost: Any = wb.create_sheet("Maliyet & Fanuc G-Kodu")
     ws_cost.merge_cells("A1:D1")
-    ws_cost["A1"] = "CNC OTOMATİK MALİYET, İŞLEME SÜRESİ TEKLİFİ VE FANUC G-KODU TASLAĞI"
+    ws_cost["A1"].value = "CNC OTOMATİK MALİYET, İŞLEME SÜRESİ TEKLİFİ VE FANUC G-KODU TASLAĞI"
     ws_cost["A1"].font = Font(size=12, bold=True, color="FFFFFF")
     ws_cost["A1"].fill = navy_fill
     ws_cost.row_dimensions[1].height = 26

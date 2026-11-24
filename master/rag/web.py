@@ -170,7 +170,17 @@ def _web_cache_get(query: str) -> list[WebSource] | None:
     if not row or float(row["expires_at"]) < time.time():
         return None
     items = json.loads(row["payload_json"])
-    return [WebSource(**{**it, "cached": True}) for it in items]
+    return [
+        WebSource(
+            url=str(it.get("url") or ""),
+            title=str(it.get("title") or ""),
+            snippet=str(it.get("snippet") or ""),
+            published_date=str(it.get("published_date") or ""),
+            credibility_class=str(it.get("credibility_class") or "unknown"),
+            cached=True,
+        )
+        for it in items
+    ]
 
 
 def _web_cache_put(query: str, sources: list[WebSource], ttl_s: float = 3600.0) -> None:

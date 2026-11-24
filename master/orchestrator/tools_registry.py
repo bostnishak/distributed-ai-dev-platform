@@ -301,14 +301,14 @@ def _tool_file_convert_info(args: dict[str, Any]) -> dict[str, Any]:
 def _tool_sandbox_info(args: dict[str, Any]) -> dict[str, Any]:
     import sandbox
 
-    return sandbox.sandbox_status()
+    return sandbox.status()
 
 
 def _tool_memory_lookup(args: dict[str, Any]) -> dict[str, Any]:
-    import user_profile
+    import memory_engine
 
     user_id = str(args.get("user_id") or "default")
-    facts = user_profile.list_memories(user_id)
+    facts = memory_engine.list_semantic_facts(user_id=user_id)
     return {"count": len(facts), "memories": facts[:10]}
 
 

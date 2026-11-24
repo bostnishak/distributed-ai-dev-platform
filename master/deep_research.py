@@ -160,13 +160,16 @@ def build_pptx_presentation(
     prs.slide_height = Inches(7.5)
     blank_layout = prs.slide_layouts[6]
 
-    all_slides = [{"_cover": True, "title": title, "subtitle": subtitle or "Yapay Zeka Araştırma Sunumu"}, *(slides or [])]
+    all_slides: list[dict[str, Any]] = [
+        {"_cover": True, "title": title, "subtitle": subtitle or "Yapay Zeka Araştırma Sunumu"},
+        *(slides or []),
+    ]
     n_slides = len(all_slides)
 
     for idx, sdata in enumerate(all_slides, start=1):
-        slide = prs.slides.add_slide(blank_layout)
+        slide: Any = prs.slides.add_slide(blank_layout)
         # Full-bleed themed background
-        bg_fill = slide.background.fill
+        bg_fill: Any = slide.background.fill
         bg_fill.solid()
         bg_fill.fore_color.rgb = bg_rgb
         _apply_slide_transition(slide, trans_kind)
@@ -176,20 +179,20 @@ def build_pptx_presentation(
         if sdata.get("_cover"):
             ssub = str(sdata.get("subtitle") or "")
             # Left vertical accent stripe
-            stripe = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0), Inches(0), Inches(0.38), Inches(7.5))
+            stripe: Any = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0), Inches(0), Inches(0.38), Inches(7.5))
             stripe.fill.solid()
             stripe.fill.fore_color.rgb = acc_rgb
             stripe.line.fill.background()
 
             # Rounded cover card
-            card = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.05), Inches(1.35), Inches(11.2), Inches(4.8))
+            card: Any = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.05), Inches(1.35), Inches(11.2), Inches(4.8))
             card.fill.solid()
             card.fill.fore_color.rgb = card_rgb
             card.line.color.rgb = acc_rgb
             card.line.width = Pt(1.75)
 
             # Accent bar inside cover card
-            bar = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(1.6), Inches(2.0), Inches(2.0), Inches(0.1))
+            bar: Any = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(1.6), Inches(2.0), Inches(2.0), Inches(0.1))
             bar.fill.solid()
             bar.fill.fore_color.rgb = acc2_rgb
             bar.line.fill.background()
@@ -221,12 +224,13 @@ def build_pptx_presentation(
         kicker = str(sdata.get("kicker") or f"BÖLÜM {idx - 1}")
         key_fact = str(sdata.get("key_fact") or "").strip()
         notes_txt = str(sdata.get("notes") or "").strip()
-        bullets = [str(b).strip() for b in (sdata.get("bullets") or []) if str(b).strip()]
+        raw_bullets = sdata.get("bullets")
+        bullets = [str(b).strip() for b in (raw_bullets if isinstance(raw_bullets, list) else []) if str(b).strip()]
         if not bullets:
             bullets = [str(sdata.get("content") or "")]
 
         # Top accent bar
-        top_bar = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0), Inches(0), Inches(13.333), Inches(0.16))
+        top_bar: Any = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0), Inches(0), Inches(13.333), Inches(0.16))
         top_bar.fill.solid()
         top_bar.fill.fore_color.rgb = acc_rgb
         top_bar.line.fill.background()
@@ -256,7 +260,7 @@ def build_pptx_presentation(
         # Main content card
         has_callout = bool(key_fact)
         card_w = Inches(7.7) if has_callout else Inches(12.0)
-        c_card = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.65), Inches(1.9), card_w, Inches(4.75))
+        c_card: Any = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.65), Inches(1.9), card_w, Inches(4.75))
         c_card.fill.solid()
         c_card.fill.fore_color.rgb = card_rgb
         c_card.line.fill.background()
@@ -277,7 +281,7 @@ def build_pptx_presentation(
 
         # Right-hand Key Fact callout card
         if has_callout:
-            k_card = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(8.65), Inches(1.9), Inches(4.0), Inches(4.75))
+            k_card: Any = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(8.65), Inches(1.9), Inches(4.0), Inches(4.75))
             k_card.fill.solid()
             k_card.fill.fore_color.rgb = card_rgb
             k_card.line.color.rgb = acc2_rgb
@@ -313,8 +317,9 @@ def build_pptx_presentation(
         rf.font.size = Pt(10.5)
         rf.font.color.rgb = muted_rgb
 
-        if notes_txt:
-            slide.notes_slide.notes_text_frame.text = notes_txt
+        notes_tf = slide.notes_slide.notes_text_frame
+        if notes_txt and notes_tf is not None:
+            notes_tf.text = notes_txt
 
     prs.save(str(out_path))
     return out_path

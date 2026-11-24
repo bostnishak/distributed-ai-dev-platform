@@ -283,7 +283,9 @@ def upsert_agent(agent: dict) -> dict:
                 ":capabilities, :agent_version, :now, :now)",
                 {**values, "now": now, "agent_id": agent["agent_id"]},
             )
-    return get_agent(agent["agent_id"])
+    rec = get_agent(agent["agent_id"])
+    assert rec is not None
+    return rec
 
 
 def _agent_row(row: sqlite3.Row) -> dict:
@@ -323,7 +325,7 @@ def create_eval_session() -> int:
             "INSERT INTO eval_sessions (started_at, status) VALUES (?, 'running')",
             (utc_now(),),
         )
-        return cursor.lastrowid
+        return int(cursor.lastrowid or 0)
 
 
 def finish_eval_session(session_id: int) -> None:
@@ -532,7 +534,7 @@ def create_project(name: str, document: str, source_filename: str | None) -> int
             "VALUES (?, ?, ?, 'analyzing', ?, ?)",
             (name, source_filename, document, now, now),
         )
-        return cursor.lastrowid
+        return int(cursor.lastrowid or 0)
 
 
 def get_project(project_id: int) -> dict | None:
@@ -609,7 +611,7 @@ def save_decomposition(
                     task["status"], task.get("performed_by"),
                 ),
             )
-            ids_by_key[task["key"]] = cursor.lastrowid
+            ids_by_key[task["key"]] = int(cursor.lastrowid or 0)
         for task in tasks:
             for dep_key in task["depends_on"]:
                 conn.execute(
@@ -657,7 +659,7 @@ def create_task(
                     "INSERT OR IGNORE INTO task_dependencies (task_id, depends_on_task_id) VALUES (?, ?)",
                     (new_id, dep_row["id"]),
                 )
-    return new_id
+    return int(new_id or 0)
 
 
 def list_tasks(project_id: int) -> list[dict]:

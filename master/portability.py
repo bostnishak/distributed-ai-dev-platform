@@ -91,10 +91,11 @@ def import_user(source: Path, new_owner: str | None = None, *, replace: bool = F
                             values[owner_col] = owner
                         if table == "files":
                             sha = values["sha256"]
-                            data = zf.read(f"blobs/{sha}") if f"blobs/{sha}" in zf.namelist() else None
-                            if data is None or hashlib.sha256(data).hexdigest() != sha:
-                                raise ValueError(f"dosya içeriği eksik veya bozuk: {sha}")
-                            target = blobstore.blob_path(sha)
+                            sha_str = str(sha)
+                            data = zf.read(f"blobs/{sha_str}") if f"blobs/{sha_str}" in zf.namelist() else None
+                            if data is None or hashlib.sha256(data).hexdigest() != sha_str:
+                                raise ValueError(f"dosya içeriği eksik veya bozuk: {sha_str}")
+                            target = blobstore.blob_path(sha_str)
                             if not target.is_file():
                                 target.parent.mkdir(parents=True, exist_ok=True)
                                 target.write_bytes(data)

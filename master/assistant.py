@@ -221,7 +221,7 @@ async def _run_cnc_balloon_from_chat(file: UploadFile) -> str:
     """Execute the full Senior Mechanical Engineer CNC ballooning pipeline directly from Chat."""
     import cnc_api
 
-    job = await cnc_api.create_balloon_job(
+    job: dict[str, Any] = await cnc_api.create_balloon_job(
         file=file,
         part_number="",
         part_name="",
@@ -231,11 +231,11 @@ async def _run_cnc_balloon_from_chat(file: UploadFile) -> str:
         model="",
     )
     jid = job["id"]
-    meta = job.get("metadata", {})
-    balloons = job.get("balloons", [])
-    plan = job.get("manufacturing_plan", {})
-    summary = plan.get("summary", {})
-    cp = plan.get("cutting_parameters", {})
+    meta: dict[str, Any] = job.get("metadata") or {}
+    balloons: list[dict[str, Any]] = job.get("balloons") or []
+    plan: dict[str, Any] = job.get("manufacturing_plan") or {}
+    summary: dict[str, Any] = plan.get("summary") or {}
+    cp: dict[str, Any] = plan.get("cutting_parameters") or {}
 
     lines = [
         f"## CNC Teknik Çizim Balonlama ve İmalat Raporu ({meta.get('part_number') or job['filename']})",
@@ -1009,25 +1009,24 @@ async def _tracked_stream(source, prompt: str, user_id: str, conversation_id: st
 
                 intent_dec = classify_intent(prompt)
                 contract = build_contract(intent_dec.mode)
-                sources: list[dict] = []
+                sources: list[dict[str, Any]] = []
                 try:
-                    rag_hits = default_rag_store().search(prompt, owner_id=user_id, top_k=3)
+                    rag_res = await default_rag_store.search(prompt, top_k=3)
                     sources = [
-                        {"id": f"S{i + 1}", "text": h.get("text", ""), "doc": h.get("doc_title", "")}
-                        for i, h in enumerate(rag_hits or [])
+                        {"id": f"S{i + 1}", "content": h.get("content", ""), "doc": h.get("doc_title", "")}
+                        for i, h in enumerate((rag_res.hits if rag_res else []) or [])
                     ]
                 except Exception as rag_exc:
                     log.debug("Live chat RAG lookup skipped: %s", rag_exc)
 
                 claims = extract_claims(answer)
                 verdicts = verify_claims_nli(claims, sources) if claims and sources else []
-                supported = sum(1 for v in verdicts if v.verdict == "supported")
+                supported = sum(1 for v in verdicts if v.status == "supported")
                 support_ratio = round(supported / max(1, len(verdicts)), 3) if verdicts else (1.0 if not claims else 0.75)
                 conf = compute_confidence(
                     support_ratio=support_ratio,
-                    citation_coverage=1.0 if sources else 0.5,
-                    retrieval_score=0.85 if sources else 0.5,
-                    has_numeric_conflict=False,
+                    rag_score=0.85 if sources else 0.5,
+                    has_sources=bool(sources),
                 )
                 run_id = f"chat-{conversation_id or 'ephemeral'}-{int(time.time())}"
                 log_verification_telemetry(
@@ -1043,7 +1042,7 @@ async def _tracked_stream(source, prompt: str, user_id: str, conversation_id: st
                 evt["orchestrator"] = {
                     "intent": intent_dec.intent,
                     "mode": contract.mode,
-                    "difficulty": intent_dec.difficulty,
+                    "risk": intent_dec.risk,
                     "grounded_sources": len(sources),
                 }
                 evt["verification"] = {
@@ -1840,9 +1839,13 @@ def _limit_code_run_resources() -> None:
     memory so a runaway loop or allocation cannot affect the master process."""
     import resource
 
-    resource.setrlimit(resource.RLIMIT_CPU, (CODE_RUN_TIMEOUT_SECONDS, CODE_RUN_TIMEOUT_SECONDS))
-    mem_bytes = CODE_RUN_MEMORY_LIMIT_MB * 1024 * 1024
-    resource.setrlimit(resource.RLIMIT_AS, (mem_bytes, mem_bytes))
+    setrlimit = getattr(resource, "setrlimit", None)
+    rlimit_cpu = getattr(resource, "RLIMIT_CPU", None)
+    rlimit_as = getattr(resource, "RLIMIT_AS", None)
+    if setrlimit is not None and rlimit_cpu is not None and rlimit_as is not None:
+        setrlimit(rlimit_cpu, (CODE_RUN_TIMEOUT_SECONDS, CODE_RUN_TIMEOUT_SECONDS))
+        mem_bytes = CODE_RUN_MEMORY_LIMIT_MB * 1024 * 1024
+        setrlimit(rlimit_as, (mem_bytes, mem_bytes))
 
 
 def _code_run_env() -> dict[str, str]:

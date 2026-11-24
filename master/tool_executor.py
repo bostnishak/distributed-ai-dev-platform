@@ -152,7 +152,7 @@ def query_csv_with_sql(csv_text: str, sql_query: str = "SELECT * FROM data LIMIT
 
     typed_rows = []
     for r in data_rows:
-        row_vals = []
+        row_vals: list[Any] = []
         for i in range(len(clean_cols)):
             v = r[i].strip() if i < len(r) else ""
             try:

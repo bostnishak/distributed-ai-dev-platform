@@ -152,7 +152,7 @@ def extract_structured_content(filename: str, raw: bytes) -> dict[str, Any]:
     raw_text = ""
 
     if ext == "pdf":
-        doc = fitz.open(stream=raw, filetype="pdf")
+        doc: Any = fitz.open(stream=raw, filetype="pdf")
         pages_text: list[str] = []
         for idx, pg in enumerate(doc, start=1):
             t = (pg.get_text("text") or "").strip()
@@ -199,8 +199,9 @@ def extract_structured_content(filename: str, raw: bytes) -> dict[str, Any]:
         for idx, slide in enumerate(prs.slides, start=1):
             slide_texts: list[str] = []
             for shape in slide.shapes:
-                if getattr(shape, "has_text_frame", False):
-                    st = shape.text_frame.text.strip()
+                tf = getattr(shape, "text_frame", None)
+                if getattr(shape, "has_text_frame", False) and tf is not None:
+                    st = str(getattr(tf, "text", "") or "").strip()
                     if st:
                         slide_texts.append(st)
             if slide_texts:
@@ -212,8 +213,8 @@ def extract_structured_content(filename: str, raw: bytes) -> dict[str, Any]:
 
     elif ext in ("xlsx", "xlsm"):
         wb = load_workbook(io.BytesIO(raw), data_only=True)
-        ws = wb.active
-        all_rows = [[c if c is not None else "" for c in r] for r in ws.iter_rows(values_only=True)]
+        ws: Any = wb.active
+        all_rows = [[c if c is not None else "" for c in r] for r in ws.iter_rows(values_only=True)] if ws is not None else []
         non_empty = [r for r in all_rows if any(str(c).strip() for c in r)]
         if non_empty:
             headers = [str(c).strip() or f"Sütun {i + 1}" for i, c in enumerate(non_empty[0])]

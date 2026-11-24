@@ -306,7 +306,7 @@ async def api_set_priority(task_id: int, priority: int = 1):
     import db
 
     prio = max(1, min(5, int(priority)))
-    with db.get_db() as conn:
+    with db.connect() as conn:
         cols = {r[1] for r in conn.execute("PRAGMA table_info(tasks)").fetchall()}
         if "priority" not in cols:
             conn.execute("ALTER TABLE tasks ADD COLUMN priority INTEGER NOT NULL DEFAULT 3")

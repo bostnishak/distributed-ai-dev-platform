@@ -101,15 +101,16 @@ def _generate_rfq_excel(
     summary: dict[str, Any],
 ) -> None:
     wb = openpyxl.Workbook()
-    ws = wb.active
+    ws: Any = wb.active
+    assert ws is not None
     ws.title = "RFQ_BOM_Quote"
 
     header_fill = PatternFill(start_color="1E293B", end_color="1E293B", fill_type="solid")
     header_font = Font(color="FFFFFF", bold=True)
 
-    ws["A1"] = f"KURUMSAL RFQ TOPLU TEKLIF VE BOM LISTESI - {rfq_id}"
+    ws["A1"].value = f"KURUMSAL RFQ TOPLU TEKLIF VE BOM LISTESI - {rfq_id}"
     ws["A1"].font = Font(size=13, bold=True)
-    ws["A2"] = f"Musteri: {customer_name} | Toplam Parca: {len(bom_items)} | Tarih: {datetime.now(UTC).strftime('%Y-%m-%d')}"
+    ws["A2"].value = f"Musteri: {customer_name} | Toplam Parca: {len(bom_items)} | Tarih: {datetime.now(UTC).strftime('%Y-%m-%d')}"
 
     headers = [
         "No",

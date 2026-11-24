@@ -89,9 +89,10 @@ def scan_ingest_security(text: str) -> dict[str, Any]:
 def run_ocr_on_image_bytes(image_bytes: bytes) -> tuple[str, float, list[str]]:
     """RAG-03: Run Tesseract OCR (tur+eng) if installed; return clear DEF-15 message if unavailable."""
     try:
+        import importlib
         import io
 
-        import pytesseract
+        pytesseract = importlib.import_module("pytesseract")
         from PIL import Image
 
         img = Image.open(io.BytesIO(image_bytes))
@@ -265,8 +266,9 @@ def _parse_pptx(path: Path, title: str) -> ParsedDocument:
     for idx, slide in enumerate(prs.slides, start=1):
         lines: list[str] = []
         for shp in slide.shapes:
-            if shp.has_text_frame:
-                txt = shp.text_frame.text.strip()
+            tf = getattr(shp, "text_frame", None)
+            if shp.has_text_frame and tf is not None:
+                txt = tf.text.strip()
                 if txt:
                     if shp == slide.shapes.title:
                         lines.insert(0, f"## Slayt {idx}: {txt}")

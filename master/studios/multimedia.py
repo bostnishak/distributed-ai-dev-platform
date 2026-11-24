@@ -122,7 +122,8 @@ def edit_image_versioned(
         out = img.resize((max(16, int(p.get("width", 256))), max(16, int(p.get("height", 256)))))
     elif op == "crop":
         box = p.get("box") or (0, 0, img.width // 2, img.height // 2)
-        out = img.crop(tuple(int(v) for v in box))
+        b4 = [int(v) for v in box]
+        out = img.crop((b4[0], b4[1], b4[2], b4[3]))
     elif op == "contrast":
         out = ImageEnhance.Contrast(img).enhance(float(p.get("factor", 1.35)))
     elif op == "clean_scan":

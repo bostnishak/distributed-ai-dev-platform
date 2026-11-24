@@ -55,7 +55,7 @@ def audit_document_quality(text: str, *, sources: list[dict[str, Any]] | None = 
 
 # ---------------------------------------------------------------- DOC-01 Verified Word (DOCX) Builder
 
-def _add_toc_field(doc: Document) -> None:
+def _add_toc_field(doc: Any) -> None:
     p = doc.add_paragraph()
     run = p.add_run()
     fld_begin = OxmlElement("w:fldChar")
@@ -162,7 +162,8 @@ def edit_docx_inplace_redline(source_path: Path, target_paragraph_idx: int, new_
 def build_verified_xlsx(spec: dict[str, Any], *, output_path: Path) -> dict[str, Any]:
     """DOC-02: Build XLSX with live formulas (SUM/AVERAGE/IF), validation, conditional formatting, chart & zero-error check."""
     wb = openpyxl.Workbook()
-    ws = wb.active
+    ws: Any = wb.active
+    assert ws is not None
     ws.title = str(spec.get("sheet_name") or "Analiz")[:31]
 
     headers = list(spec.get("headers") or ["Kalem", "Adet", "Birim Fiyat", "Toplam", "Durum"])
@@ -266,8 +267,8 @@ def build_verified_pdf(spec: dict[str, Any], *, output_path: Path, pdf_a: bool =
     doc.close()
 
     # Verify reopening, TOC links, and selectable text
-    chk = pymupdf.open(str(output_path))
-    extracted = "\n".join(pg.get_text("text") for pg in chk)
+    chk: Any = pymupdf.open(str(output_path))
+    extracted = "\n".join(str(pg.get_text("text")) for pg in chk)
     toc_entries = chk.get_toc()
     page_count = len(chk)
     chk.close()
