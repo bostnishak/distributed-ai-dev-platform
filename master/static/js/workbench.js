@@ -4,12 +4,14 @@ import { api, h } from './util.js';
 import { PRODUCTIVITY_TOOLS } from './workbench_catalog_1.js';
 import { DOMAIN_AND_EDU_TOOLS, SECURITY_AND_MEMORY_TOOLS } from './workbench_catalog_2.js';
 import { OPS_AND_AI_TOOLS } from './workbench_catalog_3.js';
+import { PLATFORM_EXT_TOOLS } from './workbench_catalog_4.js';
 
 export const WORKBENCH_TABS = [
   { id: 'productivity', label: 'Üretkenlik, Veri & Stüdyolar', tools: PRODUCTIVITY_TOOLS },
   { id: 'domains', label: 'Eğitim & Alan Motorları', tools: DOMAIN_AND_EDU_TOOLS },
   { id: 'security', label: 'Güvenlik, 2FA & Hafıza', tools: SECURITY_AND_MEMORY_TOOLS },
   { id: 'ops', label: 'Yönetim, ML & Ajanlar', tools: OPS_AND_AI_TOOLS },
+  { id: 'platform_ext', label: 'Fabrika, IDE, HA & Defter', tools: PLATFORM_EXT_TOOLS },
 ];
 
 function buildUrl(tool, paramInputs) {

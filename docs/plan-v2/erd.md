@@ -4,6 +4,17 @@ Bu dosya `python master/erd.py` ile şemadan üretilir; elle değiştirilmez.
 
 ```mermaid
 erDiagram
+    accounting_ledger {
+        integer id PK
+        text user_id  "sahip"
+        text model
+        integer tokens_in
+        integer tokens_out
+        integer latency_ms
+        real energy_wh
+        text day_utc
+        text created_at
+    }
     agent_scores {
         integer id PK
         text agent_id FK
@@ -95,6 +106,18 @@ erDiagram
         text created_at
         text updated_at
     }
+    edu_flashcards {
+        text card_id PK
+        text user_id  "sahip"
+        text topic
+        text front
+        text back
+        integer repetitions
+        integer interval_days
+        real ease_factor
+        text next_review_at
+        text created_at
+    }
     error_events {
         text fingerprint PK
         text kind
@@ -159,6 +182,21 @@ erDiagram
         text created_at
         text expires_at
     }
+    ha_leases {
+        text lease_key PK
+        text leader_id
+        text expires_at
+        integer term
+        integer draining
+        text updated_at
+    }
+    idempotent_results {
+        text idempotency_key PK
+        text task_id
+        text agent_id
+        text result_hash
+        text committed_at
+    }
     kg_edges {
         integer id PK
         text source_name
@@ -186,6 +224,24 @@ erDiagram
         text resolution
         text created_at
         text resolved_at
+    }
+    ml_model_promotions {
+        integer id PK
+        text model_id
+        real eval_score
+        real min_threshold
+        text stage
+        integer canary_pct
+        text actor
+        text created_at
+    }
+    notebooks {
+        text notebook_id PK
+        text user_id  "sahip"
+        text title
+        text cells_json
+        text created_at
+        text updated_at
     }
     org_invites {
         text token_hash PK
@@ -335,6 +391,13 @@ erDiagram
         integer latency_ms
         integer estimated
     }
+    user_quotas {
+        text user_id PK "sahip"
+        integer daily_token_limit
+        real daily_energy_wh_limit
+        integer hard_enforce
+        text updated_at
+    }
     vision_drawings {
         text drawing_id PK
         text title
@@ -373,6 +436,7 @@ erDiagram
 
 | Tablo | Sınıf |
 |---|---|
+| accounting_ledger | sahip: user_id |
 | agent_scores | ortak |
 | agents | ortak |
 | blobs | ortak |
@@ -381,6 +445,7 @@ erDiagram
 | conflicts | ortak |
 | conversation_messages | conversations altında |
 | conversations | sahip: user_id |
+| edu_flashcards | sahip: user_id |
 | error_events | ortak |
 | eval_annotations | ortak |
 | eval_datasets | ortak |
@@ -389,9 +454,13 @@ erDiagram
 | feature_flags | ortak |
 | feature_overrides | sahip: owner_id |
 | files | sahip: owner_id |
+| ha_leases | ortak |
+| idempotent_results | ortak |
 | kg_edges | ortak |
 | kg_entities | ortak |
 | memory_conflicts | sahip: user_id |
+| ml_model_promotions | ortak |
+| notebooks | sahip: user_id |
 | org_invites | ortak |
 | org_members | ortak |
 | orgs | ortak |
@@ -408,5 +477,6 @@ erDiagram
 | task_dependencies | ortak |
 | tasks | ortak |
 | usage_events | sahip: user_id |
+| user_quotas | sahip: user_id |
 | vision_drawings | ortak |
 | web_archive | ortak |

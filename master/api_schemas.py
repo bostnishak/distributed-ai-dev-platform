@@ -106,6 +106,22 @@ class EvalStudioResponse(ApiEnvelope):
     kappa: float | None = Field(default=None, description="Etiketleyiciler arası Cohen's kappa skoru")
 
 
+class IdeResponse(ApiEnvelope):
+    ok: bool | None = Field(default=None, description="IDE LSP/DAP/Diff işlem sonucu")
+
+
+class HaResponse(ApiEnvelope):
+    ok: bool | None = Field(default=None, description="Yüksek erişilebilirlik lider kiralama ve idempotency sonucu")
+
+
+class AccountingResponse(ApiEnvelope):
+    ok: bool | None = Field(default=None, description="Kullanım, enerji (Wh) ve kota muhasebe sonucu")
+
+
+class NotebookResponse(ApiEnvelope):
+    ok: bool | None = Field(default=None, description="Hücre tabanlı defter (.ipynb) yürütme sonucu")
+
+
 _PREFIX_MODEL_MAP: tuple[tuple[str, type[ApiEnvelope], str], ...] = (
     ("/health", HealthResponse, "Master servisinin canlılık (liveness) kontrolünü döndürür."),
     ("/ready", ReadyResponse, "Veritabanı, disk, Ollama ve sandbox bileşenlerinin hazırlık durumunu döndürür."),
@@ -126,6 +142,10 @@ _PREFIX_MODEL_MAP: tuple[tuple[str, type[ApiEnvelope], str], ...] = (
     ("/api/studio", StudioResponse, "Kod çalışma alanı (IDE), dosya düzenleme, derleme ve önizleme işlemlerini yönetir."),
     ("/api/studios", StudioResponse, "Araştırma, sunum, belge, veri bilimi ve medya stüdyo işlemlerini yürütür."),
     ("/api/factory", StudioResponse, "Çok dosyalı yazılım fabrikası planlama, üretim ve doğrulama uç noktası."),
+    ("/api/ide", IdeResponse, "IDE LSP tanılama, DAP hata ayıklama ve çoklu dosya fark (diff) servisi."),
+    ("/api/ha", HaResponse, "Yüksek erişilebilirlik lider seçimi, düğüm tahliyesi ve idempotent görev kaydı."),
+    ("/api/accounting", AccountingResponse, "Kullanıcı bazlı token, gecikme, Wh enerji defteri ve günlük kota yönetimi."),
+    ("/api/notebooks", NotebookResponse, "Hücre tabanlı çalışma defteri yürütme ve Jupyter .ipynb içe/dışa aktarım."),
     ("/api/games", StudioResponse, "Oyun stüdyosu şablon, derleme ve kalite doğrulama uç noktası."),
     ("/api/domains", DomainResponse, "Finans, hukuk, sağlık, mühendislik ve akademik alan motoru uç noktası."),
     ("/api/distributed", DistributedResponse, "Dağıtık ajan yönlendirme, görev çakışması ve kaos dayanıklılık uç noktası."),
@@ -141,6 +161,8 @@ _PREFIX_MODEL_MAP: tuple[tuple[str, type[ApiEnvelope], str], ...] = (
     ("/api/ux", UxResponse, "Sağlık sihirbazı, ayar şeması, paylaşım ve SLO pano servisi."),
     ("/api/security", AdminResponse, "2FA TOTP, parola politikası, oturum yönetimi, IP izin listesi ve sır tarama servisi."),
     ("/api/tools", DomainResponse, "Eğitim stüdyosu ve doğrulanmış alan hesaplayıcıları (vergi, metraj, malzeme, devre, sağlık)."),
+    ("/api/education", DomainResponse, "SM-2 aralıklı tekrar kartları ve rubrik tabanlı otomatik sınav değerlendirme."),
+    ("/api/media", StudioResponse, "SRT altyazı, Three.js 3B sahne ve yerel medya arka uç durum servisi."),
     ("/api/productivity", StudioResponse, "Sohbet, kod, veri, medya, takvim, ajan ve operasyon üretkenlik araçları."),
     ("/api/master", GatewayResponse, "Master düğüm ve yerel LLM çalışma durumunu döndürür."),
 )

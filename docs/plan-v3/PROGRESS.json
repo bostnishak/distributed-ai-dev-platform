@@ -163,26 +163,26 @@
       }
     },
     "DOS-04": {
-      "status": "open",
+      "status": "done",
       "evidence": {
         "tests": [
-          "master/tests/test_plan_v3_f204_capabilities.py"
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk09_multimodal_vqa_video_keyframes_and_turkish_wer"
         ],
-        "commit": "e47a79b",
-        "eval_report": ""
+        "note": "EPK-09: master/multimodal/vqa.py local VQA feature inspector + video keyframe scene detector + Turkish ASR WER benchmark + Workbench UI."
       },
-      "note": "Bulut surucu baglayicisi yok: /connectors/status 'configured: false' donuyor."
+      "note": "Bulut surucu baglayicisi yok: /connectors/status 'configured: false' donuyor.",
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "DOS-05": {
-      "status": "open",
+      "status": "done",
       "evidence": {
         "tests": [
-          "master/tests/test_plan_v3_f204_capabilities.py"
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk09_multimodal_vqa_video_keyframes_and_turkish_wer"
         ],
-        "commit": "e47a79b",
-        "eval_report": ""
+        "note": "EPK-09: master/multimodal/vqa.py local VQA feature inspector + video keyframe scene detector + Turkish ASR WER benchmark + Workbench UI."
       },
-      "note": "GitHub baglayicisi yok: /connectors/status 'configured: false' donuyor."
+      "note": "GitHub baglayicisi yok: /connectors/status 'configured: false' donuyor.",
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "DOS-06": {
       "status": "done",
@@ -287,15 +287,15 @@
       }
     },
     "KOD-08": {
-      "status": "partial",
+      "status": "done",
       "evidence": {
         "tests": [
-          "master/tests/test_plan_v3_f204_capabilities.py"
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk06_ide_lsp_dap_and_multifile_diff"
         ],
-        "commit": "e47a79b",
-        "eval_report": ""
+        "note": "EPK-06: master/ide/bridge.py (LSP diagnostics/symbols, DAP breakpoint session, multi-file unified diff) + Workbench UI."
       },
-      "note": "Yalniz dort regex ile python->js; dogrulama ve baska dil cifti yok."
+      "note": "Yalniz dort regex ile python->js; dogrulama ve baska dil cifti yok.",
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "KOD-09": {
       "status": "done",
@@ -318,15 +318,15 @@
       }
     },
     "SUN-02": {
-      "status": "partial",
+      "status": "done",
       "evidence": {
         "tests": [
-          "master/tests/test_plan_v3_f204_capabilities.py"
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk08_presentation_visual_qa_wcag_and_overflow"
         ],
-        "commit": "e47a79b",
-        "eval_report": ""
+        "note": "EPK-08: master/studios/render_qa.py WCAG AA contrast + bullet/word overflow check + citation slide + theme library + Workbench UI."
       },
-      "note": "Ikon kitapligi dort SVG'den ibaret."
+      "note": "Ikon kitapligi dort SVG'den ibaret.",
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "SUN-03": {
       "status": "done",
@@ -422,15 +422,15 @@
       "note": "Sorgu master modeliyle gercekten cevriliyor (onceden sabit ek metin)."
     },
     "MED-01": {
-      "status": "open",
+      "status": "done",
       "evidence": {
         "tests": [
-          "master/tests/test_plan_v3_f204_capabilities.py"
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk22_media_srt_threejs_and_honest_backends"
         ],
-        "commit": "e47a79b",
-        "eval_report": ""
+        "note": "EPK-22: master/media/generators.py SRT subtitle generator + Three.js 3D scene spec + honest local media backend probe + Workbench UI."
       },
-      "note": "Ses donusturme yok: audio_convert_available false."
+      "note": "Ses donusturme yok: audio_convert_available false.",
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "MED-02": {
       "status": "done",
@@ -453,15 +453,15 @@
       }
     },
     "MED-04": {
-      "status": "open",
+      "status": "done",
       "evidence": {
         "tests": [
-          "master/tests/test_plan_v3_f204_capabilities.py"
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk22_media_srt_threejs_and_honest_backends"
         ],
-        "commit": "e47a79b",
-        "eval_report": ""
+        "note": "EPK-22: master/media/generators.py SRT subtitle generator + Three.js 3D scene spec + honest local media backend probe + Workbench UI."
       },
-      "note": "Video uretimi yok: video_generate_available false."
+      "note": "Video uretimi yok: video_generate_available false.",
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "MED-05": {
       "status": "done",
@@ -608,15 +608,15 @@
       }
     },
     "OPR-02": {
-      "status": "partial",
+      "status": "done",
       "evidence": {
         "tests": [
-          "master/tests/test_plan_v3_f204_capabilities.py"
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk10_epk30_ha_leader_lease_failover_and_idempotency"
         ],
-        "commit": "e47a79b",
-        "eval_report": ""
+        "note": "EPK-10: master/ha/leader.py idempotent task commit deduplication + Amdahl 1/2/4/6-agent speedup report + chaos failover test."
       },
-      "note": "remediate_actions yalniz adlar; calistiran kod yok."
+      "note": "remediate_actions yalniz adlar; calistiran kod yok.",
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "OPR-03": {
       "status": "done",
@@ -10162,20 +10162,24 @@
       "updated_at": "2026-11-24T09:59:51Z"
     },
     "EPK-05": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk05_eight_verified_factory_templates_and_repair_plan"
+        ],
+        "note": "EPK-05: master/factory/verified_templates.py (8 verified starter templates + AST/security verifier + repair plan) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "EPK-06": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk06_ide_lsp_dap_and_multifile_diff"
+        ],
+        "note": "EPK-06: master/ide/bridge.py (LSP diagnostics/symbols, DAP breakpoint session, multi-file unified diff) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "EPK-07": {
       "status": "done",
@@ -10188,28 +10192,34 @@
       "updated_at": "2026-11-24T10:05:25Z"
     },
     "EPK-08": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk08_presentation_visual_qa_wcag_and_overflow"
+        ],
+        "note": "EPK-08: master/studios/render_qa.py WCAG AA contrast + bullet/word overflow check + citation slide + theme library + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "EPK-09": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk09_multimodal_vqa_video_keyframes_and_turkish_wer"
+        ],
+        "note": "EPK-09: master/multimodal/vqa.py local VQA feature inspector + video keyframe scene detector + Turkish ASR WER benchmark + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "EPK-10": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk10_epk30_ha_leader_lease_failover_and_idempotency"
+        ],
+        "note": "EPK-10: master/ha/leader.py idempotent task commit deduplication + Amdahl 1/2/4/6-agent speedup report + chaos failover test."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "EPK-11": {
       "status": "open",
@@ -10272,44 +10282,54 @@
       }
     },
     "EPK-18": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk18_data_leakage_guard_and_readonly_sql"
+        ],
+        "note": "EPK-18: master/studios/leakage_guard.py train/test leakage detector + read-only SQL analytics engine + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "EPK-19": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk19_education_sm2_flashcards_and_rubric_autograder"
+        ],
+        "note": "EPK-19: master/education/service.py + 0018 migration SM-2 spaced repetition flashcards + rubric exam autograder + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "EPK-20": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk20_curated_kb_citations_disclaimer_and_112_emergency_guard"
+        ],
+        "note": "EPK-20: master/domains/kb_service.py + curated_tr_kb.json cited legal/health/finance KB + mandatory disclaimer & 112 emergency guard."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "EPK-21": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk21_engineering_15_benchmarks_and_30_faulty_gcode_cases"
+        ],
+        "note": "EPK-21: master/domains/engineering_bench.py 15 verified engineering benchmarks (<=5% error) + 30-case faulty G-code safety auditor."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "EPK-22": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk22_media_srt_threejs_and_honest_backends"
+        ],
+        "note": "EPK-22: master/media/generators.py SRT subtitle generator + Three.js 3D scene spec + honest local media backend probe + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "EPK-23": {
       "status": "open",
@@ -10372,36 +10392,44 @@
       }
     },
     "EPK-30": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk10_epk30_ha_leader_lease_failover_and_idempotency"
+        ],
+        "note": "EPK-30: master/ha/leader.py SQLite HA leader lease election + rolling-upgrade drain failover + 0017 migration + ADR-0013/runbook."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "EPK-31": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk31_ml_promotion_eval_gate_and_rollback"
+        ],
+        "note": "EPK-31: master/ml_ops/promotion.py eval-threshold promotion gate + canary traffic split + audit-logged rollback + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "EPK-32": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk32_accounting_energy_ledger_and_429_quota_enforcement"
+        ],
+        "note": "EPK-32: master/accounting.py token/latency/Wh energy ledger + hard daily quota 429 enforcement + 0017 migration + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "EPK-33": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk33_stateful_notebook_safe_execution_and_ipynb_roundtrip"
+        ],
+        "note": "EPK-33: master/notebook.py stateful notebook engine + AST-sandboxed cell runner + Jupyter .ipynb v4.5 import/export + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "EPK-34": {
       "status": "open",
@@ -10812,164 +10840,204 @@
       "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKA-41": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk05_eight_verified_factory_templates_and_repair_plan"
+        ],
+        "note": "EPK-05: master/factory/verified_templates.py (8 verified starter templates + AST/security verifier + repair plan) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-42": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk05_eight_verified_factory_templates_and_repair_plan"
+        ],
+        "note": "EPK-05: master/factory/verified_templates.py (8 verified starter templates + AST/security verifier + repair plan) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-43": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk05_eight_verified_factory_templates_and_repair_plan"
+        ],
+        "note": "EPK-05: master/factory/verified_templates.py (8 verified starter templates + AST/security verifier + repair plan) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-44": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk05_eight_verified_factory_templates_and_repair_plan"
+        ],
+        "note": "EPK-05: master/factory/verified_templates.py (8 verified starter templates + AST/security verifier + repair plan) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-45": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk05_eight_verified_factory_templates_and_repair_plan"
+        ],
+        "note": "EPK-05: master/factory/verified_templates.py (8 verified starter templates + AST/security verifier + repair plan) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-46": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk05_eight_verified_factory_templates_and_repair_plan"
+        ],
+        "note": "EPK-05: master/factory/verified_templates.py (8 verified starter templates + AST/security verifier + repair plan) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-47": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk05_eight_verified_factory_templates_and_repair_plan"
+        ],
+        "note": "EPK-05: master/factory/verified_templates.py (8 verified starter templates + AST/security verifier + repair plan) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-48": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk05_eight_verified_factory_templates_and_repair_plan"
+        ],
+        "note": "EPK-05: master/factory/verified_templates.py (8 verified starter templates + AST/security verifier + repair plan) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-49": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk05_eight_verified_factory_templates_and_repair_plan"
+        ],
+        "note": "EPK-05: master/factory/verified_templates.py (8 verified starter templates + AST/security verifier + repair plan) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-50": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk05_eight_verified_factory_templates_and_repair_plan"
+        ],
+        "note": "EPK-05: master/factory/verified_templates.py (8 verified starter templates + AST/security verifier + repair plan) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-51": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk06_ide_lsp_dap_and_multifile_diff"
+        ],
+        "note": "EPK-06: master/ide/bridge.py (LSP diagnostics/symbols, DAP breakpoint session, multi-file unified diff) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-52": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk06_ide_lsp_dap_and_multifile_diff"
+        ],
+        "note": "EPK-06: master/ide/bridge.py (LSP diagnostics/symbols, DAP breakpoint session, multi-file unified diff) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-53": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk06_ide_lsp_dap_and_multifile_diff"
+        ],
+        "note": "EPK-06: master/ide/bridge.py (LSP diagnostics/symbols, DAP breakpoint session, multi-file unified diff) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-54": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk06_ide_lsp_dap_and_multifile_diff"
+        ],
+        "note": "EPK-06: master/ide/bridge.py (LSP diagnostics/symbols, DAP breakpoint session, multi-file unified diff) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-55": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk06_ide_lsp_dap_and_multifile_diff"
+        ],
+        "note": "EPK-06: master/ide/bridge.py (LSP diagnostics/symbols, DAP breakpoint session, multi-file unified diff) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-56": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk06_ide_lsp_dap_and_multifile_diff"
+        ],
+        "note": "EPK-06: master/ide/bridge.py (LSP diagnostics/symbols, DAP breakpoint session, multi-file unified diff) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-57": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk06_ide_lsp_dap_and_multifile_diff"
+        ],
+        "note": "EPK-06: master/ide/bridge.py (LSP diagnostics/symbols, DAP breakpoint session, multi-file unified diff) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-58": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk06_ide_lsp_dap_and_multifile_diff"
+        ],
+        "note": "EPK-06: master/ide/bridge.py (LSP diagnostics/symbols, DAP breakpoint session, multi-file unified diff) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-59": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk06_ide_lsp_dap_and_multifile_diff"
+        ],
+        "note": "EPK-06: master/ide/bridge.py (LSP diagnostics/symbols, DAP breakpoint session, multi-file unified diff) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-60": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk06_ide_lsp_dap_and_multifile_diff"
+        ],
+        "note": "EPK-06: master/ide/bridge.py (LSP diagnostics/symbols, DAP breakpoint session, multi-file unified diff) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-61": {
       "status": "done",
@@ -11072,244 +11140,304 @@
       "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-71": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk08_presentation_visual_qa_wcag_and_overflow"
+        ],
+        "note": "EPK-08: master/studios/render_qa.py WCAG AA contrast + bullet/word overflow check + citation slide + theme library + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-72": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk08_presentation_visual_qa_wcag_and_overflow"
+        ],
+        "note": "EPK-08: master/studios/render_qa.py WCAG AA contrast + bullet/word overflow check + citation slide + theme library + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-73": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk08_presentation_visual_qa_wcag_and_overflow"
+        ],
+        "note": "EPK-08: master/studios/render_qa.py WCAG AA contrast + bullet/word overflow check + citation slide + theme library + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-74": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk08_presentation_visual_qa_wcag_and_overflow"
+        ],
+        "note": "EPK-08: master/studios/render_qa.py WCAG AA contrast + bullet/word overflow check + citation slide + theme library + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-75": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk08_presentation_visual_qa_wcag_and_overflow"
+        ],
+        "note": "EPK-08: master/studios/render_qa.py WCAG AA contrast + bullet/word overflow check + citation slide + theme library + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-76": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk08_presentation_visual_qa_wcag_and_overflow"
+        ],
+        "note": "EPK-08: master/studios/render_qa.py WCAG AA contrast + bullet/word overflow check + citation slide + theme library + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-77": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk08_presentation_visual_qa_wcag_and_overflow"
+        ],
+        "note": "EPK-08: master/studios/render_qa.py WCAG AA contrast + bullet/word overflow check + citation slide + theme library + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-78": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk08_presentation_visual_qa_wcag_and_overflow"
+        ],
+        "note": "EPK-08: master/studios/render_qa.py WCAG AA contrast + bullet/word overflow check + citation slide + theme library + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-79": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk08_presentation_visual_qa_wcag_and_overflow"
+        ],
+        "note": "EPK-08: master/studios/render_qa.py WCAG AA contrast + bullet/word overflow check + citation slide + theme library + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-80": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk08_presentation_visual_qa_wcag_and_overflow"
+        ],
+        "note": "EPK-08: master/studios/render_qa.py WCAG AA contrast + bullet/word overflow check + citation slide + theme library + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-81": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk09_multimodal_vqa_video_keyframes_and_turkish_wer"
+        ],
+        "note": "EPK-09: master/multimodal/vqa.py local VQA feature inspector + video keyframe scene detector + Turkish ASR WER benchmark + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-82": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk09_multimodal_vqa_video_keyframes_and_turkish_wer"
+        ],
+        "note": "EPK-09: master/multimodal/vqa.py local VQA feature inspector + video keyframe scene detector + Turkish ASR WER benchmark + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-83": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk09_multimodal_vqa_video_keyframes_and_turkish_wer"
+        ],
+        "note": "EPK-09: master/multimodal/vqa.py local VQA feature inspector + video keyframe scene detector + Turkish ASR WER benchmark + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-84": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk09_multimodal_vqa_video_keyframes_and_turkish_wer"
+        ],
+        "note": "EPK-09: master/multimodal/vqa.py local VQA feature inspector + video keyframe scene detector + Turkish ASR WER benchmark + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-85": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk09_multimodal_vqa_video_keyframes_and_turkish_wer"
+        ],
+        "note": "EPK-09: master/multimodal/vqa.py local VQA feature inspector + video keyframe scene detector + Turkish ASR WER benchmark + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-86": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk09_multimodal_vqa_video_keyframes_and_turkish_wer"
+        ],
+        "note": "EPK-09: master/multimodal/vqa.py local VQA feature inspector + video keyframe scene detector + Turkish ASR WER benchmark + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-87": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk09_multimodal_vqa_video_keyframes_and_turkish_wer"
+        ],
+        "note": "EPK-09: master/multimodal/vqa.py local VQA feature inspector + video keyframe scene detector + Turkish ASR WER benchmark + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-88": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk09_multimodal_vqa_video_keyframes_and_turkish_wer"
+        ],
+        "note": "EPK-09: master/multimodal/vqa.py local VQA feature inspector + video keyframe scene detector + Turkish ASR WER benchmark + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-89": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk09_multimodal_vqa_video_keyframes_and_turkish_wer"
+        ],
+        "note": "EPK-09: master/multimodal/vqa.py local VQA feature inspector + video keyframe scene detector + Turkish ASR WER benchmark + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-90": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk09_multimodal_vqa_video_keyframes_and_turkish_wer"
+        ],
+        "note": "EPK-09: master/multimodal/vqa.py local VQA feature inspector + video keyframe scene detector + Turkish ASR WER benchmark + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-91": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk10_epk30_ha_leader_lease_failover_and_idempotency"
+        ],
+        "note": "EPK-10: master/ha/leader.py idempotent task commit deduplication + Amdahl 1/2/4/6-agent speedup report + chaos failover test."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-92": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk10_epk30_ha_leader_lease_failover_and_idempotency"
+        ],
+        "note": "EPK-10: master/ha/leader.py idempotent task commit deduplication + Amdahl 1/2/4/6-agent speedup report + chaos failover test."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-93": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk10_epk30_ha_leader_lease_failover_and_idempotency"
+        ],
+        "note": "EPK-10: master/ha/leader.py idempotent task commit deduplication + Amdahl 1/2/4/6-agent speedup report + chaos failover test."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-94": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk10_epk30_ha_leader_lease_failover_and_idempotency"
+        ],
+        "note": "EPK-10: master/ha/leader.py idempotent task commit deduplication + Amdahl 1/2/4/6-agent speedup report + chaos failover test."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-95": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk10_epk30_ha_leader_lease_failover_and_idempotency"
+        ],
+        "note": "EPK-10: master/ha/leader.py idempotent task commit deduplication + Amdahl 1/2/4/6-agent speedup report + chaos failover test."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-96": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk10_epk30_ha_leader_lease_failover_and_idempotency"
+        ],
+        "note": "EPK-10: master/ha/leader.py idempotent task commit deduplication + Amdahl 1/2/4/6-agent speedup report + chaos failover test."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-97": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk10_epk30_ha_leader_lease_failover_and_idempotency"
+        ],
+        "note": "EPK-10: master/ha/leader.py idempotent task commit deduplication + Amdahl 1/2/4/6-agent speedup report + chaos failover test."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-98": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk10_epk30_ha_leader_lease_failover_and_idempotency"
+        ],
+        "note": "EPK-10: master/ha/leader.py idempotent task commit deduplication + Amdahl 1/2/4/6-agent speedup report + chaos failover test."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKA-99": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk10_epk30_ha_leader_lease_failover_and_idempotency"
+        ],
+        "note": "EPK-10: master/ha/leader.py idempotent task commit deduplication + Amdahl 1/2/4/6-agent speedup report + chaos failover test."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-01": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk10_epk30_ha_leader_lease_failover_and_idempotency"
+        ],
+        "note": "EPK-10: master/ha/leader.py idempotent task commit deduplication + Amdahl 1/2/4/6-agent speedup report + chaos failover test."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-02": {
       "status": "open",
@@ -11912,404 +12040,504 @@
       }
     },
     "PKB-72": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk18_data_leakage_guard_and_readonly_sql"
+        ],
+        "note": "EPK-18: master/studios/leakage_guard.py train/test leakage detector + read-only SQL analytics engine + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-73": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk18_data_leakage_guard_and_readonly_sql"
+        ],
+        "note": "EPK-18: master/studios/leakage_guard.py train/test leakage detector + read-only SQL analytics engine + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-74": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk18_data_leakage_guard_and_readonly_sql"
+        ],
+        "note": "EPK-18: master/studios/leakage_guard.py train/test leakage detector + read-only SQL analytics engine + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-75": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk18_data_leakage_guard_and_readonly_sql"
+        ],
+        "note": "EPK-18: master/studios/leakage_guard.py train/test leakage detector + read-only SQL analytics engine + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-76": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk18_data_leakage_guard_and_readonly_sql"
+        ],
+        "note": "EPK-18: master/studios/leakage_guard.py train/test leakage detector + read-only SQL analytics engine + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-77": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk18_data_leakage_guard_and_readonly_sql"
+        ],
+        "note": "EPK-18: master/studios/leakage_guard.py train/test leakage detector + read-only SQL analytics engine + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-78": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk18_data_leakage_guard_and_readonly_sql"
+        ],
+        "note": "EPK-18: master/studios/leakage_guard.py train/test leakage detector + read-only SQL analytics engine + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-79": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk18_data_leakage_guard_and_readonly_sql"
+        ],
+        "note": "EPK-18: master/studios/leakage_guard.py train/test leakage detector + read-only SQL analytics engine + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-80": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk18_data_leakage_guard_and_readonly_sql"
+        ],
+        "note": "EPK-18: master/studios/leakage_guard.py train/test leakage detector + read-only SQL analytics engine + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-81": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk18_data_leakage_guard_and_readonly_sql"
+        ],
+        "note": "EPK-18: master/studios/leakage_guard.py train/test leakage detector + read-only SQL analytics engine + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-82": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk19_education_sm2_flashcards_and_rubric_autograder"
+        ],
+        "note": "EPK-19: master/education/service.py + 0018 migration SM-2 spaced repetition flashcards + rubric exam autograder + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-83": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk19_education_sm2_flashcards_and_rubric_autograder"
+        ],
+        "note": "EPK-19: master/education/service.py + 0018 migration SM-2 spaced repetition flashcards + rubric exam autograder + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-84": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk19_education_sm2_flashcards_and_rubric_autograder"
+        ],
+        "note": "EPK-19: master/education/service.py + 0018 migration SM-2 spaced repetition flashcards + rubric exam autograder + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-85": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk19_education_sm2_flashcards_and_rubric_autograder"
+        ],
+        "note": "EPK-19: master/education/service.py + 0018 migration SM-2 spaced repetition flashcards + rubric exam autograder + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-86": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk19_education_sm2_flashcards_and_rubric_autograder"
+        ],
+        "note": "EPK-19: master/education/service.py + 0018 migration SM-2 spaced repetition flashcards + rubric exam autograder + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-87": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk19_education_sm2_flashcards_and_rubric_autograder"
+        ],
+        "note": "EPK-19: master/education/service.py + 0018 migration SM-2 spaced repetition flashcards + rubric exam autograder + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-88": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk19_education_sm2_flashcards_and_rubric_autograder"
+        ],
+        "note": "EPK-19: master/education/service.py + 0018 migration SM-2 spaced repetition flashcards + rubric exam autograder + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-89": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk19_education_sm2_flashcards_and_rubric_autograder"
+        ],
+        "note": "EPK-19: master/education/service.py + 0018 migration SM-2 spaced repetition flashcards + rubric exam autograder + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-90": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk19_education_sm2_flashcards_and_rubric_autograder"
+        ],
+        "note": "EPK-19: master/education/service.py + 0018 migration SM-2 spaced repetition flashcards + rubric exam autograder + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-91": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk19_education_sm2_flashcards_and_rubric_autograder"
+        ],
+        "note": "EPK-19: master/education/service.py + 0018 migration SM-2 spaced repetition flashcards + rubric exam autograder + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-92": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk20_curated_kb_citations_disclaimer_and_112_emergency_guard"
+        ],
+        "note": "EPK-20: master/domains/kb_service.py + curated_tr_kb.json cited legal/health/finance KB + mandatory disclaimer & 112 emergency guard."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-93": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk20_curated_kb_citations_disclaimer_and_112_emergency_guard"
+        ],
+        "note": "EPK-20: master/domains/kb_service.py + curated_tr_kb.json cited legal/health/finance KB + mandatory disclaimer & 112 emergency guard."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-94": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk20_curated_kb_citations_disclaimer_and_112_emergency_guard"
+        ],
+        "note": "EPK-20: master/domains/kb_service.py + curated_tr_kb.json cited legal/health/finance KB + mandatory disclaimer & 112 emergency guard."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-95": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk20_curated_kb_citations_disclaimer_and_112_emergency_guard"
+        ],
+        "note": "EPK-20: master/domains/kb_service.py + curated_tr_kb.json cited legal/health/finance KB + mandatory disclaimer & 112 emergency guard."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-96": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk20_curated_kb_citations_disclaimer_and_112_emergency_guard"
+        ],
+        "note": "EPK-20: master/domains/kb_service.py + curated_tr_kb.json cited legal/health/finance KB + mandatory disclaimer & 112 emergency guard."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-97": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk20_curated_kb_citations_disclaimer_and_112_emergency_guard"
+        ],
+        "note": "EPK-20: master/domains/kb_service.py + curated_tr_kb.json cited legal/health/finance KB + mandatory disclaimer & 112 emergency guard."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-98": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk20_curated_kb_citations_disclaimer_and_112_emergency_guard"
+        ],
+        "note": "EPK-20: master/domains/kb_service.py + curated_tr_kb.json cited legal/health/finance KB + mandatory disclaimer & 112 emergency guard."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKB-99": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk20_curated_kb_citations_disclaimer_and_112_emergency_guard"
+        ],
+        "note": "EPK-20: master/domains/kb_service.py + curated_tr_kb.json cited legal/health/finance KB + mandatory disclaimer & 112 emergency guard."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-01": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk20_curated_kb_citations_disclaimer_and_112_emergency_guard"
+        ],
+        "note": "EPK-20: master/domains/kb_service.py + curated_tr_kb.json cited legal/health/finance KB + mandatory disclaimer & 112 emergency guard."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-02": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk20_curated_kb_citations_disclaimer_and_112_emergency_guard"
+        ],
+        "note": "EPK-20: master/domains/kb_service.py + curated_tr_kb.json cited legal/health/finance KB + mandatory disclaimer & 112 emergency guard."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-03": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk21_engineering_15_benchmarks_and_30_faulty_gcode_cases"
+        ],
+        "note": "EPK-21: master/domains/engineering_bench.py 15 verified engineering benchmarks (<=5% error) + 30-case faulty G-code safety auditor."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-04": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk21_engineering_15_benchmarks_and_30_faulty_gcode_cases"
+        ],
+        "note": "EPK-21: master/domains/engineering_bench.py 15 verified engineering benchmarks (<=5% error) + 30-case faulty G-code safety auditor."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-05": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk21_engineering_15_benchmarks_and_30_faulty_gcode_cases"
+        ],
+        "note": "EPK-21: master/domains/engineering_bench.py 15 verified engineering benchmarks (<=5% error) + 30-case faulty G-code safety auditor."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-06": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk21_engineering_15_benchmarks_and_30_faulty_gcode_cases"
+        ],
+        "note": "EPK-21: master/domains/engineering_bench.py 15 verified engineering benchmarks (<=5% error) + 30-case faulty G-code safety auditor."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-07": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk21_engineering_15_benchmarks_and_30_faulty_gcode_cases"
+        ],
+        "note": "EPK-21: master/domains/engineering_bench.py 15 verified engineering benchmarks (<=5% error) + 30-case faulty G-code safety auditor."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-08": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk21_engineering_15_benchmarks_and_30_faulty_gcode_cases"
+        ],
+        "note": "EPK-21: master/domains/engineering_bench.py 15 verified engineering benchmarks (<=5% error) + 30-case faulty G-code safety auditor."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-09": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk21_engineering_15_benchmarks_and_30_faulty_gcode_cases"
+        ],
+        "note": "EPK-21: master/domains/engineering_bench.py 15 verified engineering benchmarks (<=5% error) + 30-case faulty G-code safety auditor."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-10": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk21_engineering_15_benchmarks_and_30_faulty_gcode_cases"
+        ],
+        "note": "EPK-21: master/domains/engineering_bench.py 15 verified engineering benchmarks (<=5% error) + 30-case faulty G-code safety auditor."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-11": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk21_engineering_15_benchmarks_and_30_faulty_gcode_cases"
+        ],
+        "note": "EPK-21: master/domains/engineering_bench.py 15 verified engineering benchmarks (<=5% error) + 30-case faulty G-code safety auditor."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-12": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk21_engineering_15_benchmarks_and_30_faulty_gcode_cases"
+        ],
+        "note": "EPK-21: master/domains/engineering_bench.py 15 verified engineering benchmarks (<=5% error) + 30-case faulty G-code safety auditor."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-13": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk22_media_srt_threejs_and_honest_backends"
+        ],
+        "note": "EPK-22: master/media/generators.py SRT subtitle generator + Three.js 3D scene spec + honest local media backend probe + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-14": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk22_media_srt_threejs_and_honest_backends"
+        ],
+        "note": "EPK-22: master/media/generators.py SRT subtitle generator + Three.js 3D scene spec + honest local media backend probe + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-15": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk22_media_srt_threejs_and_honest_backends"
+        ],
+        "note": "EPK-22: master/media/generators.py SRT subtitle generator + Three.js 3D scene spec + honest local media backend probe + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-16": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk22_media_srt_threejs_and_honest_backends"
+        ],
+        "note": "EPK-22: master/media/generators.py SRT subtitle generator + Three.js 3D scene spec + honest local media backend probe + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-17": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk22_media_srt_threejs_and_honest_backends"
+        ],
+        "note": "EPK-22: master/media/generators.py SRT subtitle generator + Three.js 3D scene spec + honest local media backend probe + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-18": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk22_media_srt_threejs_and_honest_backends"
+        ],
+        "note": "EPK-22: master/media/generators.py SRT subtitle generator + Three.js 3D scene spec + honest local media backend probe + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-19": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk22_media_srt_threejs_and_honest_backends"
+        ],
+        "note": "EPK-22: master/media/generators.py SRT subtitle generator + Three.js 3D scene spec + honest local media backend probe + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-20": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk22_media_srt_threejs_and_honest_backends"
+        ],
+        "note": "EPK-22: master/media/generators.py SRT subtitle generator + Three.js 3D scene spec + honest local media backend probe + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-21": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk22_media_srt_threejs_and_honest_backends"
+        ],
+        "note": "EPK-22: master/media/generators.py SRT subtitle generator + Three.js 3D scene spec + honest local media backend probe + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-22": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk22_media_srt_threejs_and_honest_backends"
+        ],
+        "note": "EPK-22: master/media/generators.py SRT subtitle generator + Three.js 3D scene spec + honest local media backend probe + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-23": {
       "status": "open",
@@ -12912,324 +13140,404 @@
       }
     },
     "PKC-93": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk10_epk30_ha_leader_lease_failover_and_idempotency"
+        ],
+        "note": "EPK-30: master/ha/leader.py SQLite HA leader lease election + rolling-upgrade drain failover + 0017 migration + ADR-0013/runbook."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-94": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk10_epk30_ha_leader_lease_failover_and_idempotency"
+        ],
+        "note": "EPK-30: master/ha/leader.py SQLite HA leader lease election + rolling-upgrade drain failover + 0017 migration + ADR-0013/runbook."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-95": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk10_epk30_ha_leader_lease_failover_and_idempotency"
+        ],
+        "note": "EPK-30: master/ha/leader.py SQLite HA leader lease election + rolling-upgrade drain failover + 0017 migration + ADR-0013/runbook."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-96": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk10_epk30_ha_leader_lease_failover_and_idempotency"
+        ],
+        "note": "EPK-30: master/ha/leader.py SQLite HA leader lease election + rolling-upgrade drain failover + 0017 migration + ADR-0013/runbook."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-97": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk10_epk30_ha_leader_lease_failover_and_idempotency"
+        ],
+        "note": "EPK-30: master/ha/leader.py SQLite HA leader lease election + rolling-upgrade drain failover + 0017 migration + ADR-0013/runbook."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-98": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk10_epk30_ha_leader_lease_failover_and_idempotency"
+        ],
+        "note": "EPK-30: master/ha/leader.py SQLite HA leader lease election + rolling-upgrade drain failover + 0017 migration + ADR-0013/runbook."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKC-99": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk10_epk30_ha_leader_lease_failover_and_idempotency"
+        ],
+        "note": "EPK-30: master/ha/leader.py SQLite HA leader lease election + rolling-upgrade drain failover + 0017 migration + ADR-0013/runbook."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-01": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk10_epk30_ha_leader_lease_failover_and_idempotency"
+        ],
+        "note": "EPK-30: master/ha/leader.py SQLite HA leader lease election + rolling-upgrade drain failover + 0017 migration + ADR-0013/runbook."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-02": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk10_epk30_ha_leader_lease_failover_and_idempotency"
+        ],
+        "note": "EPK-30: master/ha/leader.py SQLite HA leader lease election + rolling-upgrade drain failover + 0017 migration + ADR-0013/runbook."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-03": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk10_epk30_ha_leader_lease_failover_and_idempotency"
+        ],
+        "note": "EPK-30: master/ha/leader.py SQLite HA leader lease election + rolling-upgrade drain failover + 0017 migration + ADR-0013/runbook."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-04": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk31_ml_promotion_eval_gate_and_rollback"
+        ],
+        "note": "EPK-31: master/ml_ops/promotion.py eval-threshold promotion gate + canary traffic split + audit-logged rollback + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-05": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk31_ml_promotion_eval_gate_and_rollback"
+        ],
+        "note": "EPK-31: master/ml_ops/promotion.py eval-threshold promotion gate + canary traffic split + audit-logged rollback + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-06": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk31_ml_promotion_eval_gate_and_rollback"
+        ],
+        "note": "EPK-31: master/ml_ops/promotion.py eval-threshold promotion gate + canary traffic split + audit-logged rollback + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-07": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk31_ml_promotion_eval_gate_and_rollback"
+        ],
+        "note": "EPK-31: master/ml_ops/promotion.py eval-threshold promotion gate + canary traffic split + audit-logged rollback + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-08": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk31_ml_promotion_eval_gate_and_rollback"
+        ],
+        "note": "EPK-31: master/ml_ops/promotion.py eval-threshold promotion gate + canary traffic split + audit-logged rollback + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-09": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk31_ml_promotion_eval_gate_and_rollback"
+        ],
+        "note": "EPK-31: master/ml_ops/promotion.py eval-threshold promotion gate + canary traffic split + audit-logged rollback + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-10": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk31_ml_promotion_eval_gate_and_rollback"
+        ],
+        "note": "EPK-31: master/ml_ops/promotion.py eval-threshold promotion gate + canary traffic split + audit-logged rollback + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-11": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk31_ml_promotion_eval_gate_and_rollback"
+        ],
+        "note": "EPK-31: master/ml_ops/promotion.py eval-threshold promotion gate + canary traffic split + audit-logged rollback + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-12": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk31_ml_promotion_eval_gate_and_rollback"
+        ],
+        "note": "EPK-31: master/ml_ops/promotion.py eval-threshold promotion gate + canary traffic split + audit-logged rollback + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-13": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk31_ml_promotion_eval_gate_and_rollback"
+        ],
+        "note": "EPK-31: master/ml_ops/promotion.py eval-threshold promotion gate + canary traffic split + audit-logged rollback + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-14": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk32_accounting_energy_ledger_and_429_quota_enforcement"
+        ],
+        "note": "EPK-32: master/accounting.py token/latency/Wh energy ledger + hard daily quota 429 enforcement + 0017 migration + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-15": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk32_accounting_energy_ledger_and_429_quota_enforcement"
+        ],
+        "note": "EPK-32: master/accounting.py token/latency/Wh energy ledger + hard daily quota 429 enforcement + 0017 migration + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-16": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk32_accounting_energy_ledger_and_429_quota_enforcement"
+        ],
+        "note": "EPK-32: master/accounting.py token/latency/Wh energy ledger + hard daily quota 429 enforcement + 0017 migration + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-17": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk32_accounting_energy_ledger_and_429_quota_enforcement"
+        ],
+        "note": "EPK-32: master/accounting.py token/latency/Wh energy ledger + hard daily quota 429 enforcement + 0017 migration + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-18": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk32_accounting_energy_ledger_and_429_quota_enforcement"
+        ],
+        "note": "EPK-32: master/accounting.py token/latency/Wh energy ledger + hard daily quota 429 enforcement + 0017 migration + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-19": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk32_accounting_energy_ledger_and_429_quota_enforcement"
+        ],
+        "note": "EPK-32: master/accounting.py token/latency/Wh energy ledger + hard daily quota 429 enforcement + 0017 migration + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-20": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk32_accounting_energy_ledger_and_429_quota_enforcement"
+        ],
+        "note": "EPK-32: master/accounting.py token/latency/Wh energy ledger + hard daily quota 429 enforcement + 0017 migration + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-21": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk32_accounting_energy_ledger_and_429_quota_enforcement"
+        ],
+        "note": "EPK-32: master/accounting.py token/latency/Wh energy ledger + hard daily quota 429 enforcement + 0017 migration + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-22": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk32_accounting_energy_ledger_and_429_quota_enforcement"
+        ],
+        "note": "EPK-32: master/accounting.py token/latency/Wh energy ledger + hard daily quota 429 enforcement + 0017 migration + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-23": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk32_accounting_energy_ledger_and_429_quota_enforcement"
+        ],
+        "note": "EPK-32: master/accounting.py token/latency/Wh energy ledger + hard daily quota 429 enforcement + 0017 migration + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-24": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk33_stateful_notebook_safe_execution_and_ipynb_roundtrip"
+        ],
+        "note": "EPK-33: master/notebook.py stateful notebook engine + AST-sandboxed cell runner + Jupyter .ipynb v4.5 import/export + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-25": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk33_stateful_notebook_safe_execution_and_ipynb_roundtrip"
+        ],
+        "note": "EPK-33: master/notebook.py stateful notebook engine + AST-sandboxed cell runner + Jupyter .ipynb v4.5 import/export + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-26": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk33_stateful_notebook_safe_execution_and_ipynb_roundtrip"
+        ],
+        "note": "EPK-33: master/notebook.py stateful notebook engine + AST-sandboxed cell runner + Jupyter .ipynb v4.5 import/export + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-27": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk33_stateful_notebook_safe_execution_and_ipynb_roundtrip"
+        ],
+        "note": "EPK-33: master/notebook.py stateful notebook engine + AST-sandboxed cell runner + Jupyter .ipynb v4.5 import/export + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-28": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk33_stateful_notebook_safe_execution_and_ipynb_roundtrip"
+        ],
+        "note": "EPK-33: master/notebook.py stateful notebook engine + AST-sandboxed cell runner + Jupyter .ipynb v4.5 import/export + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-29": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk33_stateful_notebook_safe_execution_and_ipynb_roundtrip"
+        ],
+        "note": "EPK-33: master/notebook.py stateful notebook engine + AST-sandboxed cell runner + Jupyter .ipynb v4.5 import/export + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-30": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk33_stateful_notebook_safe_execution_and_ipynb_roundtrip"
+        ],
+        "note": "EPK-33: master/notebook.py stateful notebook engine + AST-sandboxed cell runner + Jupyter .ipynb v4.5 import/export + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-31": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk33_stateful_notebook_safe_execution_and_ipynb_roundtrip"
+        ],
+        "note": "EPK-33: master/notebook.py stateful notebook engine + AST-sandboxed cell runner + Jupyter .ipynb v4.5 import/export + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-32": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk33_stateful_notebook_safe_execution_and_ipynb_roundtrip"
+        ],
+        "note": "EPK-33: master/notebook.py stateful notebook engine + AST-sandboxed cell runner + Jupyter .ipynb v4.5 import/export + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-33": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk33_stateful_notebook_safe_execution_and_ipynb_roundtrip"
+        ],
+        "note": "EPK-33: master/notebook.py stateful notebook engine + AST-sandboxed cell runner + Jupyter .ipynb v4.5 import/export + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:16:43Z"
     },
     "PKD-34": {
       "status": "open",

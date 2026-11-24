@@ -1,0 +1,14 @@
+{
+  "legal": [
+    {"id": "KVKK-6698-M7", "title": "KVKK 6698 Madde 7 - Silme ve Anonimleştirme", "text": "Kişisel verilerin işlenmesini gerektiren sebeplerin ortadan kalkması hâlinde veriler resen veya ilgili kişinin talebi üzerine silinir, yok edilir veya anonim hâle getirilir.", "keywords": ["kvkk", "silme", "rtbf", "anonim", "kişisel veri"]},
+    {"id": "TBK-6098-M112", "title": "TBK 6098 Madde 112 - Borcun İfa Edilmemesi", "text": "Borç hiç veya gereği gibi ifa edilmezse borçlu, kendisine hiçbir kusurun yüklenemeyeceğini ispat etmedikçe alacaklının bundan doğan zararını gidermekle yükümlüdür.", "keywords": ["sözleşme", "tazminat", "borç", "ihlal", "tbk"]},
+    {"id": "IS-4857-M17", "title": "İş Kanunu 4857 Madde 17 - Süreli Fesih", "text": "Belirsiz süreli iş sözleşmelerinin feshinden önce durumun diğer tarafa bildirilmesi gerekir; ihbar süreleri kıdeme göre 2 ila 8 haftadır.", "keywords": ["fesih", "ihbar", "iş kanunu", "kıdem", "işçi"]}
+  ],
+  "health": [
+    {"id": "SAGLIK-GENEL-01", "title": "D Vitamini ve Temel Bilgilendirme", "text": "D vitamini kemik sağlığı ve bağışıklık için önemlidir; eksiklik tanısı kan testi (25-OH-D) ve hekim değerlendirmesi ile konulur.", "keywords": ["vitamin", "kemik", "bağışıklık", "kan testi"]},
+    {"id": "SAGLIK-ILAC-02", "title": "Antikoagülan ve NSAİİ Etkileşimi", "text": "Warfarin gibi kan sulandırıcılar ile aspirin veya ibuprofen birlikte kullanıldığında kanama riski artar; hekim/eczacı onayı şarttır.", "keywords": ["warfarin", "aspirin", "ilaç", "etkileşim", "kanama"]}
+  ],
+  "finance": [
+    {"id": "TCMB-FX-REF", "title": "TCMB Referans Kur ve Enflasyon Notu (Çevrimdışı Önbellek)", "text": "Kur ve faiz hesaplamalarında TCMB gösterge kurları ve BDDK/SPK mevzuatı esas alınır; canlı piyasa akışı kapalıyken bu değerler yalnızca örnek referanstır.", "keywords": ["tcmb", "kur", "dolar", "euro", "faiz", "kdv", "vergi"]}
+  ]
+}

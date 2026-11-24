@@ -7,6 +7,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+import accounting
 import agents_api
 import api_schemas
 import assistant
@@ -20,18 +21,24 @@ import cronjobs
 import db
 import distributed
 import domains
+import education
 import education_and_domains
 import eval_studio
 import factory
 import games
 import gateway
+import ha
 import hallucination
+import ide
 import llm
 import log_sanitizer
 import mcp_connector
+import media
 import memory_api
 import memory_conflicts
 import ml_ops
+import multimodal
+import notebook
 import ops
 import orchestrator
 import output_api
@@ -50,9 +57,15 @@ import tasks_api
 import user_api
 import ux_api
 from auth import orgs as auth_orgs
+from domains import engineering_bench as domains_eng
+from domains import kb_service as domains_kb
+from factory import verified_templates as factory_verified
 from hallucination import numeric_check as hallucination_numeric
+from ml_ops import promotion as ml_promotion
 from rag import advanced as rag_advanced
 from rag import crawler as rag_crawler
+from studios import leakage_guard as studios_leakage
+from studios import render_qa as studios_render_qa
 
 
 @asynccontextmanager
@@ -65,6 +78,11 @@ async def lifespan(_app: FastAPI):
     rag_crawler.init_web_archive_db()
     eval_studio.init_eval_studio_db()
     memory_conflicts.init_memory_conflicts_db()
+    ha.init_ha_db()
+    ml_promotion.init_ml_promotions_db()
+    accounting.init_accounting_db()
+    notebook.init_notebooks_db()
+    education.init_education_db()
     gateway.init_gateway_db()
     orchestrator.init_orchestrator_db()
     hallucination.init_hallucination_db()
@@ -110,10 +128,23 @@ app.include_router(hallucination.router)
 app.include_router(hallucination_numeric.router)
 app.include_router(eval_studio.router)
 app.include_router(ml_ops.router)
+app.include_router(ml_promotion.router)
 app.include_router(studios.router)
+app.include_router(studios_render_qa.router)
+app.include_router(studios_leakage.router)
+app.include_router(multimodal.router)
+app.include_router(education.router)
+app.include_router(media.router)
 app.include_router(factory.router)
+app.include_router(factory_verified.router)
+app.include_router(ide.router)
+app.include_router(ha.router)
+app.include_router(accounting.router)
+app.include_router(notebook.router)
 app.include_router(games.router)
 app.include_router(domains.router)
+app.include_router(domains_kb.router)
+app.include_router(domains_eng.router)
 app.include_router(distributed.router)
 app.include_router(ux_api.router)
 app.include_router(security_extensions.router)
