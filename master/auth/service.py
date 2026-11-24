@@ -35,8 +35,28 @@ def _conn() -> sqlite3.Connection:
     return dbconn.open_db(_auth_db_path())
 
 
+_GENERATED_SECRET: bytes | None = None
+
+
+def _generated_secret() -> bytes:
+    """Per-installation random secret kept in the data dir (never in the repo) when SECRET_KEY is unset."""
+    global _GENERATED_SECRET  # noqa: PLW0603
+    if _GENERATED_SECRET is None:
+        path = Path(config.DATA_DIR) / ".session_secret"
+        try:
+            value = path.read_text(encoding="utf-8").strip()
+        except OSError:
+            value = ""
+        if len(value) < 32:
+            value = secrets.token_hex(32)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(value, encoding="utf-8")
+        _GENERATED_SECRET = value.encode("utf-8")
+    return _GENERATED_SECRET
+
+
 def _signing_secret() -> bytes:
-    raw = (getattr(config, "SECRET_KEY", "") or os.environ.get("SECRET_KEY") or "dadp-local-dev-session-secret").encode("utf-8")
+    raw = (getattr(config, "SECRET_KEY", "") or os.environ.get("SECRET_KEY") or "").encode("utf-8") or _generated_secret()
     return hashlib.sha256(raw).digest()
 
 

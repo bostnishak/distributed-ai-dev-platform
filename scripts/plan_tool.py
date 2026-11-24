@@ -17,6 +17,7 @@ import argparse
 import ast
 import json
 import re
+from functools import lru_cache
 import subprocess
 import sys
 from dataclasses import dataclass, field
@@ -412,6 +413,13 @@ def apply_blocks(text: str, blocks: dict[str, str]) -> str:
     return BLOCK.sub(lambda m: m.group(1) + blocks.get(m.group(2), m.group(3)) + m.group(4), text)
 
 
+@lru_cache(maxsize=None)
+def _commit_exists(root: Path, commit: str) -> bool:
+    """One git call per distinct commit (cached); 1418 items share only a few dozen commits."""
+    found = subprocess.run(["git", "cat-file", "-e", f"{commit}^{{commit}}"], cwd=root, capture_output=True, check=False)
+    return found.returncode == 0
+
+
 def verify_evidence(item_id: str, evidence: dict) -> list[str]:
     """A 'done' claim must point at test files that exist and a commit that exists in this repository."""
     root = Path(__file__).resolve().parents[1]
@@ -421,8 +429,7 @@ def verify_evidence(item_id: str, evidence: dict) -> list[str]:
             problems.append(f"{item_id}: kanıt test dosyası yok: {test}")
     commit = evidence.get("commit", "")
     if commit:
-        found = subprocess.run(["git", "cat-file", "-e", f"{commit}^{{commit}}"], cwd=root, capture_output=True, check=False)
-        if found.returncode != 0:
+        if not _commit_exists(root, commit):
             problems.append(f"{item_id}: kanıt commit'i depoda yok: {commit}")
     return problems
 

@@ -50,20 +50,26 @@ async def _embed_text(text: str) -> list[float] | None:
     return None
 
 
+_KB_STOPWORDS = frozenset({
+    "kısa", "bana", "ama", "için", "gibi", "hakkında", "yaz", "yazar", "misin", "lütfen", "bir", "olan", "olarak", "kelimesi",
+    "geçmesin", "hiç", "şiir", "hikaye", "anlat", "verir", "ver", "nasıl", "nedir", "neden", "sadece", "daha", "çok", "kadar",
+})
+
+
 def search_company_kb_sync(query: str, top_k: int = 2) -> list[dict[str, Any]]:
     """Fast lexical/keyword retrieval over externalized sample knowledge docs."""
     lower = tr_lower(query)
-    tokens = set(re.findall(r"[a-z0-9çğıöşü]+", lower))
+    tokens = {t for t in re.findall(r"[a-z0-9çğıöşü]+", lower) if len(t) >= 4 and t not in _KB_STOPWORDS}
     scored: list[tuple[float, dict[str, Any]]] = []
     for doc in COMPANY_KNOWLEDGE_DOCS:
-        score = 0.0
-        for kw in doc.get("keywords") or ():
-            if tr_lower(str(kw)) in lower:
-                score += 3.0
+        keyword_hits = sum(1 for kw in (doc.get("keywords") or ()) if tr_lower(str(kw)) in lower)
         doc_tokens = set(re.findall(r"[a-z0-9çğıöşü]+", tr_lower(doc["title"] + " " + doc["content"])))
-        score += len(tokens & doc_tokens) * 0.4
-        if score >= 1.5:
-            scored.append((score, doc))
+        overlap = len(tokens & doc_tokens)
+        # Generic everyday words ("kısa", "şiir") must not drag an engineering table into an unrelated answer:
+        # require two independent signals (keyword hits plus distinctive overlaps), or three overlaps.
+        if (keyword_hits == 0 and overlap < 3) or keyword_hits + overlap < 2:
+            continue
+        scored.append((keyword_hits * 3.0 + overlap * 0.4, doc))
     scored.sort(key=lambda x: x[0], reverse=True)
     return [d for _, d in scored[:top_k]]
 

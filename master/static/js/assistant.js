@@ -8,6 +8,7 @@ import {
   storageKeys,
   syncChatsWithServer,
 } from './assistant_history.js';
+import { matchPageRequest, pageLinkMessage } from './assistant_nav.js';
 import { buildInlineWorkspaceCard } from './assistant_ide_card.js';
 import { runAssistantStream } from './assistant_stream.js';
 import {
@@ -222,6 +223,13 @@ async function sendMessage(overridePrompt = null) {
   addUserMessage(rawPrompt, fileToSend ? fileToSend.name : null);
   persistChatById(targetChatId, state.currentMessages);
   const historySnapshot = state.currentMessages.slice(0, -1).slice(-40);
+  const pageRequest = fileToSend ? null : matchPageRequest(prompt);
+  if (pageRequest) {
+    if (!isOverride) { els.promptInput.value = ''; els.promptInput.style.height = 'auto'; }
+    addAssistantMessage(pageLinkMessage(pageRequest), null, false, false);
+    persistChatById(targetChatId, state.currentMessages);
+    return;
+  }
 
   if (!isOverride) {
     els.promptInput.value = '';

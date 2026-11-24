@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-24T20:04:49+00:00",
+ "generated_at": "2026-11-24T20:37:34+00:00",
  "items": {
   "SOH-01": {
    "status": "done",
@@ -15884,7 +15884,7 @@
    "updated_at": "2026-11-24T10:22:53Z"
   },
   "PKD-43": {
-   "status": "claimed_without_evidence",
+   "status": "done",
    "evidence": {
     "tests": [
      "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk16_epk27_epk34_i18n_and_mv3_browser_extension"
