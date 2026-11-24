@@ -21,6 +21,7 @@ import db
 import distributed
 import domains
 import education_and_domains
+import eval_studio
 import factory
 import games
 import gateway
@@ -29,6 +30,7 @@ import llm
 import log_sanitizer
 import mcp_connector
 import memory_api
+import memory_conflicts
 import ml_ops
 import ops
 import orchestrator
@@ -48,6 +50,9 @@ import tasks_api
 import user_api
 import ux_api
 from auth import orgs as auth_orgs
+from hallucination import numeric_check as hallucination_numeric
+from rag import advanced as rag_advanced
+from rag import crawler as rag_crawler
 
 
 @asynccontextmanager
@@ -57,6 +62,9 @@ async def lifespan(_app: FastAPI):
     auth.init_auth_db()
     auth_orgs.init_orgs_db()
     privacy.init_privacy_db()
+    rag_crawler.init_web_archive_db()
+    eval_studio.init_eval_studio_db()
+    memory_conflicts.init_memory_conflicts_db()
     gateway.init_gateway_db()
     orchestrator.init_orchestrator_db()
     hallucination.init_hallucination_db()
@@ -89,13 +97,18 @@ app.include_router(cnc_api.router)
 app.include_router(studio_api.router)
 app.include_router(user_api.router)
 app.include_router(memory_api.router)
+app.include_router(memory_conflicts.router)
 app.include_router(mcp_connector.router)
 app.include_router(backup_manager.router)
 app.include_router(audit_log.router)
 app.include_router(gateway.router)
 app.include_router(orchestrator.router)
 app.include_router(rag.router)
+app.include_router(rag_crawler.router)
+app.include_router(rag_advanced.router)
 app.include_router(hallucination.router)
+app.include_router(hallucination_numeric.router)
+app.include_router(eval_studio.router)
 app.include_router(ml_ops.router)
 app.include_router(studios.router)
 app.include_router(factory.router)

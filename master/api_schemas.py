@@ -101,6 +101,11 @@ class PrivacyResponse(ApiEnvelope):
     proof_id: str | None = Field(default=None, description="Kriptografik silme kanıt kimliği")
 
 
+class EvalStudioResponse(ApiEnvelope):
+    ok: bool | None = Field(default=None, description="Değerlendirme veri kümesi ve Cohen's kappa sonucu")
+    kappa: float | None = Field(default=None, description="Etiketleyiciler arası Cohen's kappa skoru")
+
+
 _PREFIX_MODEL_MAP: tuple[tuple[str, type[ApiEnvelope], str], ...] = (
     ("/health", HealthResponse, "Master servisinin canlılık (liveness) kontrolünü döndürür."),
     ("/ready", ReadyResponse, "Veritabanı, disk, Ollama ve sandbox bileşenlerinin hazırlık durumunu döndürür."),
@@ -128,6 +133,7 @@ _PREFIX_MODEL_MAP: tuple[tuple[str, type[ApiEnvelope], str], ...] = (
     ("/api/orchestrator", OrchestratorResponse, "Niyet sınıflandırma, planlama, araç çağrısı ve mod sözleşmesi uç noktası."),
     ("/api/rag", RagResponse, "Hibrit bilgi tabanı (BM25 + vektör + grafik) ekleme ve arama uç noktası."),
     ("/api/hallucination", HallucinationResponse, "İddia doğrulama, NLI, atıf zorunluluğu ve eval raporu uç noktası."),
+    ("/api/eval-studio", EvalStudioResponse, "Etiketli Türkçe değerlendirme kümeleri ve Cohen's kappa stüdyosu."),
     ("/api/ml", MlOpsResponse, "Tercih toplama, kalibrasyon, deney takibi ve model kapısı uç noktası."),
     ("/api/memory", MemoryResponse, "Semantik hafıza ve konuşma sıkıştırma işlemlerini yönetir."),
     ("/api/mcp", AdminResponse, "Harici MCP bağlayıcı yönetimi ve güvenli araç çağrısı uç noktası."),

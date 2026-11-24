@@ -106,6 +106,23 @@ erDiagram
         text last_seen
         text request_id
     }
+    eval_annotations {
+        integer id PK
+        text dataset_id
+        text item_id
+        text annotator_id
+        text label
+        text notes
+        text created_at
+    }
+    eval_datasets {
+        text dataset_id PK
+        text name
+        text language
+        integer item_count
+        text version
+        text created_at
+    }
     eval_sessions {
         integer id PK
         text started_at
@@ -157,6 +174,18 @@ erDiagram
         text name
         text entity_type
         text doc_id
+    }
+    memory_conflicts {
+        integer id PK
+        text user_id  "sahip"
+        text category
+        text fact_key
+        text existing_value
+        text candidate_value
+        text status
+        text resolution
+        text created_at
+        text resolved_at
     }
     org_invites {
         text token_hash PK
@@ -313,6 +342,16 @@ erDiagram
         blob fingerprint_blob
         text created_at
     }
+    web_archive {
+        text url_hash PK
+        text url
+        text host
+        text title
+        text content
+        text content_hash
+        real credibility_score
+        text fetched_at
+    }
     agents ||--o{ agent_scores : "agent_id"
     agents ||--o{ events : "agent_id"
     agents ||--o{ tasks : "assigned_to"
@@ -343,6 +382,8 @@ erDiagram
 | conversation_messages | conversations altında |
 | conversations | sahip: user_id |
 | error_events | ortak |
+| eval_annotations | ortak |
+| eval_datasets | ortak |
 | eval_sessions | ortak |
 | events | ortak |
 | feature_flags | ortak |
@@ -350,6 +391,7 @@ erDiagram
 | files | sahip: owner_id |
 | kg_edges | ortak |
 | kg_entities | ortak |
+| memory_conflicts | sahip: user_id |
 | org_invites | ortak |
 | org_members | ortak |
 | orgs | ortak |
@@ -367,3 +409,4 @@ erDiagram
 | tasks | ortak |
 | usage_events | sahip: user_id |
 | vision_drawings | ortak |
+| web_archive | ortak |

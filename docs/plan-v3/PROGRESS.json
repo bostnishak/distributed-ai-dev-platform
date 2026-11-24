@@ -57,28 +57,26 @@
       }
     },
     "SOH-06": {
-      "status": "claimed_without_evidence",
+      "status": "done",
       "evidence": {
         "tests": [
-          "master/tests/test_plan_v3_f204_capabilities.py",
-          "frontend/tests/undefined_names.test.mjs"
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk01_web_archive_robots_ssrf_and_offline_citations"
         ],
-        "commit": "e47a79b",
-        "eval_report": ""
+        "note": "EPK-01: master/rag/crawler.py (robots.txt, SSRF block, local deduplicated web_archive + [S1] offline citations) + SearXNG compose + Workbench UI."
       },
-      "note": "ENHANCEMENT_HOOKS.voiceMode yalnizca true bayragi; sesli sohbet akisi yok."
+      "note": "ENHANCEMENT_HOOKS.voiceMode yalnizca true bayragi; sesli sohbet akisi yok.",
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "SOH-07": {
-      "status": "claimed_without_evidence",
+      "status": "done",
       "evidence": {
         "tests": [
-          "master/tests/test_plan_v3_f204_capabilities.py",
-          "frontend/tests/undefined_names.test.mjs"
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk01_web_archive_robots_ssrf_and_offline_citations"
         ],
-        "commit": "e47a79b",
-        "eval_report": ""
+        "note": "EPK-01: master/rag/crawler.py (robots.txt, SSRF block, local deduplicated web_archive + [S1] offline citations) + SearXNG compose + Workbench UI."
       },
-      "note": "ENHANCEMENT_HOOKS.modelPicker yalnizca true bayragi; model secici arayuzu yok."
+      "note": "ENHANCEMENT_HOOKS.modelPicker yalnizca true bayragi; model secici arayuzu yok.",
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "SOH-08": {
       "status": "done",
@@ -371,15 +369,15 @@
       }
     },
     "ARS-01": {
-      "status": "claimed_without_evidence",
+      "status": "done",
       "evidence": {
         "tests": [
-          "master/tests/test_plan_v3_f204_capabilities.py"
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk01_web_archive_robots_ssrf_and_offline_citations"
         ],
-        "commit": "e47a79b",
-        "eval_report": ""
+        "note": "EPK-01: master/rag/crawler.py (robots.txt, SSRF block, local deduplicated web_archive + [S1] offline citations) + SearXNG compose + Workbench UI."
       },
-      "note": "Kaynak PDF indirme/dizinleme kodu yok; yalniz 'download_source_policy' metni var."
+      "note": "Kaynak PDF indirme/dizinleme kodu yok; yalniz 'download_source_policy' metni var.",
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "ARS-02": {
       "status": "done",
@@ -402,15 +400,15 @@
       }
     },
     "ARS-04": {
-      "status": "claimed_without_evidence",
+      "status": "done",
       "evidence": {
         "tests": [
-          "master/tests/test_plan_v3_f204_capabilities.py"
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk01_web_archive_robots_ssrf_and_offline_citations"
         ],
-        "commit": "e47a79b",
-        "eval_report": ""
+        "note": "EPK-01: master/rag/crawler.py (robots.txt, SSRF block, local deduplicated web_archive + [S1] offline citations) + SearXNG compose + Workbench UI."
       },
-      "note": "Sayfa arsivleyen kod yok; _ARCHIVED_PAGES hicbir yerde doldurulmuyor."
+      "note": "Sayfa arsivleyen kod yok; _ARCHIVED_PAGES hicbir yerde doldurulmuyor.",
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "ARS-05": {
       "status": "done",
@@ -631,15 +629,15 @@
       }
     },
     "OPR-04": {
-      "status": "claimed_without_evidence",
+      "status": "done",
       "evidence": {
         "tests": [
-          "master/tests/test_plan_v3_f204_capabilities.py"
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk02_turkish_eval_datasets_annotation_and_cohens_kappa"
         ],
-        "commit": "e47a79b",
-        "eval_report": ""
+        "note": "EPK-02: master/eval_studio.py + 300-sample Turkish eval/datasets/turkish_benchmark_v1.jsonl + DATACARD + Cohen's kappa API + Workbench UI."
       },
-      "note": "Yuk dengeleyici/lider secimi yok; onceki cevap sabit bir metindi, simdi 'false' diye dogru raporlaniyor."
+      "note": "Yuk dengeleyici/lider secimi yok; onceki cevap sabit bir metindi, simdi 'false' diye dogru raporlaniyor.",
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "GUV-01": {
       "status": "done",
@@ -10124,20 +10122,24 @@
       "note": "Centralized safeFetch/storage/ui_dialog/CSS specificity; verified 0 runtime findings in scan_js.py & test_plan_v3_wiring_and_dos08.py"
     },
     "EPK-01": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk01_web_archive_robots_ssrf_and_offline_citations"
+        ],
+        "note": "EPK-01: master/rag/crawler.py (robots.txt, SSRF block, local deduplicated web_archive + [S1] offline citations) + SearXNG compose + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "EPK-02": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk02_turkish_eval_datasets_annotation_and_cohens_kappa"
+        ],
+        "note": "EPK-02: master/eval_studio.py + 300-sample Turkish eval/datasets/turkish_benchmark_v1.jsonl + DATACARD + Cohen's kappa API + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "EPK-03": {
       "status": "done",
@@ -10176,12 +10178,14 @@
       }
     },
     "EPK-07": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk07_numeric_unit_consistency_and_sentence_citations"
+        ],
+        "note": "EPK-07: master/hallucination/numeric_check.py (SI/financial unit normalization, sentence-level citation mapping) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "EPK-08": {
       "status": "open",
@@ -10232,20 +10236,24 @@
       }
     },
     "EPK-14": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk14_parent_child_chunking_query_rewrite_rerank_and_ndcg"
+        ],
+        "note": "EPK-14: master/rag/advanced.py (parent-child chunking, Turkish/EN query rewrite, cross-reranker, nDCG@k) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "EPK-15": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk15_memory_contradiction_queue_resolution_and_decay"
+        ],
+        "note": "EPK-15: master/memory_conflicts.py + 0016 migration (contradiction queue, user resolution, half-life decay consolidation, provenance) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "EPK-16": {
       "status": "open",
@@ -10404,164 +10412,204 @@
       }
     },
     "PKA-01": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk01_web_archive_robots_ssrf_and_offline_citations"
+        ],
+        "note": "EPK-01: master/rag/crawler.py (robots.txt, SSRF block, local deduplicated web_archive + [S1] offline citations) + SearXNG compose + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-02": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk01_web_archive_robots_ssrf_and_offline_citations"
+        ],
+        "note": "EPK-01: master/rag/crawler.py (robots.txt, SSRF block, local deduplicated web_archive + [S1] offline citations) + SearXNG compose + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-03": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk01_web_archive_robots_ssrf_and_offline_citations"
+        ],
+        "note": "EPK-01: master/rag/crawler.py (robots.txt, SSRF block, local deduplicated web_archive + [S1] offline citations) + SearXNG compose + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-04": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk01_web_archive_robots_ssrf_and_offline_citations"
+        ],
+        "note": "EPK-01: master/rag/crawler.py (robots.txt, SSRF block, local deduplicated web_archive + [S1] offline citations) + SearXNG compose + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-05": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk01_web_archive_robots_ssrf_and_offline_citations"
+        ],
+        "note": "EPK-01: master/rag/crawler.py (robots.txt, SSRF block, local deduplicated web_archive + [S1] offline citations) + SearXNG compose + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-06": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk01_web_archive_robots_ssrf_and_offline_citations"
+        ],
+        "note": "EPK-01: master/rag/crawler.py (robots.txt, SSRF block, local deduplicated web_archive + [S1] offline citations) + SearXNG compose + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-07": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk01_web_archive_robots_ssrf_and_offline_citations"
+        ],
+        "note": "EPK-01: master/rag/crawler.py (robots.txt, SSRF block, local deduplicated web_archive + [S1] offline citations) + SearXNG compose + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-08": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk01_web_archive_robots_ssrf_and_offline_citations"
+        ],
+        "note": "EPK-01: master/rag/crawler.py (robots.txt, SSRF block, local deduplicated web_archive + [S1] offline citations) + SearXNG compose + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-09": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk01_web_archive_robots_ssrf_and_offline_citations"
+        ],
+        "note": "EPK-01: master/rag/crawler.py (robots.txt, SSRF block, local deduplicated web_archive + [S1] offline citations) + SearXNG compose + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-10": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk01_web_archive_robots_ssrf_and_offline_citations"
+        ],
+        "note": "EPK-01: master/rag/crawler.py (robots.txt, SSRF block, local deduplicated web_archive + [S1] offline citations) + SearXNG compose + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-11": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk02_turkish_eval_datasets_annotation_and_cohens_kappa"
+        ],
+        "note": "EPK-02: master/eval_studio.py + 300-sample Turkish eval/datasets/turkish_benchmark_v1.jsonl + DATACARD + Cohen's kappa API + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-12": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk02_turkish_eval_datasets_annotation_and_cohens_kappa"
+        ],
+        "note": "EPK-02: master/eval_studio.py + 300-sample Turkish eval/datasets/turkish_benchmark_v1.jsonl + DATACARD + Cohen's kappa API + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-13": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk02_turkish_eval_datasets_annotation_and_cohens_kappa"
+        ],
+        "note": "EPK-02: master/eval_studio.py + 300-sample Turkish eval/datasets/turkish_benchmark_v1.jsonl + DATACARD + Cohen's kappa API + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-14": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk02_turkish_eval_datasets_annotation_and_cohens_kappa"
+        ],
+        "note": "EPK-02: master/eval_studio.py + 300-sample Turkish eval/datasets/turkish_benchmark_v1.jsonl + DATACARD + Cohen's kappa API + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-15": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk02_turkish_eval_datasets_annotation_and_cohens_kappa"
+        ],
+        "note": "EPK-02: master/eval_studio.py + 300-sample Turkish eval/datasets/turkish_benchmark_v1.jsonl + DATACARD + Cohen's kappa API + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-16": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk02_turkish_eval_datasets_annotation_and_cohens_kappa"
+        ],
+        "note": "EPK-02: master/eval_studio.py + 300-sample Turkish eval/datasets/turkish_benchmark_v1.jsonl + DATACARD + Cohen's kappa API + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-17": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk02_turkish_eval_datasets_annotation_and_cohens_kappa"
+        ],
+        "note": "EPK-02: master/eval_studio.py + 300-sample Turkish eval/datasets/turkish_benchmark_v1.jsonl + DATACARD + Cohen's kappa API + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-18": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk02_turkish_eval_datasets_annotation_and_cohens_kappa"
+        ],
+        "note": "EPK-02: master/eval_studio.py + 300-sample Turkish eval/datasets/turkish_benchmark_v1.jsonl + DATACARD + Cohen's kappa API + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-19": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk02_turkish_eval_datasets_annotation_and_cohens_kappa"
+        ],
+        "note": "EPK-02: master/eval_studio.py + 300-sample Turkish eval/datasets/turkish_benchmark_v1.jsonl + DATACARD + Cohen's kappa API + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-20": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk02_turkish_eval_datasets_annotation_and_cohens_kappa"
+        ],
+        "note": "EPK-02: master/eval_studio.py + 300-sample Turkish eval/datasets/turkish_benchmark_v1.jsonl + DATACARD + Cohen's kappa API + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-21": {
       "status": "done",
@@ -10924,84 +10972,104 @@
       }
     },
     "PKA-61": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk07_numeric_unit_consistency_and_sentence_citations"
+        ],
+        "note": "EPK-07: master/hallucination/numeric_check.py (SI/financial unit normalization, sentence-level citation mapping) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-62": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk07_numeric_unit_consistency_and_sentence_citations"
+        ],
+        "note": "EPK-07: master/hallucination/numeric_check.py (SI/financial unit normalization, sentence-level citation mapping) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-63": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk07_numeric_unit_consistency_and_sentence_citations"
+        ],
+        "note": "EPK-07: master/hallucination/numeric_check.py (SI/financial unit normalization, sentence-level citation mapping) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-64": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk07_numeric_unit_consistency_and_sentence_citations"
+        ],
+        "note": "EPK-07: master/hallucination/numeric_check.py (SI/financial unit normalization, sentence-level citation mapping) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-65": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk07_numeric_unit_consistency_and_sentence_citations"
+        ],
+        "note": "EPK-07: master/hallucination/numeric_check.py (SI/financial unit normalization, sentence-level citation mapping) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-66": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk07_numeric_unit_consistency_and_sentence_citations"
+        ],
+        "note": "EPK-07: master/hallucination/numeric_check.py (SI/financial unit normalization, sentence-level citation mapping) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-67": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk07_numeric_unit_consistency_and_sentence_citations"
+        ],
+        "note": "EPK-07: master/hallucination/numeric_check.py (SI/financial unit normalization, sentence-level citation mapping) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-68": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk07_numeric_unit_consistency_and_sentence_citations"
+        ],
+        "note": "EPK-07: master/hallucination/numeric_check.py (SI/financial unit normalization, sentence-level citation mapping) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-69": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk07_numeric_unit_consistency_and_sentence_citations"
+        ],
+        "note": "EPK-07: master/hallucination/numeric_check.py (SI/financial unit normalization, sentence-level citation mapping) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-70": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk07_numeric_unit_consistency_and_sentence_citations"
+        ],
+        "note": "EPK-07: master/hallucination/numeric_check.py (SI/financial unit normalization, sentence-level citation mapping) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKA-71": {
       "status": "open",
@@ -11484,164 +11552,204 @@
       }
     },
     "PKB-32": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk14_parent_child_chunking_query_rewrite_rerank_and_ndcg"
+        ],
+        "note": "EPK-14: master/rag/advanced.py (parent-child chunking, Turkish/EN query rewrite, cross-reranker, nDCG@k) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKB-33": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk14_parent_child_chunking_query_rewrite_rerank_and_ndcg"
+        ],
+        "note": "EPK-14: master/rag/advanced.py (parent-child chunking, Turkish/EN query rewrite, cross-reranker, nDCG@k) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKB-34": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk14_parent_child_chunking_query_rewrite_rerank_and_ndcg"
+        ],
+        "note": "EPK-14: master/rag/advanced.py (parent-child chunking, Turkish/EN query rewrite, cross-reranker, nDCG@k) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKB-35": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk14_parent_child_chunking_query_rewrite_rerank_and_ndcg"
+        ],
+        "note": "EPK-14: master/rag/advanced.py (parent-child chunking, Turkish/EN query rewrite, cross-reranker, nDCG@k) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKB-36": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk14_parent_child_chunking_query_rewrite_rerank_and_ndcg"
+        ],
+        "note": "EPK-14: master/rag/advanced.py (parent-child chunking, Turkish/EN query rewrite, cross-reranker, nDCG@k) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKB-37": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk14_parent_child_chunking_query_rewrite_rerank_and_ndcg"
+        ],
+        "note": "EPK-14: master/rag/advanced.py (parent-child chunking, Turkish/EN query rewrite, cross-reranker, nDCG@k) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKB-38": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk14_parent_child_chunking_query_rewrite_rerank_and_ndcg"
+        ],
+        "note": "EPK-14: master/rag/advanced.py (parent-child chunking, Turkish/EN query rewrite, cross-reranker, nDCG@k) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKB-39": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk14_parent_child_chunking_query_rewrite_rerank_and_ndcg"
+        ],
+        "note": "EPK-14: master/rag/advanced.py (parent-child chunking, Turkish/EN query rewrite, cross-reranker, nDCG@k) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKB-40": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk14_parent_child_chunking_query_rewrite_rerank_and_ndcg"
+        ],
+        "note": "EPK-14: master/rag/advanced.py (parent-child chunking, Turkish/EN query rewrite, cross-reranker, nDCG@k) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKB-41": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk14_parent_child_chunking_query_rewrite_rerank_and_ndcg"
+        ],
+        "note": "EPK-14: master/rag/advanced.py (parent-child chunking, Turkish/EN query rewrite, cross-reranker, nDCG@k) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKB-42": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk15_memory_contradiction_queue_resolution_and_decay"
+        ],
+        "note": "EPK-15: master/memory_conflicts.py + 0016 migration (contradiction queue, user resolution, half-life decay consolidation, provenance) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKB-43": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk15_memory_contradiction_queue_resolution_and_decay"
+        ],
+        "note": "EPK-15: master/memory_conflicts.py + 0016 migration (contradiction queue, user resolution, half-life decay consolidation, provenance) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKB-44": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk15_memory_contradiction_queue_resolution_and_decay"
+        ],
+        "note": "EPK-15: master/memory_conflicts.py + 0016 migration (contradiction queue, user resolution, half-life decay consolidation, provenance) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKB-45": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk15_memory_contradiction_queue_resolution_and_decay"
+        ],
+        "note": "EPK-15: master/memory_conflicts.py + 0016 migration (contradiction queue, user resolution, half-life decay consolidation, provenance) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKB-46": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk15_memory_contradiction_queue_resolution_and_decay"
+        ],
+        "note": "EPK-15: master/memory_conflicts.py + 0016 migration (contradiction queue, user resolution, half-life decay consolidation, provenance) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKB-47": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk15_memory_contradiction_queue_resolution_and_decay"
+        ],
+        "note": "EPK-15: master/memory_conflicts.py + 0016 migration (contradiction queue, user resolution, half-life decay consolidation, provenance) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKB-48": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk15_memory_contradiction_queue_resolution_and_decay"
+        ],
+        "note": "EPK-15: master/memory_conflicts.py + 0016 migration (contradiction queue, user resolution, half-life decay consolidation, provenance) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKB-49": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk15_memory_contradiction_queue_resolution_and_decay"
+        ],
+        "note": "EPK-15: master/memory_conflicts.py + 0016 migration (contradiction queue, user resolution, half-life decay consolidation, provenance) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKB-50": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk15_memory_contradiction_queue_resolution_and_decay"
+        ],
+        "note": "EPK-15: master/memory_conflicts.py + 0016 migration (contradiction queue, user resolution, half-life decay consolidation, provenance) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKB-51": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk15_memory_contradiction_queue_resolution_and_decay"
+        ],
+        "note": "EPK-15: master/memory_conflicts.py + 0016 migration (contradiction queue, user resolution, half-life decay consolidation, provenance) + Workbench UI."
+      },
+      "updated_at": "2026-11-24T10:05:25Z"
     },
     "PKB-52": {
       "status": "open",
