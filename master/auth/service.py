@@ -62,6 +62,12 @@ def init_auth_db() -> None:
                 client_ip TEXT NOT NULL DEFAULT ''
             );
             CREATE INDEX IF NOT EXISTS idx_auth_sessions_user ON auth_sessions(user_id);
+            CREATE TABLE IF NOT EXISTS auth_totp (
+                user_id TEXT PRIMARY KEY REFERENCES auth_users(id) ON DELETE CASCADE,
+                secret TEXT NOT NULL,
+                enabled INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL
+            );
             """
         )
 
@@ -262,3 +268,56 @@ def resolve_tailscale_user(tailscale_login: str, *, client_host: str, trusted_pr
     if not row or not row["is_active"]:
         return None
     return {"id": row["id"], "username": row["username"], "email": row["email"], "role": row["role"], "via": "tailscale"}
+
+
+# --- GUV-01: TOTP second factor ---------------------------------------------------------------------------------
+
+
+def totp_enabled(user_id: str) -> bool:
+    init_auth_db()
+    with _conn() as conn:
+        row = conn.execute("SELECT enabled FROM auth_totp WHERE user_id = ?", (user_id,)).fetchone()
+    return bool(row and row["enabled"])
+
+
+def totp_begin(user_id: str) -> str:
+    """Create (or replace a not yet confirmed) secret; the second factor only counts once totp_enable succeeds."""
+    from auth import totp
+
+    if totp_enabled(user_id):
+        raise ValueError("İki aşamalı doğrulama zaten açık; önce kapatın.")
+    secret = totp.generate_totp_secret()
+    with _conn() as conn:
+        conn.execute(
+            "INSERT INTO auth_totp (user_id, secret, enabled, created_at) VALUES (?, ?, 0, ?) "
+            "ON CONFLICT(user_id) DO UPDATE SET secret = excluded.secret, enabled = 0, created_at = excluded.created_at",
+            (user_id, secret, datetime.now(UTC).isoformat()),
+        )
+    return secret
+
+
+def totp_check(user_id: str, code: str, *, require_enabled: bool = True) -> bool:
+    from auth import totp
+
+    init_auth_db()
+    with _conn() as conn:
+        row = conn.execute("SELECT secret, enabled FROM auth_totp WHERE user_id = ?", (user_id,)).fetchone()
+    if not row or (require_enabled and not row["enabled"]):
+        return False
+    return totp.verify_totp(row["secret"], code)
+
+
+def totp_enable(user_id: str, code: str) -> bool:
+    if not totp_check(user_id, code, require_enabled=False):
+        return False
+    with _conn() as conn:
+        conn.execute("UPDATE auth_totp SET enabled = 1 WHERE user_id = ?", (user_id,))
+    return True
+
+
+def totp_disable(user_id: str, code: str) -> bool:
+    if not totp_check(user_id, code):
+        return False
+    with _conn() as conn:
+        conn.execute("DELETE FROM auth_totp WHERE user_id = ?", (user_id,))
+    return True

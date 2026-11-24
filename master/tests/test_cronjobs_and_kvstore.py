@@ -126,3 +126,29 @@ def test_sql_safe_projection_rejects_injection_but_keeps_aggregates():
     for bad in ("1) FROM sqlite_master; --", "COUNT(*) AS a; DROP TABLE t", "x FROM y --", "(SELECT password FROM users)", "name, (SELECT 1)"):
         with pytest.raises(ValueError):
             sql_safe.build_select("t", bad)
+
+
+def test_totp_second_factor_is_enforced_at_login_once_enabled(client):
+    from auth.totp import totp_code
+
+    creds = {"username": "ayse", "password": "uzun-ve-guclu-parola-1"}
+    assert client.post("/api/auth/setup", json=creds).status_code == 200
+    assert client.post("/api/auth/login", json=creds).status_code == 200
+
+    secret = client.post("/api/auth/totp/enroll").json()["secret"]
+    # enrolled but not confirmed: login must still work without a code
+    assert client.post("/api/auth/login", json=creds).status_code == 200
+    assert client.post("/api/auth/totp/enable", json={"code": "000000"}).status_code == 400
+    assert client.post("/api/auth/totp/enable", json={"code": totp_code(secret)}).status_code == 200
+
+    client.post("/api/auth/logout")
+    missing = client.post("/api/auth/login", json=creds)
+    assert missing.status_code == 401 and missing.headers.get("x-totp-required") == "1"
+    assert client.post("/api/auth/login", json={**creds, "totp_code": "000000"}).status_code == 401
+    assert client.post("/api/auth/login", json={**creds, "totp_code": totp_code(secret)}).status_code == 200
+
+    # turning it off needs a valid code as well
+    assert client.post("/api/auth/totp/disable", json={"code": "000000"}).status_code == 400
+    assert client.post("/api/auth/totp/disable", json={"code": totp_code(secret)}).status_code == 200
+    client.post("/api/auth/logout")
+    assert client.post("/api/auth/login", json=creds).status_code == 200

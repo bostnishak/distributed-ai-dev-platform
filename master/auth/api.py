@@ -23,6 +23,11 @@ class SetupRequest(BaseModel):
 class LoginRequest(BaseModel):
     username: str = Field(..., min_length=1, max_length=64)
     password: str = Field(..., min_length=1, max_length=128)
+    totp_code: str | None = Field(default=None, max_length=12)
+
+
+class TotpCodeRequest(BaseModel):
+    code: str = Field(..., min_length=6, max_length=12)
 
 
 class CreateUserRequest(BaseModel):
@@ -98,10 +103,42 @@ async def login(body: LoginRequest, request: Request, response: Response):
     if not user:
         service.record_login_failure(rate_key)
         raise HTTPException(status_code=401, detail="Kullanıcı adı veya parola hatalı.")
+    if service.totp_enabled(user["id"]):
+        if not body.totp_code:
+            raise HTTPException(status_code=401, detail="İki aşamalı doğrulama kodu gerekli.", headers={"X-TOTP-Required": "1"})
+        if not service.totp_check(user["id"], body.totp_code):
+            service.record_login_failure(rate_key)
+            raise HTTPException(status_code=401, detail="İki aşamalı doğrulama kodu hatalı.", headers={"X-TOTP-Required": "1"})
     service.clear_login_failures(rate_key)
     _, signed = service.create_session(user["id"], client_ip=client_ip)
     _set_cookie(response, signed, request)
     return {"ok": True, "user": user}
+
+
+@router.post("/totp/enroll")
+async def totp_enroll(user: dict[str, Any] = Depends(require_authenticated_user)):  # noqa: B008
+    """Start enrolment: returns the secret and the otpauth URI; it is not enforced until /totp/enable."""
+    from auth.totp import build_otpauth_uri
+
+    try:
+        secret = service.totp_begin(user["id"])
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return {"secret": secret, "otpauth_uri": build_otpauth_uri(user["username"], secret)}
+
+
+@router.post("/totp/enable")
+async def totp_enable(body: TotpCodeRequest, user: dict[str, Any] = Depends(require_authenticated_user)):  # noqa: B008
+    if not service.totp_enable(user["id"], body.code):
+        raise HTTPException(status_code=400, detail="Kod hatalı; uygulamadaki güncel 6 haneli kodu girin.")
+    return {"ok": True, "totp_enabled": True}
+
+
+@router.post("/totp/disable")
+async def totp_disable(body: TotpCodeRequest, user: dict[str, Any] = Depends(require_authenticated_user)):  # noqa: B008
+    if not service.totp_disable(user["id"], body.code):
+        raise HTTPException(status_code=400, detail="Kod hatalı veya iki aşamalı doğrulama açık değil.")
+    return {"ok": True, "totp_enabled": False}
 
 
 @router.post("/logout")

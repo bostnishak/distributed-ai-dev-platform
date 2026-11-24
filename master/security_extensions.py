@@ -2,13 +2,8 @@
 
 from __future__ import annotations
 
-import base64
-import hashlib
-import hmac
 import ipaddress
 import re
-import secrets
-import struct
 import time
 from typing import Any
 
@@ -17,6 +12,7 @@ from pydantic import BaseModel, Field
 
 from access_control import require_local_or_admin
 from auth import service as auth_service
+from auth.totp import build_otpauth_uri, generate_totp_secret, totp_code, verify_totp  # noqa: F401 - re-exported for callers and tests
 
 router = APIRouter(prefix="/api/security", tags=["security"])
 _ADMIN_DEP = [Depends(require_local_or_admin)]
@@ -37,41 +33,6 @@ _SECRET_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
 
 
 # ---------------------------------------------------------------- GUV-01: RFC 6238 TOTP 2FA
-
-def generate_totp_secret() -> str:
-    """Generate a Base32-encoded 160-bit TOTP secret."""
-    return base64.b32encode(secrets.token_bytes(20)).decode("ascii").rstrip("=")
-
-
-def totp_code(secret_b32: str, *, for_time: int | None = None, step: int = 30, digits: int = 6) -> str:
-    """Compute RFC 6238 HMAC-SHA1 TOTP code."""
-    padded = secret_b32.strip().upper()
-    padded += "=" * ((8 - len(padded) % 8) % 8)
-    key = base64.b32decode(padded, casefold=True)
-    counter = int((for_time if for_time is not None else time.time()) // step)
-    msg = struct.pack(">Q", counter)
-    digest = hmac.new(key, msg, hashlib.sha1).digest()
-    offset = digest[-1] & 0x0F
-    code_int = struct.unpack(">I", digest[offset : offset + 4])[0] & 0x7FFFFFFF
-    return str(code_int % (10**digits)).zfill(digits)
-
-
-def verify_totp(secret_b32: str, code: str, *, window: int = 1, now: int | None = None) -> bool:
-    """Verify a 6-digit TOTP code within +-window time steps."""
-    clean = re.sub(r"\s+", "", str(code or ""))
-    if not clean.isdigit() or len(clean) != 6:
-        return False
-    base_ts = int(now if now is not None else time.time())
-    for delta in range(-window, window + 1):
-        expected = totp_code(secret_b32, for_time=base_ts + delta * 30)
-        if hmac.compare_digest(clean, expected):
-            return True
-    return False
-
-
-def build_otpauth_uri(username: str, secret_b32: str, issuer: str = "DADP-Platform") -> str:
-    return f"otpauth://totp/{issuer}:{username}?secret={secret_b32}&issuer={issuer}&digits=6&period=30"
-
 
 # ---------------------------------------------------------------- GUV-02: Password Strength Policy
 
