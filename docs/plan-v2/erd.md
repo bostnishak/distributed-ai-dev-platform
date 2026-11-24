@@ -158,6 +158,30 @@ erDiagram
         text entity_type
         text doc_id
     }
+    org_invites {
+        text token_hash PK
+        text org_id FK
+        text invited_by
+        text role
+        text email
+        text expires_at
+        text used_by
+        text used_at
+        text created_at
+    }
+    org_members {
+        text org_id PK,FK
+        text user_id PK
+        text role
+        text joined_at
+    }
+    orgs {
+        text id PK
+        text slug
+        text name
+        text owner_id
+        text created_at
+    }
     procedural_skills {
         text id PK
         text name
@@ -208,6 +232,14 @@ erDiagram
         integer usage_days
         integer file_days
         text updated_at
+    }
+    rtbf_erasure_proofs {
+        text proof_id PK
+        text user_hash
+        text erased_at
+        text removed_counts_json
+        integer residual_hits
+        text receipt_hmac
     }
     saved_chats {
         text chat_id PK
@@ -289,6 +321,8 @@ erDiagram
     conversations ||--o{ conversation_messages : "conversation_id"
     eval_sessions ||--o{ agent_scores : "eval_session_id"
     feature_flags ||--o{ feature_overrides : "name"
+    orgs ||--o{ org_invites : "org_id"
+    orgs ||--o{ org_members : "org_id"
     projects ||--o{ conflicts : "project_id"
     projects ||--o{ events : "project_id"
     projects ||--o{ tasks : "project_id"
@@ -316,11 +350,15 @@ erDiagram
 | files | sahip: owner_id |
 | kg_edges | ortak |
 | kg_entities | ortak |
+| org_invites | ortak |
+| org_members | ortak |
+| orgs | ortak |
 | procedural_skills | ortak |
 | profiles | sahip: user_id |
 | projects | ortak |
 | rag_documents | ortak |
 | retention_policies | sahip: owner_id |
+| rtbf_erasure_proofs | ortak |
 | saved_chats | sahip: user_id |
 | schema_migrations | ortak |
 | schema_version | ortak |

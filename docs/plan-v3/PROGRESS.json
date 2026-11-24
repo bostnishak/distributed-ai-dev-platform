@@ -10140,20 +10140,24 @@
       }
     },
     "EPK-03": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk03_orgs_invites_rbac_and_idor_enforcement"
+        ],
+        "note": "EPK-03: master/auth/orgs.py + 0014_orgs_invites_rbac.sql + session IDOR guard + Workbench UI + ADR-0009/runbook."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "EPK-04": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk04_openapi_contracts_and_js_typegen"
+        ],
+        "note": "EPK-04: master/api_schemas.py validate_openapi_contracts + scripts/gen_api_types.py -> master/static/js/api_types.js + ADR-0010."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "EPK-05": {
       "status": "open",
@@ -10316,20 +10320,24 @@
       }
     },
     "EPK-25": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk25_field_crypto_tamper_malware_scan_and_rtbf_proof"
+        ],
+        "note": "EPK-25: master/privacy/field_crypto.py + 0015_privacy_rtbf_proofs.sql + authenticated encryption, malware scan, RTBF HMAC proofs + Workbench UI."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "EPK-26": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk26_property_based_crypto_and_rbac_invariants"
+        ],
+        "note": "EPK-26: requirements-dev.txt (hypothesis/mutmut/pytest-cov/diff-cover) + property-based crypto/RBAC invariant & fault-injection suite."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "EPK-27": {
       "status": "open",
@@ -10556,164 +10564,204 @@
       }
     },
     "PKA-21": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk03_orgs_invites_rbac_and_idor_enforcement"
+        ],
+        "note": "EPK-03: master/auth/orgs.py + 0014_orgs_invites_rbac.sql + session IDOR guard + Workbench UI + ADR-0009/runbook."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKA-22": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk03_orgs_invites_rbac_and_idor_enforcement"
+        ],
+        "note": "EPK-03: master/auth/orgs.py + 0014_orgs_invites_rbac.sql + session IDOR guard + Workbench UI + ADR-0009/runbook."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKA-23": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk03_orgs_invites_rbac_and_idor_enforcement"
+        ],
+        "note": "EPK-03: master/auth/orgs.py + 0014_orgs_invites_rbac.sql + session IDOR guard + Workbench UI + ADR-0009/runbook."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKA-24": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk03_orgs_invites_rbac_and_idor_enforcement"
+        ],
+        "note": "EPK-03: master/auth/orgs.py + 0014_orgs_invites_rbac.sql + session IDOR guard + Workbench UI + ADR-0009/runbook."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKA-25": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk03_orgs_invites_rbac_and_idor_enforcement"
+        ],
+        "note": "EPK-03: master/auth/orgs.py + 0014_orgs_invites_rbac.sql + session IDOR guard + Workbench UI + ADR-0009/runbook."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKA-26": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk03_orgs_invites_rbac_and_idor_enforcement"
+        ],
+        "note": "EPK-03: master/auth/orgs.py + 0014_orgs_invites_rbac.sql + session IDOR guard + Workbench UI + ADR-0009/runbook."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKA-27": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk03_orgs_invites_rbac_and_idor_enforcement"
+        ],
+        "note": "EPK-03: master/auth/orgs.py + 0014_orgs_invites_rbac.sql + session IDOR guard + Workbench UI + ADR-0009/runbook."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKA-28": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk03_orgs_invites_rbac_and_idor_enforcement"
+        ],
+        "note": "EPK-03: master/auth/orgs.py + 0014_orgs_invites_rbac.sql + session IDOR guard + Workbench UI + ADR-0009/runbook."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKA-29": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk03_orgs_invites_rbac_and_idor_enforcement"
+        ],
+        "note": "EPK-03: master/auth/orgs.py + 0014_orgs_invites_rbac.sql + session IDOR guard + Workbench UI + ADR-0009/runbook."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKA-30": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk03_orgs_invites_rbac_and_idor_enforcement"
+        ],
+        "note": "EPK-03: master/auth/orgs.py + 0014_orgs_invites_rbac.sql + session IDOR guard + Workbench UI + ADR-0009/runbook."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKA-31": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk04_openapi_contracts_and_js_typegen"
+        ],
+        "note": "EPK-04: master/api_schemas.py validate_openapi_contracts + scripts/gen_api_types.py -> master/static/js/api_types.js + ADR-0010."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKA-32": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk04_openapi_contracts_and_js_typegen"
+        ],
+        "note": "EPK-04: master/api_schemas.py validate_openapi_contracts + scripts/gen_api_types.py -> master/static/js/api_types.js + ADR-0010."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKA-33": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk04_openapi_contracts_and_js_typegen"
+        ],
+        "note": "EPK-04: master/api_schemas.py validate_openapi_contracts + scripts/gen_api_types.py -> master/static/js/api_types.js + ADR-0010."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKA-34": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk04_openapi_contracts_and_js_typegen"
+        ],
+        "note": "EPK-04: master/api_schemas.py validate_openapi_contracts + scripts/gen_api_types.py -> master/static/js/api_types.js + ADR-0010."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKA-35": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk04_openapi_contracts_and_js_typegen"
+        ],
+        "note": "EPK-04: master/api_schemas.py validate_openapi_contracts + scripts/gen_api_types.py -> master/static/js/api_types.js + ADR-0010."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKA-36": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk04_openapi_contracts_and_js_typegen"
+        ],
+        "note": "EPK-04: master/api_schemas.py validate_openapi_contracts + scripts/gen_api_types.py -> master/static/js/api_types.js + ADR-0010."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKA-37": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk04_openapi_contracts_and_js_typegen"
+        ],
+        "note": "EPK-04: master/api_schemas.py validate_openapi_contracts + scripts/gen_api_types.py -> master/static/js/api_types.js + ADR-0010."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKA-38": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk04_openapi_contracts_and_js_typegen"
+        ],
+        "note": "EPK-04: master/api_schemas.py validate_openapi_contracts + scripts/gen_api_types.py -> master/static/js/api_types.js + ADR-0010."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKA-39": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk04_openapi_contracts_and_js_typegen"
+        ],
+        "note": "EPK-04: master/api_schemas.py validate_openapi_contracts + scripts/gen_api_types.py -> master/static/js/api_types.js + ADR-0010."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKA-40": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk04_openapi_contracts_and_js_typegen"
+        ],
+        "note": "EPK-04: master/api_schemas.py validate_openapi_contracts + scripts/gen_api_types.py -> master/static/js/api_types.js + ADR-0010."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKA-41": {
       "status": "open",
@@ -12316,164 +12364,204 @@
       }
     },
     "PKC-43": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk25_field_crypto_tamper_malware_scan_and_rtbf_proof"
+        ],
+        "note": "EPK-25: master/privacy/field_crypto.py + 0015_privacy_rtbf_proofs.sql + authenticated encryption, malware scan, RTBF HMAC proofs + Workbench UI."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKC-44": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk25_field_crypto_tamper_malware_scan_and_rtbf_proof"
+        ],
+        "note": "EPK-25: master/privacy/field_crypto.py + 0015_privacy_rtbf_proofs.sql + authenticated encryption, malware scan, RTBF HMAC proofs + Workbench UI."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKC-45": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk25_field_crypto_tamper_malware_scan_and_rtbf_proof"
+        ],
+        "note": "EPK-25: master/privacy/field_crypto.py + 0015_privacy_rtbf_proofs.sql + authenticated encryption, malware scan, RTBF HMAC proofs + Workbench UI."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKC-46": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk25_field_crypto_tamper_malware_scan_and_rtbf_proof"
+        ],
+        "note": "EPK-25: master/privacy/field_crypto.py + 0015_privacy_rtbf_proofs.sql + authenticated encryption, malware scan, RTBF HMAC proofs + Workbench UI."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKC-47": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk25_field_crypto_tamper_malware_scan_and_rtbf_proof"
+        ],
+        "note": "EPK-25: master/privacy/field_crypto.py + 0015_privacy_rtbf_proofs.sql + authenticated encryption, malware scan, RTBF HMAC proofs + Workbench UI."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKC-48": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk25_field_crypto_tamper_malware_scan_and_rtbf_proof"
+        ],
+        "note": "EPK-25: master/privacy/field_crypto.py + 0015_privacy_rtbf_proofs.sql + authenticated encryption, malware scan, RTBF HMAC proofs + Workbench UI."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKC-49": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk25_field_crypto_tamper_malware_scan_and_rtbf_proof"
+        ],
+        "note": "EPK-25: master/privacy/field_crypto.py + 0015_privacy_rtbf_proofs.sql + authenticated encryption, malware scan, RTBF HMAC proofs + Workbench UI."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKC-50": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk25_field_crypto_tamper_malware_scan_and_rtbf_proof"
+        ],
+        "note": "EPK-25: master/privacy/field_crypto.py + 0015_privacy_rtbf_proofs.sql + authenticated encryption, malware scan, RTBF HMAC proofs + Workbench UI."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKC-51": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk25_field_crypto_tamper_malware_scan_and_rtbf_proof"
+        ],
+        "note": "EPK-25: master/privacy/field_crypto.py + 0015_privacy_rtbf_proofs.sql + authenticated encryption, malware scan, RTBF HMAC proofs + Workbench UI."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKC-52": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk25_field_crypto_tamper_malware_scan_and_rtbf_proof"
+        ],
+        "note": "EPK-25: master/privacy/field_crypto.py + 0015_privacy_rtbf_proofs.sql + authenticated encryption, malware scan, RTBF HMAC proofs + Workbench UI."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKC-53": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk26_property_based_crypto_and_rbac_invariants"
+        ],
+        "note": "EPK-26: requirements-dev.txt (hypothesis/mutmut/pytest-cov/diff-cover) + property-based crypto/RBAC invariant & fault-injection suite."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKC-54": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk26_property_based_crypto_and_rbac_invariants"
+        ],
+        "note": "EPK-26: requirements-dev.txt (hypothesis/mutmut/pytest-cov/diff-cover) + property-based crypto/RBAC invariant & fault-injection suite."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKC-55": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk26_property_based_crypto_and_rbac_invariants"
+        ],
+        "note": "EPK-26: requirements-dev.txt (hypothesis/mutmut/pytest-cov/diff-cover) + property-based crypto/RBAC invariant & fault-injection suite."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKC-56": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk26_property_based_crypto_and_rbac_invariants"
+        ],
+        "note": "EPK-26: requirements-dev.txt (hypothesis/mutmut/pytest-cov/diff-cover) + property-based crypto/RBAC invariant & fault-injection suite."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKC-57": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk26_property_based_crypto_and_rbac_invariants"
+        ],
+        "note": "EPK-26: requirements-dev.txt (hypothesis/mutmut/pytest-cov/diff-cover) + property-based crypto/RBAC invariant & fault-injection suite."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKC-58": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk26_property_based_crypto_and_rbac_invariants"
+        ],
+        "note": "EPK-26: requirements-dev.txt (hypothesis/mutmut/pytest-cov/diff-cover) + property-based crypto/RBAC invariant & fault-injection suite."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKC-59": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk26_property_based_crypto_and_rbac_invariants"
+        ],
+        "note": "EPK-26: requirements-dev.txt (hypothesis/mutmut/pytest-cov/diff-cover) + property-based crypto/RBAC invariant & fault-injection suite."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKC-60": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk26_property_based_crypto_and_rbac_invariants"
+        ],
+        "note": "EPK-26: requirements-dev.txt (hypothesis/mutmut/pytest-cov/diff-cover) + property-based crypto/RBAC invariant & fault-injection suite."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKC-61": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk26_property_based_crypto_and_rbac_invariants"
+        ],
+        "note": "EPK-26: requirements-dev.txt (hypothesis/mutmut/pytest-cov/diff-cover) + property-based crypto/RBAC invariant & fault-injection suite."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKC-62": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_wave3a_platform_core.py::test_epk26_property_based_crypto_and_rbac_invariants"
+        ],
+        "note": "EPK-26: requirements-dev.txt (hypothesis/mutmut/pytest-cov/diff-cover) + property-based crypto/RBAC invariant & fault-injection suite."
+      },
+      "updated_at": "2026-11-24T09:59:51Z"
     },
     "PKC-63": {
       "status": "open",

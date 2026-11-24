@@ -91,6 +91,16 @@ class UxResponse(ApiEnvelope):
     ok: bool | None = Field(default=None, description="Arayüz servis yanıtı")
 
 
+class OrgResponse(ApiEnvelope):
+    ok: bool | None = Field(default=None, description="Organizasyon ve RBAC işlem sonucu")
+    orgs: list[dict[str, Any]] | None = Field(default=None, description="Kullanıcı organizasyon listesi")
+
+
+class PrivacyResponse(ApiEnvelope):
+    ok: bool | None = Field(default=None, description="Gizlilik, şifreleme veya RTBF kanıt sonucu")
+    proof_id: str | None = Field(default=None, description="Kriptografik silme kanıt kimliği")
+
+
 _PREFIX_MODEL_MAP: tuple[tuple[str, type[ApiEnvelope], str], ...] = (
     ("/health", HealthResponse, "Master servisinin canlılık (liveness) kontrolünü döndürür."),
     ("/ready", ReadyResponse, "Veritabanı, disk, Ollama ve sandbox bileşenlerinin hazırlık durumunu döndürür."),
@@ -99,7 +109,9 @@ _PREFIX_MODEL_MAP: tuple[tuple[str, type[ApiEnvelope], str], ...] = (
     ("/api/backup", AdminResponse, "Veritabanı yedekleme ve geri yükleme işlemlerini yürütür."),
     ("/api/audit", AdminResponse, "Değiştirilemez güvenlik ve işlem denetim kayıtlarını döndürür."),
     ("/api/agents", AgentResponse, "Dağıtık ajan kaydı, kalp atışı, anahtar ve durum işlemlerini yönetir."),
+    ("/api/auth/orgs", OrgResponse, "Çoklu kullanıcı organizasyon, davet ve RBAC yetki matrisi işlemlerini yönetir."),
     ("/api/auth", AuthResponse, "Kullanıcı oturumu, giriş, kurulum ve kimlik doğrulama akışlarını yönetir."),
+    ("/api/privacy", PrivacyResponse, "Alan düzeyi şifreleme, zararlı yazılım taraması ve RTBF silme kanıtlarını yönetir."),
     ("/api/projects", ProjectResponse, "Scrum proje oluşturma, görev ayrıştırma ve durum işlemlerini yönetir."),
     ("/api/tasks", ProjectResponse, "Ajan görev dağıtımı, kiralama ve sonuç bildirimlerini yönetir."),
     ("/api/output", ProjectResponse, "Üretilen proje çıktıları ve artefakt indirme işlemlerini sunar."),
@@ -195,3 +207,29 @@ def attach_openapi_contracts(app: FastAPI) -> None:
 
     app.openapi = custom_openapi  # type: ignore[method-assign]
     app.openapi_schema = None
+
+
+def validate_openapi_contracts(app: FastAPI) -> dict[str, Any]:
+    """EPK-04: Verify every OpenAPI operation has a description and typed 200 JSON schema."""
+    schema = app.openapi()
+    missing_desc: list[str] = []
+    missing_schema: list[str] = []
+    total_ops = 0
+    for path, methods in (schema.get("paths") or {}).items():
+        for method, op in methods.items():
+            if method.upper() not in {"GET", "POST", "PUT", "PATCH", "DELETE"}:
+                continue
+            total_ops += 1
+            if not (op.get("description") or "").strip():
+                missing_desc.append(f"{method.upper()} {path}")
+            resp_200 = (op.get("responses") or {}).get("200") or {}
+            json_schema = ((resp_200.get("content") or {}).get("application/json") or {}).get("schema")
+            if not json_schema:
+                missing_schema.append(f"{method.upper()} {path}")
+    return {
+        "ok": not missing_desc and not missing_schema,
+        "total_operations": total_ops,
+        "schema_count": len((schema.get("components") or {}).get("schemas") or {}),
+        "missing_descriptions": missing_desc,
+        "missing_schemas": missing_schema,
+    }

@@ -35,6 +35,7 @@ import orchestrator
 import output_api
 import perf_api
 import preview_server
+import privacy
 import productivity_api
 import projects_api
 import rag
@@ -46,6 +47,7 @@ import studios
 import tasks_api
 import user_api
 import ux_api
+from auth import orgs as auth_orgs
 
 
 @asynccontextmanager
@@ -53,6 +55,8 @@ async def lifespan(_app: FastAPI):
     log_sanitizer.install_log_redaction()
     db.init_db()
     auth.init_auth_db()
+    auth_orgs.init_orgs_db()
+    privacy.init_privacy_db()
     gateway.init_gateway_db()
     orchestrator.init_orchestrator_db()
     hallucination.init_hallucination_db()
@@ -74,6 +78,8 @@ app.add_middleware(security_middleware.SecurityHeadersAndCSRFMiddleware)
 ops.install(app)
 app.include_router(agents_api.router)
 app.include_router(auth.router)
+app.include_router(auth_orgs.router)
+app.include_router(privacy.router)
 app.include_router(projects_api.router)
 app.include_router(assistant.router)
 app.include_router(tasks_api.router)
