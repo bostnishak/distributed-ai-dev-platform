@@ -143,3 +143,18 @@ def test_direct_ui_views_interactive_labs_cnc_and_studio_roundtrip(client):
     ws = client.get("/api/studio/workspaces")
     assert ws.status_code == 200
     assert "workspaces" in ws.json()
+
+    # 6. Engineering imperial/metric unit conversion & safe notebook range/pow + space_shooter game build
+    conv = client.post("/api/domains/engineering/convert", json={"value": 25.4, "from_unit": "mm", "to_unit": "in"})
+    assert conv.status_code == 200 and abs(conv.json()["value"] - 1.0) < 1e-6
+    conv_p = client.post("/api/domains/engineering/convert", json={"value": 10.0, "from_unit": "bar", "to_unit": "MPa"})
+    assert conv_p.status_code == 200 and abs(conv_p.json()["value"] - 1.0) < 1e-6
+    nb2 = client.post(
+        "/api/notebooks",
+        json={"user_id": "default", "title": "Range Test", "cells": [{"cell_type": "code", "source": "print(sum(range(1, 11)), 2 ** 8)"}]},
+    )
+    assert nb2.status_code == 200
+    run2 = client.post(f"/api/notebooks/{nb2.json()['notebook_id']}/run", json={"user_id": "default", "cell_index": 0})
+    assert run2.status_code == 200 and "55" in run2.json()["output"]["stdout"] and "256" in run2.json()["output"]["stdout"]
+    gm = client.post("/api/games/build", json={"prompt": "Uzay savunma HTML5 oyunu", "genre": "space_shooter"})
+    assert gm.status_code == 200

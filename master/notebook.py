@@ -19,13 +19,30 @@ import user_profile
 
 router = APIRouter(prefix="/api/notebooks", tags=["notebooks"])
 
+def _safe_range(*args: Any) -> list[int]:
+    r = range(*(int(a) for a in args))
+    if len(r) > 10_000:
+        raise ValueError("range boyutu güvenlik sınırı olan 10.000 öğeyi aşamaz.")
+    return list(r)
+
+
+def _safe_pow(base: float, exp: float) -> float:
+    if abs(exp) > 100:
+        raise ValueError("Üs alma güvenlik sınırı (|exp| <= 100) aşıldı.")
+    return float(base ** exp)
+
+
 _SAFE_BIN: dict[type[ast.operator], Any] = {
     ast.Add: operator.add, ast.Sub: operator.sub, ast.Mult: operator.mul,
     ast.Div: operator.truediv, ast.FloorDiv: operator.floordiv, ast.Mod: operator.mod,
+    ast.Pow: _safe_pow,
 }
 _SAFE_UNARY: dict[type[ast.unaryop], Any] = {ast.USub: operator.neg, ast.UAdd: operator.pos}
 _SAFE_FUNCS: dict[str, Any] = {
-    "abs": abs, "round": round, "min": min, "max": max, "sum": sum, "len": len, "sqrt": math.sqrt,
+    "abs": abs, "round": round, "min": min, "max": max, "sum": sum, "len": len,
+    "sqrt": math.sqrt, "log": math.log, "log10": math.log10, "sin": math.sin, "cos": math.cos,
+    "range": _safe_range, "sorted": sorted, "list": list, "tuple": tuple,
+    "int": int, "float": float, "str": str,
 }
 
 
@@ -47,8 +64,9 @@ def _eval_ast_expr(node: ast.AST, env: dict[str, Any]) -> Any:
         return node.value
     if isinstance(node, ast.Name) and node.id in env:
         return env[node.id]
-    if isinstance(node, ast.List):
-        return [_eval_ast_expr(el, env) for el in node.elts]
+    if isinstance(node, (ast.List, ast.Tuple)):
+        vals = [_eval_ast_expr(el, env) for el in node.elts]
+        return tuple(vals) if isinstance(node, ast.Tuple) else vals
     if isinstance(node, ast.BinOp) and type(node.op) in _SAFE_BIN:
         return _SAFE_BIN[type(node.op)](_eval_ast_expr(node.left, env), _eval_ast_expr(node.right, env))
     if isinstance(node, ast.UnaryOp) and type(node.op) in _SAFE_UNARY:

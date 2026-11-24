@@ -182,11 +182,15 @@ class DimensionalityError(ValueError):
 
 _UNIT_TABLE: dict[str, tuple[str, float]] = {
     "mm": ("length", 1e-3), "cm": ("length", 1e-2), "m": ("length", 1.0), "km": ("length", 1e3),
+    "in": ("length", 0.0254), "inch": ("length", 0.0254), "ft": ("length", 0.3048),
+    "yd": ("length", 0.9144), "mi": ("length", 1609.344),
     "g": ("mass", 1e-3), "kg": ("mass", 1.0), "ton": ("mass", 1e3),
-    "N": ("force", 1.0), "kN": ("force", 1e3),
-    "Pa": ("stress", 1.0), "kPa": ("stress", 1e3), "MPa": ("stress", 1e6), "GPa": ("stress", 1e9),
-    "s": ("time", 1.0), "min": ("time", 60.0), "h": ("time", 3600.0),
-    "W": ("power", 1.0), "kW": ("power", 1e3),
+    "lb": ("mass", 0.45359237), "oz": ("mass", 0.028349523125),
+    "N": ("force", 1.0), "kN": ("force", 1e3), "lbf": ("force", 4.448221615),
+    "Pa": ("stress", 1.0), "kPa": ("stress", 1e3), "bar": ("stress", 1e5),
+    "MPa": ("stress", 1e6), "GPa": ("stress", 1e9), "psi": ("stress", 6894.757293),
+    "ms": ("time", 1e-3), "s": ("time", 1.0), "min": ("time", 60.0), "h": ("time", 3600.0),
+    "W": ("power", 1.0), "kW": ("power", 1e3), "hp": ("power", 745.699872),
 }
 
 

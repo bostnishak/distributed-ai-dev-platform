@@ -94,7 +94,7 @@ export const PRODUCTIVITY_TOOLS = [
     params: { plan_id: 'demo' }, body: {} },
   { id: 'game-genres', group: 'Fabrika & Oyun Stüdyosu', title: 'Oyun Türleri', method: 'GET', path: '/api/games/genres' },
   { id: 'game-build', group: 'Fabrika & Oyun Stüdyosu', title: 'Oyun Prototipi Üret', method: 'POST', path: '/api/games/build',
-    body: { prompt: 'Uzay Kaşifi HTML5 arcade oyunu oluştur', genre: 'arcade' } },
+    body: { prompt: 'Uzay Kaşifi HTML5 uzay savunma oyunu oluştur', genre: 'space_shooter' } },
   { id: 'game-lvl', group: 'Fabrika & Oyun Stüdyosu', title: 'Oyun Seviyesi Doğrula', method: 'POST', path: '/api/games/level/validate',
     body: { grid: ['S..', '.#.', '..G'] } },
   { id: 'cnc-eval', group: 'Fabrika & Oyun Stüdyosu', title: 'CNC Ölçüm Değerlendirme', method: 'POST', path: '/api/cnc/jobs/{id}/evaluate-measurements',
