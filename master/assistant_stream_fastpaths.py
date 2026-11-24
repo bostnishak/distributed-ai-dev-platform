@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 import json
 import logging
 import re
@@ -14,32 +15,27 @@ import httpx
 from fastapi import UploadFile
 from fastapi.responses import StreamingResponse
 
+import assistant_cad_cnc as _cad
 import config
-from assistant_cad_cnc import (
-    detect_project_type as _detect_project_type,
-)
-from assistant_cad_cnc import (
-    is_3d_cad_request as _is_3d_cad_request,
-)
-from assistant_cad_cnc import (
-    is_cnc_balloon_request as _is_cnc_balloon_request,
-)
-from assistant_cad_cnc import (
-    is_project_build_request as _is_project_build_request,
-)
-from assistant_cad_cnc import (
-    is_zip_workspace_request as _is_zip_workspace_request,
-)
-from assistant_cad_cnc import (
-    run_3d_cad_cam_from_chat as _run_3d_cad_cam_from_chat,
-)
-from assistant_cad_cnc import (
-    run_cnc_balloon_from_chat as _run_cnc_balloon_from_chat,
-)
 
 log = logging.getLogger("master.assistant")
 
 _MEDIA_SSE = "text/event-stream"
+_PPTX_ADVICE_RE = re.compile(
+    r"(?:nasıl\s*yapıl\w*|nasil\s*yapil\w*|yaparken|nelere\s*dikkat|ipuçlar\w*|ipuclar\w*|"
+    r"tavsiyeler\w*|öneriler\w*|oneriler\w*|how\s+to\b|\btips\b|\badvice\b)",
+    re.IGNORECASE,
+)
+_PPTX_NOUN_RE = re.compile(r"\b(?:sunum\w*|slayt\w*|pptx|powerpoint|presentation\w*|slides?)\b", re.IGNORECASE)
+_PPTX_VERB_RE = re.compile(
+    r"\b(?:yap(?:ar\w*|abil\w*|al[ıi]m|ın|ınız)?|oluştur\w*|olustur\w*|hazırla\w*|hazirla\w*|"
+    r"üret\w*|uret\w*|ver(?:ir\w*|ebil\w*|in)?|çıkar\w*|cikar\w*|tasarla\w*|"
+    r"creat(?:e|ing)|mak(?:e|ing)|generat(?:e|ing)|build(?:ing)?)\b",
+    re.IGNORECASE,
+)
+_PURE_CONVERT_CUES = ("çevir", "cevir", "dönüştür", "donustur", "aktar", "convert", "export", "haline getir")
+_EXPLICIT_ZIP_EXTRACT_CUES = ("unzip", "extract", "ayıkla", "ayikla", "dosyaları çıkar", "dosyalari cikar", "içini çıkar", "icini cikar")
+_NEW_PROJECT_BUILD_VERBS = ("oluştur", "olustur", "hazırla", "hazirla", "geliştir", "gelistir", "tasarla", "üret", "uret", "build", "create", "generate", "kodla")
 
 
 def sse_event(payload: dict[str, Any]) -> str:
@@ -105,36 +101,38 @@ def _run_file_conversion_action(act: str, conv_act: dict[str, Any], up_name: str
         res = fc.extract_zip_to_media(up_name, raw_upload)
         lines = [f"## ZIP Arşivi Açıldı: `{res['zip_filename']}` ({res['file_count']} dosya)", ""]
         if res["files"]:
-            lines.extend(["| Dosya | Boyut | İndirme Bağlantısı |", "|---|---|---|"])
-            lines.extend(
-                f"| `{f['original_path']}` | {f['size_kb']} KB | [İndir]({f['url']}) |" for f in res["files"]
-            )
+            lines.extend(["| Dosya | Boyut | İndirme Bağlantısı |", "|---|---|---|",
+                          *(f"| `{f['original_path']}` | {f['size_kb']} KB | [İndir]({f['url']}) |" for f in res["files"])])
         else:
             lines.append("Arşiv içinde çıkarılacak dosya bulunamadı.")
         return "\n".join(lines)
     if act == "pack_zip":
         res = fc.pack_files_to_folder_zip(up_name, [(up_name, raw_upload)])
-        return "\n".join([
-            f"## Klasör ve ZIP Arşivi Hazır (`{res['folder_name']}/`)",
-            f"- **Arşiv İçeriği:** `{', '.join(res['included_files'])}` ({res['size_kb']} KB)",
-            f"- **İndirme Bağlantısı:** [{res['zip_filename']} (.ZIP İndir)]({res['url']})",
-        ])
+        return (f"## Klasör ve ZIP Arşivi Hazır (`{res['folder_name']}/`)\n"
+                f"- **Arşiv İçeriği:** `{', '.join(res['included_files'])}` ({res['size_kb']} KB)\n"
+                f"- **İndirme Bağlantısı:** [{res['zip_filename']} (.ZIP İndir)]({res['url']})")
     tfmt = conv_act["target_fmt"]
     cres = fc.convert_uploaded_file(up_name, raw_upload, tfmt)
     if act == "convert_and_zip":
-        zres = fc.pack_files_to_folder_zip(
-            up_name, [(up_name, raw_upload), (cres["output_filename"], cres["output_path"].read_bytes())]
-        )
-        return "\n".join([
-            f"## Dosya `.{tfmt.upper()}` Formatına Dönüştürüldü ve Klasörlenip Ziplendi",
-            f"- **Kaynak Dosya:** `{up_name}` · **Dönüştürülen:** [{cres['output_filename']} (.{tfmt.upper()} İndir)]({cres['url']})",
-            f"- **ZIP Arşivi (`{zres['folder_name']}/`):** [{zres['zip_filename']} (.ZIP İndir)]({zres['url']}) ({zres['size_kb']} KB)",
-        ])
-    return "\n".join([
-        f"## Dosya Dönüştürme Tamamlandı (`{up_name}` -> `.{tfmt.upper()}`)",
-        f"- **Çıktı Boyutu:** `{cres['size_kb']} KB` · **Bölüm Sayısı:** `{cres['section_count']}`",
-        f"- **İndirme Bağlantısı:** [{cres['output_filename']} (.{tfmt.upper()} İndir)]({cres['url']})",
-    ])
+        zres = fc.pack_files_to_folder_zip(up_name, [(up_name, raw_upload), (cres["output_filename"], cres["output_path"].read_bytes())])
+        return (f"## Dosya `.{tfmt.upper()}` Formatına Dönüştürüldü ve Klasörlenip Ziplendi\n"
+                f"- **Kaynak Dosya:** `{up_name}` · **Dönüştürülen:** [{cres['output_filename']} (.{tfmt.upper()} İndir)]({cres['url']})\n"
+                f"- **ZIP Arşivi (`{zres['folder_name']}/`):** [{zres['zip_filename']} (.ZIP İndir)]({zres['url']}) ({zres['size_kb']} KB)")
+    return (f"## Dosya Dönüştürme Tamamlandı (`{up_name}` -> `.{tfmt.upper()}`)\n"
+            f"- **Çıktı Boyutu:** `{cres['size_kb']} KB` · **Bölüm Sayısı:** `{cres['section_count']}`\n"
+            f"- **İndirme Bağlantısı:** [{cres['output_filename']} (.{tfmt.upper()} İndir)]({cres['url']})")
+
+
+async def _extract_upload_context(file: UploadFile | None, prompt: str) -> str:
+    if file is None or not file.filename:
+        return ""
+    from assistant_prep import _extract_document_bytes
+
+    raw = await file.read()
+    if not raw:
+        return ""
+    txt, _task, _note = _extract_document_bytes(file.filename, file.content_type or "", raw, prompt)
+    return txt.strip()
 
 
 async def _try_file_conversion_fastpath(
@@ -146,8 +144,18 @@ async def _try_file_conversion_fastpath(
     if not conv_act or is_prompt_conv:
         return None
     act = conv_act["action"]
+    low = prompt.lower()
+    if act == "extract_zip" and _cad.ZIP_INSPECT_RE.search(low) and not any(k in low for k in _EXPLICIT_ZIP_EXTRACT_CUES):
+        return None
+    if act == "convert" and not any(v in low for v in _PURE_CONVERT_CUES) and any(
+        k in low for k in ("rapor", "sunum", "slayt", "analiz", "detaylı", "detayli")
+    ):
+        return None
     if act == "zip_project":
-        return _build_zip_project_stream(prompt.lower())
+        existing_ref = any(k in low for k in ("son proje", "mevcut proje", "bu proje", "çalışma alan", "calisma alan", "workspace"))
+        if not existing_ref and _cad.is_project_build_request(prompt, None) and any(v in low for v in _NEW_PROJECT_BUILD_VERBS):
+            return None
+        return _build_zip_project_stream(low)
     raw_upload = await file.read()  # type: ignore[union-attr]
     up_name = (file.filename or "dosya") if file else "dosya"
 
@@ -165,20 +173,15 @@ async def _try_file_conversion_fastpath(
 def _format_mcp_connectors_md(conns: list[dict[str, Any]]) -> str:
     if not conns:
         return (
-            "## Kayıtlı Harici MCP Bağlayıcısı Yok\n"
-            "Sol alttaki **Kullanıcı Profili -> MCP Bağlantıları** sekmesinden harici bir MCP sunucu URL'si ve "
-            "API anahtarı ekleyip **Araçları Keşfet** butonuna tıklayarak doğrudan sohbetten MCP araçlarını çalıştırabilirsiniz."
+            "## Kayıtlı Harici MCP Bağlayıcısı Yok\nSol alttaki **Kullanıcı Profili -> MCP Bağlantıları** sekmesinden "
+            "harici bir MCP sunucu URL'si ve API anahtarı ekleyip **Araçları Keşfet** butonuna tıklayarak doğrudan sohbetten MCP araçlarını çalıştırabilirsiniz."
         )
     lines = ["## Bağlı Harici MCP Sunucuları ve Araçları", ""]
     for c in conns:
-        st = "Aktif" if c["enabled"] else "Pasif"
-        lines.append(f"### {c['name']} ({st}) — `{c['url']}`")
         key_txt = f"Tanımlı ({c['api_key_masked']})" if c["has_api_key"] else "Yok"
-        lines.append(f"- **Durum:** {c['last_status']} · **API Anahtarı:** {key_txt}")
-        if c["tools"]:
-            lines.extend(f"  - `{t['name']}`: {t.get('description') or 'Açıklama yok'}" for t in c["tools"][:15])
-        else:
-            lines.append("  - Henüz keşfedilen araç yok (**Kişisel Alan -> MCP Bağlantıları -> Araçları Keşfet**).")
+        lines.extend([f"### {c['name']} ({'Aktif' if c['enabled'] else 'Pasif'}) — `{c['url']}`", f"- **Durum:** {c['last_status']} · **API Anahtarı:** {key_txt}"])
+        lines.extend((f"  - `{t['name']}`: {t.get('description') or 'Açıklama yok'}" for t in c["tools"][:15]) if c["tools"]
+                     else ["  - Henüz keşfedilen araç yok (**Kişisel Alan -> MCP Bağlantıları -> Araçları Keşfet**)."])
         lines.append("")
     return "\n".join(lines)
 
@@ -218,9 +221,7 @@ def _try_mcp_fastpath(prompt: str, has_file: bool, is_prompt_conv: bool) -> Stre
 async def _try_rfq_zip_fastpath(prompt: str, file: UploadFile | None, has_file: bool) -> StreamingResponse | None:
     lower_p = prompt.lower()
     if not (
-        has_file
-        and file is not None
-        and (file.filename or "").lower().endswith(".zip")
+        has_file and file is not None and (file.filename or "").lower().endswith(".zip")
         and any(k in lower_p for k in ("rfq", "ihale", "toplu teklif", "bom", "balon", "çizim", "cizim"))
     ):
         return None
@@ -233,19 +234,18 @@ async def _try_rfq_zip_fastpath(prompt: str, file: UploadFile | None, has_file: 
             res = rfq_batch.process_rfq_zip_package(raw_rfq, customer_name="Kurumsal Musteri")
             lines = [
                 f"## Toplu RFQ İhale ve Maliyet Teklif Paketi ({res.get('part_count', 0)} Parça)",
-                f"- **Toplam İşleme Süresi:** `{res.get('total_cycle_hours', 0)} saat` | "
-                f"**10 Adet Seri Toplamı:** `{res.get('grand_total_10_tl', 0):,.2f} TL`",
+                f"- **Toplam İşleme Süresi:** `{res.get('total_cycle_hours', 0)} saat` | **10 Adet Seri Toplamı:** `{res.get('grand_total_10_tl', 0):,.2f} TL`",
             ]
             if res.get("excel_url"):
                 lines.append(f"- [Toplu RFQ Excel Teklifi İndir (.xlsx)]({res['excel_url']})")
             if res.get("pdf_url"):
                 lines.append(f"- [Kurumsal RFQ Teklif Mektubu İndir (.pdf)]({res['pdf_url']})")
             lines.extend(["", "| Parça | Malzeme | Çevrim (dk) | 1 Adet (TL) | 10 Adet Birim (TL) | 100 Adet Birim (TL) |", "|---|---|---|---|---|---|"])
-            for b in res.get("bom_items", [])[:30]:
-                lines.append(
-                    f"| `{b.get('part_name', '-')}` | {b.get('material', '-')} | {b.get('cycle_time_min', 0)} | "
-                    f"{b.get('unit_price_1_tl', 0)} | {b.get('unit_price_10_tl', 0)} | {b.get('unit_price_100_tl', 0)} |"
-                )
+            lines.extend(
+                f"| `{b.get('part_name', '-')}` | {b.get('material', '-')} | {b.get('cycle_time_min', 0)} | "
+                f"{b.get('unit_price_1_tl', 0)} | {b.get('unit_price_10_tl', 0)} | {b.get('unit_price_100_tl', 0)} |"
+                for b in res.get("bom_items", [])[:30]
+            )
             yield sse_event({"type": "token", "content": "\n".join(lines)})
             yield sse_event({"type": "done", "model": "cnc-ballooner", "task_type": "cnc"})
         except (zipfile.BadZipFile, OSError, ValueError, TypeError, KeyError, RuntimeError, ImportError) as exc:
@@ -254,26 +254,39 @@ async def _try_rfq_zip_fastpath(prompt: str, file: UploadFile | None, has_file: 
     return StreamingResponse(_gen(), media_type=_MEDIA_SSE)
 
 
-def _try_pptx_council_erp_fastpath(prompt: str, has_file: bool, is_prompt_conv: bool) -> StreamingResponse | None:
+def _is_pptx_generation_request(prompt: str, is_prompt_conv: bool) -> bool:
+    if is_prompt_conv or _PPTX_ADVICE_RE.search(prompt):
+        return False
+    return bool(_PPTX_NOUN_RE.search(prompt) and _PPTX_VERB_RE.search(prompt))
+
+
+async def _call_pptx_generator(prompt: str, context_text: str) -> dict[str, Any]:
+    import deep_research as dr
+
+    gen_fn: Any = dr.generate_ai_pptx_presentation
+    params = inspect.signature(gen_fn).parameters
+    accepts_ctx = "context_text" in params or any(p.kind == inspect.Parameter.VAR_KEYWORD for p in params.values())
+    if context_text and accepts_ctx:
+        return await gen_fn(prompt, context_text=context_text)
+    if context_text:
+        return await gen_fn(f"{prompt}\n\nKaynak veri:\n{context_text[:10000]}")
+    return await gen_fn(prompt)
+
+
+async def _try_pptx_council_erp_fastpath(
+    prompt: str, file: UploadFile | None, has_file: bool, is_prompt_conv: bool
+) -> StreamingResponse | None:
     lower_p = prompt.lower()
-    if (
-        not has_file
-        and not is_prompt_conv
-        and any(k in lower_p for k in ("sunum", "slayt", "pptx", "powerpoint"))
-        and any(a in lower_p for a in ("yap", "oluştur", "olustur", "hazırla", "hazirla", "üret", "uret"))
-    ):
-        import deep_research as dr
+    if _is_pptx_generation_request(prompt, is_prompt_conv):
+        extracted_ctx = await _extract_upload_context(file, prompt) if has_file else ""
 
         async def _pptx_gen():
             try:
-                res = await dr.generate_ai_pptx_presentation(prompt)
+                res = await _call_pptx_generator(prompt, extracted_ctx)
                 md = [
-                    f"## {res['title']} (PowerPoint Sunumu Hazır)",
-                    res["subtitle"],
-                    "",
+                    f"## {res['title']} (PowerPoint Sunumu Hazır)", res["subtitle"], "",
                     f"- **Tema & Arka Plan:** {res['theme_name']} · **Slayt Geçiş Animasyonu:** `{res['transition']}` · **Toplam:** `{res['slide_count']} slayt`",
-                    f"- **Sunumu İndir (.PPTX):** [{res['title']} ({res['filename']})]({res['url']})",
-                    "",
+                    f"- **Sunumu İndir (.PPTX):** [{res['title']} ({res['filename']})]({res['url']})", "",
                     "### Araştırılan Slayt İçeriği",
                 ]
                 for i, s in enumerate(res["slides"], start=2):
@@ -313,23 +326,16 @@ def _build_erp_nesting_stream() -> StreamingResponse:
     import erp_mes_scheduler as ems
 
     async def _gen():
-        nest = ems.optimize_1d_bar_nesting(
-            3000.0, 3.0, [{"part_id": "MIL-420", "length_mm": 420.0, "quantity": 6}, {"part_id": "BURC-185", "length_mm": 185.0, "quantity": 10}],
-        )
+        nest = ems.optimize_1d_bar_nesting(3000.0, 3.0, [{"part_id": "MIL-420", "length_mm": 420.0, "quantity": 6}, {"part_id": "BURC-185", "length_mm": 185.0, "quantity": 10}])
         jobs = [
             {"job_id": "IS-101", "due_date_min": 240, "operations": [{"op_code": "OP10", "machine": "CNC-TORNA-01", "setup_min": 15, "run_min": 35}, {"op_code": "OP20", "machine": "CNC-FREZE-01", "setup_min": 20, "run_min": 40}]},
             {"job_id": "IS-102", "due_date_min": 300, "operations": [{"op_code": "OP10", "machine": "CNC-TORNA-01", "setup_min": 10, "run_min": 25}, {"op_code": "OP20", "machine": "CNC-FREZE-01", "setup_min": 15, "run_min": 30}]},
         ]
         sched = ems.schedule_cnc_job_shop(jobs, ["CNC-TORNA-01", "CNC-FREZE-01"])
-        gantt_tasks = [{"label": f"{b['job_id']} {b['op_code']}", "start": b["start_min"], "end": b["end_min"]} for b in sched.get("gantt_bars", [])]
-        gantt_json = json.dumps({"type": "gantt", "title": "CNC İş Atölyesi Gantt Çizelgesi (dk)", "tasks": gantt_tasks}, ensure_ascii=False)
-        md = "\n".join([
-            "## ERP / MES 1B Çubuk Fire Optimizasyonu (Nesting) ve CNC Gantt Çizelgesi",
-            f"- **1B Çubuk Nesting:** `{nest['bar_count']}` boy çubuk · **Malzeme Verimliliği:** `%{nest['material_utilization_percent']}` · **Fire:** `%{nest['scrap_percent']}`",
-            f"- **İş Atölyesi Toplam Süre (Makespan):** `{sched['makespan_min']} dk`",
-            "",
-            f"```chart\n{gantt_json}\n```",
-        ])
+        gantt_json = json.dumps({"type": "gantt", "title": "CNC İş Atölyesi Gantt Çizelgesi (dk)", "tasks": [{"label": f"{b['job_id']} {b['op_code']}", "start": b["start_min"], "end": b["end_min"]} for b in sched.get("gantt_bars", [])]}, ensure_ascii=False)
+        md = (f"## ERP / MES 1B Çubuk Fire Optimizasyonu (Nesting) ve CNC Gantt Çizelgesi\n"
+              f"- **1B Çubuk Nesting:** `{nest['bar_count']}` boy çubuk · **Malzeme Verimliliği:** `%{nest['material_utilization_percent']}` · **Fire:** `%{nest['scrap_percent']}`\n"
+              f"- **İş Atölyesi Toplam Süre (Makespan):** `{sched['makespan_min']} dk`\n\n```chart\n{gantt_json}\n```")
         yield sse_event({"type": "token", "content": md})
         yield sse_event({"type": "done", "model": "erp-mes-scheduler", "task_type": "cnc"})
 
@@ -337,7 +343,7 @@ def _build_erp_nesting_stream() -> StreamingResponse:
 
 
 async def _try_zip_workspace_fastpath(prompt: str, file: UploadFile | None) -> StreamingResponse | None:
-    if not _is_zip_workspace_request(prompt, file):
+    if not _cad.is_zip_workspace_request(prompt, file):
         return None
     import workspace_builder as wb
 
@@ -354,9 +360,7 @@ async def _try_zip_workspace_fastpath(prompt: str, file: UploadFile | None) -> S
                 res = await wb.build_workspace_exe(ws_meta["id"])
                 if res.get("ok"):
                     ws_dir = wb.safe_workspace_dir(ws_meta["id"])
-                    ws_meta = wb.load_workspace_meta(ws_dir)
-                    ws_meta["has_exe"] = True
-                    ws_meta["exe_name"] = res["exe_name"]
+                    ws_meta = {**wb.load_workspace_meta(ws_dir), "has_exe": True, "exe_name": res["exe_name"]}
                     ws_tree = wb.build_file_tree(ws_dir)
             yield sse_event({"type": "workspace", "workspace": ws_meta, "tree": ws_tree})
             yield sse_event({"type": "done", "model": "workspace-importer", "task_type": "proje"})
@@ -366,7 +370,9 @@ async def _try_zip_workspace_fastpath(prompt: str, file: UploadFile | None) -> S
     return StreamingResponse(_gen(), media_type=_MEDIA_SSE)
 
 
-def _try_media_doc_fastpath(prompt: str, history: str, has_file: bool, is_prompt_conv: bool) -> StreamingResponse | None:
+async def _try_media_doc_fastpath(
+    prompt: str, file: UploadFile | None, history: str, has_file: bool, is_prompt_conv: bool
+) -> StreamingResponse | None:
     if is_prompt_conv:
         return None
     import chat_contracts
@@ -391,7 +397,8 @@ def _try_media_doc_fastpath(prompt: str, history: str, has_file: bool, is_prompt
 
     doc_fmt = df.detect_document_request(prompt, has_file)
     if doc_fmt:
-        return _build_doc_gen_stream(prompt, doc_fmt)
+        extracted_ctx = await _extract_upload_context(file, prompt) if has_file else ""
+        return _build_doc_gen_stream(prompt, doc_fmt, context_text=extracted_ctx)
     return None
 
 
@@ -408,19 +415,13 @@ def _build_image_gen_stream(prompt: str, history: str) -> StreamingResponse:
         try:
             res = await mms.generate_ai_image(prompt, history=hist_for_img)
             preview_url = res.get("svg_url") or res["png_url"]
-            meta_parts = [f"**Motor:** `{res['engine']}`"]
+            meta = [f"**Motor:** `{res['engine']}`"]
             if res.get("brand_name"):
-                meta_parts.append(f"**Konsept:** {res['brand_name']}")
+                meta.append(f"**Konsept:** {res['brand_name']}")
             if res.get("palette_name"):
-                meta_parts.append(f"**Palet:** {res['palette_name']}")
+                meta.append(f"**Palet:** {res['palette_name']}")
             svg_link = f" · [Vektörel SVG İndir]({res['svg_url']})" if res.get("svg_url") else ""
-            md = "\n".join([
-                "## Üretilen Görsel Tasarım",
-                "- " + " · ".join(meta_parts),
-                f"- [Yüksek Çözünürlüklü PNG İndir]({res['png_url']}){svg_link}",
-                "",
-                f"![Üretilen Görsel]({preview_url})",
-            ])
+            md = f"## Üretilen Görsel Tasarım\n- {' · '.join(meta)}\n- [Yüksek Çözünürlüklü PNG İndir]({res['png_url']}){svg_link}\n\n![Üretilen Görsel]({preview_url})"
             yield sse_event({"type": "artifact", "kind": "image", "format": "png", "url": res["png_url"], "svg_url": res.get("svg_url")})
             yield sse_event({"type": "token", "content": md})
             yield sse_event({"type": "done", "model": res["engine"], "task_type": "gorsel"})
@@ -430,24 +431,23 @@ def _build_image_gen_stream(prompt: str, history: str) -> StreamingResponse:
     return StreamingResponse(_gen(), media_type=_MEDIA_SSE)
 
 
-def _build_doc_gen_stream(prompt: str, doc_fmt: str) -> StreamingResponse:
+def _build_doc_gen_stream(prompt: str, doc_fmt: str, context_text: str = "") -> StreamingResponse:
     import document_factory as df
 
     async def _gen():
         try:
-            res = await df.generate_document_deliverable(prompt, doc_fmt)
+            res = await df.generate_document_deliverable(prompt, doc_fmt, context_text=context_text)
             md = [
-                f"## {res['title']} ({doc_fmt.upper()} Dosyası Hazır)",
-                res.get("summary") or "",
-                "",
-                f"- **Dosya İndirme Bağlantısı:** [{res['title']} (.{doc_fmt} İndir)]({res['url']})",
-                "",
+                f"## {res['title']} ({doc_fmt.upper()} Dosyası Hazır)", res.get("summary") or "", "",
+                f"- **Dosya İndirme Bağlantısı:** [{res['title']} (.{doc_fmt} İndir)]({res['url']})", "",
             ]
             headers, rows = res.get("table_headers") or [], res.get("table_rows") or []
             if headers and rows:
-                md.append("| " + " | ".join(str(h) for h in headers) + " |")
-                md.append("|" + "|".join("---" for _ in headers) + "|")
-                md.extend("| " + " | ".join(str(c) for c in r[: len(headers)]) + " |" for r in rows[:15])
+                md.extend([
+                    "| " + " | ".join(str(h) for h in headers) + " |",
+                    "|" + "|".join("---" for _ in headers) + "|",
+                    *("| " + " | ".join(str(c) for c in r[: len(headers)]) + " |" for r in rows[:15]),
+                ])
             yield sse_event({"type": "artifact", "kind": "document", "format": doc_fmt, "url": res["url"]})
             yield sse_event({"type": "token", "content": "\n".join(md)})
             yield sse_event({"type": "done", "model": res["model"], "task_type": "dokuman"})
@@ -497,12 +497,47 @@ def _attach_workspace_flags(wb: Any, ws_meta: dict[str, Any], ws_tree: Any) -> d
     return {"type": "workspace", "workspace": ws_meta, "tree": ws_tree or wb.build_file_tree(ws_dir)}
 
 
+def _flatten_tree_paths(nodes: Any, out: list[str], depth: int = 0) -> None:
+    if not isinstance(nodes, list):
+        return
+    for n in nodes:
+        if not isinstance(n, dict):
+            continue
+        p = str(n.get("path") or n.get("name") or "").strip()
+        if n.get("type") in ("dir", "folder"):
+            if p:
+                out.append(f"{'  ' * depth}- `{p}/`")
+            _flatten_tree_paths(n.get("children"), out, depth + 1)
+        elif p:
+            out.append(f"{'  ' * depth}- `{p}`")
+
+
+def _format_project_summary_links(ws_meta: dict[str, Any], ws_tree: Any, prompt: str) -> str:
+    ws_id = ws_meta["id"]
+    lines = [
+        "",
+        f"### Proje Hazır: **{ws_meta.get('name', ws_id)}**",
+        f"- **ZIP İndirme:** [Projeyi İndir (.ZIP)](/api/studio/workspaces/{ws_id}/download.zip)",
+    ]
+    if ws_meta.get("has_web_preview"):
+        lines.append(f"- **Canlı Önizleme:** [Tarayıcıda Canlı Önizle](/api/studio/workspaces/{ws_id}/preview/index.html)")
+    if ws_meta.get("has_exe") and ws_meta.get("exe_name"):
+        lines.append(f"- **Windows EXE:** `dist/{ws_meta['exe_name']}`")
+    tree_lines: list[str] = []
+    _flatten_tree_paths(ws_tree, tree_lines)
+    low = prompt.lower()
+    wants_tree = any(k in low for k in ("zip", "klasör", "klasor", "dizin", "folder", "yapı", "yapi", "dosya"))
+    if tree_lines and (wants_tree or len(tree_lines) <= 25):
+        lines.extend(["", "**Oluşturulan Klasör ve Dosya Yapısı:**", *tree_lines[:40]])
+    return "\n".join(lines) + "\n"
+
+
 def _try_project_build_fastpath(prompt: str, file: UploadFile | None, is_prompt_conv: bool) -> StreamingResponse | None:
-    if is_prompt_conv or not _is_project_build_request(prompt, file):
+    if is_prompt_conv or not _cad.is_project_build_request(prompt, file):
         return None
     import workspace_builder as wb
 
-    detected_type, wants_exe = _detect_project_type(prompt)
+    detected_type, wants_exe = _cad.detect_project_type(prompt)
 
     async def _gen():
         ws_meta: dict[str, Any] | None = None
@@ -521,7 +556,9 @@ def _try_project_build_fastpath(prompt: str, file: UploadFile | None, is_prompt_
                 ws_meta, exe_tree, exe_notes = await _maybe_build_project_exe(wb, ws_meta, wants_exe)
                 for note in exe_notes:
                     yield sse_event({"type": "token", "content": note})
-                yield sse_event(_attach_workspace_flags(wb, ws_meta, exe_tree or ws_tree))
+                ws_evt = _attach_workspace_flags(wb, ws_meta, exe_tree or ws_tree)
+                yield sse_event({"type": "token", "content": _format_project_summary_links(ws_evt["workspace"], ws_evt["tree"], prompt)})
+                yield sse_event(ws_evt)
             yield sse_event({"type": "done", "model": used_model, "task_type": "proje"})
         except (httpx.HTTPError, subprocess.SubprocessError, OSError, ValueError, TypeError, KeyError, RuntimeError, ImportError) as exc:
             yield sse_event({"type": "error", "content": str(exc)})
@@ -536,22 +573,21 @@ async def dispatch_chat_fastpath(
     has_file = bool(file is not None and file.filename)
     if (res := _try_abstain_fastpath(prompt, history, has_file)) is not None:
         return res
-    if _is_3d_cad_request(file):
-        report_md = await _run_3d_cad_cam_from_chat(file, prompt)  # type: ignore[arg-type]
-        return single_token_stream(report_md, "cnc-ballooner", "cad3d")
+    if _cad.is_3d_cad_request(file):
+        return single_token_stream(await _cad.run_3d_cad_cam_from_chat(file, prompt), "cnc-ballooner", "cad3d")  # type: ignore[arg-type]
     for maybe in (
         await _try_file_conversion_fastpath(prompt, file, has_file, is_prompt_conv),
         _try_mcp_fastpath(prompt, has_file, is_prompt_conv),
         await _try_rfq_zip_fastpath(prompt, file, has_file),
-        _try_pptx_council_erp_fastpath(prompt, has_file, is_prompt_conv),
+        await _try_pptx_council_erp_fastpath(prompt, file, has_file, is_prompt_conv),
     ):
         if maybe is not None:
             return maybe
-    if _is_cnc_balloon_request(prompt, file):
-        return single_token_stream(await _run_cnc_balloon_from_chat(file), "cnc-ballooner", "cnc")  # type: ignore[arg-type]
+    if _cad.is_cnc_balloon_request(prompt, file):
+        return single_token_stream(await _cad.run_cnc_balloon_from_chat(file), "cnc-ballooner", "cnc")  # type: ignore[arg-type]
     for maybe in (
         await _try_zip_workspace_fastpath(prompt, file),
-        _try_media_doc_fastpath(prompt, history, has_file, is_prompt_conv),
+        await _try_media_doc_fastpath(prompt, file, history, has_file, is_prompt_conv),
         _try_project_build_fastpath(prompt, file, is_prompt_conv),
     ):
         if maybe is not None:

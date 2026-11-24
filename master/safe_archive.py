@@ -70,6 +70,7 @@ _SIGNATURES = (
     (b"MZ", "exe"),
     (b"\x7fELF", "elf"),
     (b"PK\x03\x04", "zip"),
+    (b"PK\x05\x06", "zip"),
 )
 
 

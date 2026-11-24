@@ -9,6 +9,7 @@ import json
 import logging
 import os
 import re
+import secrets
 import shutil
 import socket
 import subprocess
@@ -19,10 +20,13 @@ from pathlib import Path
 from typing import Any
 
 import config
+import safe_archive
 from process_utils import run_process, spawn_process
 
 SKIP_DIRS = {"__pycache__", ".git", "node_modules", ".venv", "venv", "build", ".history"}
 META_FILENAME = ".workspace.json"
+_PREVIEW_ENTRIES = ("index.html", "public/index.html", "frontend/index.html")
+_TR_ASCII_MAP = str.maketrans("çğıöşüÇĞİÖŞÜ", "cgiosuCGIOSU")
 _RUNNING_SERVERS: dict[str, tuple[int, subprocess.Popen]] = {}
 log = logging.getLogger(__name__)
 
@@ -34,10 +38,28 @@ def workspaces_root() -> Path:
 
 
 def slugify(name: str) -> str:
-    tr_map = str.maketrans("çğıöşüÇĞİÖŞÜ", "cgiosuCGIOSU")
-    clean = name.translate(tr_map).lower()
+    clean = name.translate(_TR_ASCII_MAP).lower()
     slug = re.sub(r"[^a-z0-9]+", "-", clean).strip("-")
     return slug[:48] or "proje"
+
+
+def make_workspace_id(name: str) -> str:
+    """Create a collision-resistant workspace identifier with a 4-hex random suffix."""
+    stamp = datetime.now(UTC).strftime("%m%d%H%M%S")
+    return f"{slugify(name)}-{stamp}-{secrets.token_hex(2)}"
+
+
+def _safe_exe_app_name(raw_name: str) -> str:
+    """Convert a project name (including Turkish characters) into a clean ASCII EXE stem."""
+    ascii_name = (raw_name or "").translate(_TR_ASCII_MAP)
+    words = re.findall(r"[A-Za-z0-9]+", ascii_name)
+    camel = "".join(w[:1].upper() + w[1:] for w in words)
+    return camel[:48] or "StudioApp"
+
+
+def has_web_preview(ws_dir: Path) -> bool:
+    """Return True if workspace contains an HTML entry in root, public/, or frontend/."""
+    return any((ws_dir / rel).is_file() for rel in _PREVIEW_ENTRIES)
 
 
 def safe_workspace_dir(ws_id: str) -> Path:
@@ -92,7 +114,7 @@ def list_workspaces() -> list[dict[str, Any]]:
         meta["file_count"] = file_count
         meta["has_exe"] = len(exe_files) > 0
         meta["exe_name"] = exe_files[0].name if exe_files else ""
-        meta["has_web_preview"] = (p / "index.html").is_file() or (p / "public" / "index.html").is_file()
+        meta["has_web_preview"] = has_web_preview(p)
         items.append(meta)
     items.sort(key=lambda x: x.get("updated_at") or x.get("created_at") or "", reverse=True)
     return items
@@ -138,6 +160,18 @@ def list_relative_files(ws_dir: Path) -> list[str]:
     return result
 
 
+def list_relative_dirs(ws_dir: Path) -> list[str]:
+    """Return all non-skipped relative directories inside ws_dir (including empty dirs)."""
+    result: list[str] = []
+    for d in sorted(ws_dir.rglob("*")):
+        if not d.is_dir():
+            continue
+        if any(part in SKIP_DIRS for part in d.relative_to(ws_dir).parts):
+            continue
+        result.append(d.relative_to(ws_dir).as_posix())
+    return result
+
+
 def verify_workspace_files(ws_dir: Path) -> list[str]:
     """Run lightweight syntax verification on Python and JSON files."""
     warnings: list[str] = []
@@ -160,7 +194,7 @@ def _find_python_entry(ws_dir: Path, meta: dict[str, Any]) -> Path | None:
     ep = meta.get("entry_point", "")
     if ep and ep.endswith(".py") and (ws_dir / ep).is_file():
         return ws_dir / ep
-    for cand in ("main.py", "app.py", "game.py", "run.py"):
+    for cand in ("main.py", "app.py", "game.py", "run.py", "src/main.py", "backend/main.py", "app/main.py"):
         if (ws_dir / cand).is_file():
             return ws_dir / cand
     py_files = sorted(ws_dir.glob("*.py"))
@@ -192,7 +226,7 @@ def _build_exe_blocking(ws_dir: Path, meta: dict[str, Any], windowed: bool | Non
 
     use_windowed = _detect_gui_windowed(ws_dir) if windowed is None else windowed
     _ensure_subpackage_inits(ws_dir)
-    app_name = re.sub(r"[^A-Za-z0-9_-]+", "", meta.get("name", "").title().replace(" ", "")) or "StudioApp"
+    app_name = _safe_exe_app_name(str(meta.get("name", "")))
     cmd = [
         sys.executable, "-m", "PyInstaller",
         "--noconfirm", "--onefile", "--clean",
@@ -322,36 +356,47 @@ def restore_snapshot(ws_id: str, version: str) -> dict[str, Any]:
     return {"workspace": meta, "tree": build_file_tree(ws_dir)}
 
 
-def import_zip_workspace(filename: str, raw_bytes: bytes) -> tuple[dict[str, Any], list[dict[str, Any]]]:
-    """Extract an uploaded .zip project into a real workspace directory on disk."""
-    stem = Path(filename).stem or "yuklenen-proje"
-    ws_id = f"{slugify(stem)}-{datetime.now(UTC).strftime('%m%d%H%M%S')}"
-    ws_dir = safe_workspace_dir(ws_id)
-    ws_dir.mkdir(parents=True, exist_ok=True)
-
+def _extract_zip_entries(ws_dir: Path, raw_bytes: bytes) -> None:
+    """Safely extract files and empty directories from a verified ZIP payload into ws_dir."""
     with zipfile.ZipFile(io.BytesIO(raw_bytes)) as zf:
         names = [i.filename for i in zf.infolist() if not i.is_dir()]
         top_dirs = {n.split("/")[0] for n in names if "/" in n}
-        strip_prefix = f"{next(iter(top_dirs))}/" if (len(top_dirs) == 1 and all(n.startswith(f"{next(iter(top_dirs))}/") for n in names)) else ""
-
+        strip_prefix = (
+            f"{next(iter(top_dirs))}/"
+            if (len(top_dirs) == 1 and all(n.startswith(f"{next(iter(top_dirs))}/") for n in names))
+            else ""
+        )
         for info in zf.infolist():
-            if info.is_dir():
-                continue
             rel = info.filename[len(strip_prefix):] if (strip_prefix and info.filename.startswith(strip_prefix)) else info.filename
-            if not rel or any(part in SKIP_DIRS for part in Path(rel).parts):
+            rel_clean = rel.strip("/")
+            if not rel_clean or any(part in SKIP_DIRS for part in Path(rel_clean).parts):
                 continue
             try:
-                target = safe_file_path(ws_dir, rel)
+                target = safe_file_path(ws_dir, rel_clean)
             except ValueError:
                 continue
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_bytes(zf.read(info.filename))
+            if info.is_dir():
+                target.mkdir(parents=True, exist_ok=True)
+            else:
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(zf.read(info.filename))
+
+
+def import_zip_workspace(filename: str, raw_bytes: bytes) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Extract an uploaded .zip project into a real workspace directory on disk (SEC-07 verified)."""
+    safe_archive.inspect_zip(raw_bytes)
+    stem = Path(filename).stem or "yuklenen-proje"
+    ws_id = make_workspace_id(stem)
+    ws_dir = safe_workspace_dir(ws_id)
+    ws_dir.mkdir(parents=True, exist_ok=True)
+    _extract_zip_entries(ws_dir, raw_bytes)
 
     rel_files = list_relative_files(ws_dir)
-    has_html = "index.html" in rel_files or "public/index.html" in rel_files
+    has_html = has_web_preview(ws_dir)
     has_py = any(f.endswith(".py") for f in rel_files)
     ptype = "web" if has_html else ("desktop" if has_py else "fullstack")
-    entry = "index.html" if "index.html" in rel_files else ("main.py" if "main.py" in rel_files else (rel_files[0] if rel_files else ""))
+    entry_candidates = (*_PREVIEW_ENTRIES, "main.py", "src/main.py", "backend/main.py", "app/main.py")
+    entry = next((c for c in entry_candidates if c in rel_files), rel_files[0] if rel_files else "")
 
     create_snapshot(ws_dir, "ZIP içe aktarma")
     meta: dict[str, Any] = {

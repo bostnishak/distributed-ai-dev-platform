@@ -3,7 +3,8 @@
 Generates complete multi-file software projects (websites, e-commerce stores, Python games,
 desktop apps, full-stack apps) directly into real workspace directories on disk, with:
 - 2-stage AI architecture planning + file-by-file code generation via local Ollama
-- Iterative AI editing on existing workspaces
+- Explicit prompt folder/file path enforcement & cross-file contract manifest
+- Iterative AI editing on existing workspaces with syntax verification
 - Tree explorer, file read/write/delete, ZIP export
 - Live static preview for web/e-commerce workspaces
 - Real Windows .exe compilation via PyInstaller for Python games & desktop apps
@@ -34,11 +35,14 @@ from workspace_builder_ops import (
     build_file_tree,
     build_workspace_exe,
     create_snapshot,
+    has_web_preview,
     import_zip_workspace,
+    list_relative_dirs,
     list_relative_files,
     list_snapshots,
     list_workspaces,
     load_workspace_meta,
+    make_workspace_id,
     restore_snapshot,
     safe_file_path,
     safe_workspace_dir,
@@ -61,11 +65,14 @@ __all__ = [
     "build_file_tree",
     "build_workspace_exe",
     "create_snapshot",
+    "has_web_preview",
     "import_zip_workspace",
+    "list_relative_dirs",
     "list_relative_files",
     "list_snapshots",
     "list_workspaces",
     "load_workspace_meta",
+    "make_workspace_id",
     "pick_coder_model",
     "restore_snapshot",
     "safe_file_path",
@@ -86,14 +93,22 @@ FILE_WRITER_SYSTEM_PROMPT = (
     "Kurallar:\n"
     "- SADECE dosya içeriğini döndür (açıklama veya ek sohbet yazma).\n"
     "- Yarım bırakma, '// TODO' veya '...' kullanma; tüm fonksiyonları ve stilleri eksiksiz yaz.\n"
-    "- Proje içindeki diğer dosya yolları, CSS sınıfları, JS fonksiyon adları ve Python importları ile %100 uyumlu ol.\n"
+    "- Proje içindeki diğer dosya yolları, HTML element ID'leri, CSS sınıfları, JS fonksiyon adları ve Python importları ile %100 uyumlu ol.\n"
     "- ASLA emoji kullanma (ne HTML metinlerinde, ne butonlarda, ne de yorumlarda). İkon gerektiğinde temiz inline SVG kullan.\n"
     "- Web / CSS tasarımlarında kurumsal modern SaaS estetiği (Inter/Segoe UI tipografi, #0f172a / #1e293b / #4f46e5 renk paleti, ince kenarlıklar 1px solid rgba(255,255,255,0.08), yumuşak gölgeler, flexbox/grid, sekme geçişleri ve modern form kontrolleri) kullan; asla ilkel 2005 tarzı düz beyaz/gri kutular veya alert() kullanma.\n"
     "- Python masaüstü / oyun (.exe) projelerinde SADECE Python standart kütüphanesini (tkinter, tkinter.ttk, math, json, random, datetime, pathlib) kullan; PyQt5, customtkinter, pygame gibi harici paketleri ASLA import etme."
 )
 
 _BINARY_EXTS = (".png", ".jpg", ".jpeg", ".gif", ".ico", ".webp", ".bmp", ".mp3", ".wav", ".ttf", ".woff", ".woff2")
+_FILE_PATH_RE = re.compile(
+    r"(?<![A-Za-z0-9_./:-])([A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\."
+    r"(?:py|js|mjs|ts|tsx|jsx|html|css|scss|json|md|txt|yml|yaml|toml|sql|sh|cfg|ini|svg|xml|csv))\b"
+)
+_DIR_PATH_RE = re.compile(r"(?<![A-Za-z0-9_./:-])([A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*/)")
+_SPECIAL_FILES = ("Dockerfile", "Makefile", ".gitignore", ".env.example")
+_ITERATE_CONTENT_LIMIT = 24000
 _verify_workspace_files = verify_workspace_files
+_log = logging.getLogger(__name__)
 
 
 async def pick_coder_model(preferred: str | None = None) -> str:
@@ -110,7 +125,7 @@ async def pick_coder_model(preferred: str | None = None) -> str:
                 if cand in installed:
                     return cand
     except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError) as exc:
-        logging.getLogger(__name__).debug("Recoverable error suppressed: %s", exc)
+        _log.debug("Recoverable error suppressed: %s", exc)
     return config.MASTER_MODEL
 
 
@@ -139,14 +154,84 @@ def _strip_code_fences(raw: str) -> str:
     return str(max(blocks, key=len)) if blocks else text
 
 
+def _iter_balanced_braces(text: str) -> list[str]:
+    """Extract top-level balanced `{...}` segments while respecting JSON string escapes."""
+    candidates: list[str] = []
+    depth, start, in_str, escaped = 0, -1, False, False
+    for idx, ch in enumerate(text):
+        if in_str:
+            in_str = not (ch == '"' and not escaped)
+            escaped = (ch == "\\") and not escaped
+            continue
+        if ch == '"':
+            in_str = True
+        elif ch == "{":
+            start = idx if depth == 0 else start
+            depth += 1
+        elif ch == "}" and depth > 0:
+            depth -= 1
+            if depth == 0 and start >= 0:
+                candidates.append(text[start : idx + 1])
+                start = -1
+    return candidates
+
+
+def _try_parse_json_dict(raw_obj: str) -> dict[str, Any] | None:
+    for candidate in (raw_obj, re.sub(r",\s*([}\]])", r"\1", raw_obj)):
+        try:
+            parsed = json.loads(candidate)
+            if isinstance(parsed, dict):
+                return parsed
+        except json.JSONDecodeError:
+            continue
+    return None
+
+
 def _extract_json_obj(raw: str) -> dict[str, Any] | None:
-    m = re.search(r"\{[\s\S]*\}", raw)
-    if not m:
+    """Parse a JSON object from LLM text using balanced-brace scanning and trailing-comma cleanup."""
+    if not raw:
         return None
-    try:
-        return json.loads(m.group(0))
-    except json.JSONDecodeError:
-        return None
+    parsed_dicts: list[dict[str, Any]] = []
+    for seg in _iter_balanced_braces(raw):
+        obj = _try_parse_json_dict(seg)
+        if obj is not None:
+            parsed_dicts.append(obj)
+    for obj in parsed_dicts:
+        if "files" in obj:
+            return obj
+    return parsed_dicts[0] if parsed_dicts else None
+
+
+def _is_safe_rel_path(rel: str) -> bool:
+    parts = [p for p in rel.split("/") if p]
+    if not parts or any(p in (".", "..") or p in SKIP_DIRS for p in parts):
+        return False
+    return not any(c in rel for c in (":", "*", "?", "<", ">", "|"))
+
+
+def _extract_requested_paths(prompt: str) -> tuple[list[str], list[str]]:
+    """Extract explicitly mentioned file and folder paths from the user prompt."""
+    cleaned_prompt = re.sub(r"https?://\S+", " ", prompt or "")
+    files: list[str] = []
+    dirs: list[str] = []
+    seen_files: set[str] = set()
+    seen_dirs: set[str] = set()
+
+    for m in _FILE_PATH_RE.finditer(cleaned_prompt):
+        rel = m.group(1).replace("\\", "/").lstrip("./")
+        if _is_safe_rel_path(rel) and not rel.lower().endswith(_BINARY_EXTS) and rel not in seen_files:
+            seen_files.add(rel)
+            files.append(rel)
+    for sp in _SPECIAL_FILES:
+        if re.search(rf"(?<![A-Za-z0-9_.-]){re.escape(sp)}(?![A-Za-z0-9_.-])", cleaned_prompt) and sp not in seen_files:
+            seen_files.add(sp)
+            files.append(sp)
+    for m in _DIR_PATH_RE.finditer(cleaned_prompt):
+        rel = m.group(1).replace("\\", "/").strip("/")
+        if _is_safe_rel_path(rel) and rel not in seen_dirs:
+            seen_dirs.add(rel)
+            dirs.append(rel)
+    return files, dirs
 
 
 def _fallback_architecture_plan(prompt: str, project_type: str) -> dict[str, Any]:
@@ -178,22 +263,54 @@ def _fallback_architecture_plan(prompt: str, project_type: str) -> dict[str, Any
     }
 
 
-def _prepare_workspace_from_plan(plan: dict[str, Any], prompt: str, model: str) -> tuple[Path, dict[str, Any], list[dict[str, str]]]:
+def _filter_planned_files(raw_files: list[Any], limit: int = 16) -> list[dict[str, str]]:
+    out: list[dict[str, str]] = []
+    seen: set[str] = set()
+    for f in raw_files[:limit]:
+        if not isinstance(f, dict) or not f.get("path"):
+            continue
+        rel = str(f["path"]).replace("\\", "/").lstrip("/")
+        if not _is_safe_rel_path(rel) or rel.lower().endswith(_BINARY_EXTS) or rel in seen:
+            continue
+        seen.add(rel)
+        out.append({"path": rel, "purpose": str(f.get("purpose", ""))})
+    return out
+
+
+def _prepare_workspace_from_plan(
+    plan: dict[str, Any], prompt: str, model: str
+) -> tuple[Path, dict[str, Any], list[dict[str, str]]]:
     ws_name = str(plan.get("name") or "Yeni Proje").strip()
-    ws_id = f"{slugify(ws_name)}-{datetime.now(UTC).strftime('%m%d%H%M%S')}"
+    ws_id = make_workspace_id(ws_name)
     ws_dir = safe_workspace_dir(ws_id)
     ws_dir.mkdir(parents=True, exist_ok=True)
-    planned_files = [
-        {"path": str(f["path"]).replace("\\", "/").lstrip("/"), "purpose": str(f.get("purpose", ""))}
-        for f in plan["files"][:16]
-        if isinstance(f, dict) and f.get("path") and not str(f["path"]).lower().endswith(_BINARY_EXTS)
-    ]
+
+    raw_files = plan.get("files") if isinstance(plan.get("files"), list) else []
+    planned_files = _filter_planned_files(raw_files, limit=16)
+    if not planned_files:
+        fb = _fallback_architecture_plan(prompt, str(plan.get("project_type") or "auto"))
+        planned_files = _filter_planned_files(fb["files"], limit=16)
+
+    req_files, req_dirs = _extract_requested_paths(prompt)
+    existing_paths = {f["path"] for f in planned_files}
+    for rf in req_files:
+        if rf not in existing_paths:
+            planned_files.append({"path": rf, "purpose": "Kullanıcı isteğinde belirtilen dosya"})
+            existing_paths.add(rf)
+    for rd in req_dirs:
+        try:
+            safe_file_path(ws_dir, rd).mkdir(parents=True, exist_ok=True)
+        except ValueError:
+            continue
+
+    default_entry = planned_files[0]["path"] if planned_files else "README.md"
     meta: dict[str, Any] = {
         "id": ws_id,
         "name": ws_name,
         "project_type": str(plan.get("project_type") or "web"),
         "description": str(plan.get("description") or prompt[:180]),
-        "entry_point": str(plan.get("entry_point") or planned_files[0]["path"]),
+        "entry_point": str(plan.get("entry_point") or default_entry),
+        "requested_dirs": req_dirs,
         "model": model,
         "prompt": prompt,
         "created_at": datetime.now(UTC).isoformat(),
@@ -203,31 +320,98 @@ def _prepare_workspace_from_plan(plan: dict[str, Any], prompt: str, model: str) 
     return ws_dir, meta, planned_files
 
 
-async def _generate_and_write_file(
-    ws_dir: Path,
-    model: str,
-    fspec: dict[str, str],
-    file_prompt: str,
-) -> str:
-    fpath = fspec["path"]
-    raw_code = await _ollama_generate(model=model, system=FILE_WRITER_SYSTEM_PROMPT, user=file_prompt, num_predict=4096, temperature=0.2)
-    code = _strip_code_fences(raw_code)
+def _extract_python_contract(code: str) -> str:
+    syms: list[str] = []
+    try:
+        tree = ast.parse(code)
+        for node in tree.body:
+            if isinstance(node, ast.ClassDef):
+                syms.append(f"class {node.name}")
+            elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                args = [a.arg for a in node.args.args[:4]]
+                syms.append(f"def {node.name}({', '.join(args)})")
+            elif isinstance(node, ast.Assign):
+                for tgt in node.targets:
+                    if isinstance(tgt, ast.Name) and tgt.id.isupper():
+                        syms.append(tgt.id)
+    except SyntaxError:
+        syms = re.findall(r"^(?:def|class)\s+([A-Za-z_][A-Za-z0-9_]*)", code, flags=re.M)
+    return f"symbols={syms[:14]}"
+
+
+def _extract_file_contract(fpath: str, code: str) -> str:
+    """Produce a compact cross-file interface summary (IDs, classes, exports, Python symbols)."""
+    low = fpath.lower()
+    if low.endswith((".html", ".htm")):
+        ids = list(dict.fromkeys(re.findall(r'\bid=["\']([^"\']+)["\']', code)))[:18]
+        classes = list(dict.fromkeys(re.findall(r'\bclass=["\']([^"\']+)["\']', code)))[:12]
+        refs = list(dict.fromkeys(re.findall(r'(?:src|href)=["\']([^"\']+)["\']', code)))[:10]
+        return f"- {fpath}: ids={ids} classes={classes} refs={refs}"[:240]
+    if low.endswith((".css", ".scss")):
+        sel_cls = list(dict.fromkeys(re.findall(r"\.([a-zA-Z_-][a-zA-Z0-9_-]*)", code)))[:18]
+        sel_ids = list(dict.fromkeys(re.findall(r"#([a-zA-Z_-][a-zA-Z0-9_-]*)", code)))[:10]
+        return f"- {fpath}: classes={sel_cls} ids={sel_ids}"[:240]
+    if low.endswith((".js", ".mjs", ".ts", ".tsx", ".jsx")):
+        fns = list(dict.fromkeys(re.findall(r"(?:export\s+)?(?:async\s+)?function\s+([A-Za-z_$][A-Za-z0-9_$]*)", code)))[:12]
+        clz = list(dict.fromkeys(re.findall(r"(?:export\s+)?class\s+([A-Za-z_$][A-Za-z0-9_$]*)", code)))[:6]
+        exps = list(dict.fromkeys(re.findall(r"export\s+(?:const|let|var)\s+([A-Za-z_$][A-Za-z0-9_$]*)", code)))[:8]
+        return f"- {fpath}: fn={fns} class={clz} exports={exps}"[:240]
+    if low.endswith(".py"):
+        return f"- {fpath}: {_extract_python_contract(code)}"[:240]
+    if low.endswith(".json"):
+        try:
+            data = json.loads(code)
+            keys = list(data.keys())[:12] if isinstance(data, dict) else (list(data[0].keys())[:10] if isinstance(data, list) and data and isinstance(data[0], dict) else [])
+            return f"- {fpath}: json_keys={keys}"[:200]
+        except json.JSONDecodeError:
+            return f"- {fpath}: json"
+    return f"- {fpath}: ({len(code)} chars)"
+
+
+def _validate_code_syntax(fpath: str, code: str) -> str | None:
     if fpath.endswith(".py"):
         try:
             ast.parse(code, filename=fpath)
         except SyntaxError as exc:
-            fix_raw = await _ollama_generate(
-                model=model,
-                system=FILE_WRITER_SYSTEM_PROMPT,
-                user=(
-                    f"`{fpath}` dosyasında Python SyntaxError oluştu ({exc.lineno}. satır: {exc.msg}).\n"
-                    f"Hatalı kod:\n```python\n{code}\n```\n\n"
-                    "Sözdizimi hatasını düzeltip dosyanın eksiksiz, geçerli Python kodunu döndür."
-                ),
-                num_predict=4096,
-                temperature=0.1,
-            )
-            code = _strip_code_fences(fix_raw)
+            return f"Python SyntaxError ({exc.lineno}. satır: {exc.msg})"
+    elif fpath.endswith(".json"):
+        try:
+            json.loads(code)
+        except json.JSONDecodeError as exc:
+            return f"JSON DecodeError ({exc.lineno}. satır: {exc.msg})"
+    return None
+
+
+async def _validate_and_fix_code(model: str, fpath: str, code: str) -> str:
+    """Validate .py (AST) and .json syntax; auto-retry once and re-verify after repair."""
+    err = _validate_code_syntax(fpath, code)
+    if err is None:
+        return code
+    lang = "python" if fpath.endswith(".py") else "json"
+    fix_raw = await _ollama_generate(
+        model=model,
+        system=FILE_WRITER_SYSTEM_PROMPT,
+        user=(
+            f"`{fpath}` dosyasında sözdizimi hatası oluştu: {err}.\n"
+            f"Hatalı içerik:\n```{lang}\n{code}\n```\n\n"
+            f"Hatayı düzeltip dosyanın eksiksiz, geçerli {lang} içeriğini döndür."
+        ),
+        num_predict=4096,
+        temperature=0.1,
+    )
+    fixed = _strip_code_fences(fix_raw)
+    err2 = _validate_code_syntax(fpath, fixed)
+    if err2 is None:
+        return fixed
+    if fpath.endswith(".json"):
+        recovered = _extract_json_obj(fixed) or _extract_json_obj(code)
+        if recovered is not None:
+            return json.dumps(recovered, ensure_ascii=False, indent=2)
+    _log.warning("Syntax re-verification still failed for %s: %s", fpath, err2)
+    return fixed
+
+
+def _write_workspace_file(ws_dir: Path, fpath: str, code: str) -> Path:
     target = safe_file_path(ws_dir, fpath)
     for parent in reversed(target.parents):
         if parent == ws_dir or ws_dir not in parent.parents:
@@ -238,7 +422,34 @@ async def _generate_and_write_file(
         target = target / "__init__.py"
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(code, encoding="utf-8")
+    return target
+
+
+async def _generate_and_write_file(
+    ws_dir: Path,
+    model: str,
+    fspec: dict[str, str],
+    file_prompt: str,
+) -> str:
+    fpath = fspec["path"]
+    raw_code = await _ollama_generate(model=model, system=FILE_WRITER_SYSTEM_PROMPT, user=file_prompt, num_predict=4096, temperature=0.2)
+    code = await _validate_and_fix_code(model, fpath, _strip_code_fences(raw_code))
+    _write_workspace_file(ws_dir, fpath, code)
     return code
+
+
+def _build_existing_contracts(ws_dir: Path, rel_files: list[str], limit: int = 20) -> str:
+    lines: list[str] = []
+    for rel in rel_files[:limit]:
+        p = ws_dir / rel
+        if not p.is_file() or p.suffix.lower() in _BINARY_EXTS:
+            continue
+        try:
+            text = p.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        lines.append(_extract_file_contract(rel, text))
+    return "\n".join(lines)
 
 
 async def stream_generate_project(
@@ -267,18 +478,22 @@ async def stream_generate_project(
 
     tree_summary = "\n".join(f"- {f['path']}: {f['purpose']}" for f in planned_files)
     written_snippets: list[str] = []
+    contracts: list[str] = []
 
     for idx, fspec in enumerate(planned_files, start=1):
         fpath = fspec["path"]
         yield {"type": "file_start", "path": fpath, "index": idx, "total": len(planned_files)}
+        manifest_block = "\n".join(contracts)
         context_tail = "\n\n".join(written_snippets[-3:])
         file_prompt = (
             f"Proje Adı: {meta['name']}\nProje Türü: {meta['project_type']}\nKullanıcı İsteği: {prompt}\n\n"
             f"Tüm Dosya Ağacı:\n{tree_summary}\n\n"
-            + (f"Önceki dosyaların özeti:\n{context_tail}\n\n" if context_tail else "")
+            + (f"Yazılan Dosyaların Sözleşme Özeti (ID/CSS/Export/Sembol):\n{manifest_block}\n\n" if manifest_block else "")
+            + (f"Son dosyaların kod özetleri:\n{context_tail}\n\n" if context_tail else "")
             + f"ŞİMDİ SADECE ŞU DOSYANIN EKSİKSİZ İÇERİĞİNİ YAZ: `{fpath}`\nDosya amacı: {fspec['purpose']}"
         )
         code = await _generate_and_write_file(ws_dir, model, fspec, file_prompt)
+        contracts.append(_extract_file_contract(fpath, code))
         written_snippets.append(f"=== {fpath} ===\n{code[:1200]}")
         yield {"type": "file_done", "path": fpath, "size": len(code.encode("utf-8")), "index": idx, "total": len(planned_files)}
 
@@ -288,6 +503,27 @@ async def stream_generate_project(
     meta["updated_at"] = datetime.now(UTC).isoformat()
     save_workspace_meta(ws_dir, meta)
     yield {"type": "done", "workspace": meta, "tree": build_file_tree(ws_dir), "warnings": warnings}
+
+
+def _select_iterate_targets(
+    ws_dir: Path, parsed: dict[str, Any] | None, existing_files: list[str], meta: dict[str, Any], instruction: str
+) -> list[dict[str, str]]:
+    raw_targets = (parsed or {}).get("files") or []
+    targets = _filter_planned_files(raw_targets, limit=6)
+    req_files, req_dirs = _extract_requested_paths(instruction)
+    for rd in req_dirs:
+        try:
+            safe_file_path(ws_dir, rd).mkdir(parents=True, exist_ok=True)
+        except ValueError:
+            continue
+    seen = {t["path"] for t in targets}
+    for rf in req_files:
+        if rf not in seen:
+            targets.append({"path": rf, "purpose": instruction})
+            seen.add(rf)
+    if not targets and existing_files:
+        targets = [{"path": str(meta.get("entry_point") or existing_files[0]), "purpose": instruction}]
+    return targets[:8]
 
 
 async def stream_iterate_project(
@@ -313,33 +549,28 @@ async def stream_iterate_project(
     )
     raw_plan = await _ollama_generate(
         model=model,
-        system="Sadece geçerli JSON döndür. En fazla 5 dosya seç.",
+        system="Sadece geçerli JSON döndür. En fazla 6 dosya seç.",
         user=plan_prompt,
         num_predict=1024,
         temperature=0.15,
     )
-    parsed = _extract_json_obj(raw_plan)
-    target_files = (parsed or {}).get("files") or []
-    if not target_files and existing_files:
-        target_files = [{"path": meta.get("entry_point") or existing_files[0], "purpose": instruction}]
+    targets = _select_iterate_targets(ws_dir, _extract_json_obj(raw_plan), existing_files, meta, instruction)
+    contract_manifest = _build_existing_contracts(ws_dir, existing_files)
 
-    for idx, fspec in enumerate(target_files[:6], start=1):
-        fpath = str(fspec["path"]).replace("\\", "/").lstrip("/")
-        yield {"type": "file_start", "path": fpath, "index": idx, "total": len(target_files[:6])}
-
+    for idx, fspec in enumerate(targets, start=1):
+        fpath = fspec["path"]
+        yield {"type": "file_start", "path": fpath, "index": idx, "total": len(targets)}
         target = safe_file_path(ws_dir, fpath)
         current_content = target.read_text(encoding="utf-8", errors="replace") if target.is_file() else ""
         edit_prompt = (
             f"Proje: {meta.get('name')}\nMevcut dosyalar: {', '.join(existing_files)}\n"
-            f"Değişiklik isteği: {instruction}\nHedef dosya: `{fpath}` ({fspec.get('purpose', '')})\n\n"
-            + (f"Mevcut dosya içeriği:\n```\n{current_content[:6000]}\n```\n\n" if current_content else "")
+            + (f"Proje Dosya Sözleşmeleri:\n{contract_manifest}\n\n" if contract_manifest else "")
+            + f"Değişiklik isteği: {instruction}\nHedef dosya: `{fpath}` ({fspec.get('purpose', '')})\n\n"
+            + (f"Mevcut dosya içeriği:\n```\n{current_content[:_ITERATE_CONTENT_LIMIT]}\n```\n\n" if current_content else "")
             + "Bu dosyanın güncel ve EKSİKSİZ tüm içeriğini yaz."
         )
-        raw_code = await _ollama_generate(model=model, system=FILE_WRITER_SYSTEM_PROMPT, user=edit_prompt, num_predict=4096, temperature=0.2)
-        code = _strip_code_fences(raw_code)
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(code, encoding="utf-8")
-        yield {"type": "file_done", "path": fpath, "size": len(code.encode("utf-8")), "index": idx, "total": len(target_files[:6])}
+        code = await _generate_and_write_file(ws_dir, model, fspec, edit_prompt)
+        yield {"type": "file_done", "path": fpath, "size": len(code.encode("utf-8")), "index": idx, "total": len(targets)}
 
     warnings = verify_workspace_files(ws_dir)
     create_snapshot(ws_dir, instruction[:60])

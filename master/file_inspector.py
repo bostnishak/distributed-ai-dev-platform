@@ -24,6 +24,7 @@ from openpyxl import load_workbook
 import automl_studio as aml
 import extract
 import process_utils
+import safe_archive
 import self_healing_runner as shr
 
 _EXCEL_ERROR_TOKENS = ("#REF!", "#DIV/0!", "#VALUE!", "#NAME?", "#N/A", "#NUM!", "#NULL!")
@@ -241,17 +242,20 @@ def _inspect_csv(lower: str, raw: bytes, stats: dict[str, Any], issues: list[dic
 
 def _inspect_excel(raw: bytes, stats: dict[str, Any], issues: list[dict[str, Any]]) -> None:
     wb = load_workbook(io.BytesIO(raw), data_only=False)
-    stats["sheet_count"] = len(wb.worksheets)
-    for ws in wb.worksheets:
-        for r_idx, row in enumerate(ws.iter_rows(values_only=True), start=1):
-            for c_idx, val in enumerate(row, start=1):
-                if isinstance(val, str) and any(tok in val for tok in _EXCEL_ERROR_TOKENS):
-                    issues.append({
-                        "severity": "HIGH",
-                        "line": r_idx,
-                        "type": "EXCEL_FORMULA_ERROR",
-                        "message": f"'{ws.title}' sayfasi satir {r_idx}, sutun {c_idx} icinde Excel formulu hatasi: {val}",
-                    })
+    try:
+        stats["sheet_count"] = len(wb.worksheets)
+        for ws in wb.worksheets:
+            for r_idx, row in enumerate(ws.iter_rows(values_only=True), start=1):
+                for c_idx, val in enumerate(row, start=1):
+                    if isinstance(val, str) and any(tok in val for tok in _EXCEL_ERROR_TOKENS):
+                        issues.append({
+                            "severity": "HIGH",
+                            "line": r_idx,
+                            "type": "EXCEL_FORMULA_ERROR",
+                            "message": f"'{ws.title}' sayfasi satir {r_idx}, sutun {c_idx} icinde Excel formulu hatasi: {val}",
+                        })
+    finally:
+        wb.close()
 
 
 def _inspect_pdf(raw: bytes, stats: dict[str, Any], issues: list[dict[str, Any]]) -> None:
@@ -268,11 +272,23 @@ def _inspect_pdf(raw: bytes, stats: dict[str, Any], issues: list[dict[str, Any]]
 
 def _inspect_zip(raw: bytes, stats: dict[str, Any], issues: list[dict[str, Any]]) -> None:
     try:
+        summary = safe_archive.inspect_zip(raw)
+    except safe_archive.UnsafeArchive as exc:
+        is_corrupt = isinstance(exc.__cause__, zipfile.BadZipFile)
+        issues.append({
+            "severity": "CRITICAL",
+            "line": 1,
+            "type": "CORRUPT_ZIP" if is_corrupt else "UNSAFE_ZIP",
+            "message": "ZIP arsivi bozuk veya acilamiyor." if is_corrupt else f"Guvenli olmayan ZIP arsivi engellendi: {exc}",
+        })
+        return
+    stats["archive_unpacked_bytes"] = summary.get("total_bytes", 0)
+    try:
         with zipfile.ZipFile(io.BytesIO(raw)) as zf:
             file_names = [i.filename for i in zf.infolist() if not i.is_dir()]
             stats["archive_file_count"] = len(file_names)
             for fn in file_names[:25]:
-                if fn.lower().endswith((".py", ".json", ".js", ".html", ".csv")):
+                if fn.lower().endswith((".py", ".json", ".js", ".html", ".csv", ".tsv")):
                     sub = inspect_uploaded_file(fn, zf.read(fn))
                     for sub_iss in sub["issues"][:5]:
                         issues.append({**sub_iss, "message": f"[{fn}] {sub_iss['message']}"})

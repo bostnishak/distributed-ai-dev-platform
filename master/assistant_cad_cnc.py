@@ -14,20 +14,63 @@ CNC_BALLOON_KEYWORDS = (
     "tolerans tablosu", "cnc parça", "cnc parca", "cnc çizim", "cnc cizim",
     "ölçüleri çıkar", "olculeri cikar", "kalite kontrol formu",
 )
+_CNC_FAI_RE = re.compile(r"\bfai\b", re.IGNORECASE)
 
 CODE_ONLY_RE = re.compile(
     r"(kodunu\s*(ver|yaz|göster|goster|at)|kod\s*halini|sadece\s*kod|kodu\s*(ver|yaz))",
     re.IGNORECASE,
 )
 
+_NON_CODE_PROJECT_RE = re.compile(
+    r"\b(?:"
+    r"(?:diyet|ders|egzersiz|spor|antrenman|antreman|beslenme|çalışma|calisma|eğitim|egitim|"
+    r"seyahat|tatil|gezi|etkinlik|toplantı|toplanti|staj|televizyon|tv|radyo|kurs|seminer|konferans)\s+program\w*"
+    r"|proje\s*(?:rapor\w*|sunum\w*|özet\w*|ozet\w*|belge\w*|doküman\w*|dokuman\w*|öneri\w*|oneri\w*|metn\w*|teklif\w*|bütçe\w*|butce\w*|ödev\w*|odev\w*)"
+    r")\b",
+    re.IGNORECASE,
+)
+
 PROJECT_NOUN_RE = re.compile(
-    r"(web\s*site\w*|e-?ticaret|oyun\w*|masaüstü|masaustu|bilgisayarda\s*çalış\w*|bilgisayarda\s*calis\w*|"
-    r"\.exe|\bexe\b|uygulama\w*|program\w*|proje\w*|site\w*|dosyalar\w*)",
+    r"(?:"
+    r"\bweb\s*site\w*|\bwebsite\w*|\be-?ticaret|\boyun\w*|\bgames?\b|\bmasaüstü|\bmasaustu|"
+    r"\bbilgisayarda\s*çalış\w*|\bbilgisayarda\s*calis\w*|\.exe\b|\bexe\b|"
+    r"\buygulama\w*|\bapps?\b|\bapplication\w*|\bprogram\w*|"
+    r"\bproje(?:si|yi|ye|de|den|ler\w*|m\w*)?\b|\bprojects?\b|"
+    r"\bsite(?:si|yi|ye|de|den|ler\w*|m\w*)?\b|"
+    r"\bklasör\s*yapı\w*|\bklasor\s*yapi\w*|\bdizin\s*yapı\w*|\bdizin\s*yapi\w*|\bfolder\s*structure\w*|"
+    r"\bproje\s*klasör\w*|\bproje\s*klasor\w*|\bproje\s*dosyalar\w*|"
+    r"\bapi\b|\bdashboard\w*|\bportf[öo]y\w*|\bportfolio\w*|\bblog(?:u|un|a|lar\w*|s)?\b|"
+    r"\bbot(?:u|un|a|lar\w*)?\b|\bchatbot\w*|\bscripts?\b|\bhtml5\b"
+    r")",
     re.IGNORECASE,
 )
 
 PROJECT_ACTION_RE = re.compile(
-    r"(yap\w*|oluştur\w*|olustur\w*|hazırla\w*|hazirla\w*|geliştir\w*|gelistir\w*|tasarla\w*|kur\w*|üret\w*|uret\w*)",
+    r"\b(?:"
+    r"yap(?:ar\w*|abil\w*|al[ıi]m|ın|iniz|mak|ma\b|ıyor\w*|iyor\w*|sana|sun|tır\w*|tir\w*)?|"
+    r"oluştur\w*|olustur\w*|hazırla\w*|hazirla\w*|geliştir\w*|gelistir\w*|tasarla\w*|"
+    r"kur(?:ar\w*|abil\w*|al[ıi]m|un|unuz|mak|ma\b|uyor\w*|sana|sun|ulum\w*)?|"
+    r"üret\w*|uret\w*|kodla\w*|yaz(?:ar\w*|abil\w*|al[ıi]m|ın|ınız)?|"
+    r"build(?:ing|s)?|creat(?:e|es|ing)|generat(?:e|es|ing)|mak(?:e|es|ing)|scaffold(?:ing|s)?"
+    r")\b",
+    re.IGNORECASE,
+)
+
+ZIP_INSPECT_RE = re.compile(
+    r"\b(?:incele\w*|bak\b|bakalım|bakalim|özet\w*|ozet\w*|hatalar\w*|hata\s*bul\w*|bug\w*|"
+    r"analiz\w*|açıkla\w*|acikla\w*|anlat\w*|nedir|ne\s*yapıyor|ne\s*yapiyor|oku\b|göster\w*|goster\w*|"
+    r"summarize\w*|inspect\w*|review\w*|explain\w*|find\s+bugs?)\b",
+    re.IGNORECASE,
+)
+
+_ZIP_WORKSPACE_EDIT_RE = re.compile(
+    r"\b(?:çalışma\s*alan\w*|calisma\s*alan\w*|workspace|içe\s*aktar\w*|ice\s*aktar\w*|"
+    r"aç|ac|geliştir\w*|gelistir\w*|düzenle\w*|duzenle\w*|exe|derle\w*|çalıştır\w*|calistir\w*|ekle|ekley\w*)\b",
+    re.IGNORECASE,
+)
+
+_ZIP_EXPLICIT_IMPORT_RE = re.compile(
+    r"\b(?:workspace|çalışma\s*alan\w*|calisma\s*alan\w*|içe\s*aktar\w*|ice\s*aktar\w*|exe|derle\w*)\b",
     re.IGNORECASE,
 )
 
@@ -47,7 +90,9 @@ def is_cnc_balloon_request(prompt: str, file: UploadFile | None) -> bool:
     if file.filename.lower().endswith(".dxf"):
         return True
     lower = prompt.lower()
-    return any(kw in lower for kw in CNC_BALLOON_KEYWORDS)
+    if any(kw in lower for kw in CNC_BALLOON_KEYWORDS if kw != "fai"):
+        return True
+    return bool(_CNC_FAI_RE.search(lower))
 
 
 def is_3d_cad_request(file: UploadFile | None) -> bool:
@@ -60,10 +105,9 @@ def is_zip_workspace_request(prompt: str, file: UploadFile | None) -> bool:
     if file is None or not file.filename or not file.filename.lower().endswith(".zip"):
         return False
     lower = prompt.lower()
-    return any(
-        k in lower
-        for k in ("proje", "aç", "ac", "geliştir", "gelistir", "düzenle", "duzenle", "exe", "çalıştır", "calistir", "kod", "ekle")
-    )
+    if ZIP_INSPECT_RE.search(lower) and not _ZIP_EXPLICIT_IMPORT_RE.search(lower):
+        return False
+    return bool(_ZIP_WORKSPACE_EDIT_RE.search(lower))
 
 
 def is_project_build_request(prompt: str, file: UploadFile | None) -> bool:
@@ -72,24 +116,39 @@ def is_project_build_request(prompt: str, file: UploadFile | None) -> bool:
     lower = prompt.lower().strip()
     if CODE_ONLY_RE.search(lower):
         return False
-    if any(q in lower for q in ("nedir", "ne demek", "açıkla", "acikla", "farkı ne", "farki ne")):
+    if any(
+        q in lower
+        for q in (
+            "nedir", "ne demek", "açıkla", "acikla", "farkı ne", "farki ne",
+            "nasıl yapılır", "nasil yapilir", "nasıl oluşturulur", "nasil olusturulur", "how to ",
+        )
+    ):
         return False
-    return bool(PROJECT_NOUN_RE.search(lower) and PROJECT_ACTION_RE.search(lower))
+    cleaned = _NON_CODE_PROJECT_RE.sub(" ", lower)
+    return bool(PROJECT_NOUN_RE.search(cleaned) and PROJECT_ACTION_RE.search(cleaned))
 
 
 def detect_project_type(prompt: str) -> tuple[str, bool]:
     """Return (project_type, wants_exe) for a project build prompt."""
     lower = prompt.lower()
-    is_web = any(k in lower for k in ("web", "site", "e-ticaret", "eticaret", "html", "tarayıcı", "tarayici"))
-    is_game = any(k in lower for k in ("oyun", "game", "arcade", "snake", "yılan", "tetris"))
-    is_desktop = any(k in lower for k in ("bilgisayarda", "masaüstü", "masaustu", "exe", "uygulama", "program"))
-    if is_web and not any(k in lower for k in ("exe", "bilgisayarda", "masaüstü")):
-        return "web", False
+    wants_exe = bool(re.search(r"(?:\.exe\b|\b(?:exe|masaüstü|masaustu|bilgisayarda|desktop)\b)", lower))
+    explicit_py_desktop = wants_exe or bool(re.search(r"\b(?:python|tkinter|pygame)\b", lower))
+    is_fullstack = bool(
+        re.search(r"\b(?:fullstack|full[\s-]stack|fastapi|backend|rest\s*api|api|flask|django|veritabanı|veritabani)\b", lower)
+    )
+    is_cli = bool(re.search(r"\b(?:cli|terminal|komut\s*satır\w*|komut\s*satir\w*|konsol|scripts?|bot)\b", lower))
+    is_game = bool(re.search(r"\b(?:oyun\w*|games?|arcade|snake|yılan|yilan|tetris|pong)\b", lower))
+    is_web = bool(re.search(r"\b(?:web|site\w*|e-?ticaret|eticaret|html5?|tarayıcı|tarayici|dashboard|portf[öo]y|portfolio|blog)\b", lower))
+
+    if is_fullstack and not wants_exe:
+        return "fullstack", False
+    if is_cli and not is_web and not is_game and not wants_exe:
+        return "cli", False
     if is_game:
-        return "game", True
-    if is_desktop:
-        return "desktop", True
-    return "auto", False
+        return ("game", wants_exe) if explicit_py_desktop else ("web", False)
+    if explicit_py_desktop and not (is_web and not wants_exe):
+        return "desktop", wants_exe
+    return "web", False
 
 
 def _calc_compound_or_kdv(low: str) -> str | None:

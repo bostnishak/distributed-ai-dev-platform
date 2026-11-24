@@ -105,7 +105,7 @@ async def get_workspace_tree(id: str):
     exe_files = list((ws_dir / "dist").glob("*.exe")) if (ws_dir / "dist").is_dir() else []
     meta["has_exe"] = len(exe_files) > 0
     meta["exe_name"] = exe_files[0].name if exe_files else ""
-    meta["has_web_preview"] = (ws_dir / "index.html").is_file() or (ws_dir / "public" / "index.html").is_file()
+    meta["has_web_preview"] = wb.has_web_preview(ws_dir)
     return {"workspace": meta, "tree": wb.build_file_tree(ws_dir)}
 
 
@@ -245,6 +245,8 @@ async def download_workspace_zip(id: str):
 
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for rel_dir in wb.list_relative_dirs(ws_dir):
+            zf.writestr(zipfile.ZipInfo(f"{id}/{rel_dir}/"), b"")
         for rel in wb.list_relative_files(ws_dir):
             zf.write(ws_dir / rel, arcname=f"{id}/{rel}")
     buf.seek(0)
@@ -265,12 +267,18 @@ async def preview_workspace_file(id: str, filepath: str):
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     if not target.is_file():
-        # Try public/ fallback
-        alt = ws_dir / "public" / rel
-        if alt.is_file():
-            target = alt
-        else:
+        found = None
+        for sub in ("public", "frontend"):
+            try:
+                alt = wb.safe_file_path(ws_dir, f"{sub}/{rel}")
+            except ValueError:
+                continue
+            if alt.is_file():
+                found = alt
+                break
+        if found is None:
             raise HTTPException(status_code=404, detail="Önizleme dosyası bulunamadı.")
+        target = found
     media, _ = mimetypes.guess_type(str(target))
     return FileResponse(
         target,
@@ -279,7 +287,8 @@ async def preview_workspace_file(id: str, filepath: str):
             "Cache-Control": "no-cache",
             "X-Content-Type-Options": "nosniff",
             "Content-Security-Policy": (
-                "sandbox allow-scripts; default-src 'self' 'unsafe-inline' data: blob:; "
+                "sandbox allow-scripts allow-forms allow-modals; "
+                "default-src 'self' 'unsafe-inline' data: blob:; "
                 "connect-src 'none'; frame-ancestors 'self'"
             ),
         },
@@ -328,6 +337,8 @@ async def get_workspace_file_diff(id: str, path: str = Query(...), base_version:
     """Return a unified line diff between base_version (default v1) and current file content."""
     import difflib
 
+    if not re.fullmatch(r"v\d+", base_version):
+        raise HTTPException(status_code=400, detail="Geçersiz sürüm adı.")
     try:
         ws_dir = wb.safe_workspace_dir(id)
         target = wb.safe_file_path(ws_dir, path)
@@ -337,7 +348,8 @@ async def get_workspace_file_diff(id: str, path: str = Query(...), base_version:
         raise HTTPException(status_code=404, detail="Dosya bulunamadı.")
 
     current_lines = target.read_text(encoding="utf-8", errors="replace").splitlines()
-    snap_file = ws_dir / ".history" / base_version / path.replace("\\", "/").lstrip("/")
+    safe_rel = target.relative_to(ws_dir.resolve()).as_posix()
+    snap_file = ws_dir / ".history" / base_version / safe_rel
     base_lines = snap_file.read_text(encoding="utf-8", errors="replace").splitlines() if snap_file.is_file() else []
 
     diff_lines = list(

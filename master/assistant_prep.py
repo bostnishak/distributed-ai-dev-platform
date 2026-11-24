@@ -18,6 +18,7 @@ from fastapi import Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 
 import config
+import extract as _extract_mod
 from extract import extract_csv_text, extract_docx_text, extract_pdf_text, extract_xlsx_text, extract_zip_text
 
 log = logging.getLogger("master.assistant")
@@ -92,15 +93,7 @@ def _process_image_upload(raw: bytes, prompt: str) -> tuple[str, str]:
 
 
 _FORECAST_KEYWORDS = (
-    "tahmin",
-    "forecast",
-    "öngör",
-    "ongor",
-    "gelecek",
-    "projeksiyon",
-    "regresyon",
-    "predict",
-    "veri_analizi:tahmin",
+    "tahmin", "forecast", "öngör", "ongor", "gelecek", "projeksiyon", "regresyon", "predict", "veri_analizi:tahmin",
 )
 
 
@@ -159,6 +152,32 @@ def _extract_sqlite_upload(filename: str, raw: bytes, prompt: str) -> str:
         tmp_db.unlink(missing_ok=True)
 
 
+def _extract_pptx_bytes(raw: bytes) -> str:
+    """Extract slides, tables, and speaker notes via extract.extract_pptx_text (with python-pptx fallback)."""
+    fn = getattr(_extract_mod, "extract_pptx_text", None)
+    if callable(fn):
+        return str(fn(raw))
+    from pptx import Presentation
+
+    prs = Presentation(io.BytesIO(raw))
+    parts: list[str] = []
+    for idx, slide in enumerate(prs.slides, start=1):
+        lines: list[str] = [f"--- Slayt {idx} ---"]
+        for sh in slide.shapes:
+            tf = getattr(sh, "text_frame", None) if getattr(sh, "has_text_frame", False) else None
+            if tf is not None and (txt := str(getattr(tf, "text", "") or "").strip()):
+                lines.append(txt)
+            tbl = getattr(sh, "table", None) if getattr(sh, "has_table", False) else None
+            if tbl is not None:
+                lines.extend(" | ".join(c.text.strip() for c in r.cells) for r in tbl.rows)
+        ntf = getattr(slide.notes_slide, "notes_text_frame", None) if getattr(slide, "has_notes_slide", False) else None
+        if ntf is not None and (ntxt := (getattr(ntf, "text", "") or "").strip()):
+            lines.append(f"[Konuşmacı Notları]: {ntxt}")
+        if len(lines) > 1:
+            parts.append("\n".join(lines))
+    return "\n\n".join(parts)
+
+
 def _extract_document_bytes(filename: str, content_type: str, raw: bytes, prompt: str) -> tuple[str, str | None, str]:
     name = filename.lower()
     if content_type.startswith("audio/") or name.endswith((".wav", ".mp3", ".m4a", ".ogg", ".webm", ".flac")):
@@ -176,6 +195,7 @@ def _extract_document_bytes(filename: str, content_type: str, raw: bytes, prompt
     simple_extractors = (
         ((".pdf",), extract_pdf_text),
         ((".docx",), extract_docx_text),
+        ((".pptx",), _extract_pptx_bytes),
         ((".xlsx", ".xlsm"), extract_xlsx_text),
     )
     for exts, fn in simple_extractors:
@@ -331,26 +351,16 @@ async def enrich_done_event_with_verification(
         conf = compute_confidence(support_ratio=support_ratio, rag_score=0.85 if sources else 0.5, has_sources=bool(sources))
         run_id = f"chat-{conversation_id or 'ephemeral'}-{int(time.time())}"
         log_verification_telemetry(
-            run_id=run_id,
-            model=model_used or config.MASTER_MODEL,
-            task_type=intent_dec.intent,
-            support_ratio=support_ratio,
-            citation_coverage=1.0 if sources else 0.0,
-            confidence=float(conf.get("score", 0.75)),
-            abstained=False,
-            verify_ms=1,
+            run_id=run_id, model=model_used or config.MASTER_MODEL, task_type=intent_dec.intent,
+            support_ratio=support_ratio, citation_coverage=1.0 if sources else 0.0,
+            confidence=float(conf.get("score", 0.75)), abstained=False, verify_ms=1,
         )
         evt["orchestrator"] = {
-            "intent": intent_dec.intent,
-            "mode": contract.mode,
-            "risk": intent_dec.risk,
-            "grounded_sources": len(sources),
+            "intent": intent_dec.intent, "mode": contract.mode, "risk": intent_dec.risk, "grounded_sources": len(sources),
         }
         evt["verification"] = {
-            "confidence_score": float(conf.get("score", 0.75)),
-            "confidence_label": str(conf.get("label", "orta")),
-            "support_ratio": support_ratio,
-            "claims_checked": len(claims),
+            "confidence_score": float(conf.get("score", 0.75)), "confidence_label": str(conf.get("label", "orta")),
+            "support_ratio": support_ratio, "claims_checked": len(claims),
         }
     except (ImportError, sqlite3.Error, httpx.HTTPError, OSError, ValueError, TypeError, KeyError, RuntimeError, AttributeError) as orch_exc:
         log.warning("Orchestrator/verifier hook failed on chat stream: %s", orch_exc, exc_info=True)

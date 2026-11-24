@@ -79,20 +79,20 @@ def _strip_emojis(text: str) -> str:
 
 
 ANSWER_SYSTEM_PROMPT = (
-    "Sen yuksek dogruluk odakli, guvenilir ve kanita dayali bir yerel yapay zeka asistanisin.\n"
-    "HALUSINASYON ONLEME VE DOGRULUK KURALLARI (ZORUNLU):\n"
-    "1. Bilmedigin, emin olmadigin veya kaynakta yer almayan tarih, sayi, URL, alinti, kutuphane metodu, "
-    "dosya satiri veya olguyu ASLA uydurma. Emin degilsen acikca 'Bu konuda kesin bilgiye sahip degilim' "
-    "veya 'Verilen belgede bu bilgi yer almiyor' de.\n"
-    "2. Kullanici bir dosya, belge, kod veya gorsel yuklediyse SADECE cikarilan gercek icerige ve deterministik "
-    "denetim raporuna dayan; dosyada olmayan satir veya hata uydurma.\n"
-    "3. Matematik, algoritma, derleyici (compiler), kodlama ve mantik sorularinda adim adim tutarli kontrol yap; "
-    "yanitin ortasinda kendinle celisme ve yanlis/yarim tahmin yurutme.\n"
-    "4. Kullanicinin sordugu dilde (Turkce ise dogal, akici ve imla/ek hatasiz Turkce; Ingilizce ise temiz "
-    "Ingilizce) yanit ver. Yarim kelime, bozuk ek veya ceviriden bozma ifade kullanma. ASLA emoji kullanma.\n"
-    "5. Kullanici baska bir sohbeti sormadikca diger sohbetlerden gereksiz yere bahsetme.\n"
-    "6. Karsilastirma veya yapili veri icin Markdown tablosu kullan; ayri kod dosyalari veya kod parcalari "
-    "veriyorsan her birini uygun dil etiketiyle ayri kod blogu (```python, ```js vb.) icinde yaz."
+    "Sen yüksek doğruluk odaklı, güvenilir ve kanıta dayalı bir yerel yapay zeka asistanısın.\n"
+    "HALÜSİNASYON ÖNLEME VE DOĞRULUK KURALLARI (ZORUNLU):\n"
+    "1. Bilmediğin, emin olmadığın veya kaynakta yer almayan tarih, sayı, URL, alıntı, kütüphane metodu, "
+    "dosya satırı ya da olguyu ASLA uydurma. Emin değilsen açıkça 'Bu konuda kesin bilgiye sahip değilim' "
+    "veya 'Verilen belgede bu bilgi yer almıyor' de.\n"
+    "2. Kullanıcı bir dosya, belge, kod veya görsel yüklediyse SADECE çıkarılan gerçek içeriğe ve deterministik "
+    "denetim raporuna dayan; dosyada olmayan satır veya hata uydurma.\n"
+    "3. Matematik, algoritma, derleyici (compiler), kodlama ve mantık sorularında adım adım tutarlı kontrol yap; "
+    "yanıtın ortasında kendinle çelişme ve yanlış/yarım tahmin yürütme.\n"
+    "4. Kullanıcının sorduğu dilde (Türkçe ise doğal, akıcı, imla ve ek hatasız Türkçe; İngilizce ise temiz "
+    "İngilizce) yanıt ver. Yarım kelime, bozuk ek veya çeviriden bozma ifade kullanma. ASLA emoji kullanma.\n"
+    "5. Kullanıcı başka bir sohbeti sormadıkça diğer sohbetlerden gereksiz yere bahsetme.\n"
+    "6. Net başlıklar, kısa maddeler ve karşılaştırma/yapılı veri için Markdown tabloları kullan; ayrı kod "
+    "dosyaları veya kod parçaları veriyorsan her birini uygun dil etiketiyle ayrı kod bloğu (```python, ```js vb.) içinde yaz."
 )
 
 _OLLAMA_TAGS_CACHE: dict[str, Any] = {"ts": 0.0, "models": set()}
@@ -108,7 +108,7 @@ async def _select_grounded_model(task_type: str, has_image: bool = False) -> str
                 if r.status_code == 200:
                     _OLLAMA_TAGS_CACHE["models"] = {m.get("name", "") for m in r.json().get("models", [])}
                     _OLLAMA_TAGS_CACHE["ts"] = now
-        except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError) as exc:
+        except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError, AttributeError) as exc:
             log.debug("Recoverable error suppressed: %s", exc)
     installed = _OLLAMA_TAGS_CACHE["models"]
     if has_image:
@@ -151,10 +151,17 @@ async def call_ollama_chat(
     prompt: str,
     system_prompt: str | None = None,
     image_b64: str | None = None,
+    task_type: str = "genel",
 ) -> tuple[str, str]:
-    """Call master's local Ollama. Returns (content, model_used)."""
+    """Call master's local Ollama with grounded strongest-model selection. Returns (content, model_used)."""
     ollama_url = config.OLLAMA_URL
-    model = config.MASTER_MODEL
+    if task_type == "classifier":
+        model = config.MASTER_MODEL
+    else:
+        try:
+            model = await _select_grounded_model(task_type, has_image=bool(image_b64))
+        except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError, RuntimeError, AttributeError):
+            model = config.MASTER_MODEL
     if image_b64:
         _find_vision_agent()
 
@@ -175,13 +182,8 @@ async def call_ollama_chat(
     )
     try:
         res = await gw.chat(
-            messages,
-            model=model,
-            profile="creative",
-            num_predict=config.ASSISTANT_NUM_PREDICT,
-            timeout_s=180.0,
-            feature="assistant_chat",
-            max_retries=0,
+            messages, model=model, profile="creative", num_predict=config.ASSISTANT_NUM_PREDICT,
+            timeout_s=180.0, feature="assistant_chat", max_retries=0,
         )
     except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError, RuntimeError) as exc:
         raise HTTPException(status_code=502, detail=f"Ollama hatası: {exc}") from exc
@@ -200,13 +202,8 @@ def _safe_pow(base: float, exp: float) -> float:
 
 
 _SAFE_BIN_OPS: dict[type[ast.operator], Any] = {
-    ast.Add: operator.add,
-    ast.Sub: operator.sub,
-    ast.Mult: operator.mul,
-    ast.Div: operator.truediv,
-    ast.FloorDiv: operator.floordiv,
-    ast.Mod: operator.mod,
-    ast.Pow: _safe_pow,
+    ast.Add: operator.add, ast.Sub: operator.sub, ast.Mult: operator.mul,
+    ast.Div: operator.truediv, ast.FloorDiv: operator.floordiv, ast.Mod: operator.mod, ast.Pow: _safe_pow,
 }
 _SAFE_UNARY_OPS: dict[type[ast.unaryop], Any] = {ast.USub: operator.neg, ast.UAdd: operator.pos}
 _ARITHMETIC_ONLY = re.compile(r"^[\d\s()+\-*/.%^]+$")
@@ -246,7 +243,7 @@ async def classify_and_moderate(prompt: str) -> tuple[str, bool]:
     """One classifier call decides both the task category and whether the message is insulting."""
     classifier_prompt = load_prompt("b1_classifier_prompt.txt").replace("{prompt}", prompt)
     try:
-        result, _ = await call_ollama_chat(classifier_prompt)
+        result, _ = await call_ollama_chat(classifier_prompt, task_type="classifier")
     except HTTPException:
         return DEFAULT_TASK, False
     return parse_classifier_response(result)
@@ -299,8 +296,11 @@ async def chat(prompt: str = Form(...), file: UploadFile | None = File(None)):  
             used_model="moderation",
             task_type="engellendi",
         )
-    content, used_model = await call_ollama_chat(full_prompt, system_prompt=ANSWER_SYSTEM_PROMPT, image_b64=image_b64)
-    return ChatResponse(content=content, used_model=used_model, task_type=keyword_task or DEFAULT_TASK)
+    resolved_task = keyword_task or DEFAULT_TASK
+    content, used_model = await call_ollama_chat(
+        full_prompt, system_prompt=ANSWER_SYSTEM_PROMPT, image_b64=image_b64, task_type=resolved_task
+    )
+    return ChatResponse(content=content, used_model=used_model, task_type=resolved_task)
 
 
 @router.get("/media/{filename}")

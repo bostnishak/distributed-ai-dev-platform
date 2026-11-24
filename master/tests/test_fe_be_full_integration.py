@@ -158,3 +158,12 @@ def test_direct_ui_views_interactive_labs_cnc_and_studio_roundtrip(client):
     assert run2.status_code == 200 and "55" in run2.json()["output"]["stdout"] and "256" in run2.json()["output"]["stdout"]
     gm = client.post("/api/games/build", json={"prompt": "Uzay savunma HTML5 oyunu", "genre": "space_shooter"})
     assert gm.status_code == 200
+
+    # 7. Frontier AI routing guards: no false PPTX on advice, no re-zip hijack on ZIP inspection, multi-folder ZIP project allowed
+    import document_factory as df
+    import file_converter as fc
+
+    assert df.detect_document_request("Sunum yaparken nelere dikkat etmeliyim? 3 kısa madde yaz.", False) is None
+    assert df.detect_document_request("Türkiye şehirlerini CSV olarak oluştur", False) == "csv"
+    assert fc.detect_conversion_or_archive_action("Bu ZIP içindeki klasörleri incele, hataları bul", "proje.zip") is None
+    assert fc.detect_conversion_or_archive_action("İçinde docs/, src/, tests/ olan proje klasörü oluştur ve ZIP olarak ver", None) is None

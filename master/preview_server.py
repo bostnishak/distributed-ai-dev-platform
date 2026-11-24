@@ -4,8 +4,8 @@ Serves ONLY static workspace preview files on a dedicated separate origin (`127.
 by default, configurable via `config.PREVIEW_PORT`):
 - Zero `/api/*` endpoints mounted -> generated scripts cannot call master APIs on this origin.
 - No session/CSRF cookies ever issued or accepted on this origin.
-- Enforces `Content-Security-Policy: sandbox allow-scripts; connect-src 'none';` so even
-  embedded scripts execute in an isolated opaque origin.
+- Enforces sandbox CSP allowing interactive web apps (`localStorage`, forms, modals, Canvas,
+  and same-origin static `fetch('./data/...')`) strictly inside the isolated preview origin.
 """
 
 from __future__ import annotations
@@ -13,6 +13,7 @@ from __future__ import annotations
 import logging
 import mimetypes
 import threading
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
@@ -22,6 +23,25 @@ import workspace_builder as wb
 
 preview_app = FastAPI(title="CM6453 Isolated Workspace Preview Origin", docs_url=None, redoc_url=None, openapi_url=None)
 
+_PREVIEW_CSP = (
+    "sandbox allow-scripts allow-same-origin allow-forms allow-modals; "
+    "default-src 'self' 'unsafe-inline' data: blob:; "
+    "connect-src 'self' data: blob:; "
+    "frame-ancestors 'self' http://127.0.0.1:* http://localhost:*"
+)
+
+
+def _resolve_preview_target(ws_dir: Path, rel: str) -> Path | None:
+    """Resolve a preview file inside ws_dir, checking root, public/, and frontend/ safely."""
+    for candidate in (rel, f"public/{rel}", f"frontend/{rel}"):
+        try:
+            path = wb.safe_file_path(ws_dir, candidate)
+        except ValueError:
+            continue
+        if path.is_file():
+            return path
+    return None
+
 
 @preview_app.get("/preview/{ws_id}/{filepath:path}")
 async def serve_isolated_preview(ws_id: str, filepath: str):
@@ -29,15 +49,12 @@ async def serve_isolated_preview(ws_id: str, filepath: str):
     try:
         ws_dir = wb.safe_workspace_dir(ws_id)
         rel = filepath or "index.html"
-        target = wb.safe_file_path(ws_dir, rel)
+        wb.safe_file_path(ws_dir, rel)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    if not target.is_file():
-        alt = ws_dir / "public" / rel
-        if alt.is_file():
-            target = alt
-        else:
-            raise HTTPException(status_code=404, detail="Önizleme dosyası bulunamadı.")
+    target = _resolve_preview_target(ws_dir, rel)
+    if target is None:
+        raise HTTPException(status_code=404, detail="Önizleme dosyası bulunamadı.")
     media, _ = mimetypes.guess_type(str(target))
     return FileResponse(
         target,
@@ -45,10 +62,7 @@ async def serve_isolated_preview(ws_id: str, filepath: str):
         headers={
             "Cache-Control": "no-cache",
             "X-Content-Type-Options": "nosniff",
-            "Content-Security-Policy": (
-                "sandbox allow-scripts; default-src 'self' 'unsafe-inline' data: blob:; "
-                "connect-src 'none';"
-            ),
+            "Content-Security-Policy": _PREVIEW_CSP,
         },
     )
 
