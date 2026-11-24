@@ -890,3 +890,14 @@ ul.plain { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.6; }
 .dadp-toast { padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface, #fff); color: inherit; box-shadow: 0 8px 24px rgba(0,0,0,.22); font-size: 13px; }
 .dadp-toast-ok { border-left: 4px solid #059669; }
 .dadp-toast-err { border-left: 4px solid #dc2626; }
+
+/* Interactive visual labs, Studio breadcrumb & CNC workspace layout */
+.lab-card { display: flex; flex-direction: column; gap: 10px; }
+.lab-deck { display: grid; gap: 10px; margin-top: 8px; }
+.lab-flash-card { border-left: 3px solid var(--accent); padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.lab-conflicts { display: grid; gap: 8px; margin-top: 6px; }
+.lab-chart { margin-top: 8px; overflow-x: auto; }
+.lab-chart svg { max-width: 100%; height: auto; display: block; }
+.studio-breadcrumb { font-size: 12.5px; color: var(--muted); font-family: Consolas, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cnc-workspace { display: flex; flex-direction: column; gap: 16px; margin-top: 14px; }
+.cnc-viewer-card, .cnc-table-card { overflow: hidden; }
