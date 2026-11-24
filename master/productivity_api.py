@@ -18,21 +18,23 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 import config
+import cronjobs
 from access_control import require_local_or_admin
+from kvstore import PersistentDict, PersistentList, PersistentSet
 
 router = APIRouter(prefix="/api/productivity", tags=["productivity"])
 _ADMIN_OR_LOCAL = [Depends(require_local_or_admin)]
 
-_PROJECT_INSTRUCTIONS: dict[str, str] = {}
-_ARCHIVED_CHATS: set[str] = set()
-_DOCUMENT_VERSIONS: dict[str, list[dict[str, Any]]] = defaultdict(list)
-_RESEARCH_HISTORY: list[dict[str, Any]] = []
-_ARCHIVED_PAGES: dict[str, dict[str, Any]] = {}
-_CUSTOM_AGENTS: dict[str, dict[str, Any]] = {}
-_SCHEDULED_TASKS: dict[str, dict[str, Any]] = {}
-_APPROVAL_GATES: dict[str, dict[str, Any]] = {}
-_DRAINED_AGENTS: set[str] = set()
-_SURVEYS: dict[str, dict[str, Any]] = {}
+_PROJECT_INSTRUCTIONS = PersistentDict("project_instructions")
+_ARCHIVED_CHATS = PersistentSet("archived_chats")
+_DOCUMENT_VERSIONS = PersistentDict("document_versions")
+_RESEARCH_HISTORY = PersistentList("research_history")
+_ARCHIVED_PAGES = PersistentDict("archived_pages")
+_CUSTOM_AGENTS = PersistentDict("custom_agents")
+_SCHEDULED_TASKS = PersistentDict("scheduled_tasks")
+_APPROVAL_GATES = PersistentDict("approval_gates")
+_DRAINED_AGENTS = PersistentSet("drained_agents")
+_SURVEYS = PersistentDict("surveys")
 
 TEMPLATE_GALLERY: tuple[dict[str, str], ...] = (
     {"id": "fastapi-rest", "name": "FastAPI REST API", "stack": "Python / FastAPI / SQLite"},
@@ -177,9 +179,11 @@ async def api_memory_timeline(user_id: str = "default"):
 async def api_add_doc_version(doc_id: str, body: TextBody):
     """Store a versioned snapshot of a document (DOS-07)."""
     digest = hashlib.sha256(body.text.encode("utf-8")).hexdigest()[:12]
-    ver = {"doc_version": len(_DOCUMENT_VERSIONS[doc_id]) + 1, "sha256": digest, "chars": len(body.text), "saved_at": datetime.now(UTC).isoformat()}
-    _DOCUMENT_VERSIONS[doc_id].append(ver)
-    return {"doc_id": doc_id, "document_versions": _DOCUMENT_VERSIONS[doc_id]}
+    history = _DOCUMENT_VERSIONS.get(doc_id, [])
+    ver = {"doc_version": len(history) + 1, "sha256": digest, "chars": len(body.text), "saved_at": datetime.now(UTC).isoformat()}
+    history = [*history, ver]
+    _DOCUMENT_VERSIONS[doc_id] = history
+    return {"doc_id": doc_id, "document_versions": history}
 
 
 @router.post("/documents/pdf-page-preview", dependencies=_ADMIN_OR_LOCAL)
@@ -351,11 +355,29 @@ async def api_research_context(query: str = ""):
     return {
         "current_date": today_iso,
         "today_iso": today_iso,
-        "translate_query_hint": f"{query.strip()} (multilingual_search)" if query.strip() else "",
         "research_history": _RESEARCH_HISTORY[-25:],
         "archive_page_count": len(_ARCHIVED_PAGES),
         "download_source_policy": "SSRF-guarded local-first fetcher",
     }
+
+
+class TranslateQueryBody(BaseModel):
+    query: str = Field(..., min_length=1, max_length=500)
+    target: str = "en"
+
+
+@router.post("/research/translate-query")
+async def api_translate_query(body: TranslateQueryBody):
+    """Translate a research query with the master model so sources in another language can be searched (ARS-05)."""
+    import assistant
+
+    system = "Translate the user's search query. Reply with the translated query only: no quotes, no explanation."
+    prompt = f"Target language: {body.target}\nQuery: {body.query.strip()}"
+    content, _model = await assistant.call_ollama_chat(prompt, system)
+    translated = content.strip().splitlines()[0].strip().strip('"') if content.strip() else ""
+    if not translated:
+        raise HTTPException(status_code=502, detail="Model çeviri üretemedi.")
+    return {"query": body.query.strip(), "target": body.target, "translated": translated}
 
 
 @router.post("/media/qrcode")
@@ -483,13 +505,39 @@ async def api_drain_agent(agent_id: str, maintenance_mode: bool = True):
     return {"agent_id": agent_id, "maintenance_mode": agent_id in _DRAINED_AGENTS}
 
 
+async def assistant_runner(prompt: str) -> str:
+    """Run a scheduled prompt through the master's own model (imported lazily to avoid an import cycle)."""
+    import assistant
+
+    content, _model = await assistant.call_ollama_chat(prompt)
+    return content
+
+
 @router.post("/agents/schedule", dependencies=_ADMIN_OR_LOCAL)
 async def api_schedule_job(body: ScheduleJobBody):
-    """Register a cron-scheduled assistant task (AJN-02)."""
-    jid = f"job_{uuid.uuid4().hex[:8]}"
-    rec = {"id": jid, "name": body.name, "cron": body.cron, "prompt": body.prompt, "enabled": True}
-    _SCHEDULED_TASKS[jid] = rec
-    return rec
+    """Register a cron-scheduled assistant task; it is executed by the master's scheduler loop (AJN-02)."""
+    try:
+        return cronjobs.add_job(body.name, body.cron, body.prompt)
+    except cronjobs.CronError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.get("/agents/schedule", dependencies=_ADMIN_OR_LOCAL)
+async def api_list_scheduled_jobs():
+    return {"jobs": _SCHEDULED_TASKS.values(), "runs": cronjobs.recent_runs()}
+
+
+@router.delete("/agents/schedule/{job_id}", dependencies=_ADMIN_OR_LOCAL)
+async def api_delete_scheduled_job(job_id: str):
+    if not cronjobs.remove_job(job_id):
+        raise HTTPException(status_code=404, detail="Zamanlanmış görev bulunamadı.")
+    return {"deleted": job_id}
+
+
+@router.post("/agents/schedule/run-due", dependencies=_ADMIN_OR_LOCAL)
+async def api_run_due_jobs():
+    """Run every job that is due this minute right now (the background loop does this automatically)."""
+    return {"runs": await cronjobs.run_due(assistant_runner)}
 
 
 @router.post("/agents/approvals", dependencies=_ADMIN_OR_LOCAL)
@@ -510,7 +558,7 @@ async def api_admin_logs(limit: int = 50):
         "lines": lines,
         "remediate_actions": ["ollama_check", "db_doctor", "searxng_check"],
         "usage_analytics": {"archived_chats": len(_ARCHIVED_CHATS), "custom_agents": len(_CUSTOM_AGENTS), "scheduled_tasks": len(_SCHEDULED_TASKS)},
-        "ha_master": {"mode": "single-primary", "leader_election": "standby-ready"},
+        "ha_master": {"mode": "single-primary", "leader_election": False, "load_balancer": False},
     }
 
 

@@ -1,5 +1,6 @@
 """Master agent service: web UI, REST API, agent registry and requirements decomposition."""
 
+import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -15,6 +16,7 @@ import backup_manager
 import cnc_api
 import config
 import contract_check
+import cronjobs
 import db
 import distributed
 import domains
@@ -61,7 +63,9 @@ async def lifespan(_app: FastAPI):
     scheduler.start_dag_scheduler()
     preview_server.start_preview_server_background()
     ops.startup()
+    cron_task = asyncio.create_task(cronjobs.loop(productivity_api.assistant_runner))
     yield
+    cron_task.cancel()
     ops.shutdown()
 
 

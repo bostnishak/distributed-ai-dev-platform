@@ -8,7 +8,8 @@ import { translate } from '../../master/static/js/i18n.js';
 import { createReactiveStore, migrateState } from '../../master/static/js/store.js';
 import { parseSlashAndMentions, renderConfidenceBadgeHtml } from '../../master/static/js/ux_shell.js';
 
-test('sanitizer strips script tags, event handlers, and javascript URIs', () => {
+// Node has no DOMParser; the same behaviour is verified in a real browser by master/tests/test_xss_sanitizer_browser.py.
+test('sanitizer strips script tags, event handlers, and javascript URIs', { skip: typeof DOMParser === 'undefined' }, () => {
   const dirty = '<svg onload="alert(1)"><script>evil()</script><a href="javascript:alert(2)">ok</a><circle r="5"/></svg>';
   const clean = sanitizeHtmlOrSvg(dirty);
   assert.ok(!clean.includes('<script'));

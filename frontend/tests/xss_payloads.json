@@ -1,0 +1,10 @@
+{"bad":[
+"<img src=x onerror=alert(1)>","<img/src=x/onerror=alert(1)>","<svg/onload=alert(1)>","<a href=javascript&#58;alert(1)>x</a>",
+"<a href=\"java&#115;cript:alert(1)\">x</a>","<a href=\"&#106;avascript:alert(1)\">x</a>","<a href=\" jav\tascript:alert(1)\">x</a>",
+"<iframe srcdoc=\"<script>alert(1)</script>\"></iframe>","<body onload=alert(1)>","<details open ontoggle=alert(1)>",
+"<math><mi xlink:href=\"javascript:alert(1)\">x</mi></math>","<scr<script>ipt>alert(1)</scr</script>ipt>","<img src=\"x\" \"onerror=alert(1)>",
+"<svg><a xlink:href=\"javascript:alert(1)\"><text>x</text></a></svg>","<svg><script>alert(1)</script></svg>","<svg><foreignObject><iframe/></foreignObject></svg>",
+"<style>@import \"x\"</style>","<a href=\"data:text/html,<script>alert(1)</script>\">x</a>","<img src=\"data:image/svg+xml;base64,PHN2Zz4=\">",
+"<div style=\"background:url(javascript:alert(1))\">x</div>","<form action=javascript:alert(1)><button>x</button></form>","<object data=x></object>",
+"<svg><set attributeName=onmouseover to=alert(1)/></svg>","<svg><animate onbegin=alert(1) attributeName=x /></svg>","<!--<img src=--><img src=x onerror=alert(1)//>"],
+"good":["<p class=\"a\"><b>bold</b> <a href=\"https://x.org\" target=\"_blank\">l</a></p>","<svg viewBox=\"0 0 10 10\"><rect x=\"1\" y=\"1\" width=\"3\" height=\"3\" fill=\"red\"/></svg>","<table><tr><td>1</td></tr></table>","<img src=\"/a.png\" alt=\"a\">"]}

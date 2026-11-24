@@ -43,9 +43,11 @@ def _extract_frontend_routes(js_dir: Path) -> set[str]:
 def _extract_backend_routes(app) -> set[str]:
     """Return all normalized /api/ route paths registered with the FastAPI app (including included routers)."""
     routes: set[str] = set()
-    for path in (app.openapi().get("paths") or {}).keys():
-        if path.startswith("/api/"):
-            routes.add(_normalize_path(path))
+    openapi = getattr(app, "openapi", None)
+    if callable(openapi):
+        for path in (openapi().get("paths") or {}):
+            if path.startswith("/api/"):
+                routes.add(_normalize_path(path))
     for route in app.routes:
         path = getattr(route, "path", "")
         if path.startswith("/api/"):

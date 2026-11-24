@@ -21,6 +21,7 @@ import validation as val_module
 from agents_api import require_agent_auth, require_agent_token
 from audit_log import AuditTrail
 from benchmarks import BENCHMARK_BY_ID, aggregate_dimension_scores, score_response
+from kvstore import PersistentSet
 from selection import select_agent
 
 router = APIRouter(tags=["tasks"])
@@ -71,6 +72,10 @@ def next_task(
     agent = db.get_agent(agent_id)
     if not agent:
         raise HTTPException(status_code=404, detail="Ajan bulunamadı.")
+
+    # AJN-05: an agent in maintenance mode receives no new work (tasks already running there are untouched).
+    if agent_id in PersistentSet("drained_agents"):
+        return Response(status_code=204)
 
     # First: check if there's already a task assigned to this agent
     task = db.get_next_task_for_agent(agent_id)
