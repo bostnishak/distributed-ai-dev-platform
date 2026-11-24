@@ -2,101 +2,181 @@
 
 export const PRODUCTIVITY_TOOLS = [
   // Kod araçları
-  { id: 'code-explain', group: 'Kod & Geliştirme', title: 'Kodu Açıkla', method: 'POST', path: '/api/productivity/code/explain',
-    body: { text: 'def fib(n):\n    return n if n < 2 else fib(n-1) + fib(n-2)' } },
-  { id: 'code-translate', group: 'Kod & Geliştirme', title: 'Kod Dili Çevir', method: 'POST', path: '/api/productivity/code/translate',
-    body: { code: 'def add(a, b): return a + b', source_lang: 'python', target_lang: 'javascript' } },
-  { id: 'research-translate', group: 'Araştırma', title: 'Sorguyu Çevir (model)', method: 'POST', path: '/api/productivity/research/translate-query',
-    body: { query: 'yapay zeka ile halüsinasyon azaltma', target: 'en' } },
+  {
+    id: 'code-explain', group: 'Kod & Geliştirme', title: 'Kodu Açıkla', method: 'POST', path: '/api/productivity/code/explain',
+    body: { text: 'def fib(n):\n    return n if n < 2 else fib(n-1) + fib(n-2)' }
+  },
+  {
+    id: 'code-translate', group: 'Kod & Geliştirme', title: 'Kod Dili Çevir', method: 'POST', path: '/api/productivity/code/translate',
+    body: { code: 'def add(a, b): return a + b', source_lang: 'python', target_lang: 'javascript' }
+  },
+  {
+    id: 'research-translate', group: 'Araştırma', title: 'Sorguyu Çevir (model)', method: 'POST', path: '/api/productivity/research/translate-query',
+    body: { query: 'yapay zeka ile halüsinasyon azaltma', target: 'en' }
+  },
   { id: 'schedule-run-due', group: 'Ajanlar', title: 'Zamanı Gelen Görevleri Çalıştır', method: 'POST', path: '/api/productivity/agents/schedule/run-due', body: {} },
   { id: 'schedule-delete', group: 'Ajanlar', title: 'Zamanlanmış Görevi Sil', method: 'DELETE', path: '/api/productivity/agents/schedule/{job_id}', params: { job_id: 'job_ornek' } },
   { id: 'totp-enroll', group: 'Güvenlik', title: 'İki Aşamalı Doğrulamayı Başlat', method: 'POST', path: '/api/auth/totp/enroll', body: {} },
   { id: 'totp-enable', group: 'Güvenlik', title: 'İki Aşamalı Doğrulamayı Onayla', method: 'POST', path: '/api/auth/totp/enable', body: { code: '000000' } },
   { id: 'totp-disable', group: 'Güvenlik', title: 'İki Aşamalı Doğrulamayı Kapat', method: 'POST', path: '/api/auth/totp/disable', body: { code: '000000' } },
-  { id: 'code-regex', group: 'Kod & Geliştirme', title: 'Regex Test Aracı', method: 'POST', path: '/api/productivity/code/regex-tester',
-    body: { pattern: '\\b\\d{4}-\\d{2}-\\d{2}\\b', text: 'Teslim: 2026-11-24 ve 2026-12-01' } },
+  {
+    id: 'code-regex', group: 'Kod & Geliştirme', title: 'Regex Test Aracı', method: 'POST', path: '/api/productivity/code/regex-tester',
+    body: { pattern: '\\b\\d{4}-\\d{2}-\\d{2}\\b', text: 'Teslim: 2026-11-24 ve 2026-12-01' }
+  },
   { id: 'code-templates', group: 'Kod & Geliştirme', title: 'Proje Şablonları', method: 'GET', path: '/api/productivity/code/templates' },
-  { id: 'code-gitlog', group: 'Kod & Geliştirme', title: 'Çalışma Alanı Git Geçmişi', method: 'GET', path: '/api/productivity/code/git-log/{ws_id}',
-    params: { ws_id: 'demo' } },
-  { id: 'studio-actions', group: 'Kod & Geliştirme', title: 'Kod Stüdyosu Aksiyonu Çalıştır', method: 'POST', path: '/api/studio/workspaces/{id}/actions',
-    params: { id: 'demo' }, body: { action: 'run_tests' } },
-  { id: 'studio-server', group: 'Kod & Geliştirme', title: 'Geliştirme Sunucusunu Başlat', method: 'POST', path: '/api/studio/workspaces/{id}/start-server',
-    params: { id: 'demo' }, body: {} },
+  {
+    id: 'code-gitlog', group: 'Kod & Geliştirme', title: 'Çalışma Alanı Git Geçmişi', method: 'GET', path: '/api/productivity/code/git-log/{ws_id}',
+    params: { ws_id: 'demo' }
+  },
+  {
+    id: 'studio-actions', group: 'Kod & Geliştirme', title: 'Kod Stüdyosu Aksiyonu Çalıştır', method: 'POST', path: '/api/studio/workspaces/{id}/actions',
+    params: { id: 'demo' }, body: { action: 'run_tests' }
+  },
+  {
+    id: 'studio-server', group: 'Kod & Geliştirme', title: 'Geliştirme Sunucusunu Başlat', method: 'POST', path: '/api/studio/workspaces/{id}/start-server',
+    params: { id: 'demo' }, body: {}
+  },
 
   // Veri & Analiz araçları
-  { id: 'data-clean', group: 'Veri & Analiz', title: 'Veri Temizleme', method: 'POST', path: '/api/productivity/data/clean',
-    body: { rows: [{ ad: '  Ali ', yas: '28' }, { ad: 'Ali', yas: '28' }] } },
-  { id: 'data-pivot', group: 'Veri & Analiz', title: 'Pivot Tablo Oluştur', method: 'POST', path: '/api/productivity/data/pivot',
-    body: { rows: [{ bolge: 'Marmara', tutar: 120 }, { bolge: 'Marmara', tutar: 80 }], row_key: 'bolge', value_key: 'tutar' } },
-  { id: 'data-chart', group: 'Veri & Analiz', title: 'Grafik Türü Öner', method: 'POST', path: '/api/productivity/data/suggest-chart',
-    body: { rows: [{ tarih: '2026-01', satis: 120 }, { tarih: '2026-02', satis: 155 }] } },
-  { id: 'data-dash', group: 'Veri & Analiz', title: 'Etkileşimli HTML Pano Üret', method: 'POST', path: '/api/productivity/data/dashboard-html',
-    body: { rows: [{ kategori: 'Yazılım', tutar: 124500 }, { kategori: 'Donanım', tutar: 82000 }] } },
-  { id: 'data-survey', group: 'Veri & Analiz', title: 'Anket Oluştur ve Analiz Et', method: 'POST', path: '/api/productivity/data/surveys',
-    body: { title: 'Müşteri Memnuniyeti', fields: [{ name: 'hiz', label: 'Hızdan memnun musunuz?', type: 'rating' }] } },
-  { id: 'st-profile', group: 'Veri & Analiz', title: 'Veri Seti Profilleme', method: 'POST', path: '/api/studios/data/profile',
-    body: { rows: [{ x: 10, y: 20 }, { x: 15, y: 31 }, { x: 22, y: 45 }] } },
-  { id: 'st-forecast', group: 'Veri & Analiz', title: 'Zaman Serisi Tahmini', method: 'POST', path: '/api/studios/data/forecast',
-    body: { series: [100, 112, 125, 138, 150], horizon: 3 } },
-  { id: 'st-stat', group: 'Veri & Analiz', title: 'İstatistiksel Hipotez Testi', method: 'POST', path: '/api/studios/data/stat-test',
-    body: { group_a: [10, 12, 11, 13], group_b: [16, 18, 17, 19] } },
+  {
+    id: 'data-clean', group: 'Veri & Analiz', title: 'Veri Temizleme', method: 'POST', path: '/api/productivity/data/clean',
+    body: { rows: [{ ad: '  Ali ', yas: '28' }, { ad: 'Ali', yas: '28' }] }
+  },
+  {
+    id: 'data-pivot', group: 'Veri & Analiz', title: 'Pivot Tablo Oluştur', method: 'POST', path: '/api/productivity/data/pivot',
+    body: { rows: [{ bolge: 'Marmara', tutar: 120 }, { bolge: 'Marmara', tutar: 80 }], row_key: 'bolge', value_key: 'tutar' }
+  },
+  {
+    id: 'data-chart', group: 'Veri & Analiz', title: 'Grafik Türü Öner', method: 'POST', path: '/api/productivity/data/suggest-chart',
+    body: { rows: [{ tarih: '2026-01', satis: 120 }, { tarih: '2026-02', satis: 155 }] }
+  },
+  {
+    id: 'data-dash', group: 'Veri & Analiz', title: 'Etkileşimli HTML Pano Üret', method: 'POST', path: '/api/productivity/data/dashboard-html',
+    body: { rows: [{ kategori: 'Yazılım', tutar: 124500 }, { kategori: 'Donanım', tutar: 82000 }] }
+  },
+  {
+    id: 'data-survey', group: 'Veri & Analiz', title: 'Anket Oluştur ve Analiz Et', method: 'POST', path: '/api/productivity/data/surveys',
+    body: { title: 'Müşteri Memnuniyeti', fields: [{ name: 'hiz', label: 'Hızdan memnun musunuz?', type: 'rating' }] }
+  },
+  {
+    id: 'st-profile', group: 'Veri & Analiz', title: 'Veri Seti Profilleme', method: 'POST', path: '/api/studios/data/profile',
+    body: { rows: [{ x: 10, y: 20 }, { x: 15, y: 31 }, { x: 22, y: 45 }] }
+  },
+  {
+    id: 'st-forecast', group: 'Veri & Analiz', title: 'Zaman Serisi Tahmini', method: 'POST', path: '/api/studios/data/forecast',
+    body: { series: [100, 112, 125, 138, 150], horizon: 3 }
+  },
+  {
+    id: 'st-stat', group: 'Veri & Analiz', title: 'İstatistiksel Hipotez Testi', method: 'POST', path: '/api/studios/data/stat-test',
+    body: { group_a: [10, 12, 11, 13], group_b: [16, 18, 17, 19] }
+  },
 
   // Belge, Sunum & Medya
-  { id: 'doc-mail', group: 'Belge, Sunum & Medya', title: 'Toplu Belge / Mail Merge', method: 'POST', path: '/api/productivity/documents/mail-merge',
-    body: { template: 'Sayın {{ad}}, randevunuz {{tarih}} tarihindedir.', records: [{ ad: 'Ayşe', tarih: '2026-11-30' }] } },
-  { id: 'doc-pdf-prev', group: 'Belge, Sunum & Medya', title: 'PDF Sayfa Önizleme', method: 'POST', path: '/api/productivity/documents/pdf-page-preview',
-    query: { page: 0 } },
-  { id: 'doc-ver', group: 'Belge, Sunum & Medya', title: 'Belge Sürümü Kaydet', method: 'POST', path: '/api/productivity/documents/{doc_id}/versions',
-    params: { doc_id: 'rapor-1' }, body: { text: 'Sürüm 1 taslağı ve teknik özet.' } },
-  { id: 'st-doc-audit', group: 'Belge, Sunum & Medya', title: 'Belge Kalite Denetimi', method: 'POST', path: '/api/studios/documents/audit',
-    query: { text: 'Rapor başlığı ve özet metni.' } },
-  { id: 'slides-rehearse', group: 'Belge, Sunum & Medya', title: 'Sunum Provası ve Süre Tahmini', method: 'POST', path: '/api/productivity/slides/rehearse',
-    body: { text: 'Bugün yerel yapay zeka platformumuzun mimarisini ve test sonuçlarını tanıtıyoruz.' } },
+  {
+    id: 'doc-mail', group: 'Belge, Sunum & Medya', title: 'Toplu Belge / Mail Merge', method: 'POST', path: '/api/productivity/documents/mail-merge',
+    body: { template: 'Sayın {{ad}}, randevunuz {{tarih}} tarihindedir.', records: [{ ad: 'Ayşe', tarih: '2026-11-30' }] }
+  },
+  {
+    id: 'doc-pdf-prev', group: 'Belge, Sunum & Medya', title: 'PDF Sayfa Önizleme', method: 'POST', path: '/api/productivity/documents/pdf-page-preview',
+    query: { page: 0 }
+  },
+  {
+    id: 'doc-ver', group: 'Belge, Sunum & Medya', title: 'Belge Sürümü Kaydet', method: 'POST', path: '/api/productivity/documents/{doc_id}/versions',
+    params: { doc_id: 'rapor-1' }, body: { text: 'Sürüm 1 taslağı ve teknik özet.' }
+  },
+  {
+    id: 'st-doc-audit', group: 'Belge, Sunum & Medya', title: 'Belge Kalite Denetimi', method: 'POST', path: '/api/studios/documents/audit',
+    query: { text: 'Rapor başlığı ve özet metni.' }
+  },
+  {
+    id: 'slides-rehearse', group: 'Belge, Sunum & Medya', title: 'Sunum Provası ve Süre Tahmini', method: 'POST', path: '/api/productivity/slides/rehearse',
+    body: { text: 'Bugün yerel yapay zeka platformumuzun mimarisini ve test sonuçlarını tanıtıyoruz.' }
+  },
   { id: 'slides-icons', group: 'Belge, Sunum & Medya', title: 'Sunum İkon Kütüphanesi', method: 'GET', path: '/api/productivity/slides/icons' },
-  { id: 'st-ppt-outline', group: 'Belge, Sunum & Medya', title: 'Sunum Taslağı Üret', method: 'POST', path: '/api/studios/presentation/outline',
-    query: { topic: 'Yerel Yapay Zeka Mimarisi', duration_minutes: 15 } },
-  { id: 'st-research', group: 'Belge, Sunum & Medya', title: 'Derin Araştırma Çalıştır', method: 'POST', path: '/api/studios/research',
-    body: { topic: 'Dağıtık ajan sistemlerinde görev çizelgeleme', max_sources: 3 } },
+  {
+    id: 'st-ppt-outline', group: 'Belge, Sunum & Medya', title: 'Sunum Taslağı Üret', method: 'POST', path: '/api/studios/presentation/outline',
+    query: { topic: 'Yerel Yapay Zeka Mimarisi', duration_minutes: 15 }
+  },
+  {
+    id: 'st-research', group: 'Belge, Sunum & Medya', title: 'Derin Araştırma Çalıştır', method: 'POST', path: '/api/studios/research',
+    body: { topic: 'Dağıtık ajan sistemlerinde görev çizelgeleme', max_sources: 3 }
+  },
   { id: 'st-caps', group: 'Belge, Sunum & Medya', title: 'Stüdyo Yetenekleri', method: 'GET', path: '/api/studios/capabilities' },
-  { id: 'st-media-anon', group: 'Belge, Sunum & Medya', title: 'Görsel/Medya Anonimleştirme', method: 'POST', path: '/api/studios/media/anonymize',
-    body: { text: 'TC: 12345678901, Tel: 05321234567' } },
-  { id: 'st-media-diag', group: 'Belge, Sunum & Medya', title: 'Mermaid Diyagram Doğrula', method: 'POST', path: '/api/studios/media/diagram/validate',
-    body: { code: 'flowchart LR\n  A[Kullanıcı] --> B[Master]' } },
-  { id: 'st-media-get', group: 'Belge, Sunum & Medya', title: 'Stüdyo Medyası Getir', method: 'GET', path: '/api/studios/media/{media_id}',
-    params: { media_id: 'sample' }, query: { user_id: 'default', exp: '1999999999', sig: 'demo-sig' } },
-  { id: 'asst-media', group: 'Belge, Sunum & Medya', title: 'Asistan Medya Dosyası', method: 'GET', path: '/api/assistant/media/{filename}',
-    params: { filename: 'preview.png' } },
-  { id: 'media-qr', group: 'Belge, Sunum & Medya', title: 'QR Kod Üretici', method: 'POST', path: '/api/productivity/media/qrcode',
-    body: { text: 'dadp-local-workspace' } },
-  { id: 'media-geo', group: 'Belge, Sunum & Medya', title: 'Coğrafi Mesafe Hesapla', method: 'POST', path: '/api/productivity/media/geocode-distance',
-    body: { lat1: 41.0082, lon1: 28.9784, lat2: 39.9334, lon2: 32.8597 } },
-  { id: 'int-ics', group: 'Entegrasyon & İletişim', title: 'Takvim Etkinliği (.ics) Üret', method: 'POST', path: '/api/productivity/integrations/calendar.ics',
-    body: { title: 'Sprint İnceleme', start_iso: '2026-11-25T10:00:00Z', end_iso: '2026-11-25T10:45:00Z', location: 'Toplantı Salonu' } },
-  { id: 'int-social', group: 'Entegrasyon & İletişim', title: 'Sosyal Medya Metni Biçimlendir', method: 'POST', path: '/api/productivity/integrations/social-format',
-    body: { text: 'Yerel yapay zeka sürümümüz yayında.' } },
-  { id: 'int-bot', group: 'Entegrasyon & İletişim', title: 'Telegram / WhatsApp Bot Webhook', method: 'POST', path: '/api/productivity/integrations/bot-webhook',
-    query: { channel: 'telegram' }, body: { text: 'Merhaba platform' } },
-  { id: 'chat-autotitle', group: 'Entegrasyon & İletişim', title: 'Sohbet Otomatik Başlık', method: 'POST', path: '/api/productivity/chats/auto-title',
-    body: { text: 'AISI 4140 çelik için torna kesme parametreleri nelerdir?' } },
+  {
+    id: 'st-media-anon', group: 'Belge, Sunum & Medya', title: 'Görsel/Medya Anonimleştirme', method: 'POST', path: '/api/studios/media/anonymize',
+    body: { text: 'TC: 12345678901, Tel: 05321234567' }
+  },
+  {
+    id: 'st-media-diag', group: 'Belge, Sunum & Medya', title: 'Mermaid Diyagram Doğrula', method: 'POST', path: '/api/studios/media/diagram/validate',
+    body: { code: 'flowchart LR\n  A[Kullanıcı] --> B[Master]' }
+  },
+  {
+    id: 'st-media-get', group: 'Belge, Sunum & Medya', title: 'Stüdyo Medyası Getir', method: 'GET', path: '/api/studios/media/{media_id}',
+    params: { media_id: 'sample' }, query: { user_id: 'default', exp: '1999999999', sig: 'demo-sig' }
+  },
+  {
+    id: 'asst-media', group: 'Belge, Sunum & Medya', title: 'Asistan Medya Dosyası', method: 'GET', path: '/api/assistant/media/{filename}',
+    params: { filename: 'preview.png' }
+  },
+  {
+    id: 'media-qr', group: 'Belge, Sunum & Medya', title: 'QR Kod Üretici', method: 'POST', path: '/api/productivity/media/qrcode',
+    body: { text: 'dadp-local-workspace' }
+  },
+  {
+    id: 'media-geo', group: 'Belge, Sunum & Medya', title: 'Coğrafi Mesafe Hesapla', method: 'POST', path: '/api/productivity/media/geocode-distance',
+    body: { lat1: 41.0082, lon1: 28.9784, lat2: 39.9334, lon2: 32.8597 }
+  },
+  {
+    id: 'int-ics', group: 'Entegrasyon & İletişim', title: 'Takvim Etkinliği (.ics) Üret', method: 'POST', path: '/api/productivity/integrations/calendar.ics',
+    body: { title: 'Sprint İnceleme', start_iso: '2026-11-25T10:00:00Z', end_iso: '2026-11-25T10:45:00Z', location: 'Toplantı Salonu' }
+  },
+  {
+    id: 'int-social', group: 'Entegrasyon & İletişim', title: 'Sosyal Medya Metni Biçimlendir', method: 'POST', path: '/api/productivity/integrations/social-format',
+    body: { text: 'Yerel yapay zeka sürümümüz yayında.' }
+  },
+  {
+    id: 'int-bot', group: 'Entegrasyon & İletişim', title: 'Telegram / WhatsApp Bot Webhook', method: 'POST', path: '/api/productivity/integrations/bot-webhook',
+    query: { channel: 'telegram' }, body: { text: 'Merhaba platform' }
+  },
+  {
+    id: 'chat-autotitle', group: 'Entegrasyon & İletişim', title: 'Sohbet Otomatik Başlık', method: 'POST', path: '/api/productivity/chats/auto-title',
+    body: { text: 'AISI 4140 çelik için torna kesme parametreleri nelerdir?' }
+  },
   { id: 'res-context', group: 'Entegrasyon & İletişim', title: 'Araştırma Bağlam Özeti', method: 'GET', path: '/api/productivity/research/context' },
 
   // Yazılım Fabrikası, Oyun Stüdyosu & CNC Ölçüm
   { id: 'fac-tpl', group: 'Fabrika & Oyun Stüdyosu', title: 'Yazılım Fabrikası Şablonları', method: 'GET', path: '/api/factory/templates' },
-  { id: 'fac-plan', group: 'Fabrika & Oyun Stüdyosu', title: 'Mimari Plan Üret', method: 'POST', path: '/api/factory/plan',
-    body: { prompt: 'FastAPI tabanlı basit stok takip servisi mimarisi oluştur' } },
-  { id: 'fac-build', group: 'Fabrika & Oyun Stüdyosu', title: 'Fabrika Derleme Çalıştır', method: 'POST', path: '/api/factory/build',
-    body: { prompt: 'Python CLI stok takip aracı oluştur' } },
-  { id: 'fac-diff', group: 'Fabrika & Oyun Stüdyosu', title: 'Hunk Diff Üret', method: 'POST', path: '/api/factory/hunk-diff',
-    body: { old_text: 'x = 1\ny = 2\n', new_text: 'x = 1\ny = 3\n', filename: 'app.py' } },
-  { id: 'fac-sast', group: 'Fabrika & Oyun Stüdyosu', title: 'SAST Güvenlik Taraması', method: 'POST', path: '/api/factory/workspaces/{plan_id}/sast',
-    params: { plan_id: 'demo' }, body: {} },
-  { id: 'fac-pkg', group: 'Fabrika & Oyun Stüdyosu', title: 'Çalışma Alanını Paketle', method: 'POST', path: '/api/factory/workspaces/{plan_id}/package',
-    params: { plan_id: 'demo' }, body: {} },
+  {
+    id: 'fac-plan', group: 'Fabrika & Oyun Stüdyosu', title: 'Mimari Plan Üret', method: 'POST', path: '/api/factory/plan',
+    body: { prompt: 'FastAPI tabanlı basit stok takip servisi mimarisi oluştur' }
+  },
+  {
+    id: 'fac-build', group: 'Fabrika & Oyun Stüdyosu', title: 'Fabrika Derleme Çalıştır', method: 'POST', path: '/api/factory/build',
+    body: { prompt: 'Python CLI stok takip aracı oluştur' }
+  },
+  {
+    id: 'fac-diff', group: 'Fabrika & Oyun Stüdyosu', title: 'Hunk Diff Üret', method: 'POST', path: '/api/factory/hunk-diff',
+    body: { old_text: 'x = 1\ny = 2\n', new_text: 'x = 1\ny = 3\n', filename: 'app.py' }
+  },
+  {
+    id: 'fac-sast', group: 'Fabrika & Oyun Stüdyosu', title: 'SAST Güvenlik Taraması', method: 'POST', path: '/api/factory/workspaces/{plan_id}/sast',
+    params: { plan_id: 'demo' }, body: {}
+  },
+  {
+    id: 'fac-pkg', group: 'Fabrika & Oyun Stüdyosu', title: 'Çalışma Alanını Paketle', method: 'POST', path: '/api/factory/workspaces/{plan_id}/package',
+    params: { plan_id: 'demo' }, body: {}
+  },
   { id: 'game-genres', group: 'Fabrika & Oyun Stüdyosu', title: 'Oyun Türleri', method: 'GET', path: '/api/games/genres' },
-  { id: 'game-build', group: 'Fabrika & Oyun Stüdyosu', title: 'Oyun Prototipi Üret', method: 'POST', path: '/api/games/build',
-    body: { prompt: 'Uzay Kaşifi HTML5 uzay savunma oyunu oluştur', genre: 'space_shooter' } },
-  { id: 'game-lvl', group: 'Fabrika & Oyun Stüdyosu', title: 'Oyun Seviyesi Doğrula', method: 'POST', path: '/api/games/level/validate',
-    body: { grid: ['S..', '.#.', '..G'] } },
-  { id: 'cnc-eval', group: 'Fabrika & Oyun Stüdyosu', title: 'CNC Ölçüm Değerlendirme', method: 'POST', path: '/api/cnc/jobs/{id}/evaluate-measurements',
-    params: { id: 'demo' }, body: { measurements: { '1': [25.01, 25.02] } } },
+  {
+    id: 'game-build', group: 'Fabrika & Oyun Stüdyosu', title: 'Oyun Prototipi Üret', method: 'POST', path: '/api/games/build',
+    body: { prompt: 'Uzay Kaşifi HTML5 uzay savunma oyunu oluştur', genre: 'space_shooter' }
+  },
+  {
+    id: 'game-lvl', group: 'Fabrika & Oyun Stüdyosu', title: 'Oyun Seviyesi Doğrula', method: 'POST', path: '/api/games/level/validate',
+    body: { grid: ['S..', '.#.', '..G'] }
+  },
+  {
+    id: 'cnc-eval', group: 'Fabrika & Oyun Stüdyosu', title: 'CNC Ölçüm Değerlendirme', method: 'POST', path: '/api/cnc/jobs/{id}/evaluate-measurements',
+    params: { id: 'demo' }, body: { measurements: { '1': [25.01, 25.02] } }
+  },
 ];
