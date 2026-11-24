@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-24T06:50:22+00:00",
+ "generated_at": "2026-11-24T07:00:18+00:00",
  "items": {
   "SOH-01": {
    "status": "done",
@@ -210,10 +210,12 @@
    }
   },
   "KOD-01": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
@@ -698,18 +700,22 @@
    }
   },
   "ENT-02": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
   "ENT-03": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
@@ -1258,10 +1264,12 @@
    }
   },
   "ALT-13": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
@@ -7342,210 +7350,288 @@
    }
   },
   "SQL-01": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py",
+     "master/tests/test_data_layer.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
   "SQL-02": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py",
+     "master/tests/test_data_layer.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
   "SQL-03": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py",
+     "master/tests/test_data_layer.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
   "SQL-04": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py",
+     "master/tests/test_data_layer.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
   "SQL-05": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py",
+     "master/tests/test_data_layer.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
   "SQL-06": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py",
+     "master/tests/test_data_layer.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
   "SQL-07": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py",
+     "master/tests/test_data_layer.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
   "SQL-08": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py",
+     "master/tests/test_data_layer.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
   "SQL-09": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py",
+     "master/tests/test_data_layer.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
   "SQL-10": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py",
+     "master/tests/test_data_layer.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
   "SQL-11": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py",
+     "master/tests/test_data_layer.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
   "SQL-12": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py",
+     "master/tests/test_data_layer.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
   "SQL-13": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py",
+     "master/tests/test_data_layer.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
   "SQL-14": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py",
+     "master/tests/test_data_layer.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
   "SQL-15": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py",
+     "master/tests/test_data_layer.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
   "SQL-16": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py",
+     "master/tests/test_data_layer.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
   "SQL-17": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py",
+     "master/tests/test_data_layer.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
   "SQL-18": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py",
+     "master/tests/test_data_layer.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
   "SQL-19": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py",
+     "master/tests/test_data_layer.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
   "SQL-20": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py",
+     "master/tests/test_data_layer.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
   "SQL-21": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py",
+     "master/tests/test_data_layer.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
   "SQL-22": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py",
+     "master/tests/test_data_layer.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
   "SQL-23": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py",
+     "master/tests/test_data_layer.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
   "SQL-24": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py",
+     "master/tests/test_data_layer.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
   "SQL-25": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py",
+     "master/tests/test_data_layer.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
   "SQL-26": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_plan_v3_f204_capabilities.py",
+     "master/tests/test_data_layer.py"
+    ],
+    "commit": "425fd6d",
     "eval_report": ""
    }
   },
