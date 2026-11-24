@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 from access_control import require_local_or_admin
 from rag.store import default_rag_store
 from rag.web import web_search
+from safe_archive import declared_matches_content, scan_active_content
 
 router = APIRouter(prefix="/api/rag", tags=["rag"])
 _LOCAL_OR_ADMIN = [Depends(require_local_or_admin)]
@@ -89,13 +90,19 @@ async def api_ingest_file(
         raise HTTPException(status_code=413, detail="Dosya 25 MB sınırını aşıyor.")
     if not data:
         raise HTTPException(status_code=400, detail="Dosya boş.")
+    if not declared_matches_content(name, data[:512]):
+        raise HTTPException(status_code=415, detail=f"{name}: içerik uzantıyla uyuşmuyor (dosya türü sahteciliği).")
     with tempfile.TemporaryDirectory() as tmp:
         path = Path(tmp) / name
         path.write_bytes(data)
         try:
-            return await default_rag_store.ingest_document(
+            result = await default_rag_store.ingest_document(
                 collection_id=collection_id, file_path=path, title=name, user_id=user_id
             )
+            warnings = scan_active_content(data, name)
+            if warnings and isinstance(result, dict):
+                result["active_content_warnings"] = warnings  # SEC-08: text was indexed, nothing was executed
+            return result
         except Exception as exc:
             raise HTTPException(status_code=422, detail=f"{name} dizinlenemedi: {exc}") from exc
 

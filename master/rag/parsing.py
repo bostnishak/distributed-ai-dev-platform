@@ -9,6 +9,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from injection import detect_injection
+
 _INJECTION_PATTERNS: tuple[re.Pattern[str], ...] = (
     re.compile(r"ignore\s+(?:all\s+)?previous\s+instructions", re.IGNORECASE),
     re.compile(r"system\s+prompt\s+override", re.IGNORECASE),
@@ -74,9 +76,10 @@ def scan_ingest_security(text: str) -> dict[str, Any]:
     """RAG-24: Detect prompt injection, active scripts, and PII before indexing."""
     injection_hits = [p.pattern for p in _INJECTION_PATTERNS if p.search(text or "")]
     pii_tags = [label for label, pat in _PII_PATTERNS if pat.search(text or "")]
+    verdict = detect_injection(text or "")
     return {
-        "quarantine": len(injection_hits) > 0,
-        "injection_hits": injection_hits,
+        "quarantine": len(injection_hits) > 0 or verdict["flagged"],
+        "injection_hits": injection_hits + [f"signal:{name}" for name in verdict["signals"]],
         "pii_tags": pii_tags,
     }
 

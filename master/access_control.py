@@ -16,9 +16,22 @@ import config
 LOCAL_HOSTS = frozenset({"127.0.0.1", "::1", "localhost", "testclient"})
 
 
+def _session_is_admin(request: Request) -> bool:
+    """A signed-in user whose role is admin may use these routes from any address (SEC-05)."""
+    try:
+        from auth import service
+
+        user = service.get_session_user(request.cookies.get(service.SESSION_COOKIE_NAME))
+    except Exception:  # an unreadable auth store must never grant access
+        return False
+    return bool(user and user.get("role") == "admin")
+
+
 def require_local_or_admin(request: Request) -> None:
     host = request.client.host if request.client else ""
-    if host in LOCAL_HOSTS:
+    if _session_is_admin(request):
+        return
+    if host in LOCAL_HOSTS and config.LOOPBACK_PRIVILEGE:
         return
     expected = config.ADMIN_TOKEN
     supplied = request.headers.get("x-admin-token", "")

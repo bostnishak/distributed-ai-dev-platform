@@ -11,6 +11,7 @@ import db
 import decompose
 import llm
 from extract import REQUIREMENT_EXTENSIONS, UnsupportedFileError, extract_text
+from ratelimit import heavy_jobs
 
 log = logging.getLogger(__name__)
 
@@ -25,7 +26,17 @@ llm_chat = llm.chat_structured
 INTERRUPTED_MESSAGE = "Master yeniden başlatıldığı için analiz yarıda kaldı. Yeniden analiz edebilirsiniz."
 
 
-async def run_analysis(project_id: int) -> None:
+async def run_analysis(project_id: int, user: str = "default") -> None:
+    # SEC-06: one user's extra heavy jobs wait in line here; the check never blocks the event loop.
+    while not heavy_jobs.try_start(user):  # noqa: ASYNC110 - the limiter is thread-based, so there is no Event to await
+        await asyncio.sleep(0.25)
+    try:
+        await _run_analysis_locked(project_id)
+    finally:
+        heavy_jobs.finish(user)
+
+
+async def _run_analysis_locked(project_id: int) -> None:
     async with _analysis_slot:
         project = db.get_project(project_id)
         if project is None or project["status"] != "analyzing":

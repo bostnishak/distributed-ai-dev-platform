@@ -448,16 +448,21 @@ def merge_progress(items: list[Item], existing: dict) -> tuple[dict, list[str]]:
 
 
 def import_graph(master_dir: Path) -> dict[str, set[str]]:
-    modules = {p.stem for p in master_dir.glob("*.py")}
+    """Edges between top-level modules and packages; a package's files count as the package itself."""
+    packages = {p.name for p in master_dir.iterdir() if p.is_dir() and (p / "__init__.py").is_file()}
+    modules = {p.stem for p in master_dir.glob("*.py")} | packages
     graph: dict[str, set[str]] = {m: set() for m in modules}
-    for path in master_dir.glob("*.py"):
+    sources = [(p.stem, p) for p in master_dir.glob("*.py")]
+    for package in packages:
+        sources += [(package, p) for p in (master_dir / package).rglob("*.py")]
+    for owner, path in sources:
         for node in ast.walk(ast.parse(path.read_text(encoding="utf-8", errors="replace"))):
             names: list[str] = []
             if isinstance(node, ast.Import):
                 names = [a.name.split(".")[0] for a in node.names]
             elif isinstance(node, ast.ImportFrom) and node.module and node.level == 0:
                 names = [node.module.split(".")[0]]
-            graph[path.stem].update(n for n in names if n in modules and n != path.stem)
+            graph[owner].update(n for n in names if n in modules and n != owner)
     return graph
 
 

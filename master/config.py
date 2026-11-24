@@ -41,6 +41,8 @@ ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN", "")
 # Shared secret every agent sends as "Authorization: Bearer <token>" when registering.
 AGENT_TOKEN = os.environ.get("AGENT_TOKEN", "")
 ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN", "")
+# When false, even a request from the master machine needs a signed-in admin session or the admin token (SEC-05).
+LOOPBACK_PRIVILEGE = os.environ.get("LOOPBACK_PRIVILEGE", "true").strip().lower() in ("1", "true", "yes")
 SECRET_KEY = os.environ.get("SECRET_KEY", "")
 BACKUP_PASSWORD = os.environ.get("BACKUP_PASSWORD", "")
 REQUIRE_AGENT_APPROVAL = os.environ.get("REQUIRE_AGENT_APPROVAL", "false").strip().lower() in ("1", "true", "yes")

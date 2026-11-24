@@ -13,6 +13,8 @@ from docx import Document
 from openpyxl import load_workbook
 from pypdf import PdfReader
 
+from safe_archive import UnsafeArchive, inspect_zip
+
 REQUIREMENT_EXTENSIONS = (".pdf", ".docx", ".txt", ".md", ".zip")
 
 
@@ -79,6 +81,10 @@ def extract_xlsx_text(raw: bytes) -> str:
 def extract_zip_text(raw: bytes) -> str:
     """Extract and concatenate text from all readable files inside a ZIP archive."""
     parts = []
+    try:
+        inspect_zip(raw)  # SEC-07: bombs, zip-slip, links and deep nesting stop here
+    except UnsafeArchive as exc:
+        raise UnsupportedFileError(f"Güvensiz arşiv reddedildi: {exc}") from exc
     try:
         with zipfile.ZipFile(io.BytesIO(raw)) as zf:
             for info in zf.infolist():

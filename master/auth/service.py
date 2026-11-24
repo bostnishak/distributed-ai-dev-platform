@@ -146,7 +146,7 @@ def create_user(username: str, password: str, *, role: str = "member", email: st
     uname = (username or "").strip().lower()
     if len(uname) < 3 or len(uname) > 48:
         raise ValueError("Kullanıcı adı 3-48 karakter olmalıdır.")
-    if role not in ("admin", "member"):
+    if role not in ("admin", "member", "developer", "analyst", "viewer"):
         raise ValueError("Geçersiz rol.")
     pw_hash = hash_password(password)
     uid = f"usr_{secrets.token_hex(8)}"
