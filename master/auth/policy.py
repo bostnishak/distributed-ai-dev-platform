@@ -37,7 +37,7 @@ _RULES: tuple[tuple[str, str, str], ...] = (
     (".*", r".*/(exec|run-code|launch-exe|start-server|build-exe|git)(/|$)", "execute"),
     ("DELETE", r".*", "delete"),
     ("GET|HEAD|OPTIONS", r".*", "read"),
-    ("POST|PUT|PATCH", r"^/api/(assistant|projects|studio|studios|research|presentations|documents|games|domains|orchestrator|rag|memory|ux|ml|hallucination|eval|cnc|dist|tasks|output|perf|user|agents)", "write"),
+    ("POST|PUT|PATCH", r"^/api/(assistant|projects|studio|studios|research|presentations|documents|games|domains|orchestrator|rag|memory|ux|ml|hallucination|eval|cnc|dist|tasks|output|perf|user|agents|security|tools|productivity)", "write"),
 )
 _COMPILED = tuple((re.compile(m), re.compile(p), a) for m, p, a in _RULES)
 
@@ -50,8 +50,9 @@ def action_for(method: str, path: str) -> str | None:
 
 
 def can(role: str, method: str, path: str) -> bool:
+    normalized = "developer" if role == "member" else role
     action = action_for(method, path)
-    return action is not None and role in MATRIX[action]
+    return action is not None and normalized in MATRIX[action]
 
 
 def require_role(*roles: str):

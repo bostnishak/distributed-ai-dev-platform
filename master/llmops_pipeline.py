@@ -165,7 +165,7 @@ def get_llmops_stats(min_pairs_threshold: int = NIGHTLY_QLORA_MIN_PAIRS) -> dict
     ready_domains = sorted(dom for dom, count in by_domain.items() if count >= threshold)
 
     return {
-        "dpo_file": str(target_file),
+        "dpo_file": target_file.name,
         "total_pairs": total_pairs,
         "by_domain": by_domain,
         "min_pairs_threshold": threshold,

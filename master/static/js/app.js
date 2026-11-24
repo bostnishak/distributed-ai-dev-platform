@@ -2,6 +2,7 @@
 import { renderAgents } from './agents.js';
 import { focusAssistant, initAssistant } from './assistant.js';
 import { initAuthUi } from './auth_modal.js';
+import { initChatEnhancements } from './chat_enhancements.js';
 import { renderDashboard } from './dashboard.js';
 import { renderHub } from './hub.js';
 import { initPalette } from './palette.js';
@@ -23,18 +24,31 @@ const pageView = document.getElementById('view-page');
 const assistantView = document.getElementById('view-assistant');
 const assistantSide = document.getElementById('assistantSide');
 
+const SITE_TITLE = 'Dağıtık YZ Platformu';
 const ROUTES = [
-  { pattern: /^#\/new$/, nav: 'new', render: (root) => renderNewProject(root) },
-  { pattern: /^#\/projects$/, nav: 'projects', render: (root) => renderProjects(root) },
-  { pattern: /^#\/projects\/(\d+)$/, nav: 'projects', render: (root, m, ctx) => renderProjectDetail(root, Number(m[1]), ctx) },
-  { pattern: /^#\/agents$/, nav: 'agents', render: (root, _m, ctx) => renderAgents(root, ctx) },
-  { pattern: /^#\/dashboard$/, nav: 'dashboard', render: (root, _m, ctx) => renderDashboard(root, ctx) },
-  { pattern: /^#\/studios$/, nav: 'studios', render: (root, _m, ctx) => renderHub(root, ctx) },
-  { pattern: /^#\/artifacts$/, nav: 'artifacts', render: (root, _m, ctx) => renderArtifacts(root, ctx) },
-  { pattern: /^#\/files$/, nav: 'files', render: (root, _m, ctx) => renderFiles(root, ctx) },
-  { pattern: /^#\/share\/([\w-]+)$/, nav: 'assistant', render: (root, m) => renderShare(root, m[1]) },
-  { pattern: /^#\/assistant$/, nav: 'assistant', render: null },
+  { pattern: /^#\/new$/, nav: 'new', title: 'Yeni Proje', render: (root) => renderNewProject(root) },
+  { pattern: /^#\/projects$/, nav: 'projects', title: 'Projeler', render: (root) => renderProjects(root) },
+  { pattern: /^#\/projects\/(\d+)$/, nav: 'projects', title: 'Proje Detayı', render: (root, m, ctx) => renderProjectDetail(root, Number(m[1]), ctx) },
+  { pattern: /^#\/agents$/, nav: 'agents', title: 'Ajanlar', render: (root, _m, ctx) => renderAgents(root, ctx) },
+  { pattern: /^#\/dashboard$/, nav: 'dashboard', title: 'Performans Panosu', render: (root, _m, ctx) => renderDashboard(root, ctx) },
+  { pattern: /^#\/studios$/, nav: 'studios', title: 'Stüdyolar ve Yönetim', render: (root, _m, ctx) => renderHub(root, ctx) },
+  { pattern: /^#\/artifacts$/, nav: 'artifacts', title: 'Artefaktlar', render: (root, _m, ctx) => renderArtifacts(root, ctx) },
+  { pattern: /^#\/files$/, nav: 'files', title: 'Dosyalar ve Bilgi Bankası', render: (root, _m, ctx) => renderFiles(root, ctx) },
+  { pattern: /^#\/share\/([\w-]+)$/, nav: 'assistant', title: 'Paylaşılan Sohbet', render: (root, m) => renderShare(root, m[1]) },
+  { pattern: /^#\/assistant$/, nav: 'assistant', title: 'Asistan', render: null },
 ];
+
+function syncHeroHeadingLevel(isAssistant) {
+  const cur = document.getElementById('heroGreeting');
+  if (!cur) return;
+  const desired = isAssistant ? 'H1' : 'H2';
+  if (cur.tagName === desired) return;
+  const next = document.createElement(desired.toLowerCase());
+  next.id = cur.id;
+  next.className = cur.className;
+  next.textContent = cur.textContent;
+  cur.replaceWith(next);
+}
 
 let pollTimer = null;
 let routeToken = 0;
@@ -59,13 +73,18 @@ function route() {
     link.classList.toggle('active', link.dataset.view === r.nav);
   }
   const isAssistant = r.render === null;
+  document.title = `${r.title} — ${SITE_TITLE}`;
+  syncHeroHeadingLevel(isAssistant);
   assistantView.hidden = !isAssistant;
   assistantSide.hidden = !isAssistant;
   pageView.hidden = isAssistant;
   closeSidebar();
 
+  const mainEl = document.getElementById('main');
   if (isAssistant) {
+    announceAriaLive(`Sayfa açıldı: ${r.title}`);
     if (isDesktop()) focusAssistant();
+    else if (mainEl) mainEl.focus({ preventScroll: true });
     return;
   }
   const ctx = {
@@ -81,8 +100,9 @@ function route() {
   };
   pageView.classList.toggle('full-bleed', Boolean(r.fullBleed));
   pageView.scrollTop = 0;
-  announceAriaLive(`Sayfa açıldı: ${r.nav}`);
+  announceAriaLive(`Sayfa açıldı: ${r.title}`);
   r.render(pageView, m, ctx);
+  if (mainEl) mainEl.focus({ preventScroll: true });
 }
 
 document.getElementById('sidebarToggle').addEventListener('click', () => {
@@ -92,6 +112,7 @@ document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar
 window.addEventListener('hashchange', route);
 
 initAssistant();
+initChatEnhancements();
 initPersonalSpace();
 initAuthUi();
 initPalette();

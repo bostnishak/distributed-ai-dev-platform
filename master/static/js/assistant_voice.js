@@ -62,9 +62,15 @@ export function initVoiceRecognition(els, updateSendState) {
 
   function showVoiceStatus(text, isLive = false) {
     statusPill.hidden = false;
-    statusPill.innerHTML = isLive
-      ? `<span class="sp-voice-dot"></span><span>${text}</span>`
-      : `<span>${text}</span>`;
+    statusPill.replaceChildren();
+    if (isLive) {
+      const dot = document.createElement('span');
+      dot.className = 'sp-voice-dot';
+      statusPill.appendChild(dot);
+    }
+    const lbl = document.createElement('span');
+    lbl.textContent = text;
+    statusPill.appendChild(lbl);
   }
 
   function hideVoiceStatus(delayMs = 0) {
@@ -106,7 +112,7 @@ export function initVoiceRecognition(els, updateSendState) {
 
   function showMicErrorWithUpload(msg) {
     statusPill.hidden = false;
-    statusPill.innerHTML = '';
+    statusPill.replaceChildren();
     const span = document.createElement('span');
     span.textContent = msg;
     const btn = document.createElement('button');

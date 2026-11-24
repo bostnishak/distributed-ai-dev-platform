@@ -1,4 +1,5 @@
 // SEC-01 UI: Accessible Turkish Login / Initial Admin Setup / Session Indicator Modal (zero CDN, zero emojis).
+import { setSanitizedHtml } from './sanitizer.js';
 
 let authModalEl = null;
 
@@ -6,38 +7,35 @@ function buildModalDom() {
   if (authModalEl) return authModalEl;
   const overlay = document.createElement('div');
   overlay.id = 'authModalOverlay';
+  overlay.className = 'auth-modal-overlay';
   overlay.setAttribute('role', 'dialog');
   overlay.setAttribute('aria-modal', 'true');
   overlay.setAttribute('aria-labelledby', 'authModalTitle');
   overlay.hidden = true;
-  overlay.style.cssText =
-    'position:fixed;inset:0;background:rgba(15,23,42,.62);display:flex;align-items:center;justify-content:center;z-index:9999;padding:16px;';
 
-  overlay.innerHTML = `
-    <div style="background:var(--surface,#ffffff);color:var(--text,#0f172a);border:1px solid var(--border,#e2e8f0);border-radius:14px;max-width:400px;width:100%;padding:22px;box-shadow:0 20px 45px rgba(0,0,0,.28);">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-        <h2 id="authModalTitle" style="margin:0;font-size:17px;font-weight:700;">Hesap ve Oturum</h2>
-        <button id="authCloseBtn" type="button" aria-label="Kapat" style="background:none;border:none;font-size:18px;cursor:pointer;color:inherit;">x</button>
+  setSanitizedHtml(overlay, `
+    <div class="auth-modal-box">
+      <div class="auth-modal-head">
+        <h2 id="authModalTitle" class="auth-modal-title">Hesap ve Oturum</h2>
+        <button id="authCloseBtn" type="button" aria-label="Kapat" class="auth-modal-close">x</button>
       </div>
-      <p id="authSubtitle" style="margin:0 0 14px;font-size:13px;opacity:.8;"></p>
-      <form id="authForm" style="display:flex;flex-direction:column;gap:10px;">
-        <label style="font-size:12.5px;font-weight:600;">Kullanıcı adı
-          <input id="authUsername" type="text" required minlength="3" autocomplete="username"
-            style="width:100%;margin-top:4px;padding:8px 10px;border:1px solid var(--input-border,#cbd5e1);border-radius:8px;background:var(--surface,#fff);color:inherit;box-sizing:border-box;">
+      <p id="authSubtitle" class="auth-modal-sub"></p>
+      <form id="authForm" class="auth-modal-form">
+        <label class="auth-modal-label">Kullanıcı adı
+          <input id="authUsername" type="text" required minlength="3" autocomplete="username" class="auth-modal-input">
         </label>
-        <label style="font-size:12.5px;font-weight:600;">Parola (en az 8 karakter)
-          <input id="authPassword" type="password" required minlength="8" autocomplete="current-password"
-            style="width:100%;margin-top:4px;padding:8px 10px;border:1px solid var(--input-border,#cbd5e1);border-radius:8px;background:var(--surface,#fff);color:inherit;box-sizing:border-box;">
+        <label class="auth-modal-label">Parola (en az 8 karakter)
+          <input id="authPassword" type="password" required minlength="8" autocomplete="current-password" class="auth-modal-input">
         </label>
-        <div id="authError" role="alert" style="color:#dc2626;font-size:12.5px;min-height:16px;"></div>
-        <button id="authSubmitBtn" type="submit" class="btn primary" style="padding:9px 14px;border-radius:8px;font-weight:600;cursor:pointer;">Giriş Yap</button>
+        <div id="authError" role="alert" class="auth-modal-error"></div>
+        <button id="authSubmitBtn" type="submit" class="btn primary auth-modal-submit">Giriş Yap</button>
       </form>
-      <div id="authSignedInBox" hidden style="display:flex;flex-direction:column;gap:10px;">
-        <div id="authUserInfo" style="font-size:13.5px;padding:10px;border-radius:8px;background:var(--surface-2);border:1px solid var(--border,#e2e8f0);"></div>
-        <button id="authLogoutBtn" type="button" class="btn" style="padding:8px 12px;border-radius:8px;cursor:pointer;">Oturumu Kapat</button>
+      <div id="authSignedInBox" hidden class="auth-modal-signed">
+        <div id="authUserInfo" class="auth-modal-userinfo"></div>
+        <button id="authLogoutBtn" type="button" class="btn auth-modal-logout">Oturumu Kapat</button>
       </div>
     </div>
-  `;
+  `);
 
   overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.hidden = true; });
   overlay.querySelector('#authCloseBtn').addEventListener('click', () => { overlay.hidden = true; });
@@ -136,8 +134,10 @@ export function initAuthUi() {
   btn.type = 'button';
   btn.className = 'sp-icon-btn';
   btn.setAttribute('aria-label', 'Hesap ve oturum yönetimi');
-  btn.innerHTML =
-    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+  setSanitizedHtml(
+    btn,
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+  );
   btn.addEventListener('click', () => openAuthModal(btn));
   themeBtn.parentElement.appendChild(btn);
   refreshAuthBadge(btn);

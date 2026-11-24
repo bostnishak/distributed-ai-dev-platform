@@ -869,14 +869,26 @@ async def api_gateway_status():
     return await default_client.gateway_status()
 
 
+_MODELS_CACHE: dict[str, Any] = {"ts": 0.0, "models": None}
+_MODELS_CACHE_TTL = 30.0
+
+
 @router.get("/models")
 async def api_gateway_models():
+    """Return registered LLM models with a 30s TTL cache so UI opens under 100 ms (ALT-10)."""
+    now = time.monotonic()
+    cached = _MODELS_CACHE.get("models")
+    if cached is not None and (now - float(_MODELS_CACHE.get("ts") or 0.0)) < _MODELS_CACHE_TTL:
+        return {"models": cached, "cached": True}
     if "ollama" in default_client.providers and isinstance(default_client.providers["ollama"], OllamaProvider):
         try:
             await gw_registry.sync_from_ollama(default_client.providers["ollama"])
-        except Exception:
-            pass
-    return {"models": gw_registry.list_models()}
+        except Exception as exc:
+            logging.getLogger(__name__).debug("Ollama model sync skipped: %s", exc)
+    models = gw_registry.list_models()
+    _MODELS_CACHE["ts"] = now
+    _MODELS_CACHE["models"] = models
+    return {"models": models, "cached": False}
 
 
 @router.get("/traces/{run_id}")

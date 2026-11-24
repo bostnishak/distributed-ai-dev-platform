@@ -6,6 +6,7 @@ otherwise verifies that `sandbox` fails closed cleanly without falling back to h
 
 from __future__ import annotations
 
+import shutil
 import subprocess
 
 import pytest
@@ -20,7 +21,7 @@ def _sandbox_image_present() -> bool:
     if not ready:
         return False
     proc = subprocess.run(
-        ["docker", "image", "inspect", sandbox.SANDBOX_IMAGE],
+        [shutil.which("docker") or "docker", "image", "inspect", sandbox.SANDBOX_IMAGE],
         capture_output=True,
         text=True,
         timeout=5,

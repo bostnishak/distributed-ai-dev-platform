@@ -6,6 +6,7 @@ import {
   highlightCodeHtml,
   wsSvgIcon,
 } from './assistant_ide_render.js';
+import { setSanitizedHtml } from './sanitizer.js';
 
 export function buildInlineWorkspaceCard(wsMeta, wsTree) {
   const wsId = wsMeta.id;
@@ -27,7 +28,7 @@ export function buildInlineWorkspaceCard(wsMeta, wsTree) {
   titleLeft.className = 'ide-title-left';
   const dots = document.createElement('div');
   dots.className = 'ide-window-dots';
-  dots.innerHTML = '<span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span>';
+  setSanitizedHtml(dots, '<span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span>');
   const projTitle = document.createElement('span');
   projTitle.className = 'ide-proj-name';
   projTitle.textContent = wsMeta.name || wsId;
@@ -120,7 +121,7 @@ export function buildInlineWorkspaceCard(wsMeta, wsTree) {
       const d = await r.json();
       const vers = d.versions || [];
       if (vers.length > 0) {
-        verSelect.innerHTML = '';
+        verSelect.replaceChildren();
         for (const v of vers) {
           const opt = document.createElement('option');
           opt.value = v.version;
@@ -175,7 +176,7 @@ export function buildInlineWorkspaceCard(wsMeta, wsTree) {
   sideHeader.append(sideTitle, newFileBtn);
   const rootHeader = document.createElement('div');
   rootHeader.className = 'ide-root-label';
-  rootHeader.innerHTML = `<span class="ide-chev">▾</span> <span>${(wsMeta.name || wsId).toUpperCase()}</span>`;
+  setSanitizedHtml(rootHeader, `<span class="ide-chev">▾</span> <span>${(wsMeta.name || wsId).toUpperCase()}</span>`);
   const treeContainer = document.createElement('div');
   treeContainer.className = 'ide-tree';
   sidebar.append(sideHeader, rootHeader, treeContainer);
@@ -261,7 +262,7 @@ export function buildInlineWorkspaceCard(wsMeta, wsTree) {
   statusBar.className = 'ide-statusbar';
   const statusLeft = document.createElement('div');
   statusLeft.className = 'ide-status-side';
-  statusLeft.innerHTML = '<span>⎇ main</span><span>✓ 0 hata</span>';
+  setSanitizedHtml(statusLeft, '<span>⎇ main</span><span>✓ 0 hata</span>');
   const statusRight = document.createElement('div');
   statusRight.className = 'ide-status-side';
   const statusLines = document.createElement('span');
@@ -290,22 +291,22 @@ export function buildInlineWorkspaceCard(wsMeta, wsTree) {
   function renderCodeView(content, path) {
     activeContent = content || '';
     const lines = activeContent.split('\n');
-    gutter.innerHTML = lines.map((_, i) => `<div>${i + 1}</div>`).join('');
-    codeBlock.innerHTML = highlightCodeHtml(activeContent, path);
+    setSanitizedHtml(gutter, lines.map((_, i) => `<div>${i + 1}</div>`).join(''));
+    setSanitizedHtml(codeBlock, highlightCodeHtml(activeContent, path));
     rawTextarea.value = activeContent;
     statusLines.textContent = `${lines.length} satır`;
     statusLang.textContent = `${detectLangLabel(path)} · UTF-8`;
-    breadcrumb.innerHTML = `<span class="bc-root">${wsMeta.name || wsId}</span> › ` + (path || '').split('/').map((p) => `<span>${p}</span>`).join(' › ');
+    setSanitizedHtml(breadcrumb, `<span class="bc-root">${wsMeta.name || wsId}</span> › ` + (path || '').split('/').map((p) => `<span>${p}</span>`).join(' › '));
   }
 
   function renderTabs() {
-    tabBar.innerHTML = '';
+    tabBar.replaceChildren();
     for (const p of openTabs) {
       const fname = p.split('/').pop();
       const tab = document.createElement('div');
       tab.className = 'ide-tab' + (p === activePath ? ' active' : '');
       const iconSpan = document.createElement('span');
-      iconSpan.innerHTML = wsSvgIcon(fname, false);
+      setSanitizedHtml(iconSpan, wsSvgIcon(fname, false));
       const nameSpan = document.createElement('span');
       nameSpan.textContent = fname;
       const closeSpan = document.createElement('span');
@@ -345,7 +346,7 @@ export function buildInlineWorkspaceCard(wsMeta, wsTree) {
   }
 
   function renderTree() {
-    treeContainer.innerHTML = '';
+    treeContainer.replaceChildren();
     function walk(nodes, depth = 0) {
       for (const node of nodes || []) {
         const isDir = node.type === 'dir';
@@ -354,7 +355,7 @@ export function buildInlineWorkspaceCard(wsMeta, wsTree) {
         row.className = 'ide-tree-row' + (!isDir && node.path === activePath ? ' active' : '');
         row.style.paddingLeft = `${10 + depth * 14}px`;
         const chev = isDir ? `<span class="ide-chev">${isCollapsed ? '▸' : '▾'}</span>` : '<span class="ide-chev"></span>';
-        row.innerHTML = `${chev}${wsSvgIcon(node.name, isDir, !isCollapsed)}<span class="ide-node-name">${node.name}</span>`;
+        setSanitizedHtml(row, `${chev}${wsSvgIcon(node.name, isDir, !isCollapsed)}<span class="ide-node-name">${node.name}</span>`);
         row.addEventListener('click', () => {
           if (isDir) {
             if (isCollapsed) collapsedFolders.delete(node.path);
@@ -387,14 +388,14 @@ export function buildInlineWorkspaceCard(wsMeta, wsTree) {
       const r = await fetch(`/api/studio/workspaces/${wsId}/diff?path=${encodeURIComponent(activePath)}`);
       const d = await r.json();
       const lines = (d.diff || '').split('\n');
-      gutter.innerHTML = lines.map((_, i) => `<div>${i + 1}</div>`).join('');
-      codeBlock.innerHTML = lines.map((ln) => {
+      setSanitizedHtml(gutter, lines.map((_, i) => `<div>${i + 1}</div>`).join(''));
+      setSanitizedHtml(codeBlock, lines.map((ln) => {
         const esc = ln.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         if (ln.startsWith('+') && !ln.startsWith('+++')) return `<div class="diff-add">${esc}</div>`;
         if (ln.startsWith('-') && !ln.startsWith('---')) return `<div class="diff-del">${esc}</div>`;
         if (ln.startsWith('@@')) return `<div class="diff-hunk">${esc}</div>`;
         return `<div>${esc}</div>`;
-      }).join('');
+      }).join(''));
     } catch { diffMode = false; }
   });
 
@@ -411,7 +412,7 @@ export function buildInlineWorkspaceCard(wsMeta, wsTree) {
       const issueCount = (secData.security && secData.security.total_issues) || 0;
       const errCount = (secData.errors || []).length;
       const symCount = (cgData.symbols || []).length;
-      statusLeft.innerHTML = `<span>⎇ main</span><span>${errCount + issueCount === 0 ? '✓ 0 hata / SAST temiz' : `! ${errCount} hata · ${issueCount} SAST`} · ${symCount} AST sembol</span>`;
+      setSanitizedHtml(statusLeft, `<span>⎇ main</span><span>${errCount + issueCount === 0 ? '✓ 0 hata / SAST temiz' : `! ${errCount} hata · ${issueCount} SAST`} · ${symCount} AST sembol</span>`);
     } catch { /* ignore */ } finally { secScanBtn.disabled = false; secScanBtn.textContent = 'Güvenlik & AST'; }
   });
 

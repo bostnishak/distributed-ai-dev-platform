@@ -123,18 +123,24 @@ export function renderHeroCards(els, updateSendState) {
       prompt: 'Yeni bir yazılım girişimi için 5 yıllık finansal değerleme (DCF) ve yatırım risk analizi raporu hazırla.',
     },
   ];
-  els.heroCards.innerHTML = '';
+  els.heroCards.replaceChildren();
   for (const c of cards) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'sp-hero-card';
-    btn.innerHTML = `
-      <div class="sp-hero-card-top">
-        <span class="sp-hero-card-title">${c.title}</span>
-        <span class="sp-hero-card-tag">${c.tag}</span>
-      </div>
-      <div class="sp-hero-card-desc">${c.desc}</div>
-    `;
+    const top = document.createElement('div');
+    top.className = 'sp-hero-card-top';
+    const titleEl = document.createElement('span');
+    titleEl.className = 'sp-hero-card-title';
+    titleEl.textContent = c.title;
+    const tagEl = document.createElement('span');
+    tagEl.className = 'sp-hero-card-tag';
+    tagEl.textContent = c.tag;
+    const descEl = document.createElement('div');
+    descEl.className = 'sp-hero-card-desc';
+    descEl.textContent = c.desc;
+    top.append(titleEl, tagEl);
+    btn.append(top, descEl);
     btn.addEventListener('click', () => {
       els.promptInput.value = c.prompt;
       els.promptInput.style.height = 'auto';

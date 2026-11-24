@@ -20,14 +20,14 @@ function fileIcon(name, isDir) {
 }
 
 function formatSize(bytes) {
-  if (bytes == null) return '';
+  if (bytes === null || bytes === undefined) return '';
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
 export async function renderStudio(root) {
-  root.innerHTML = '';
+  root.replaceChildren();
   const shell = h('div', { class: 'studio-shell' });
   root.appendChild(shell);
 
@@ -128,7 +128,7 @@ export async function renderStudio(root) {
   }
 
   function clearLog(msg = '') {
-    consoleLog.innerHTML = '';
+    consoleLog.replaceChildren();
     if (msg) appendLog(msg);
   }
 
@@ -187,7 +187,7 @@ export async function renderStudio(root) {
   }
 
   function renderExplorer() {
-    treeEl.innerHTML = '';
+    treeEl.replaceChildren();
     if (!activeWsMeta) {
       treeEl.append(h('div', { class: 'studio-empty-tree' }, 'Çalışma alanı yok.'));
       return;
@@ -245,7 +245,7 @@ export async function renderStudio(root) {
   async function refreshWorkspaces(selectId = null) {
     const data = await api('/api/studio/workspaces');
     const list = data.workspaces || [];
-    wsSelect.innerHTML = '';
+    wsSelect.replaceChildren();
     if (!list.length) {
       wsSelect.append(h('option', { value: '' }, '— Çalışma alanı yok —'));
       activeWsId = null;

@@ -8,23 +8,11 @@
 <link rel="manifest" href="/static/manifest.webmanifest">
 <link rel="stylesheet" href="/static/css/app.css">
 <link rel="stylesheet" href="/static/css/theme.css">
-<script>
-  // Apply the saved theme before first paint so dark mode does not flash white.
-  (function () {
-    try {
-      var p = JSON.parse(localStorage.getItem('cm6453_prefs') || '{}');
-      var r = document.documentElement;
-      var t = p.theme || 'system';
-      if (t === 'system') t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      r.dataset.theme = t; r.dataset.accent = p.accent || 'indigo'; r.dataset.font = p.font_size || 'medium';
-      r.dataset.density = p.density || 'comfortable'; r.dataset.motion = p.reduce_motion ? 'reduced' : 'normal';
-    } catch (e) { /* defaults apply */ }
-  })();
-</script>
+<script src="/static/js/theme_boot.js"></script>
 </head>
 <body>
 
-<button id="sidebarToggle" aria-label="Menüyü aç/kapat">☰</button>
+<button id="sidebarToggle" type="button" aria-label="Menüyü aç/kapat">☰</button>
 <div id="sidebarOverlay"></div>
 
 <aside id="sidebar">
@@ -54,21 +42,21 @@
   </nav>
 
   <div id="assistantSide" hidden>
-    <button id="newChatBtn">＋ Yeni sohbet</button>
+    <button id="newChatBtn" type="button">＋ Yeni sohbet</button>
     <input id="chatSearchInput" class="sp-chat-search" type="search" placeholder="Sohbetlerde ara..." aria-label="Sohbetlerde ara">
     <div class="sidebar-label">Sohbetler</div>
     <div id="chatList"></div>
   </div>
 
-  <div style="display:flex;align-items:center;gap:6px;margin-top:10px">
-    <button id="userCard" class="sp-usercard" type="button" style="margin-top:0" aria-label="Kişisel alan ve ayarlar"></button>
+  <div class="sidebar-account-row">
+    <button id="userCard" class="sp-usercard sp-usercard-flat" type="button" aria-label="Kişisel alan ve ayarlar"></button>
     <button id="themeToggle" class="sp-icon-btn" type="button" aria-label="Temayı değiştir"></button>
   </div>
 
   <div class="sidebar-foot">%100 lokal · veriler bilgisayarlarımızdan çıkmaz</div>
 </aside>
 
-<main id="main">
+<main id="main" tabindex="-1">
   <section id="view-page" class="view page" hidden></section>
 
   <section id="view-assistant" class="view chat" hidden>
@@ -88,15 +76,15 @@
     <div id="inputWrap">
       <div id="fileChip"><span id="fileChipName"></span><span class="remove" id="removeFile">✕</span></div>
       <div id="inputPill">
-        <button id="attachBtn" title="Dosya, görsel, ses veya çizim ekle">＋</button>
-        <textarea id="promptInput" rows="1" placeholder="İstediğin bir şeyi sor, görsel/doküman üret, fotoğraf düzenle veya proje oluştur"></textarea>
+        <button id="attachBtn" type="button" title="Dosya, görsel, ses veya çizim ekle" aria-label="Dosya, görsel, ses veya çizim ekle">＋</button>
+        <textarea id="promptInput" rows="1" aria-label="Mesajınızı yazın" placeholder="İstediğin bir şeyi sor, görsel/doküman üret, fotoğraf düzenle veya proje oluştur"></textarea>
         <button id="micBtn" title="Sesli mesajı metne çevir" type="button" aria-label="Sesle yaz">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/></svg>
         </button>
-        <button id="sendBtn">↑</button>
+        <button id="sendBtn" type="button" aria-label="Mesajı gönder">↑</button>
       </div>
       <div id="hint">Bu bir yapay zeka aracıdır ve hata yapabilir.</div>
-      <input type="file" id="fileInput" style="display:none" accept=".pdf,.docx,.txt,.md,.csv,.tsv,.xlsx,.xlsm,.dxf,.step,.stp,.iges,.igs,.stl,.db,.sqlite,.sqlite3,.zip,.json,.xml,.yaml,.yml,.py,.js,.ts,.html,.css,.sql,.log,image/*,audio/*,.mp3,.wav,.m4a,.ogg,.webm">
+      <input type="file" id="fileInput" class="sr-only-file" aria-label="Sohbet dosyası yükle" accept=".pdf,.docx,.txt,.md,.csv,.tsv,.xlsx,.xlsm,.dxf,.step,.stp,.iges,.igs,.stl,.db,.sqlite,.sqlite3,.zip,.json,.xml,.yaml,.yml,.py,.js,.ts,.html,.css,.sql,.log,image/*,audio/*,.mp3,.wav,.m4a,.ogg,.webm">
     </div>
   </section>
 </main>

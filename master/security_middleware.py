@@ -19,14 +19,19 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
+import ratelimit
+from auth import policy as auth_policy
+from auth import service as auth_service
+
 CSRF_COOKIE_NAME = "cm6453_csrf"
 CSRF_HEADER_NAME = "x-csrf-token"
 _MUTATING_METHODS = frozenset({"POST", "PUT", "DELETE", "PATCH"})
+_API_RATE_LIMITER = ratelimit.TokenBucket(capacity=80.0, refill_per_second=10.0)
 
 APP_CSP = (
     "default-src 'self'; "
-    "script-src 'self' 'unsafe-inline'; "
-    "style-src 'self' 'unsafe-inline'; "
+    "script-src 'self'; "
+    "style-src 'self'; "
     "img-src 'self' data: blob:; "
     "font-src 'self' data:; "
     "connect-src 'self'; "
@@ -86,12 +91,38 @@ class SecurityHeadersAndCSRFMiddleware(BaseHTTPMiddleware):
                         content={"detail": "CSRF doğrulaması başarısız (X-CSRF-Token eksik veya geçersiz)."},
                     )
 
+        # 2b. Global token-bucket rate limiting on API routes (HDR-06)
+        if path.startswith("/api/"):
+            client_ip = request.client.host if request.client else "unknown"
+            allowed, retry_after = _API_RATE_LIMITER.take(f"{client_ip}:{request.method}:{path}")
+            if not allowed:
+                return JSONResponse(
+                    status_code=429,
+                    headers={"Retry-After": str(max(1, int(retry_after) + 1))},
+                    content={"detail": "İstek hız sınırı aşıldı. Lütfen kısa süre sonra tekrar deneyin."},
+                )
+
+            # 2c. Role matrix enforcement whenever a signed-in session user is present (ALT-14)
+            session_cookie = request.cookies.get(auth_service.SESSION_COOKIE_NAME)
+            if session_cookie:
+                session_user = auth_service.get_session_user(session_cookie)
+                if session_user and not auth_policy.can(str(session_user.get("role") or "viewer"), request.method, path):
+                    return JSONResponse(
+                        status_code=403,
+                        content={"detail": "Bu işlem için rolünüz yetmiyor."},
+                    )
+
         response = await call_next(request)
 
-        # 3. Security headers
+        # 3. Security headers (HDR-01..05)
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
         response.headers.setdefault("Permissions-Policy", "camera=(), geolocation=(), microphone=(self)")
+        response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+        response.headers.setdefault("Cross-Origin-Opener-Policy", "same-origin")
+        response.headers.setdefault("Cross-Origin-Resource-Policy", "same-origin")
+        if path.startswith("/api/"):
+            response.headers.setdefault("Cache-Control", "no-store")
         if is_preview:
             # SEC-17: Force opaque null origin sandbox on preview responses; never send cookies
             response.headers["Content-Security-Policy"] = PREVIEW_CSP

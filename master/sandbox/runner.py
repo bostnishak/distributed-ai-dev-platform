@@ -43,7 +43,7 @@ def _docker_available() -> bool:
 def _sandbox_image_present() -> bool:
     try:
         proc = subprocess.run(
-            ["docker", "image", "inspect", SANDBOX_IMAGE],
+            [shutil.which("docker") or "docker", "image", "inspect", SANDBOX_IMAGE],
             capture_output=True,
             text=True,
             timeout=4,
@@ -60,7 +60,7 @@ def docker_daemon_ready() -> tuple[bool, str]:
         return False, "Docker kurulu değil — güvenli konteyner sandbox kapalı."
     try:
         proc = subprocess.run(
-            ["docker", "info", "--format", "{{.ServerVersion}}"],
+            [shutil.which("docker") or "docker", "info", "--format", "{{.ServerVersion}}"],
             capture_output=True,
             text=True,
             timeout=4,
@@ -93,7 +93,7 @@ def build_image() -> bool:
         log.warning("Sandbox image not built: %s", reason)
         return False
     result = subprocess.run(
-        ["docker", "build", "-t", SANDBOX_IMAGE, str(_DOCKERFILE_DIR)],
+        [shutil.which("docker") or "docker", "build", "-t", SANDBOX_IMAGE, str(_DOCKERFILE_DIR)],
         capture_output=True,
         text=True,
         timeout=180,

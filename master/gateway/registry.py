@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import math
 import re
 import sqlite3
@@ -248,8 +249,8 @@ async def sync_from_ollama(ollama_provider: Any) -> list[dict[str, Any]]:
     try:
         running = await ollama_provider.list_running()
         warm_names = {str(m.get("name") or "") for m in running}
-    except Exception:
-        pass
+    except Exception as exc:
+        logging.getLogger(__name__).debug('registry call skipped: %s', exc)
 
     synced: list[dict[str, Any]] = []
     for item in tags:
@@ -260,8 +261,8 @@ async def sync_from_ollama(ollama_provider: Any) -> list[dict[str, Any]]:
         show_info: dict[str, Any] = {}
         try:
             show_info = await ollama_provider.show_model(mname)
-        except Exception:
-            pass
+        except Exception as exc:
+            logging.getLogger(__name__).debug('registry detail skipped: %s', exc)
         meta = _infer_model_metadata(mname, show_info=show_info)
         rec = upsert_model(
             mname,
@@ -296,8 +297,8 @@ async def sync_from_ollama(ollama_provider: Any) -> list[dict[str, Any]]:
                     capabilities=list(agent.get("capabilities") or ["completion"]),
                     scores=scores_map,
                 )
-    except Exception:
-        pass
+    except Exception as exc:
+        logging.getLogger(__name__).debug("registry sync metadata skipped: %s", exc)
     return synced
 
 

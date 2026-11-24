@@ -601,6 +601,8 @@ def _try_extended_calculation(prompt: str) -> str | None:
 def try_calculate(prompt: str) -> str | None:
     """Return "expression = result" if the prompt is a deterministic arithmetic, percentage, unit,
     date-diff, or compound-interest expression; otherwise None. No eval()."""
+    import chat_contracts
+
     extended = _try_extended_calculation(prompt)
     if extended is not None:
         return extended
@@ -611,13 +613,13 @@ def try_calculate(prompt: str) -> str | None:
         or not _ARITHMETIC_ONLY.match(text)
         or not _HAS_OPERATOR.search(text)
     ):
-        return None
+        return chat_contracts.extract_deterministic_calculation(prompt)
     expr = text.replace("^", "**")
     try:
         tree = ast.parse(expr, mode="eval")
         result = _safe_eval_node(tree.body)
     except (SyntaxError, ValueError, ZeroDivisionError, TypeError, OverflowError, RecursionError):
-        return None
+        return chat_contracts.extract_deterministic_calculation(prompt)
     if isinstance(result, float) and result.is_integer():
         result = int(result)
     return f"{text} = {result}"
@@ -807,14 +809,16 @@ async def _prepare_chat_request(
         else:
             file_note = f"\n\n[Not: '{file.filename}' desteklenmeyen bir dosya türü.]"
 
-        # Deterministic zero-hallucination error/syntax/formula/encoding inspection for uploaded files
+        # Deterministic zero-hallucination error/syntax/formula/encoding inspection for uploaded files (DAV-06)
         if not (content_type.startswith("image/") or content_type.startswith("audio/")):
+            import chat_contracts
             import file_inspector as fi
 
             try:
                 insp = fi.inspect_uploaded_file(file.filename, raw)
-                insp_md = fi.format_inspection_markdown(insp)
-                file_note += f"\n\n{insp_md}"
+                if chat_contracts.should_attach_file_audit(prompt, insp):
+                    insp_md = fi.format_inspection_markdown(insp)
+                    file_note += f"\n\n{insp_md}"
             except Exception as _exc:
                 import logging
 
@@ -1513,9 +1517,27 @@ async def _chat_stream_impl(
 
         return StreamingResponse(_zip_gen(), media_type="text/event-stream")
 
-    # Universal Image / Logo / Illustration Generation
+    # Universal Chart / Image / Logo / Illustration Generation (DAV-10, DAV-11)
+    import chat_contracts
     import document_factory as df
     import multimodal_studio as mms
+
+    if not is_prompt_conv and chat_contracts.is_chart_generation_request(prompt, has_file):
+        async def _chart_gen():
+            try:
+                res = chat_contracts.build_svg_bar_chart(prompt)
+                md = (
+                    f"## Veri Grafiği Hazır\n"
+                    f"- [SVG Grafiği İndir]({res['svg_url']})\n\n"
+                    f"{res['svg']}"
+                )
+                yield f"data: {json.dumps({'type': 'artifact', 'kind': 'chart', 'format': 'svg', 'url': res['svg_url']}, ensure_ascii=False)}\n\n"
+                yield f"data: {json.dumps({'type': 'token', 'content': md}, ensure_ascii=False)}\n\n"
+                yield f"data: {json.dumps({'type': 'done', 'model': 'chart-svg', 'task_type': 'grafik'})}\n\n"
+            except Exception as exc:
+                yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
+
+        return StreamingResponse(_chart_gen(), media_type="text/event-stream")
 
     if not is_prompt_conv and mms.is_image_generation_request(prompt, has_file):
         try:
@@ -1542,6 +1564,7 @@ async def _chat_stream_impl(
                     "",
                     f"![Üretilen Görsel]({preview_url})",
                 ]
+                yield f"data: {json.dumps({'type': 'artifact', 'kind': 'image', 'format': 'png', 'url': res['png_url'], 'svg_url': res.get('svg_url')}, ensure_ascii=False)}\n\n"
                 yield f"data: {json.dumps({'type': 'token', 'content': '\n'.join(md_lines)}, ensure_ascii=False)}\n\n"
                 yield f"data: {json.dumps({'type': 'done', 'model': res['engine'], 'task_type': 'gorsel'})}\n\n"
             except Exception as exc:
@@ -1570,6 +1593,7 @@ async def _chat_stream_impl(
                     md.append("|" + "|".join("---" for _ in headers) + "|")
                     for r in rows[:15]:
                         md.append("| " + " | ".join(str(c) for c in r[:len(headers)]) + " |")
+                yield f"data: {json.dumps({'type': 'artifact', 'kind': 'document', 'format': doc_fmt, 'url': res['url']}, ensure_ascii=False)}\n\n"
                 yield f"data: {json.dumps({'type': 'token', 'content': '\n'.join(md)}, ensure_ascii=False)}\n\n"
                 yield f"data: {json.dumps({'type': 'done', 'model': res['model'], 'task_type': 'dokuman'})}\n\n"
             except Exception as exc:
@@ -1676,6 +1700,27 @@ async def _chat_stream_impl(
         extra_blocks.append(up.cross_chat_context_block(user_id, prompt, exclude_conversation=conversation_id))
     if is_prompt_conv:
         extra_blocks.append(PROMPT_CONVERSION_SYSTEM_INSTRUCTION)
+
+    # DAV-01..05, DAV-09: Prompt constraint guards and grounded research source injection
+    constraints = chat_contracts.inspect_prompt_constraints(prompt)
+    research_sources: list[dict[str, str]] = []
+    if not is_prompt_conv and chat_contracts.is_grounded_research_request(prompt, has_file):
+        research_sources = chat_contracts.gather_research_sources(prompt)
+        if research_sources:
+            src_lines = [f"[{s['id']}] {s['title']} ({s['url']}): {s['snippet']}" for s in research_sources]
+            extra_blocks.append(
+                "ARAŞTIRMA KAYNAKLARI (yalnızca bu kaynaklara dayanarak yanıtla ve her önemli olguda [S1], [S2] atıfı ekle):\n"
+                + "\n".join(src_lines)
+            )
+        else:
+            extra_blocks.append(
+                "ARAŞTIRMA NOTU: Canlı web araması (SearXNG) şu an yapılandırılmamış. "
+                "Temel akademik kavramları [S1] biçiminde standart referanslara (ör. Nielsen & Chuang, NIST) bağlayarak özetle "
+                "ve yanıtın sonunda 'Kaynaklar' listesi ile 'Not: Canlı web araması kapalı olduğu için güncel veriler doğrulanmadı.' uyarısını ekle."
+            )
+    if constraints.system_notes:
+        extra_blocks.append("\n".join(constraints.system_notes))
+
     mem_ctx = "\n\n".join(b for b in extra_blocks if b)
     if mem_ctx and messages and messages[0]["role"] == "system":
         messages[0]["content"] = f"{messages[0]['content']}\n\n{mem_ctx}"
@@ -1721,6 +1766,8 @@ async def _chat_stream_impl(
         try:
             if pre_note:
                 yield f"data: {json.dumps({'type': 'token', 'content': pre_note}, ensure_ascii=False)}\n\n"
+            buffered_chunks: list[str] = []
+            need_buffer = constraints.needs_buffering or bool(research_sources) or chat_contracts.is_grounded_research_request(prompt, has_file)
             async for evt in gw.stream(
                 messages,
                 model=model,
@@ -1732,8 +1779,24 @@ async def _chat_stream_impl(
                 if evt.get("type") == "token":
                     content_piece = _strip_emojis(str(evt.get("content") or ""))
                     if content_piece:
-                        yield f"data: {json.dumps({'type': 'token', 'content': content_piece})}\n\n"
+                        if need_buffer:
+                            buffered_chunks.append(content_piece)
+                        else:
+                            yield f"data: {json.dumps({'type': 'token', 'content': content_piece})}\n\n"
                 elif evt.get("type") == "done":
+                    if need_buffer:
+                        final_text = chat_contracts.enforce_output_constraints("".join(buffered_chunks), constraints)
+                        if chat_contracts.is_grounded_research_request(prompt, has_file) and "[S1]" not in final_text:
+                            if research_sources:
+                                ref_lines = "\n".join(f"- [{s['id']}] {s['title']} — {s['url']}" for s in research_sources)
+                                final_text = f"{final_text}\n\n### Kaynaklar\n{ref_lines}"
+                            else:
+                                final_text = (
+                                    f"{final_text}\n\n### Kaynaklar\n"
+                                    "- [S1] Genel kavramsal özet (Not: Canlı web araması kapalı olduğu için güncel kaynak doğrulaması yapılmadı; SEARXNG_URL ile web aramasını açabilirsiniz.)"
+                                )
+                        if final_text:
+                            yield f"data: {json.dumps({'type': 'token', 'content': final_text}, ensure_ascii=False)}\n\n"
                     done_evt: dict = {
                         "type": "done",
                         "model": model,

@@ -389,6 +389,15 @@ async def stream_generate_project(
                 )
                 code = _strip_code_fences(fix_raw)
         target = safe_file_path(ws_dir, fpath)
+        # DAV-08: Guard against WinError 183 when LLM plans both a file and a folder with the same name (e.g. 'app' and 'app/routes.py')
+        for parent in reversed(target.parents):
+            if parent == ws_dir or ws_dir not in parent.parents:
+                continue
+            if parent.is_file():
+                renamed = parent.with_name(f"{parent.name}_module.py")
+                parent.replace(renamed)
+        if target.is_dir():
+            target = target / "__init__.py"
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(code, encoding="utf-8")
 

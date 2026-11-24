@@ -12,6 +12,7 @@ import csv
 import io
 import json
 import re
+import shutil
 import subprocess
 import tempfile
 import zipfile
@@ -162,7 +163,7 @@ def inspect_uploaded_file(filename: str, raw: bytes) -> dict[str, Any]:
             p = Path(td) / Path(name).name
             p.write_text(text, encoding="utf-8")
             try:
-                proc = subprocess.run(["node", "--check", str(p)], capture_output=True, text=True, timeout=6, check=False)
+                proc = subprocess.run([shutil.which("node") or "node", "--check", str(p)], capture_output=True, text=True, timeout=6, check=False)
                 if proc.returncode != 0:
                     err_txt = (proc.stderr or proc.stdout).strip().splitlines()[:4]
                     issues.append({

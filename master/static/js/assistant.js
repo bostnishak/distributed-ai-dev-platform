@@ -17,6 +17,7 @@ import {
 import { escapeHtml, renderMarkdown } from './markdown.js';
 import { getActiveUserId, getPrefs } from './personal.js';
 import { buildBranchLink, buildExtraActions, notifyAnswerReady, regenerateLast, requestNotifyPermission } from './message_tools.js';
+import { appendSanitizedHtml, setSanitizedHtml } from './sanitizer.js';
 import { closeSidebar } from './util.js';
 import { parseSlashAndMentions, renderConfidenceBadgeHtml } from './ux_shell.js';
 
@@ -99,7 +100,7 @@ function openChat(id) {
   state.unreadCompletedChats.delete(id);
   try { localStorage.setItem(storageKeys().lastChatKey, id); } catch { /* ignore */ }
   state.currentMessages = (chat.messages || []).slice();
-  els.messages.innerHTML = '';
+  els.messages.replaceChildren();
   ensureStarted();
   for (const m of state.currentMessages) {
     if (m.role === 'user') addUserMessage(m.text, m.fileName, false);
@@ -126,7 +127,7 @@ function startNewChat(clearLastActive = false) {
   }
   state.currentChatId = 'chat_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
   state.currentMessages = [];
-  els.messages.innerHTML = '';
+  els.messages.replaceChildren();
   els.messages.classList.remove('active');
   els.centerStage.style.display = 'flex';
   state.started = false;
@@ -140,7 +141,7 @@ function addUserMessage(text, fileName, record = true) {
   const row = document.createElement('div');
   row.className = 'msg-row user';
   const wrap = document.createElement('div');
-  wrap.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end;max-width:65%;';
+  wrap.className = 'msg-user-wrap';
   const bubble = document.createElement('div');
   bubble.className = 'msg user';
   bubble.style.maxWidth = '100%';
@@ -174,7 +175,7 @@ function addAssistantMessage(text, modelBadge, isError, isThinking, record = tru
   const bubble = document.createElement('div');
   bubble.className = 'msg assistant' + (isError ? ' error' : '') + (isThinking ? ' thinking' : '');
   if (isError || isThinking) bubble.textContent = text;
-  else bubble.innerHTML = renderMarkdown(text);
+  else setSanitizedHtml(bubble, renderMarkdown(text));
   wrap.appendChild(bubble);
 
   if (!isError && !isThinking) wrap.appendChild(messageBar(text));
@@ -238,14 +239,14 @@ async function sendMessage(overridePrompt = null) {
   const streamBar = document.createElement('div');
   streamBar.className = 'sp-stream-bar';
   streamBar.hidden = true;
-  streamBar.innerHTML = '<span class="sp-think-ring sm"></span><span class="sp-stream-text">Yanıt yazılıyor...</span>';
+  setSanitizedHtml(streamBar, '<span class="sp-think-ring sm"></span><span class="sp-stream-text">Yanıt yazılıyor...</span>');
 
   const bubble = document.createElement('div');
   bubble.className = 'msg assistant thinking';
   const stages = fileToSend
     ? ['Dosya okunuyor ve denetleniyor', 'Bağlam ve hafıza taranıyor', 'Düşünüyor ve analiz ediyor', 'Yanıt hazırlanıyor']
     : ['Düşünüyor', 'Hafıza ve sohbetler taranıyor', 'Yanıt hazırlanıyor'];
-  bubble.innerHTML = `<div class="sp-think-head"><span class="sp-think-ring"></span><span class="sp-think-label">${stages[0]}<span class="sp-think-dots"><i></i><i></i><i></i></span></span><span class="sp-think-timer">0 sn</span></div><div class="sp-think-skel"><span></span><span></span><span></span></div>`;
+  setSanitizedHtml(bubble, `<div class="sp-think-head"><span class="sp-think-ring"></span><span class="sp-think-label">${stages[0]}<span class="sp-think-dots"><i></i><i></i><i></i></span></span><span class="sp-think-timer">0 sn</span></div><div class="sp-think-skel"><span></span><span></span><span></span></div>`);
 
   const thinkLabelEl = bubble.querySelector('.sp-think-label');
   const thinkTimerEl = bubble.querySelector('.sp-think-timer');
@@ -261,7 +262,7 @@ async function sendMessage(overridePrompt = null) {
       const nextIdx = Math.min(stages.length - 1, Math.floor(sec / 2.2));
       if (nextIdx !== stageIdx && thinkLabelEl) {
         stageIdx = nextIdx;
-        thinkLabelEl.innerHTML = `${stages[stageIdx]}<span class="sp-think-dots"><i></i><i></i><i></i></span>`;
+        setSanitizedHtml(thinkLabelEl, `${stages[stageIdx]}<span class="sp-think-dots"><i></i><i></i><i></i></span>`);
       }
     } else if (streamTextEl) streamTextEl.textContent = `Yanıt yazılıyor · ${secStr}`;
   }, 250);
@@ -326,7 +327,7 @@ async function sendMessage(overridePrompt = null) {
             streamBar.hidden = false;
           }
           fullText += evt.content;
-          bubble.innerHTML = renderMarkdown(fullText);
+          setSanitizedHtml(bubble, renderMarkdown(fullText));
           if (state.currentChatId === targetChatId) scrollToBottomIfPinned(false);
         } else if (evt.type === 'council') councilTrace = evt.council;
         else if (evt.type === 'workspace') builtWorkspace = { workspace: evt.workspace, tree: evt.tree };
@@ -346,7 +347,7 @@ async function sendMessage(overridePrompt = null) {
     }
 
     if (fullText || builtWorkspace) {
-      bubble.innerHTML = renderMarkdown(fullText);
+      setSanitizedHtml(bubble, renderMarkdown(fullText));
       if (builtWorkspace) wrap.appendChild(buildInlineWorkspaceCard(builtWorkspace.workspace, builtWorkspace.tree));
       const label = MODEL_LABELS[usedModel] || usedModel;
       if (label && getPrefs().show_model_badge) {
@@ -357,7 +358,7 @@ async function sendMessage(overridePrompt = null) {
         badge.textContent = label;
         badgeRow.appendChild(badge);
         if (verificationInfo) {
-          badgeRow.insertAdjacentHTML('beforeend', ' ' + renderConfidenceBadgeHtml(verificationInfo.confidence_label, verificationInfo.confidence_score, 'tr'));
+          appendSanitizedHtml(badgeRow, ' ' + renderConfidenceBadgeHtml(verificationInfo.confidence_label, verificationInfo.confidence_score, 'tr'));
         }
         wrap.insertBefore(badgeRow, bubble);
       }
@@ -365,7 +366,7 @@ async function sendMessage(overridePrompt = null) {
         const det = document.createElement('details');
         det.className = 'sp-card';
         det.style.marginBottom = '6px';
-        det.innerHTML = `<summary style="cursor:pointer;font-weight:600;font-size:12.5px;">Ajan Konseyi Düşünce Zinciri ve Hakem Sentezi</summary><pre class="sp-preview-pre" style="margin-top:8px;">${escapeHtml(JSON.stringify(councilTrace, null, 2))}</pre>`;
+        setSanitizedHtml(det, `<summary>Ajan Konseyi Düşünce Zinciri ve Hakem Sentezi</summary><pre class="sp-preview-pre">${escapeHtml(JSON.stringify(councilTrace, null, 2))}</pre>`);
         wrap.insertBefore(det, bubble);
       }
       if (usageInfo && getPrefs().show_token_counter) {
@@ -386,7 +387,7 @@ async function sendMessage(overridePrompt = null) {
     if (err && err.name === 'AbortError') {
       fullText += '\n\n*[Yanıt kullanıcı tarafından durduruldu]*';
       bubble.classList.remove('thinking');
-      bubble.innerHTML = renderMarkdown(fullText);
+      setSanitizedHtml(bubble, renderMarkdown(fullText));
       wrap.appendChild(messageBar(fullText));
       appendAssistantMessageToChat(targetChatId, { role: 'assistant', text: fullText, modelBadge: MODEL_LABELS[usedModel] || usedModel, isError: false });
     } else {

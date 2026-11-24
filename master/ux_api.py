@@ -62,7 +62,13 @@ def build_health_wizard_report(
 ) -> dict[str, Any]:
     """UX-17: Actionable Turkish diagnostics for Ollama, models, embeddings, web search, sandbox & agents."""
     sb = sandbox.status()
-    web_on = os.environ.get("WEB_SEARCH_ENABLED", "false").lower() == "true"
+    web_on = os.environ.get("WEB_SEARCH_ENABLED", "false").lower() == "true" or bool(os.environ.get("SEARXNG_URL", "").strip())
+    ocr_ok = False
+    try:
+        import pytesseract  # noqa: F401
+        ocr_ok = True
+    except ImportError:
+        ocr_ok = False
     try:
         agents = db.list_agents() if hasattr(db, "list_agents") else []
     except Exception:
@@ -96,16 +102,32 @@ def build_health_wizard_report(
             "id": "web_search",
             "ok": web_on,
             "title": "Web Araştırması (SearXNG)",
-            "remediation": "" if web_on else "İsteğe bağlı: `WEB_SEARCH_ENABLED=true` ve `SEARXNG_URL` ayarlayın.",
+            "remediation": "" if web_on else "docker compose --profile web-search up -d ile SearXNG başlatıp SEARXNG_URL tanımlayın.",
+        },
+        {
+            "id": "ocr",
+            "ok": ocr_ok,
+            "title": "OCR Taranmış Belge Okuyucu",
+            "remediation": "" if ocr_ok else "Taranmış PDF/görsel metni için Tesseract OCR ve `pip install pytesseract` kurun.",
         },
         {
             "id": "agents",
             "ok": len(agents) > 0,
             "title": "Dağıtık Ajan Ağı",
-            "remediation": "" if agents else "Ek bilgisayar bağlamak için Ajanlar sayfasındaki kurulum komutunu kullanın.",
+            "remediation": "" if agents else "Şu an yerel yürütme modunda çalışılıyor. Ek bilgisayar bağlamak için Ajanlar sayfasındaki kurulum komutunu kullanın.",
         },
     ]
-    return {"ready_count": sum(1 for c in checks if c["ok"]), "total": len(checks), "checks": checks}
+    return {
+        "ready_count": sum(1 for c in checks if c["ok"]),
+        "total": len(checks),
+        "execution_mode": "distributed" if agents else "local_only",
+        "execution_badge": (
+            f"Dağıtık yürütme ({len(agents)} ajan)"
+            if agents
+            else "Yerel yürütme (bağlı ajan yok — Ajanlar sayfasından düğüm ekleyebilirsiniz)"
+        ),
+        "checks": checks,
+    }
 
 
 # ---------------------------------------------------------------- UX-26 Secret-Scanned, Expiring Read-Only Shares

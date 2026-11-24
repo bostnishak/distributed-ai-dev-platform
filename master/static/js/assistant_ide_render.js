@@ -61,17 +61,18 @@ export function highlightCodeHtml(code, path) {
 
 export function createTerminalDrawer(wsId, termToggleBtn, gitWsBtn, searchWsBtn) {
   const termDrawer = document.createElement('div');
-  termDrawer.style.cssText = 'background:#0d1017;border-top:1px solid #2b2b36;padding:8px 12px;font-family:Consolas,monospace;font-size:12px;color:#e2e8f0;';
+  termDrawer.className = 'ide-term-drawer';
   termDrawer.hidden = true;
   const termOut = document.createElement('pre');
-  termOut.style.cssText = 'margin:0 0 6px;max-height:150px;overflow-y:auto;white-space:pre-wrap;color:#a7f3d0;';
+  termOut.className = 'ide-term-out';
   termOut.textContent = 'Çalışma alanı terminali hazır. Komut girin (ör. python main.py, pytest, git status):';
   const termRow = document.createElement('div');
-  termRow.style.cssText = 'display:flex;gap:6px;align-items:center;';
+  termRow.className = 'ide-term-row';
   const termIn = document.createElement('input');
   termIn.type = 'text';
+  termIn.className = 'ide-term-in';
+  termIn.setAttribute('aria-label', 'Terminal komutu');
   termIn.placeholder = 'Komut çalıştır (ör. python main.py --help veya pytest)...';
-  termIn.style.cssText = 'flex:1;background:#161b26;border:1px solid #334155;color:#f8fafc;border-radius:6px;padding:5px 8px;font-family:Consolas,monospace;font-size:12px;';
   const termRunBtn = document.createElement('button');
   termRunBtn.type = 'button';
   termRunBtn.className = 'ide-btn primary';

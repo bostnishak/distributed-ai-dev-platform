@@ -6,6 +6,7 @@ import ast
 import difflib
 import hashlib
 import json
+import logging
 import os
 import re
 import sqlite3
@@ -308,8 +309,8 @@ class RAGStore:
                 self.embedding_status = "ready"
                 self.embedding_reason = ""
                 return (arr / norm if norm > 0 else arr), self.EMBED_MODEL, int(arr.shape[0])
-        except Exception:
-            pass
+        except Exception as exc:
+            logging.getLogger(__name__).debug("Ollama embedding fallback triggered: %s", exc)
 
         if self.allow_test_embeddings:
             arr = _test_fallback_embedding(text)

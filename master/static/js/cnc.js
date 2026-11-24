@@ -12,7 +12,7 @@ function badgeClass(crit) {
 }
 
 export async function renderCnc(root) {
-  root.innerHTML = '';
+  root.replaceChildren();
   const wrap = h('div', { class: 'page-inner cnc-page' });
   root.appendChild(wrap);
 
@@ -38,13 +38,14 @@ export async function renderCnc(root) {
   const fileInput = h('input', {
     type: 'file',
     accept: '.pdf,.png,.jpg,.jpeg,.webp,.bmp,.tiff,.docx,.xlsx,.xlsm',
-    style: { display: 'none' },
+    class: 'sr-only-file',
+    'aria-label': 'CNC teknik çizim dosyası seç',
   });
   const fileLabel = h('span', { class: 'muted small' }, 'Dosya seçilmedi (PDF, PNG, JPG, DOCX, XLSX)');
   const pickBtn = h('button', { class: 'btn', type: 'button' }, 'Dosya: Teknik Çizim Seç');
-  const partNoIn = h('input', { class: 'cnc-input', placeholder: 'Parça No (opsiyonel, ör. FLN-2026-042)' });
-  const matIn = h('input', { class: 'cnc-input', placeholder: 'Malzeme (ör. AISI 4140 / Al 6061)' });
-  const stdIn = h('input', { class: 'cnc-input', value: 'ISO 2768-mK', placeholder: 'Standart' });
+  const partNoIn = h('input', { class: 'cnc-input', 'aria-label': 'Parça numarası', placeholder: 'Parça No (opsiyonel, ör. FLN-2026-042)' });
+  const matIn = h('input', { class: 'cnc-input', 'aria-label': 'Malzeme', placeholder: 'Malzeme (ör. AISI 4140 / Al 6061)' });
+  const stdIn = h('input', { class: 'cnc-input', 'aria-label': 'Standart', value: 'ISO 2768-mK', placeholder: 'Standart' });
   const runBtn = h('button', { class: 'btn btn-primary', type: 'button', disabled: true }, '◎ Balonlamayı Başlat');
 
   let selectedFile = null;
@@ -75,7 +76,7 @@ export async function renderCnc(root) {
   async function refreshJobs(selectId = null) {
     const data = await api('/api/cnc/jobs');
     const jobs = data.jobs || [];
-    jobsBar.innerHTML = '';
+    jobsBar.replaceChildren();
     if (!jobs.length) {
       jobsBar.append(h('div', { class: 'muted small' }, 'Henüz balonlanmış çizim yok. Yukarıdan dosya yükleyebilir veya "Örnek CNC Çizimi" butonuna basabilirsiniz.'));
       return;
@@ -111,7 +112,7 @@ export async function renderCnc(root) {
   }
 
   function renderJobWorkspace() {
-    workspace.innerHTML = '';
+    workspace.replaceChildren();
     if (!currentJob) return;
 
     const job = currentJob;
@@ -195,7 +196,7 @@ export async function renderCnc(root) {
     const tbody = h('tbody');
 
     function renderRows() {
-      tbody.innerHTML = '';
+      tbody.replaceChildren();
       balloons.forEach((b, idx) => {
         const rawIn = h('input', { class: 'cnc-cell-in', value: b.raw_text || '', onInput: (e) => { b.raw_text = e.target.value; } });
         const catIn = h('input', { class: 'cnc-cell-in', value: b.category || '', onInput: (e) => { b.category = e.target.value; } });

@@ -463,7 +463,7 @@ async def workspace_git_control(id: str, body: WorkspaceGitRequest):
         raise HTTPException(status_code=404, detail="Çalışma alanı bulunamadı.")
 
     def _git(*args: str) -> subprocess.CompletedProcess[str]:
-        return subprocess.run(["git", *args], cwd=str(ws_dir), capture_output=True, text=True, timeout=8, check=False)
+        return subprocess.run([shutil.which("git") or "git", *args], cwd=str(ws_dir), capture_output=True, text=True, timeout=8, check=False)
 
     if not (ws_dir / ".git").is_dir():
         _git("init")

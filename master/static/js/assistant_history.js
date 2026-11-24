@@ -81,7 +81,7 @@ export async function syncChatsWithServer(state, callbacks) {
 
 export function renderSidebarChatList(els, state, callbacks) {
   const chats = loadChats();
-  els.chatList.innerHTML = '';
+  els.chatList.replaceChildren();
   const q = (els.chatSearchInput ? els.chatSearchInput.value : '').trim().toLowerCase();
   const sorted = Object.entries(chats).sort((a, b) => b[1].updatedAt - a[1].updatedAt);
 

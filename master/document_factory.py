@@ -67,12 +67,22 @@ def _detect_requested_language(prompt: str) -> str:
     return "Türkçe"
 
 
+DOC_ACTION_RE = re.compile(
+    r"(hazırla\w*|hazirla\w*|oluştur\w*|olustur\w*|yap\w*|üret\w*|uret\w*|çıkar\w*|cikar\w*|ver\w*|yaz\w*|indir\w*|dışa\s+aktar)",
+    re.IGNORECASE,
+)
+
+
 def detect_document_request(prompt: str, has_file: bool) -> str | None:
     """Return 'xlsx' | 'docx' | 'pptx' | 'pdf' if the user is asking for a downloadable document file."""
     lower = prompt.lower()
     if any(k in lower for k in ("balonla", "teknik çizim", "web sitesi", "e-ticaret", "oyun", "exe")):
         return None
-    if not DOC_BUILD_RE.search(lower):
+    has_doc_trigger = bool(DOC_BUILD_RE.search(lower)) or (
+        bool(DOC_ACTION_RE.search(lower))
+        and any(k in lower for k in ("word dosya", "word belge", ".docx", "excel dosya", "excel tablo", ".xlsx", "pdf dosya", "pdf rapor", ".pdf"))
+    )
+    if not has_doc_trigger:
         return None
     if "excel" in lower or ".xlsx" in lower:
         return "xlsx"

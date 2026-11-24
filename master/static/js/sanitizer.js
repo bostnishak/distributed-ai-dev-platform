@@ -37,3 +37,22 @@ export function containsUiEmoji(text) {
 export function stripUiEmojis(text) {
   return String(text || '').replace(EMOJI_RANGE_RE, '');
 }
+
+export function setSanitizedHtml(el, html) {
+  if (!el) return;
+  const cleaned = sanitizeHtmlOrSvg(html);
+  if (!cleaned) {
+    el.replaceChildren();
+    return;
+  }
+  const doc = new DOMParser().parseFromString(cleaned, 'text/html');
+  el.replaceChildren(...doc.body.childNodes);
+}
+
+export function appendSanitizedHtml(el, html) {
+  if (!el) return;
+  const cleaned = sanitizeHtmlOrSvg(html);
+  if (!cleaned) return;
+  const doc = new DOMParser().parseFromString(cleaned, 'text/html');
+  el.append(...doc.body.childNodes);
+}

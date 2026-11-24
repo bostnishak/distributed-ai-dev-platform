@@ -165,7 +165,7 @@ let monthMessages = 0;
 let memoryCount = 0;
 
 function compact(n) {
-  if (n == null) return '—';
+  if (n === null || n === undefined) return '—';
   if (n >= 1e6) return `${(n / 1e6).toFixed(1).replace('.', ',')} Mn`;
   if (n >= 1e3) return `${(n / 1e3).toFixed(1).replace('.', ',')} B`;
   return String(n);
@@ -216,7 +216,7 @@ function renderCard() {
     avatar(profile),
     h('div', { class: 'sp-usercard-text' },
       h('div', { class: 'sp-usercard-name' }, profile.display_name),
-      h('div', { class: 'sp-usercard-sub' }, monthTokens == null ? 'Kişisel alan ve ayarlar' : `${compact(monthTokens)} token bu ay`)),
+      h('div', { class: 'sp-usercard-sub' }, (monthTokens === null || monthTokens === undefined) ? 'Kişisel alan ve ayarlar' : `${compact(monthTokens)} token bu ay`)),
     h('span', { class: 'sp-icon-btn', title: 'Ayarlar' }, icon('gear')),
   );
   renderTopBar();

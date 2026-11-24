@@ -7,6 +7,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 import agents_api
+import api_schemas
 import assistant
 import audit_log
 import auth
@@ -17,6 +18,7 @@ import contract_check
 import db
 import distributed
 import domains
+import education_and_domains
 import factory
 import games
 import gateway
@@ -31,9 +33,11 @@ import orchestrator
 import output_api
 import perf_api
 import preview_server
+import productivity_api
 import projects_api
 import rag
 import scheduler
+import security_extensions
 import security_middleware
 import studio_api
 import studios
@@ -89,6 +93,9 @@ app.include_router(games.router)
 app.include_router(domains.router)
 app.include_router(distributed.router)
 app.include_router(ux_api.router)
+app.include_router(security_extensions.router)
+app.include_router(education_and_domains.router)
+app.include_router(productivity_api.router)
 
 
 @app.get("/api/admin/contract-check")
@@ -109,14 +116,20 @@ async def revalidate_ui_files(request: Request, call_next):
 
 @app.get("/health")
 async def health():
+    """Return master service liveness status."""
     return {"status": "ok"}
 
 
 @app.get("/api/master/status")
 async def master_status():
+    """Return master LLM provider connectivity and active model status."""
     return await llm.status()
 
 
 @app.get("/")
 async def ui():
+    """Serve the single-page web application shell."""
     return FileResponse(config.STATIC_DIR / "index.html")
+
+
+api_schemas.attach_openapi_contracts(app)

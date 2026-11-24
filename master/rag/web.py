@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import ipaddress
 import json
+import logging
 import os
 import re
 import socket
@@ -354,6 +355,6 @@ async def verify_entity(name: str, *, lookup_fn=None) -> dict[str, Any]:
                     "source": (d.get("content_urls") or {}).get("desktop", {}).get("page", ""),
                     "summary": str(d.get("extract") or "")[:300],
                 }
-    except Exception:
-        pass
+    except Exception as exc:
+        logging.getLogger(__name__).debug("Entity lookup skipped for %s: %s", clean, exc)
     return {"verified": False, "entity": clean, "warning": f"'{clean}' varlığı doğrulanamadı (bulunamadı)."}

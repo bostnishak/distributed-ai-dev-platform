@@ -5,7 +5,7 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 
 function applyProps(el, props) {
   for (const [key, value] of Object.entries(props || {})) {
-    if (value == null || value === false) continue;
+    if (value === null || value === undefined || value === false) continue;
     if (key === 'class') el.setAttribute('class', value);
     else if (key === 'dataset') Object.assign(el.dataset, value);
     else if (key.startsWith('on') && typeof value === 'function') el.addEventListener(key.slice(2).toLowerCase(), value);
@@ -17,7 +17,7 @@ function applyProps(el, props) {
 
 function appendChildren(el, children) {
   for (const child of children.flat(Infinity)) {
-    if (child == null || child === false) continue;
+    if (child === null || child === undefined || child === false) continue;
     el.append(child instanceof Node ? child : document.createTextNode(String(child)));
   }
 }
@@ -93,14 +93,14 @@ export function formatDateTime(iso) {
 }
 
 export function formatSeconds(seconds) {
-  if (seconds == null) return '—';
+  if (seconds === null || seconds === undefined) return '—';
   if (seconds < 60) return `${Math.round(seconds)} sn`;
   const minutes = Math.floor(seconds / 60);
   return `${minutes} dk ${Math.round(seconds % 60)} sn`;
 }
 
 export function formatNumber(value) {
-  return value == null ? '—' : Number(value).toLocaleString('tr-TR');
+  return (value === null || value === undefined) ? '—' : Number(value).toLocaleString('tr-TR');
 }
 
 // Auto-focusing inputs on phones pops up the keyboard, so only do it on wide screens.

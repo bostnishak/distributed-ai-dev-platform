@@ -35,23 +35,27 @@ function resolve(schema) {
   return node || {};
 }
 
+let fieldSeq = 0;
+
 function inputFor(name, schema, required) {
   const s = resolve(schema);
-  const label = h('label', { class: 'hub-label' }, name, required ? h('span', { class: 'hub-req' }, ' *') : null);
+  const fid = `hub-f-${++fieldSeq}`;
+  const labelText = s.title || name;
+  const label = h('label', { class: 'hub-label', for: fid }, name, required ? h('span', { class: 'hub-req' }, ' *') : null);
   let control;
   if (s.enum) {
-    control = h('select', { name }, !required ? h('option', { value: '' }, '(boş)') : null,
+    control = h('select', { id: fid, name, 'aria-label': labelText }, !required ? h('option', { value: '' }, '(boş)') : null,
       ...s.enum.map((v) => h('option', { value: String(v) }, String(v))));
   } else if (s.type === 'boolean') {
-    control = h('input', { type: 'checkbox', name });
+    control = h('input', { id: fid, type: 'checkbox', name, 'aria-label': labelText });
   } else if (s.type === 'integer' || s.type === 'number') {
-    control = h('input', { type: 'number', name, step: s.type === 'integer' ? '1' : 'any', value: s.default ?? '' });
+    control = h('input', { id: fid, type: 'number', name, 'aria-label': labelText, step: s.type === 'integer' ? '1' : 'any', value: s.default ?? '' });
   } else if (s.format === 'binary') {
-    control = h('input', { type: 'file', name });
+    control = h('input', { id: fid, type: 'file', name, 'aria-label': labelText });
   } else if (s.type === 'array' || s.type === 'object') {
-    control = h('textarea', { name, rows: 3, placeholder: s.type === 'array' ? '["a", "b"]' : '{ }', dataset: { json: '1' } });
+    control = h('textarea', { id: fid, name, 'aria-label': labelText, rows: 3, placeholder: s.type === 'array' ? '["a", "b"]' : '{ }', dataset: { json: '1' } });
   } else {
-    control = h('textarea', { name, rows: 2, placeholder: s.description || '' });
+    control = h('textarea', { id: fid, name, 'aria-label': labelText, rows: 2, placeholder: s.description || '' });
     if (s.default != null) control.value = String(s.default);
   }
   control.dataset.type = s.type || 'string';

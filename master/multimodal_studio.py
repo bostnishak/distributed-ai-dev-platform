@@ -10,6 +10,7 @@ from __future__ import annotations
 import base64
 import io
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -230,7 +231,7 @@ def process_and_edit_image(raw_bytes: bytes, prompt: str) -> dict[str, Any]:
 # ============================================================================
 
 IMAGE_NOUN_RE = re.compile(
-    r"\b(görsel\w*|gorsel\w*|fotoğraf\w*|fotograf\w*|resim\w*|illüstrasyon\w*|illustrasyon\w*|"
+    r"\b(görsel\w*|gorsel\w*|fotoğraf\w*|fotograf\w*|resim\w*|resm\w*|manzara\w*|çizim\w*|cizim\w*|illüstrasyon\w*|illustrasyon\w*|"
     r"logo\w*|poster\w*|afiş\w*|afis\w*|amblem\w*|banner\w*|kapak\s*tasarım\w*)\b",
     re.IGNORECASE,
 )
@@ -883,7 +884,7 @@ def transcribe_audio_bytes(filename: str, raw_bytes: bytes) -> dict[str, Any]:
         )
         try:
             proc = subprocess.run(
-                ["powershell", "-NoProfile", "-Command", ps_script],
+                [shutil.which("powershell") or "powershell", "-NoProfile", "-Command", ps_script],
                 capture_output=True,
                 text=True,
                 timeout=15,

@@ -126,7 +126,7 @@ a { color: var(--accent); }
 .form label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
 .form input[type=text], .form textarea {
   width: 100%; border: 1px solid #d9d9e0; border-radius: 9px; padding: 9px 11px;
-  font-size: 14px; font-family: inherit; outline: none;
+  font-size: 14px; font-family: inherit; outline-offset: 2px;
 }
 .form input[type=text]:focus, .form textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px #e6e6fb; }
 .form textarea { resize: vertical; min-height: 260px; line-height: 1.5; }
@@ -320,7 +320,7 @@ ul.plain { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.6; }
 }
 #attachBtn:hover { background: #f2f2f5; }
 #promptInput {
-  flex: 1; border: none; outline: none; resize: none; font-size: 14.5px;
+  flex: 1; border: none; outline-offset: 2px; resize: none; font-size: 14.5px;
   max-height: 160px; padding: 6px 0; font-family: inherit;
 }
 #sendBtn {
@@ -448,7 +448,7 @@ ul.plain { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.6; }
   border: 1px solid transparent; background: transparent; padding: 4px 6px;
   border-radius: 6px; font-size: 13px; width: 100%; min-width: 90px; font-family: inherit;
 }
-.cnc-cell-in:focus { border-color: var(--accent); background: #fff; outline: none; }
+.cnc-cell-in:focus { border-color: var(--accent); background: #fff; outline-offset: 2px; }
 .cnc-del-btn { padding: 3px 8px; font-size: 12px; }
 .cnc-badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 600; }
 .cnc-crit { background: #fee2e2; color: #991b1b; }
@@ -513,7 +513,7 @@ ul.plain { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.6; }
   font-size: 12.5px; color: #9cdcfe; font-family: Consolas, "Courier New", monospace;
 }
 .studio-editor {
-  flex: 1; width: 100%; border: none; resize: none; outline: none;
+  flex: 1; width: 100%; border: none; resize: none; outline-offset: 2px;
   background: #1e1e1e; color: #d4d4d4; padding: 14px 16px;
   font-family: Consolas, "Cascadia Code", "Courier New", monospace;
   font-size: 13.5px; line-height: 1.55; tab-size: 4;
@@ -538,7 +538,7 @@ ul.plain { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.6; }
   width: 100%; background: #252526; color: #f3f4f6; border: 1px solid #3f3f46;
   border-radius: 8px; padding: 10px; font-size: 13px; font-family: inherit; resize: vertical;
 }
-.studio-prompt:focus { border-color: var(--accent); outline: none; }
+.studio-prompt:focus { border-color: var(--accent); outline-offset: 2px; }
 .studio-ai-actions { display: flex; gap: 8px; }
 .studio-console {
   flex: 1; min-height: 120px; overflow-y: auto; background: #0f1115;
@@ -607,7 +607,7 @@ ul.plain { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.6; }
 .ide-window-dots .dot-g { background: #27c93f; }
 .ide-proj-name { font-weight: 600; font-size: 13.5px; color: #f4f4f5; letter-spacing: -0.01em; }
 .ide-type-badge {
-  font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
   padding: 2px 7px; border-radius: 4px; background: #27272a; color: #a5b4fc; border: 1px solid #3f3f46;
 }
 
@@ -676,7 +676,7 @@ ul.plain { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.6; }
 .ide-ext-badge {
   display: inline-flex; align-items: center; justify-content: center;
   width: 17px; height: 15px; border-radius: 3px;
-  font-size: 9px; font-weight: 800; font-family: Consolas, monospace;
+  font-size: 11px; font-weight: 800; font-family: Consolas, monospace;
   flex-shrink: 0; letter-spacing: -0.04em;
 }
 .ide-node-name { overflow: hidden; text-overflow: ellipsis; }
@@ -749,7 +749,7 @@ ul.plain { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.6; }
   white-space: pre; tab-size: 2;
 }
 .ide-raw-editor {
-  flex: 1; background: #1e1e1e; color: #e4e4e7; border: none; outline: none;
+  flex: 1; background: #1e1e1e; color: #e4e4e7; border: none; outline-offset: 2px;
   padding: 12px 16px; font-family: inherit; font-size: 13px; line-height: 1.55;
   resize: none; white-space: pre; tab-size: 2;
 }
@@ -793,7 +793,7 @@ ul.plain { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.6; }
   flex: 1; background: #121214; border: 1px solid #34343a; border-radius: 7px;
   color: #f4f4f5; padding: 6px 11px; font-size: 12.5px; font-family: inherit;
 }
-.ide-iter-bar input:focus { border-color: #6366f1; outline: none; }
+.ide-iter-bar input:focus { border-color: #6366f1; outline-offset: 2px; }
 
 .ide-statusbar {
   display: flex; align-items: center; justify-content: space-between;
@@ -848,7 +848,7 @@ ul.plain { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.6; }
 /* Komut paleti (palette.js) */
 .pal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.5); display: flex; justify-content: center; align-items: flex-start; padding-top: 14vh; z-index: 9998; }
 .pal-box { width: min(560px, 92vw); background: var(--surface, #fff); color: inherit; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 20px 45px rgba(0,0,0,.28); overflow: hidden; }
-.pal-input { width: 100%; box-sizing: border-box; padding: 14px 16px; border: 0; border-bottom: 1px solid var(--border); background: transparent; color: inherit; font: inherit; outline: none; }
+.pal-input { width: 100%; box-sizing: border-box; padding: 14px 16px; border: 0; border-bottom: 1px solid var(--border); background: transparent; color: inherit; font: inherit; outline-offset: 2px; }
 .pal-list { list-style: none; margin: 0; padding: 6px; max-height: 50vh; overflow: auto; }
 .pal-item { display: flex; justify-content: space-between; padding: 9px 12px; border-radius: 8px; cursor: pointer; }
 .pal-item.active, .pal-item:hover { background: var(--accent-soft); }

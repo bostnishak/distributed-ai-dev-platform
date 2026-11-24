@@ -85,7 +85,7 @@ export function renderNewProject(root) {
     counter.textContent = `${formatNumber(textArea.value.length)} karakter`;
   });
 
-  const fileInput = h('input', { type: 'file', accept: '.pdf,.docx,.txt,.md,.zip', hidden: true });
+  const fileInput = h('input', { type: 'file', accept: '.pdf,.docx,.txt,.md,.zip', hidden: true, 'aria-label': 'Proje gereksinim dosyası yükle' });
   const fileNameEl = h('div', { class: 'file-name' });
   const dropzone = h('div', { class: 'dropzone', tabindex: 0, role: 'button' },
     h('div', null, 'Dosya seçmek için tıklayın veya buraya sürükleyin'),

@@ -10,6 +10,7 @@ by default, configurable via `config.PREVIEW_PORT`):
 
 from __future__ import annotations
 
+import logging
 import mimetypes
 import threading
 
@@ -84,7 +85,7 @@ def start_preview_server_background() -> None:
                 log_level="warning",
                 access_log=False,
             )
-        except BaseException:
-            pass
+        except BaseException as exc:
+            logging.getLogger(__name__).debug("preview origin server stopped: %s", exc)
 
     threading.Thread(target=_run, name="preview-origin-server", daemon=True).start()
