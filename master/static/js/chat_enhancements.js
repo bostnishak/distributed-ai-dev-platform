@@ -1,7 +1,9 @@
 // F204 Chat & Accessibility Enhancements: SOH-01..10, ERI-01..05, DOS-03, DOS-06 (offline, zero CDN, zero emojis).
 import { toggleVoiceMode } from './assistant_voice.js';
 import { bindGlobalEvent, safeFetchJson, storageGet, storageRemove, storageSet } from './storage.js';
+import { HIDDEN_PAGES } from './assistant_nav.js';
 import { pillIcon } from './pill_icons.js';
+import { openStudioDock } from './studio_dock.js';
 import { h } from './util.js';
 
 const DRAFT_KEY = 'cm6453_chat_draft';
@@ -31,7 +33,10 @@ async function mountModelAndAgentPickers() {
   agentSel.addEventListener('change', () => storageSet(AGENT_KEY, agentSel.value));
   const popover = h('div', { id: 'chatToolbarRow', class: 'chat-options', role: 'dialog', 'aria-label': 'Sohbet seçenekleri', hidden: true },
     h('label', { class: 'chat-options-field' }, h('span', null, 'Model'), modelSel),
-    h('label', { class: 'chat-options-field' }, h('span', null, 'Ajan'), agentSel));
+    h('label', { class: 'chat-options-field' }, h('span', null, 'Ajan'), agentSel),
+    h('div', { class: 'chat-options-tools' }, h('span', null, 'Araçlar'),
+      h('button', { type: 'button', class: 'chip-btn', onClick: () => { setOpen(false); openStudioDock(); } }, 'Kod Stüdyosu'),
+      ...HIDDEN_PAGES.filter((pg) => !pg.dock).map((pg) => h('a', { class: 'chip-btn', href: pg.hash }, pg.label))));
   const optionsBtn = h('button', { id: 'chatOptionsBtn', type: 'button', class: 'pill-icon-btn', title: 'Model ve ajan seç', 'aria-label': 'Model ve ajan seç', 'aria-expanded': 'false' }, pillIcon('tune'));
   const setOpen = (open) => { popover.hidden = !open; optionsBtn.setAttribute('aria-expanded', String(open)); };
   optionsBtn.addEventListener('click', (e) => { e.stopPropagation(); setOpen(popover.hidden); });

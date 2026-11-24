@@ -1,7 +1,7 @@
 // Pages that are not in the sidebar but open from the assistant when the user asks for them.
 const PAGES = [
   { hash: '#/cnc', label: 'CNC Balonlama', re: /\bcnc\b|balonlama|ballooning/ },
-  { hash: '#/studio', label: 'Kod Stüdyosu', re: /kod\s*st[üu]dyo|\bide\b|code\s*studio/ },
+  { hash: '#/studio', label: 'Kod Stüdyosu', dock: true, re: /kod\s*st[üu]dyo|\bide\b|code\s*studio/ },
   { hash: '#/studios', label: 'Stüdyolar', re: /st[üu]dyolar|studios/ },
   { hash: '#/artifacts', label: 'Artefaktlar', re: /artefakt|artifact/ },
   { hash: '#/files', label: 'Dosyalar ve Bilgi Bankası', re: /dosyalar|bilgi\s*bankas|files/ },
@@ -16,5 +16,8 @@ export function matchPageRequest(prompt) {
 }
 
 export function pageLinkMessage(page) {
+  if (page.dock) return `**${page.label}** sağ tarafta açıldı. Tam sayfa için: [tam sayfada aç](${page.hash})`;
   return `**${page.label}** sayfasını açabilirsin: [${page.label} sayfasına git](${page.hash})`;
 }
+
+export const HIDDEN_PAGES = PAGES;

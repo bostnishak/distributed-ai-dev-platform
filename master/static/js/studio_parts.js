@@ -129,7 +129,7 @@ export function renderStudioTreeNodes(nodes, state, onToggleDir, onOpenFile, dep
       onClick: () => (isDir ? onToggleDir(node.path, isCollapsed) : onOpenFile(node.path)),
     },
       h('span', { class: 'tree-chevron' }, isDir ? (isCollapsed ? '▸' : '▾') : ''),
-      h('span', { class: 'tree-icon' }, fileIcon(node.name, isDir)),
+      h('span', { class: 'tree-icon' }, isDir ? '' : fileIcon(node.name, isDir)),
       h('span', { class: 'tree-name' }, node.name),
       !isDir ? h('span', { class: 'tree-size' }, formatSize(node.size)) : null,
     );

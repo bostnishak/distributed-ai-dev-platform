@@ -124,3 +124,37 @@ html[data-theme="dark"] {
 .studio-tree-item { display: flex; align-items: center; gap: 8px; padding: 5px 10px; font-size: 13px; }
 .studio-tree-item .studio-icon, .studio-tree-item > span:first-child { color: var(--muted); font-size: 11px; min-width: 18px; text-align: center; }
 .studio-ws-root { color: var(--text); font-weight: 600; }
+
+/* ---------- studio dock (inside chat) ---------- */
+#view-assistant { position: relative; }
+.studio-dock {
+  position: absolute; top: 0; right: 0; bottom: 0; width: min(780px, 62%); z-index: 40; display: flex; flex-direction: column;
+  background: var(--surface); border-left: 1px solid var(--border); box-shadow: -12px 0 32px rgba(16, 24, 40, 0.14);
+}
+.studio-dock-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.studio-dock-actions { display: inline-flex; gap: 4px; }
+.studio-dock-body { flex: 1; min-height: 0; display: flex; }
+.studio-dock .studio-shell { height: 100%; }
+.studio-dock .studio-brand { display: none; }
+.studio-dock .studio-body { grid-template-columns: 170px 1fr; grid-template-rows: minmax(0, 1fr) 250px; }
+.studio-dock .studio-ai-pane { grid-column: 1 / -1; border-left: none; border-top: 1px solid var(--border); }
+@media (max-width: 860px) { .studio-dock { width: 100%; } }
+.chat-options-tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; color: var(--muted); font-weight: 600; }
+.chip-btn {
+  display: inline-flex; align-items: center; height: 28px; padding: 0 10px; border-radius: 999px; font: inherit; font-size: 12px; font-weight: 500;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; text-decoration: none;
+}
+.chip-btn:hover { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-strong); }
+.studio-tree-item .tree-chevron { width: 14px; color: var(--muted); font-size: 11px; text-align: center; flex-shrink: 0; }
+.studio-tree-item .tree-icon { width: 22px; color: var(--muted); font-size: 11px; text-align: center; flex-shrink: 0; }
+.studio-tree-item .tree-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio-tree-item .tree-size { color: var(--muted); font-size: 11px; }
+.studio-prompt { min-height: 84px; }
+.studio-ai-pane { overflow-y: auto; }
+
+/* ---------- advanced tools hub: one scrolling tab row instead of a wall of pills ---------- */
+.wb-tabs { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 4px; border-bottom: 1px solid var(--border); padding-bottom: 0; scrollbar-width: thin; }
+.wb-tab { flex-shrink: 0; border: none; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; color: var(--muted); padding: 8px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+.wb-tab:hover { color: var(--text); background: var(--hover); }
+.wb-tab.active { color: var(--accent-strong); border-bottom-color: var(--accent); background: transparent; font-weight: 600; }
+#promptInput:focus, #promptInput:focus-visible { outline-color: transparent; }
