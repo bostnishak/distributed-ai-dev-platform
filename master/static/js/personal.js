@@ -155,7 +155,7 @@ function renderTopBar() {
   const bar = document.getElementById('assistantTopBar');
   if (!bar || !profile) return;
   const s = profile.settings || DEFAULTS;
-  const themeLabel = s.theme === 'dark' ? 'Koyu Mod' : s.theme === 'light' ? 'Açık Mod' : 'Sistem Teması';
+  const themeLabel = s.theme === 'dark' ? 'Koyu Mod' : s.theme === 'light' ? 'Açık Mod' : s.theme === 'high-contrast' ? 'Yüksek Kontrast' : 'Sistem Teması';
   const crossOn = s.cross_chat_memory !== false;
   const styleMap = { concise: 'Kısa', balanced: 'Dengeli', detailed: 'Ayrıntılı' };
   const toneMap = { professional: 'Profesyonel', friendly: 'Samimi', technical: 'Teknik' };

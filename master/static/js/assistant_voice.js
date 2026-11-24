@@ -1,5 +1,40 @@
 // UX-02 Modular Split: Local Whisper STT voice capture + sandboxed Python code execution handlers.
-import { safeFetchJson, startManagedInterval } from './storage.js';
+import { bindGlobalEvent, safeFetchJson, startManagedInterval } from './storage.js';
+
+let handsFreeActive = false;
+let voiceToggleRef = null;
+
+export function isVoiceModeActive() {
+  return handsFreeActive;
+}
+
+export function toggleVoiceMode(forceState = null) {
+  handsFreeActive = typeof forceState === 'boolean' ? forceState : !handsFreeActive;
+  if (voiceToggleRef) {
+    voiceToggleRef.setAttribute('aria-pressed', handsFreeActive ? 'true' : 'false');
+    voiceToggleRef.textContent = handsFreeActive ? 'Sesli Mod: Açık' : 'Sesli Mod';
+  }
+  if (!handsFreeActive && typeof window !== 'undefined' && window.speechSynthesis) {
+    window.speechSynthesis.cancel();
+  }
+  document.dispatchEvent(new CustomEvent('voice-mode-changed', { detail: { active: handsFreeActive } }));
+  return handsFreeActive;
+}
+
+function speakAssistantReply(text, onDone) {
+  if (!handsFreeActive || typeof window === 'undefined' || !window.speechSynthesis) {
+    if (typeof onDone === 'function') onDone();
+    return;
+  }
+  const clean = String(text || '').replace(/```[\s\S]*?```/g, ' kod bloğu ').replace(/[#*_`>]/g, ' ').trim();
+  if (!clean) { if (typeof onDone === 'function') onDone(); return; }
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(clean.slice(0, 600));
+  utter.lang = 'tr-TR';
+  utter.onend = () => { if (typeof onDone === 'function') onDone(); };
+  utter.onerror = () => { if (typeof onDone === 'function') onDone(); };
+  window.speechSynthesis.speak(utter);
+}
 
 export function encodeMonoWav16k(chunks, inputSampleRate) {
   let totalLen = 0;
@@ -100,10 +135,40 @@ async function transcribeAudioBlob(blob, filename, els, ui, updateSendState, isR
     els.promptInput.focus();
     ui.show(`Metne çevrildi (${data.duration_sec || 0} sn)`, false);
     ui.hide(2400, isRec);
+    if (handsFreeActive) {
+      document.dispatchEvent(new CustomEvent('voice-auto-submit', { detail: { transcript: data.transcript } }));
+    }
   } else {
     ui.show('Konuşma algılanamadı, mikrofona biraz daha yakın konuşup tekrar deneyin.', false);
     ui.hide(3200, isRec);
   }
+}
+
+function mountVoiceModeToggle(st, startRecording, stopAndTranscribe) {
+  const toolbar = document.getElementById('chatToolbarRow') || document.getElementById('inputWrap');
+  if (toolbar && !document.getElementById('voiceModeBtn')) {
+    const vBtn = document.createElement('button');
+    vBtn.id = 'voiceModeBtn';
+    vBtn.type = 'button';
+    vBtn.className = 'voice-mode-btn';
+    vBtn.setAttribute('aria-pressed', 'false');
+    vBtn.title = 'Sürekli sesli sohbet döngüsünü aç/kapat';
+    vBtn.textContent = 'Sesli Mod';
+    vBtn.addEventListener('click', () => {
+      const on = toggleVoiceMode();
+      if (on && !st.recording) startRecording();
+      else if (!on && st.recording) stopAndTranscribe();
+    });
+    voiceToggleRef = vBtn;
+    toolbar.appendChild(vBtn);
+  }
+  bindGlobalEvent(document, 'assistant-reply-complete', (evt) => {
+    if (!handsFreeActive) return;
+    const text = (evt.detail && evt.detail.text) || '';
+    speakAssistantReply(text, () => {
+      if (handsFreeActive && !st.recording) startRecording();
+    });
+  });
 }
 
 export function initVoiceRecognition(els, updateSendState) {
@@ -148,13 +213,16 @@ export function initVoiceRecognition(els, updateSendState) {
       if (st.audioCtx.state === 'suspended') await st.audioCtx.resume();
       const source = st.audioCtx.createMediaStreamSource(st.mediaStream);
       st.processor = st.audioCtx.createScriptProcessor(4096, 1, 1);
-      st.pcmChunks = []; st.heardVoice = false;
+      st.pcmChunks = []; st.heardVoice = false; st.lastVoiceAt = Date.now();
       st.processor.onaudioprocess = (e) => {
         if (!st.recording) return;
         const ch = new Float32Array(e.inputBuffer.getChannelData(0));
         st.pcmChunks.push(ch);
-        if (!st.heardVoice) {
-          for (let i = 0; i < ch.length; i += 64) { if (Math.abs(ch[i]) > 0.015) { st.heardVoice = true; break; } }
+        let loud = false;
+        for (let i = 0; i < ch.length; i += 64) { if (Math.abs(ch[i]) > 0.015) { loud = true; break; } }
+        if (loud) { st.heardVoice = true; st.lastVoiceAt = Date.now(); }
+        else if (handsFreeActive && st.heardVoice && Date.now() - st.lastVoiceAt > 1500) {
+          stopAndTranscribe();
         }
       };
       source.connect(st.processor); st.processor.connect(st.audioCtx.destination);
@@ -172,6 +240,7 @@ export function initVoiceRecognition(els, updateSendState) {
   }
 
   els.micBtn.addEventListener('click', () => { if (st.recording) stopAndTranscribe(); else startRecording(); });
+  mountVoiceModeToggle(st, startRecording, stopAndTranscribe);
 }
 
 export async function showRunButtonsIfEnabled() {

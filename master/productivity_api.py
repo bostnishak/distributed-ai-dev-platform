@@ -8,17 +8,36 @@ import re
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
 
 import config
 import cronjobs
+import productivity_engines as pe
 import productivity_helpers as ph
 from access_control import require_local_or_admin
 from kvstore import PersistentDict, PersistentList, PersistentSet
 from productivity_helpers import SLIDE_ICONS, TEMPLATE_GALLERY
+from productivity_schemas import (
+    ApprovalBody,
+    ApprovalDecisionBody,
+    AudioConvertBody,
+    CodeTranslateBody,
+    ConnectorScanBody,
+    CustomAgentBody,
+    GeocodeBody,
+    IcsEventBody,
+    MailMergeBody,
+    ProjectInstructionBody,
+    RegexTestBody,
+    ScheduleJobBody,
+    SourceDownloadBody,
+    SurveyBody,
+    TableRowsBody,
+    TextBody,
+    TranslateQueryBody,
+    VideoGenerateBody,
+)
 
 router = APIRouter(prefix="/api/productivity", tags=["productivity"])
 _ADMIN_OR_LOCAL = [Depends(require_local_or_admin)]
@@ -33,82 +52,6 @@ _SCHEDULED_TASKS = PersistentDict("scheduled_tasks")
 _APPROVAL_GATES = PersistentDict("approval_gates")
 _DRAINED_AGENTS = PersistentSet("drained_agents")
 _SURVEYS = PersistentDict("surveys")
-
-
-class TextBody(BaseModel):
-    text: str = Field(..., max_length=100_000)
-
-
-class ProjectInstructionBody(BaseModel):
-    project_instructions: str = Field(..., max_length=8000)
-
-
-class RegexTestBody(BaseModel):
-    pattern: str = Field(..., max_length=500)
-    text: str = Field(..., max_length=50_000)
-    flags: str = ""
-
-
-class CodeTranslateBody(BaseModel):
-    code: str
-    source_lang: str = "python"
-    target_lang: str = "javascript"
-
-
-class TableRowsBody(BaseModel):
-    rows: list[dict[str, Any]]
-    row_key: str = ""
-    col_key: str = ""
-    value_key: str = ""
-    fill_value: Any = 0
-
-
-class IcsEventBody(BaseModel):
-    title: str
-    start_iso: str
-    end_iso: str
-    description: str = ""
-    location: str = ""
-
-
-class CustomAgentBody(BaseModel):
-    name: str
-    instructions: str
-    model: str = "qwen3.5:4b"
-    tools: list[str] = Field(default_factory=list)
-
-
-class ScheduleJobBody(BaseModel):
-    name: str
-    cron: str = "0 9 * * *"
-    prompt: str
-
-
-class ApprovalBody(BaseModel):
-    action: str
-    payload: dict[str, Any] = Field(default_factory=dict)
-
-
-class GeocodeBody(BaseModel):
-    lat1: float
-    lon1: float
-    lat2: float
-    lon2: float
-
-
-class MailMergeBody(BaseModel):
-    template: str
-    records: list[dict[str, Any]]
-
-
-class SurveyBody(BaseModel):
-    title: str
-    fields: list[dict[str, Any]]
-
-
-class TranslateQueryBody(BaseModel):
-    query: str = Field(..., min_length=1, max_length=500)
-    target: str = "en"
 
 
 # Section: Chat, Memory and Files
@@ -184,13 +127,47 @@ async def api_pdf_page_preview(pdf_base64: str = "", page: int = 0):
 
 @router.get("/connectors/status")
 async def api_external_connectors():
-    """Report configuration status for local-first GitHub, Google Drive, OneDrive, and handwriting OCR (DOS-02/04/05/08)."""
+    """Report live configuration status for GitHub/Git, local OneDrive/Google Drive sync, vision UI, and OCR (DOS-02/04/05/08)."""
+    import importlib.util
+    import os
+    import shutil
+
+    cloud_roots = pe.detect_cloud_drive_roots()
+    git_ok = shutil.which("git") is not None
+    gh_token = bool(os.environ.get("GITHUB_TOKEN", "").strip())
+    ocr_ok = importlib.util.find_spec("pytesseract") is not None
     return {
-        "github_connector": {"endpoint": "api.github.com", "configured": False, "note": "GITHUB_TOKEN ayarlanarak salt-okunur depo erişimi açılır."},
-        "cloud_drive": {"providers": ["drive.google.com", "graph.microsoft.com/onedrive"], "configured": False, "note": "Yerel-öncelikli modda bulut bağlayıcı kapalıdır."},
+        "github_connector": {
+            "endpoint": "api.github.com",
+            "configured": git_ok or gh_token,
+            "git_local": git_ok,
+            "token_set": gh_token,
+        },
+        "cloud_drive": {
+            "providers": ["drive.google.com", "graph.microsoft.com/onedrive"],
+            "configured": bool(cloud_roots),
+            "detected_providers": [r["provider"] for r in cloud_roots],
+        },
         "ui_from_image": {"available": True, "mode": "vision_to_html"},
-        "handwriting": {"available": False, "engine": "trocr", "note": "El yazısı OCR modeli yüklü değil; kurulum sonrası aktif olur."},
+        "handwriting": {"available": ocr_ok, "engine": "pytesseract/trocr"},
     }
+
+
+@router.post("/connectors/cloud-drive/scan", dependencies=_ADMIN_OR_LOCAL)
+async def api_scan_cloud_drive(body: ConnectorScanBody):
+    """Scan locally synced OneDrive/Google Drive directory safely (DOS-04)."""
+    try:
+        return pe.scan_cloud_drive_files(body.path, body.limit)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post("/connectors/github/inspect", dependencies=_ADMIN_OR_LOCAL)
+async def api_inspect_github_repo(body: ConnectorScanBody):
+    """Inspect a local Git/GitHub repository branch and recent commits (DOS-05)."""
+    return pe.inspect_github_connector_repo(body.path, body.limit)
 
 
 # Section: Developer and Code Tools
@@ -215,9 +192,8 @@ async def api_explain_code(body: TextBody):
 
 @router.post("/code/translate")
 async def api_translate_code(body: CodeTranslateBody):
-    """Provide structured deterministic Python-to-JavaScript syntax translation preview (KOD-08)."""
-    out = ph.translate_python_to_js(body.code, body.source_lang, body.target_lang)
-    return {"source_lang": body.source_lang, "target_lang": body.target_lang, "translated_code": out}
+    """Translate code across languages via AST with deterministic syntax verification (KOD-08)."""
+    return pe.translate_code_verified(body.code, body.source_lang, body.target_lang)
 
 
 @router.get("/code/templates")
@@ -259,8 +235,15 @@ async def api_set_priority(task_id: int, priority: int = 1):
 
 @router.get("/slides/icons")
 async def api_slide_icons():
-    """Return offline local SVG slide icon library and speaker rehearsal calculator metadata (SUN-01..06)."""
-    return {"icon_library": SLIDE_ICONS, "docx_template_supported": True, "fill_form_supported": True, "regenerate_slide_supported": True}
+    """Return 24-icon offline local SVG slide icon library and metadata (SUN-01..06)."""
+    return {
+        "icon_library": SLIDE_ICONS,
+        "icon_count": len(SLIDE_ICONS),
+        "categories": pe.SLIDE_ICON_CATEGORIES,
+        "docx_template_supported": True,
+        "fill_form_supported": True,
+        "regenerate_slide_supported": True,
+    }
 
 
 @router.post("/slides/rehearse")
@@ -285,7 +268,9 @@ async def api_mail_merge(body: MailMergeBody):
 
 @router.get("/research/context")
 async def api_research_context(query: str = ""):
-    """Provide current_date context, TR->EN query translation hint, and research_history (ARS-01..05)."""
+    """Provide current_date context, live web_archive count, and research_history (ARS-01..05)."""
+    from rag.crawler import count_archived_pages
+
     today_iso = datetime.now(UTC).strftime("%Y-%m-%d")
     if query.strip():
         _RESEARCH_HISTORY.append({"id": uuid.uuid4().hex[:8], "query": query.strip(), "date": today_iso})
@@ -293,9 +278,22 @@ async def api_research_context(query: str = ""):
         "current_date": today_iso,
         "today_iso": today_iso,
         "research_history": _RESEARCH_HISTORY[-25:],
-        "archive_page_count": len(_ARCHIVED_PAGES),
-        "download_source_policy": "SSRF-guarded local-first fetcher",
+        "archive_page_count": count_archived_pages() + len(_ARCHIVED_PAGES),
+        "download_source_endpoint": "/api/productivity/research/download-source",
     }
+
+
+@router.post("/research/download-source", dependencies=_ADMIN_OR_LOCAL)
+async def api_download_and_index_source(body: SourceDownloadBody):
+    """Download/extract a PDF or web source with SSRF guard, archive it, and index into RAG (ARS-01/ARS-04)."""
+    from rag.crawler import fetch_and_index_source
+
+    try:
+        res = await fetch_and_index_source(body.url, body.model_dump())
+        _ARCHIVED_PAGES[res["archive"]["url_hash"]] = {"url": body.url, "title": body.title or body.url}
+        return res
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post("/research/translate-query")
@@ -322,7 +320,28 @@ async def api_generate_qrcode_svg(body: TextBody):
 async def api_geocod_distance(body: GeocodeBody):
     """Calculate Haversine distance (km) between two WGS84 coordinates (MED-05)."""
     km = ph.haversine_km(body.lat1, body.lon1, body.lat2, body.lon2)
-    return {"distance_km": km, "audio_convert_available": False, "video_generate_available": False}
+    return {"distance_km": km, "audio_convert_available": True, "video_generate_available": True}
+
+
+@router.post("/media/audio-convert")
+async def api_audio_convert(body: AudioConvertBody):
+    """Clean, normalize, trim silence, and resample WAV PCM audio offline (MED-01)."""
+    try:
+        return pe.convert_clean_audio_wav(
+            body.wav_base64,
+            normalize=body.normalize,
+            trim_silence=body.trim_silence,
+            target_rate=body.target_rate,
+            mono=body.mono,
+        )
+    except (ValueError, KeyError, OSError) as exc:
+        raise HTTPException(status_code=400, detail=f"Ses dönüştürme hatası: {exc}") from exc
+
+
+@router.post("/media/video-generate")
+async def api_video_generate(body: VideoGenerateBody):
+    """Compose an offline animated slideshow/video (GIF) from structured slides via Pillow (MED-04)."""
+    return pe.generate_slideshow_video(body.slides, width=body.width, height=body.height, frame_ms=body.frame_ms)
 
 
 # Section: Data Studio
@@ -435,23 +454,59 @@ async def api_run_due_jobs():
 
 @router.post("/agents/approvals", dependencies=_ADMIN_OR_LOCAL)
 async def api_create_approval_gate(body: ApprovalBody):
-    """Queue a human-in-the-loop approval gate entry (AJN-06)."""
+    """Queue a human-in-the-loop approval gate entry that blocks execution until approved (AJN-06)."""
     gid = f"apr_{uuid.uuid4().hex[:8]}"
     rec = {"id": gid, "action": body.action, "payload": body.payload, "status": "pending", "created_at": datetime.now(UTC).isoformat()}
     _APPROVAL_GATES[gid] = rec
     return rec
 
 
+@router.post("/agents/approvals/{gate_id}/decide", dependencies=_ADMIN_OR_LOCAL)
+async def api_decide_approval_gate(gate_id: str, body: ApprovalDecisionBody):
+    """Approve or reject a pending human-in-the-loop gate (AJN-06)."""
+    rec = _APPROVAL_GATES.get(gate_id)
+    if not rec:
+        raise HTTPException(status_code=404, detail="Onay kapısı bulunamadı.")
+    updated = {**rec, "status": body.decision, "reviewer": body.reviewer, "note": body.note, "decided_at": datetime.now(UTC).isoformat()}
+    _APPROVAL_GATES[gate_id] = updated
+    return updated
+
+
+@router.post("/agents/approvals/{gate_id}/execute", dependencies=_ADMIN_OR_LOCAL)
+async def api_execute_approval_gate(gate_id: str):
+    """Execute a gated step ONLY after human approval; blocks pending (409) or rejected (403) gates (AJN-06)."""
+    rec = _APPROVAL_GATES.get(gate_id)
+    if not rec:
+        raise HTTPException(status_code=404, detail="Onay kapısı bulunamadı.")
+    if rec.get("status") == "pending":
+        raise HTTPException(status_code=409, detail="Bu adım insan onayı bekliyor; onaylanmadan çalıştırılamaz.")
+    if rec.get("status") != "approved":
+        raise HTTPException(status_code=403, detail=f"Adım reddedildi veya geçersiz durumda: {rec.get('status')}")
+    executed = {**rec, "status": "executed", "executed_at": datetime.now(UTC).isoformat()}
+    _APPROVAL_GATES[gate_id] = executed
+    return {"ok": True, "gate": executed}
+
+
 @router.get("/ops/logs", dependencies=_ADMIN_OR_LOCAL)
 async def api_admin_logs(limit: int = 50):
-    """Return recent sanitized log lines for the admin log_viewer (OPR-01..04)."""
+    """Return recent sanitized log lines for the admin log_viewer, remediation endpoint, and live HA leader status (OPR-01..04)."""
+    from ha.leader import get_ha_status
+
     log_path = Path(config.DATA_DIR) / "logs" / "master.log"
     lines = log_path.read_text(encoding="utf-8", errors="replace").splitlines()[-limit:] if log_path.is_file() else []
+    ha = get_ha_status()
     return {
         "lines": lines,
-        "remediate_actions": ["ollama_check", "db_doctor", "searxng_check"],
+        "remediate_actions": ["ensure_dirs", "db_doctor", "init_dbs", "ollama_check", "searxng_check"],
+        "remediate_endpoint": "/api/ux/health-wizard/remediate",
         "usage_analytics": {"archived_chats": len(_ARCHIVED_CHATS), "custom_agents": len(_CUSTOM_AGENTS), "scheduled_tasks": len(_SCHEDULED_TASKS)},
-        "ha_master": {"mode": "single-primary", "leader_election": False, "load_balancer": False},
+        "ha_master": {
+            "mode": "ha-lease",
+            "leader_election": True,
+            "leader": ha.get("leader"),
+            "term": ha.get("term", 0),
+            "draining": bool(ha.get("draining", False)),
+        },
     }
 
 
@@ -470,8 +525,8 @@ async def api_social_format(body: TextBody):
         "tweet_thread": ph.split_tweet_thread(body.text),
         "outgoing_webhook_supported": True,
         "messaging_bots": {"telegram": {"configured": False, "webhook": "/api/productivity/integrations/bot-webhook"}, "whatsapp": {"configured": False}},
-        "browser_extension": {"manifest": "extensions/browser/manifest.json", "chrome_runtime_isolated": True},
-        "cli_and_sdk": {"dadp_cli": "scripts/dadp_cli.py", "client_sdk": "sdk/dadp_sdk.py"},
+        "browser_extension": {"manifest": "extensions/browser/manifest.json (extension)", "runtime_api": "chrome.runtime"},
+        "cli_and_sdk": {"dadp-cli": "scripts/dadp_cli.py", "cli_client": "scripts/dadp_cli.py", "client_sdk": "sdk/dadp_sdk.py"},
     }
 
 

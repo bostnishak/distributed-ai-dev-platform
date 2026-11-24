@@ -46,6 +46,7 @@ from assistant_prep import (
     create_llm_stream_response,
     enrich_done_event_with_verification,
     enrich_prompt_with_kb,
+    parse_stream_opts,
     process_uploaded_attachment,
 )
 from assistant_stream_fastpaths import (
@@ -368,18 +369,18 @@ async def chat_stream(
     prompt: str = Form(...),
     file: UploadFile | None = File(None),  # noqa: B008
     history: str = Form("[]"),
-    user_id: str = Form("default"),
-    conversation_id: str = Form(""),
+    opts: dict[str, str] = Depends(parse_stream_opts),  # noqa: B008
 ):
-    """Streaming chat endpoint: tokens arrive as Server-Sent Events."""
+    """Streaming chat endpoint with optional modelPicker override and custom agent binding (SOH-07, AJN-01)."""
     import user_profile as up
 
     try:
-        uid = up.valid_user_id(user_id)
+        uid = up.valid_user_id(opts["user_id"])
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    resp = await _chat_stream_impl(prompt, file, history, uid, conversation_id[:80])
-    resp.body_iterator = _tracked_stream(resp.body_iterator, prompt, uid, conversation_id[:80])
+    stream_meta = {**opts, "user_id": uid}
+    resp = await _chat_stream_impl(prompt, file, history, stream_meta)
+    resp.body_iterator = _tracked_stream(resp.body_iterator, prompt, uid, stream_meta["conversation_id"])
     return resp
 
 
@@ -419,8 +420,11 @@ PROMPT_CONVERSION_SYSTEM_INSTRUCTION = (
 
 
 async def _chat_stream_impl(
-    prompt: str, file: UploadFile | None, history: str, user_id: str, conversation_id: str
+    prompt: str, file: UploadFile | None, history: str, meta: dict[str, str]
 ):
+    from assistant_prep import resolve_custom_agent_profile
+
+    user_id, conversation_id = meta["user_id"], meta["conversation_id"]
     has_file = bool(file is not None and file.filename)
     is_prompt_conv = (not has_file) and _is_prompt_conversion_request(prompt)
     if (fast := await dispatch_chat_fastpath(prompt, file, history, is_prompt_conv)) is not None:
@@ -435,11 +439,13 @@ async def _chat_stream_impl(
         )
         return single_token_stream(msg, "moderation", "engellendi")
     task_type = keyword_task or DEFAULT_TASK
-    model = await _select_grounded_model(task_type, has_image=bool(image_b64))
+    agent_prof = resolve_custom_agent_profile(meta.get("custom_agent_id", ""), user_id)
+    picked_model = meta.get("model", "") or (agent_prof.get("model", "") if agent_prof else "")
+    model = picked_model or await _select_grounded_model(task_type, has_image=bool(image_b64))
     ctx = {
         "prompt": prompt, "full_prompt": full_prompt, "image_b64": image_b64,
         "history": history, "user_id": user_id, "conversation_id": conversation_id,
-        "has_file": has_file, "is_prompt_conv": is_prompt_conv,
+        "has_file": has_file, "is_prompt_conv": is_prompt_conv, "custom_agent": agent_prof,
     }
     messages, pre_note, constraints, research_sources = build_llm_stream_inputs(
         ctx, ANSWER_SYSTEM_PROMPT, PROMPT_CONVERSION_SYSTEM_INSTRUCTION

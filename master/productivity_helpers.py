@@ -13,6 +13,7 @@ from collections import defaultdict
 from typing import Any
 
 from process_utils import run_process
+from productivity_engines import SLIDE_ICONS_FULL, translate_code_verified
 
 TEMPLATE_GALLERY: tuple[dict[str, str], ...] = (
     {"id": "fastapi-rest", "name": "FastAPI REST API", "stack": "Python / FastAPI / SQLite"},
@@ -25,12 +26,7 @@ TEMPLATE_GALLERY: tuple[dict[str, str], ...] = (
     {"id": "automation-worker", "name": "Dağıtık İşçi Şablonu", "stack": "Python / httpx"},
 )
 
-SLIDE_ICONS: dict[str, str] = {
-    "chart": '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/></svg>',
-    "shield": '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 2L4 5v6c0 5 3.4 9.7 8 11 4.6-1.3 8-6 8-11V5l-8-3z"/></svg>',
-    "cpu": '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>',
-    "check": '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M5 13l4 4L19 7" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
-}
+SLIDE_ICONS: dict[str, str] = SLIDE_ICONS_FULL
 
 
 def explain_python_code(source: str) -> dict[str, Any]:
@@ -57,14 +53,7 @@ def explain_python_code(source: str) -> dict[str, Any]:
 
 
 def translate_python_to_js(code: str, source_lang: str, target_lang: str) -> str:
-    out = code
-    if source_lang.lower() == "python" and target_lang.lower() in ("js", "javascript"):
-        out = re.sub(r"\bdef\s+(\w+)\(([^)]*)\):", r"function \1(\2) {", out)
-        out = re.sub(r"\bTrue\b", "true", out)
-        out = re.sub(r"\bFalse\b", "false", out)
-        out = re.sub(r"\bNone\b", "null", out)
-        out = re.sub(r"\bprint\(", "console.log(", out)
-    return out
+    return str(translate_code_verified(code, source_lang, target_lang).get("translated_code") or "")
 
 
 def read_workspace_git_log(ws_id: str, limit: int = 20) -> dict[str, Any]:

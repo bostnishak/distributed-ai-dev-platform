@@ -28,8 +28,8 @@ _LOCAL_OR_ADMIN = [Depends(require_local_or_admin)]
 
 # UX-16: Strict validated settings schema
 SETTINGS_SCHEMA: dict[str, dict[str, Any]] = {
-    "language": {"type": "enum", "values": ["tr", "en"], "default": "tr"},
-    "theme": {"type": "enum", "values": ["dark", "light", "high_contrast"], "default": "dark"},
+    "language": {"type": "enum", "values": ["tr", "en", "de", "fr", "ar"], "default": "tr"},
+    "theme": {"type": "enum", "values": ["dark", "light", "system", "high-contrast", "high_contrast"], "default": "dark"},
     "responseLength": {"type": "enum", "values": ["short", "balanced", "detailed"], "default": "balanced"},
     "tone": {"type": "enum", "values": ["professional", "academic", "concise"], "default": "professional"},
     "showConfidenceBadges": {"type": "bool", "default": True},
@@ -191,9 +191,55 @@ class ShareReq(BaseModel):
     ttl_seconds: int = Field(3600, ge=1, le=86400 * 30)
 
 
+class RemediateReq(BaseModel):
+    actions: list[str] = Field(default_factory=lambda: ["ensure_dirs", "db_doctor", "init_dbs"])
+
+
+def run_health_remediation(actions: list[str]) -> dict[str, Any]:
+    """OPR-02: Execute safe, deterministic automated health remediations."""
+    import dbconn
+    from custom_agents import init_custom_agents_db
+    from ha.leader import init_ha_db
+    from rag.crawler import init_web_archive_db
+
+    results: list[dict[str, Any]] = []
+    for act in actions[:10]:
+        if act == "ensure_dirs":
+            for sub in ("logs", "media", "backups", "workspaces"):
+                (Path(config.DATA_DIR) / sub).mkdir(parents=True, exist_ok=True)
+            results.append({"action": act, "ok": True, "detail": "Veri ve günlük klasörleri doğrulandı/oluşturuldu."})
+        elif act == "db_doctor":
+            with dbconn.open_db(dbconn.database_file("platform.db")) as conn:
+                check = conn.execute("PRAGMA integrity_check").fetchone()
+                mode = conn.execute("PRAGMA journal_mode=WAL").fetchone()
+            ok = bool(check and str(check[0]).lower() == "ok")
+            results.append({"action": act, "ok": ok, "detail": f"integrity={check[0] if check else 'unknown'}, wal={mode[0] if mode else ''}"})
+        elif act == "init_dbs":
+            init_ha_db()
+            init_custom_agents_db()
+            init_web_archive_db()
+            results.append({"action": act, "ok": True, "detail": "HA, özel ajanlar ve web arşivi tabloları başlatıldı."})
+        elif act == "searxng_check":
+            url = os.environ.get("SEARXNG_URL", "").strip()
+            results.append({"action": act, "ok": bool(url), "detail": "SEARXNG_URL tanımlı" if url else "SEARXNG_URL boş; çevrimdışı arşiv aktif."})
+        elif act == "ollama_check":
+            ollama_url = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434").strip()
+            results.append({"action": act, "ok": bool(ollama_url), "detail": f"OLLAMA_URL={ollama_url}"})
+        else:
+            results.append({"action": act, "ok": False, "detail": "Bilinmeyen otomatik düzeltme eylemi."})
+    return {"ok": all(r["ok"] for r in results) if results else True, "results": results}
+
+
 @router.get("/health-wizard")
 async def api_health_wizard():
+    """Return actionable health wizard diagnostics for local services and capabilities."""
     return build_health_wizard_report()
+
+
+@router.post("/health-wizard/remediate", dependencies=_LOCAL_OR_ADMIN)
+async def api_health_wizard_remediate(body: RemediateReq):
+    """OPR-02: Execute one-click automated health wizard remediation steps."""
+    return run_health_remediation(body.actions)
 
 
 @router.get("/settings/schema")

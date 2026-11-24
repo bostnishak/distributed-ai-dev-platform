@@ -103,6 +103,64 @@ def archive_web_page(url: str, title: str, content: str) -> dict[str, Any]:
     }
 
 
+def count_archived_pages() -> int:
+    """Return total number of locally archived web pages in SQLite."""
+    init_web_archive_db()
+    with _connect() as conn:
+        row = conn.execute("SELECT COUNT(*) AS cnt FROM web_archive").fetchone()
+    return int(row["cnt"]) if row else 0
+
+
+async def fetch_and_index_source(url: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    """ARS-01: SSRF-safe source/PDF download or ingest -> archive in SQLite -> index into RAG store."""
+    import base64
+
+    import httpx
+
+    from extract import extract_pdf_text
+    from rag.store import EmbeddingUnavailableError, default_rag_store
+
+    opts = payload or {}
+    title = str(opts.get("title") or "")
+    content_base64 = str(opts.get("content_base64") or "")
+    content_text = str(opts.get("content_text") or "")
+    is_pdf = bool(opts.get("is_pdf", False))
+    collection_id = str(opts.get("collection_id") or "research_sources")
+
+    ok, reason = is_safe_public_url(url)
+    if not ok:
+        raise ValueError(f"Güvensiz URL engellendi (SSRF): {reason}")
+    extracted = content_text.strip()
+    if content_base64.strip():
+        raw = base64.b64decode(content_base64.strip())
+        extracted = extract_pdf_text(raw) if (is_pdf or url.lower().endswith(".pdf")) else raw.decode("utf-8", errors="replace")
+    elif not extracted:
+        async with httpx.AsyncClient(timeout=12.0, follow_redirects=False) as client:
+            resp = await client.get(url)
+            resp.raise_for_status()
+            ctype = (resp.headers.get("content-type") or "").lower()
+            extracted = extract_pdf_text(resp.content) if (is_pdf or "pdf" in ctype or url.lower().endswith(".pdf")) else re.sub(r"<[^>]+>", " ", resp.text)
+    clean_text = re.sub(r"\s+", " ", extracted).strip()
+    if not clean_text:
+        raise ValueError("Kaynaktan metin çıkarılamadı.")
+    arch = archive_web_page(url, title or url, clean_text)
+    rag_status = "indexed"
+    indexed_doc_id = str(arch["url_hash"])
+    try:
+        ing = await default_rag_store.ingest_document(collection_id=collection_id, raw_text=clean_text[:50000], title=title or url)
+        indexed_doc_id = str(ing.get("doc_id") or indexed_doc_id)
+    except EmbeddingUnavailableError:
+        rag_status = "archived_fts_only"
+    return {
+        "ok": True,
+        "url": url,
+        "archive": arch,
+        "indexed_doc_id": indexed_doc_id,
+        "rag_status": rag_status,
+        "chars_indexed": len(clean_text[:50000]),
+    }
+
+
 def search_web_archive(query: str, limit: int = 5) -> dict[str, Any]:
     """Search local archived pages with deterministic lexical relevance and [S1] citations."""
     init_web_archive_db()

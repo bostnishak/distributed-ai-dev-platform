@@ -14,7 +14,7 @@ import zipfile
 from typing import Any
 
 import httpx
-from fastapi import HTTPException, UploadFile
+from fastapi import Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 
 import config
@@ -365,6 +365,57 @@ def _append_history_messages(messages: list[dict[str, Any]], history: str, is_pr
         log.debug("History parse skipped: %s", exc)
 
 
+def parse_stream_opts(
+    user_id: str = Form("default"),
+    conversation_id: str = Form(""),
+    model: str = Form(""),
+    custom_agent_id: str = Form(""),
+) -> dict[str, str]:
+    """Parse optional chat stream form fields cleanly without exceeding route arg limits."""
+    return {
+        "user_id": user_id,
+        "conversation_id": conversation_id[:80],
+        "model": model.strip()[:80],
+        "custom_agent_id": custom_agent_id.strip()[:64],
+    }
+
+
+def resolve_custom_agent_profile(custom_agent_id: str, user_id: str) -> dict[str, Any] | None:
+    """Resolve a user-defined custom agent from SQLite registry or productivity store (AJN-01)."""
+    aid = (custom_agent_id or "").strip()
+    if not aid:
+        return None
+    try:
+        from custom_agents import list_custom_agents
+
+        for item in list_custom_agents(user_id):
+            if str(item.get("agent_id")) == aid:
+                return {
+                    "id": aid,
+                    "name": str(item.get("name") or aid),
+                    "instructions": str(item.get("instructions") or ""),
+                    "model": str(item.get("model_override") or ""),
+                    "tools": list(item.get("allowed_tools") or []),
+                }
+    except (sqlite3.Error, ValueError, TypeError, KeyError, ImportError):
+        pass
+    try:
+        import productivity_api as papi
+
+        rec = papi._CUSTOM_AGENTS.get(aid)
+        if isinstance(rec, dict):
+            return {
+                "id": aid,
+                "name": str(rec.get("name") or aid),
+                "instructions": str(rec.get("instructions") or ""),
+                "model": str(rec.get("model") or ""),
+                "tools": list(rec.get("tools") or []),
+            }
+    except (ValueError, TypeError, KeyError, ImportError, AttributeError):
+        pass
+    return None
+
+
 def _collect_memory_blocks(ctx: dict[str, Any], prompt_conv_instruction: str) -> list[str]:
     import memory_engine as mem
     import user_profile as up
@@ -372,6 +423,9 @@ def _collect_memory_blocks(ctx: dict[str, Any], prompt_conv_instruction: str) ->
     prompt, user_id = ctx["prompt"], ctx["user_id"]
     user_settings = up.get_settings(user_id)
     blocks = [up.personalization_block(user_id)]
+    agent_prof = ctx.get("custom_agent")
+    if isinstance(agent_prof, dict) and agent_prof.get("instructions"):
+        blocks.append(f"--- ÖZEL AJAN TALİMATI ({agent_prof.get('name', 'Ajan')}) ---\n{agent_prof['instructions']}")
     if user_settings.get("auto_learn_facts"):
         mem.extract_and_upsert_memories(prompt, user_id=user_id)
     blocks.append(mem.build_memory_context_block(prompt, user_id=user_id))

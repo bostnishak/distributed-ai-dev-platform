@@ -148,7 +148,7 @@ export function renderSectionAppearance(body, ctx) {
   };
   body.replaceChildren(
     h('div', { class: 'sp-group-title', style: { marginTop: 0 } }, 'Tema'),
-    h('div', { class: 'sp-theme-cards', style: { marginBottom: '16px' } }, themeCard('light', 'Açık', 'light'), themeCard('dark', 'Koyu', 'dark'), themeCard('system', 'Sistem', 'auto')),
+    h('div', { class: 'sp-theme-cards', style: { marginBottom: '16px' } }, themeCard('light', 'Açık', 'light'), themeCard('dark', 'Koyu', 'dark'), themeCard('high-contrast', 'Yüksek Kontrast', 'dark'), themeCard('system', 'Sistem', 'auto')),
     group(
       settingRow('Vurgu rengi', 'Düğmeler, bağlantılar ve seçili öğeler', swatches(Object.entries(ACCENTS), s.accent, (k) => savePatch({ settings: { accent: k } }, true), ACCENT_LABELS)),
       settingRow('Yazı boyutu', 'Sohbet ve sayfa metinleri', seg([['small', 'Küçük'], ['medium', 'Orta'], ['large', 'Büyük']], s.font_size, (v) => savePatch({ settings: { font_size: v } }, true))),

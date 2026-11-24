@@ -1,6 +1,7 @@
 // Streaming SSE consumer and post-stream completion renderer for Assistant chat.
 import { MODEL_LABELS } from './assistant_hero.js';
 import { buildInlineWorkspaceCard } from './assistant_ide_card.js';
+import { getSelectedCustomAgent, getSelectedModel } from './chat_enhancements.js';
 import { escapeHtml, renderMarkdown } from './markdown.js';
 import { notifyAnswerReady } from './message_tools.js';
 import { getActiveUserId, getPrefs } from './personal.js';
@@ -198,6 +199,10 @@ export async function runAssistantStream(ctx) {
     formData.append('history', JSON.stringify(historySnapshot));
     formData.append('user_id', getActiveUserId());
     formData.append('conversation_id', targetChatId || '');
+    const pickedModel = getSelectedModel();
+    if (pickedModel) formData.append('model', pickedModel);
+    const pickedAgent = getSelectedCustomAgent();
+    if (pickedAgent) formData.append('custom_agent_id', pickedAgent);
     if (fileToSend) formData.append('file', fileToSend);
 
     const resp = await safeFetch('/api/assistant/chat/stream', { method: 'POST', body: formData, signal: controller.signal });
@@ -236,6 +241,9 @@ export async function runAssistantStream(ctx) {
     ctx.renderChatList();
     if (state.currentChatId === targetChatId) els.promptInput.focus();
     document.dispatchEvent(new CustomEvent('usage-updated'));
+    if (finalText) {
+      document.dispatchEvent(new CustomEvent('assistant-reply-complete', { detail: { text: finalText, model: usedModel } }));
+    }
     notifyAnswerReady(finalText || 'Yanıt tamamlandı');
   }
 }

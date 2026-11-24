@@ -1,9 +1,56 @@
 // F204 Chat & Accessibility Enhancements: SOH-01..10, ERI-01..05, DOS-03, DOS-06 (offline, zero CDN, zero emojis).
+import { toggleVoiceMode } from './assistant_voice.js';
 import { bindGlobalEvent, safeFetchJson, storageGet, storageRemove, storageSet } from './storage.js';
 import { h } from './util.js';
 
 const DRAFT_KEY = 'cm6453_chat_draft';
+const MODEL_KEY = 'cm6453_selected_model';
+const AGENT_KEY = 'cm6453_selected_custom_agent';
 let toastHost = null;
+
+export function getSelectedModel() {
+  const el = document.getElementById('modelPicker');
+  if (el && el.value) return el.value;
+  return storageGet(MODEL_KEY, '') || '';
+}
+
+export function getSelectedCustomAgent() {
+  const el = document.getElementById('customAgentPicker');
+  if (el && el.value) return el.value;
+  return storageGet(AGENT_KEY, '') || '';
+}
+
+async function mountModelAndAgentPickers() {
+  const inputWrap = document.getElementById('inputWrap');
+  const inputPill = document.getElementById('inputPill');
+  if (!inputWrap || !inputPill || document.getElementById('chatToolbarRow')) return;
+  const modelSel = h('select', { id: 'modelPicker', class: 'chat-toolbar-select', 'aria-label': 'Model seçici' }, h('option', { value: '' }, 'Model: Otomatik'));
+  const agentSel = h('select', { id: 'customAgentPicker', class: 'chat-toolbar-select', 'aria-label': 'Özel ajan seçici' }, h('option', { value: '' }, 'Ajan: Varsayılan Asistan'));
+  modelSel.addEventListener('change', () => storageSet(MODEL_KEY, modelSel.value));
+  agentSel.addEventListener('change', () => storageSet(AGENT_KEY, agentSel.value));
+  const row = h('div', { id: 'chatToolbarRow', class: 'chat-toolbar-row' }, modelSel, agentSel);
+  inputWrap.insertBefore(row, inputPill);
+
+  const [mRes, aRes] = await Promise.all([
+    safeFetchJson('/api/gateway/models'),
+    safeFetchJson('/api/custom-agents'),
+  ]);
+  const savedModel = storageGet(MODEL_KEY, '') || '';
+  const models = (mRes.ok && mRes.data && (mRes.data.models || mRes.data.available_models)) || [];
+  for (const m of models) {
+    const id = typeof m === 'string' ? m : (m.name || m.id || '');
+    if (id) modelSel.append(h('option', { value: id }, id));
+  }
+  if (savedModel) modelSel.value = savedModel;
+
+  const savedAgent = storageGet(AGENT_KEY, '') || '';
+  const agents = (aRes.ok && aRes.data && aRes.data.agents) || [];
+  for (const ag of agents) {
+    const id = ag.agent_id || ag.id || '';
+    if (id) agentSel.append(h('option', { value: id }, `Ajan: ${ag.name || id}`));
+  }
+  if (savedAgent) agentSel.value = savedAgent;
+}
 
 export function showToast(message, kind = 'info', durationMs = 2800) {
   if (!toastHost) {
@@ -127,6 +174,7 @@ export function openKeyboardShortcutsModal() {
 }
 
 export function initChatEnhancements() {
+  mountModelAndAgentPickers();
   const promptInput = document.getElementById('promptInput');
   const fileInput = document.getElementById('fileInput');
   if (promptInput) {
@@ -160,10 +208,11 @@ export function initChatEnhancements() {
   });
 }
 
-// Named exports preserved for modelPicker, voiceMode, and messageLink hooks
+// Real callable enhancement hooks for modelPicker, voiceMode, customAgentPicker, and message tools
 export const ENHANCEMENT_HOOKS = {
-  modelPicker: true,
-  voiceMode: true,
+  modelPicker: getSelectedModel,
+  customAgentPicker: getSelectedCustomAgent,
+  voiceMode: toggleVoiceMode,
   messageLink: buildMessageLink,
   quoteMessage: quoteMessageIntoInput,
   editMessage: editMessageInPlace,

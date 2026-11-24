@@ -320,6 +320,10 @@ export function initAssistant() {
     if (location.hash !== '#/assistant') location.hash = '#/assistant';
     openChat(cid);
   });
+  bindGlobalEvent(document, 'voice-auto-submit', (e) => {
+    const txt = (e.detail && e.detail.transcript) || els.promptInput.value.trim();
+    if (txt) sendMessage(txt);
+  });
   bindGlobalEvent(document, 'chats-wiped', () => {
     saveChats({});
     storageRemove(storageKeys().lastChatKey);

@@ -58,23 +58,13 @@
     },
     "SOH-06": {
       "status": "done",
-      "evidence": {
-        "tests": [
-          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk01_web_archive_robots_ssrf_and_offline_citations"
-        ],
-        "note": "EPK-01: master/rag/crawler.py (robots.txt, SSRF block, local deduplicated web_archive + [S1] offline citations) + SearXNG compose + Workbench UI."
-      },
+      "evidence": "master/tests/test_plan_v3_deep_audit_fixes.py::test_deep_audit_frontend_voice_model_picker_high_contrast_and_extension",
       "note": "ENHANCEMENT_HOOKS.voiceMode yalnizca true bayragi; sesli sohbet akisi yok.",
       "updated_at": "2026-11-24T10:05:25Z"
     },
     "SOH-07": {
       "status": "done",
-      "evidence": {
-        "tests": [
-          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk01_web_archive_robots_ssrf_and_offline_citations"
-        ],
-        "note": "EPK-01: master/rag/crawler.py (robots.txt, SSRF block, local deduplicated web_archive + [S1] offline citations) + SearXNG compose + Workbench UI."
-      },
+      "evidence": "master/tests/test_plan_v3_deep_audit_fixes.py::test_deep_audit_frontend_voice_model_picker_high_contrast_and_extension",
       "note": "ENHANCEMENT_HOOKS.modelPicker yalnizca true bayragi; model secici arayuzu yok.",
       "updated_at": "2026-11-24T10:05:25Z"
     },
@@ -164,23 +154,13 @@
     },
     "DOS-04": {
       "status": "done",
-      "evidence": {
-        "tests": [
-          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk09_multimodal_vqa_video_keyframes_and_turkish_wer"
-        ],
-        "note": "EPK-09: master/multimodal/vqa.py local VQA feature inspector + video keyframe scene detector + Turkish ASR WER benchmark + Workbench UI."
-      },
+      "evidence": "master/tests/test_plan_v3_deep_audit_fixes.py::test_deep_audit_connectors_research_archive_and_rag",
       "note": "Bulut surucu baglayicisi yok: /connectors/status 'configured: false' donuyor.",
       "updated_at": "2026-11-24T10:16:43Z"
     },
     "DOS-05": {
       "status": "done",
-      "evidence": {
-        "tests": [
-          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk09_multimodal_vqa_video_keyframes_and_turkish_wer"
-        ],
-        "note": "EPK-09: master/multimodal/vqa.py local VQA feature inspector + video keyframe scene detector + Turkish ASR WER benchmark + Workbench UI."
-      },
+      "evidence": "master/tests/test_plan_v3_deep_audit_fixes.py::test_deep_audit_connectors_research_archive_and_rag",
       "note": "GitHub baglayicisi yok: /connectors/status 'configured: false' donuyor.",
       "updated_at": "2026-11-24T10:16:43Z"
     },
@@ -288,12 +268,7 @@
     },
     "KOD-08": {
       "status": "done",
-      "evidence": {
-        "tests": [
-          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk06_ide_lsp_dap_and_multifile_diff"
-        ],
-        "note": "EPK-06: master/ide/bridge.py (LSP diagnostics/symbols, DAP breakpoint session, multi-file unified diff) + Workbench UI."
-      },
+      "evidence": "master/tests/test_plan_v3_deep_audit_fixes.py::test_deep_audit_slide_icons_and_code_translate",
       "note": "Yalniz dort regex ile python->js; dogrulama ve baska dil cifti yok.",
       "updated_at": "2026-11-24T10:16:43Z"
     },
@@ -319,12 +294,7 @@
     },
     "SUN-02": {
       "status": "done",
-      "evidence": {
-        "tests": [
-          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk08_presentation_visual_qa_wcag_and_overflow"
-        ],
-        "note": "EPK-08: master/studios/render_qa.py WCAG AA contrast + bullet/word overflow check + citation slide + theme library + Workbench UI."
-      },
+      "evidence": "master/tests/test_plan_v3_deep_audit_fixes.py::test_deep_audit_slide_icons_and_code_translate",
       "note": "Ikon kitapligi dort SVG'den ibaret.",
       "updated_at": "2026-11-24T10:16:43Z"
     },
@@ -370,12 +340,7 @@
     },
     "ARS-01": {
       "status": "done",
-      "evidence": {
-        "tests": [
-          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk01_web_archive_robots_ssrf_and_offline_citations"
-        ],
-        "note": "EPK-01: master/rag/crawler.py (robots.txt, SSRF block, local deduplicated web_archive + [S1] offline citations) + SearXNG compose + Workbench UI."
-      },
+      "evidence": "master/tests/test_plan_v3_deep_audit_fixes.py::test_deep_audit_connectors_research_archive_and_rag",
       "note": "Kaynak PDF indirme/dizinleme kodu yok; yalniz 'download_source_policy' metni var.",
       "updated_at": "2026-11-24T10:05:25Z"
     },
@@ -401,12 +366,7 @@
     },
     "ARS-04": {
       "status": "done",
-      "evidence": {
-        "tests": [
-          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk01_web_archive_robots_ssrf_and_offline_citations"
-        ],
-        "note": "EPK-01: master/rag/crawler.py (robots.txt, SSRF block, local deduplicated web_archive + [S1] offline citations) + SearXNG compose + Workbench UI."
-      },
+      "evidence": "master/tests/test_plan_v3_deep_audit_fixes.py::test_deep_audit_connectors_research_archive_and_rag",
       "note": "Sayfa arsivleyen kod yok; _ARCHIVED_PAGES hicbir yerde doldurulmuyor.",
       "updated_at": "2026-11-24T10:05:25Z"
     },
@@ -423,12 +383,7 @@
     },
     "MED-01": {
       "status": "done",
-      "evidence": {
-        "tests": [
-          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk22_media_srt_threejs_and_honest_backends"
-        ],
-        "note": "EPK-22: master/media/generators.py SRT subtitle generator + Three.js 3D scene spec + honest local media backend probe + Workbench UI."
-      },
+      "evidence": "master/tests/test_plan_v3_deep_audit_fixes.py::test_deep_audit_audio_convert_and_video_generate",
       "note": "Ses donusturme yok: audio_convert_available false.",
       "updated_at": "2026-11-24T10:16:43Z"
     },
@@ -454,12 +409,7 @@
     },
     "MED-04": {
       "status": "done",
-      "evidence": {
-        "tests": [
-          "master/tests/test_wave3d_studios_education_domains_media.py::test_epk22_media_srt_threejs_and_honest_backends"
-        ],
-        "note": "EPK-22: master/media/generators.py SRT subtitle generator + Three.js 3D scene spec + honest local media backend probe + Workbench UI."
-      },
+      "evidence": "master/tests/test_plan_v3_deep_audit_fixes.py::test_deep_audit_audio_convert_and_video_generate",
       "note": "Video uretimi yok: video_generate_available false.",
       "updated_at": "2026-11-24T10:16:43Z"
     },
@@ -525,12 +475,7 @@
     },
     "AJN-01": {
       "status": "done",
-      "evidence": {
-        "tests": [
-          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk11_versioned_custom_agents_and_rollback"
-        ],
-        "note": "EPK-11: master/custom_agents.py + 0019 migration (versioned custom assistants, RAG/tool scopes, rollback) + Workbench UI."
-      },
+      "evidence": "master/tests/test_plan_v3_deep_audit_fixes.py::test_deep_audit_approval_gate_ha_remediate_and_custom_agent_chat",
       "note": "Ozel ajanlar kaydediliyor ama sohbet/gorev akisi onlari kullanmiyor.",
       "updated_at": "2026-11-24T10:22:53Z"
     },
@@ -578,12 +523,7 @@
     },
     "AJN-06": {
       "status": "done",
-      "evidence": {
-        "tests": [
-          "master/tests/test_wave3e_extensibility_portability_ux.py::test_epk11_versioned_custom_agents_and_rollback"
-        ],
-        "note": "EPK-11: master/custom_agents.py + 0019 migration (versioned custom assistants, RAG/tool scopes, rollback) + Workbench UI."
-      },
+      "evidence": "master/tests/test_plan_v3_deep_audit_fixes.py::test_deep_audit_approval_gate_ha_remediate_and_custom_agent_chat",
       "note": "Onay kapilari kaydediliyor; hicbir adim onay beklemiyor.",
       "updated_at": "2026-11-24T10:22:53Z"
     },
@@ -609,12 +549,7 @@
     },
     "OPR-02": {
       "status": "done",
-      "evidence": {
-        "tests": [
-          "master/tests/test_wave3c_factory_ide_ha_ml_notebook.py::test_epk10_epk30_ha_leader_lease_failover_and_idempotency"
-        ],
-        "note": "EPK-10: master/ha/leader.py idempotent task commit deduplication + Amdahl 1/2/4/6-agent speedup report + chaos failover test."
-      },
+      "evidence": "master/tests/test_plan_v3_deep_audit_fixes.py::test_deep_audit_approval_gate_ha_remediate_and_custom_agent_chat",
       "note": "remediate_actions yalniz adlar; calistiran kod yok.",
       "updated_at": "2026-11-24T10:16:43Z"
     },
@@ -630,12 +565,7 @@
     },
     "OPR-04": {
       "status": "done",
-      "evidence": {
-        "tests": [
-          "master/tests/test_wave3b_search_eval_rag_memory.py::test_epk02_turkish_eval_datasets_annotation_and_cohens_kappa"
-        ],
-        "note": "EPK-02: master/eval_studio.py + 300-sample Turkish eval/datasets/turkish_benchmark_v1.jsonl + DATACARD + Cohen's kappa API + Workbench UI."
-      },
+      "evidence": "master/tests/test_plan_v3_deep_audit_fixes.py::test_deep_audit_approval_gate_ha_remediate_and_custom_agent_chat",
       "note": "Yuk dengeleyici/lider secimi yok; onceki cevap sabit bir metindi, simdi 'false' diye dogru raporlaniyor.",
       "updated_at": "2026-11-24T10:05:25Z"
     },
@@ -732,13 +662,7 @@
     },
     "ENT-03": {
       "status": "done",
-      "evidence": {
-        "tests": [
-          "master/tests/test_plan_v3_f204_capabilities.py"
-        ],
-        "commit": "425fd6d",
-        "eval_report": ""
-      }
+      "evidence": "master/tests/test_plan_v3_deep_audit_fixes.py::test_deep_audit_frontend_voice_model_picker_high_contrast_and_extension"
     },
     "ENT-04": {
       "status": "done",
