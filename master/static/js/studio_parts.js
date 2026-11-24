@@ -31,7 +31,7 @@ export function buildStudioTopbar() {
 
   const topbar = h('div', { class: 'studio-topbar' },
     h('div', { class: 'studio-topbar-left' },
-      h('span', { class: 'studio-brand' }, '</> Kod Stüdyosu'),
+      h('h1', { class: 'studio-brand', style: { margin: 0, fontSize: 'inherit' } }, '</> Kod Stüdyosu'),
       wsSelect,
       newFileBtn,
     ),

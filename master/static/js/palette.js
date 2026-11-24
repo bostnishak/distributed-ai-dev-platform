@@ -7,6 +7,8 @@ const COMMANDS = [
   { label: 'Projeler', hint: 'Sayfa', run: () => { location.hash = '#/projects'; } },
   { label: 'Ajanlar', hint: 'Sayfa', run: () => { location.hash = '#/agents'; } },
   { label: 'Stüdyolar ve yönetim', hint: 'Sayfa', run: () => { location.hash = '#/studios'; } },
+  { label: 'Kod Stüdyosu (IDE)', hint: 'Sayfa', run: () => { location.hash = '#/studio'; } },
+  { label: 'CNC Balonlama', hint: 'Sayfa', run: () => { location.hash = '#/cnc'; } },
   { label: 'Artefaktlar', hint: 'Sayfa', run: () => { location.hash = '#/artifacts'; } },
   { label: 'Dosyalar ve bilgi tabanı', hint: 'Sayfa', run: () => { location.hash = '#/files'; } },
   { label: 'Pano', hint: 'Sayfa', run: () => { location.hash = '#/dashboard'; } },

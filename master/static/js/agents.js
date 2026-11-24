@@ -91,6 +91,9 @@ async function agentCard(agent) {
 
   const evalBtn = h('button', {
     class: 'btn',
+    type: 'button',
+    disabled: !agent.online,
+    title: agent.online ? 'Bu ajan için değerlendirme başlat' : 'Ajan çevrimdışı — değerlendirme için çevrimiçi olmalı',
     style: { marginTop: '8px', fontSize: '12px' },
     onclick: async (e) => {
       e.target.disabled = true;
@@ -165,12 +168,18 @@ export async function renderAgents(root, ctx) {
   try {
     [agents, status] = await Promise.all([api('/api/agents'), api('/api/master/status')]);
   } catch (err) {
+    if (ctx && !ctx.isCurrent()) return;
     root.replaceChildren(h('div', { class: 'page-inner' }, h('div', { class: 'card error' }, err.message)));
     return;
   }
+  if (ctx && !ctx.isCurrent()) return;
 
+  const hasOnlineAgent = agents.some((a) => a.online);
   const evalAllBtn = h('button', {
     class: 'btn btn-primary',
+    type: 'button',
+    disabled: !hasOnlineAgent,
+    title: hasOnlineAgent ? 'Çevrimiçi tüm ajanları değerlendir' : 'Çevrimiçi ajan bulunmadığı için değerlendirme devre dışı',
     onclick: async (e) => {
       e.target.disabled = true;
       e.target.textContent = 'Değerlendiriliyor…';
@@ -201,6 +210,11 @@ export async function renderAgents(root, ctx) {
 
   root.replaceChildren(h('div', { class: 'page-inner' }, head, buildMasterCard(status),
     h('h2', { style: { fontSize: '16px', margin: '6px 0 12px' } }, `Kayıtlı ajanlar (${agents.length})`), listSection));
-  for (const agent of agents) cardContainer.appendChild(await agentCard(agent));
+  for (const agent of agents) {
+    const card = await agentCard(agent);
+    if (ctx && !ctx.isCurrent()) return;
+    cardContainer.appendChild(card);
+  }
+  if (ctx && !ctx.isCurrent()) return;
   startAgentsLivePoll(root, ctx, liveIndicator);
 }

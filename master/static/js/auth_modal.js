@@ -1,45 +1,41 @@
 // SEC-01 UI: Accessible Turkish Login / Initial Admin Setup / Session Indicator Modal (zero CDN, zero emojis).
-import { setSanitizedHtml } from './sanitizer.js';
 import { safeFetchJson } from './storage.js';
+import { h, svg } from './util.js';
 
 let authModalEl = null;
 
 function buildModalDom() {
   if (authModalEl) return authModalEl;
-  const overlay = document.createElement('div');
-  overlay.id = 'authModalOverlay';
-  overlay.className = 'auth-modal-overlay';
-  overlay.setAttribute('role', 'dialog');
-  overlay.setAttribute('aria-modal', 'true');
-  overlay.setAttribute('aria-labelledby', 'authModalTitle');
-  overlay.hidden = true;
-
-  setSanitizedHtml(overlay, `
-    <div class="auth-modal-box">
-      <div class="auth-modal-head">
-        <h2 id="authModalTitle" class="auth-modal-title">Hesap ve Oturum</h2>
-        <button id="authCloseBtn" type="button" aria-label="Kapat" class="auth-modal-close">x</button>
-      </div>
-      <p id="authSubtitle" class="auth-modal-sub"></p>
-      <form id="authForm" class="auth-modal-form">
-        <label class="auth-modal-label">Kullanıcı adı
-          <input id="authUsername" type="text" required minlength="3" autocomplete="username" class="auth-modal-input">
-        </label>
-        <label class="auth-modal-label">Parola (en az 8 karakter)
-          <input id="authPassword" type="password" required minlength="8" autocomplete="current-password" class="auth-modal-input">
-        </label>
-        <div id="authError" role="alert" class="auth-modal-error"></div>
-        <button id="authSubmitBtn" type="submit" class="btn primary auth-modal-submit">Giriş Yap</button>
-      </form>
-      <div id="authSignedInBox" hidden class="auth-modal-signed">
-        <div id="authUserInfo" class="auth-modal-userinfo"></div>
-        <button id="authLogoutBtn" type="button" class="btn auth-modal-logout">Oturumu Kapat</button>
-      </div>
-    </div>
-  `);
+  const closeBtn = h('button', { id: 'authCloseBtn', type: 'button', 'aria-label': 'Kapat', class: 'auth-modal-close' }, 'x');
+  const form = h('form', { id: 'authForm', class: 'auth-modal-form' },
+    h('label', { class: 'auth-modal-label' }, 'Kullanıcı adı',
+      h('input', { id: 'authUsername', type: 'text', required: true, minlength: '3', autocomplete: 'username', class: 'auth-modal-input' })),
+    h('label', { class: 'auth-modal-label' }, 'Parola (en az 8 karakter)',
+      h('input', { id: 'authPassword', type: 'password', required: true, minlength: '8', autocomplete: 'current-password', class: 'auth-modal-input' })),
+    h('div', { id: 'authError', role: 'alert', class: 'auth-modal-error' }),
+    h('button', { id: 'authSubmitBtn', type: 'submit', class: 'btn primary auth-modal-submit' }, 'Giriş Yap'),
+  );
+  const signedBox = h('div', { id: 'authSignedInBox', hidden: true, class: 'auth-modal-signed' },
+    h('div', { id: 'authUserInfo', class: 'auth-modal-userinfo' }),
+    h('button', { id: 'authLogoutBtn', type: 'button', class: 'btn auth-modal-logout' }, 'Oturumu Kapat'),
+  );
+  const box = h('div', { class: 'auth-modal-box' },
+    h('div', { class: 'auth-modal-head' }, h('h2', { id: 'authModalTitle', class: 'auth-modal-title' }, 'Hesap ve Oturum'), closeBtn),
+    h('p', { id: 'authSubtitle', class: 'auth-modal-sub' }),
+    form,
+    signedBox,
+  );
+  const overlay = h('div', {
+    id: 'authModalOverlay',
+    class: 'auth-modal-overlay',
+    role: 'dialog',
+    'aria-modal': 'true',
+    'aria-labelledby': 'authModalTitle',
+    hidden: true,
+  }, box);
 
   overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.hidden = true; });
-  overlay.querySelector('#authCloseBtn').addEventListener('click', () => { overlay.hidden = true; });
+  closeBtn.addEventListener('click', () => { overlay.hidden = true; });
   document.body.appendChild(overlay);
   authModalEl = overlay;
   return overlay;
@@ -126,10 +122,11 @@ export function initAuthUi() {
   btn.type = 'button';
   btn.className = 'sp-icon-btn';
   btn.setAttribute('aria-label', 'Hesap ve oturum yönetimi');
-  setSanitizedHtml(
-    btn,
-    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
-  );
+  const lockIcon = svg('svg', {
+    viewBox: '0 0 24 24', width: '16', height: '16', fill: 'none',
+    stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round',
+  }, svg('rect', { x: '3', y: '11', width: '18', height: '11', rx: '2' }), svg('path', { d: 'M7 11V7a5 5 0 0 1 10 0v4' }));
+  btn.appendChild(lockIcon);
   btn.addEventListener('click', () => openAuthModal(btn));
   themeBtn.parentElement.appendChild(btn);
   refreshAuthBadge(btn);

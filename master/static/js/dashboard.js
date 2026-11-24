@@ -111,6 +111,7 @@ export function renderDashboard(root, ctx) {
       api('/api/agents'),
       api('/api/assistant/enterprise-status').catch(() => null),
     ]);
+    if (ctx && !ctx.isCurrent()) return;
 
     const { agents: agentStats, projects: projStats, recent_events, perf } = dash;
     const agentDetails = agentsRaw.map((a) => ({
@@ -122,7 +123,7 @@ export function renderDashboard(root, ctx) {
     const eloBoard = entStatus?.elo_leaderboard || [];
 
     const content = h('div', { class: 'dash-root' },
-      h('h2', null, 'Pano'),
+      h('h1', { class: 'page-title' }, 'Pano'),
 
       h('div', { class: 'stat-grid' },
         statCard('Toplam ajan', agentStats.total),
