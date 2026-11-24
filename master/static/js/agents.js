@@ -202,11 +202,10 @@ export async function renderAgents(root, ctx) {
       evalAllBtn, h('button', { class: 'btn', onclick: () => renderAgents(root, ctx) }, '↻ Yenile'), liveIndicator));
 
   const cardContainer = h('div', { class: 'agent-grid' });
-  const listSection = agents.length ? cardContainer : h('div', { class: 'card' },
-    h('p', { style: { marginTop: 0 } }, 'Henüz kayıtlı ajan yok.'),
-    h('ul', { class: 'plain' },
-      h('li', null, 'Staging: ', h('code', null, 'docker compose --profile staging up -d')),
-      h('li', null, 'Üye bilgisayarları: ', h('code', null, 'agent-node/README.md'))));
+  const listSection = agents.length ? cardContainer : h('div', { class: 'card empty-state' },
+    h('h3', null, 'Henüz bağlı ajan yok'),
+    h('p', { class: 'muted' }, 'Ekip üyelerinin bilgisayarları açıldığında ajanlar burada görünür.'),
+    h('p', { class: 'muted' }, 'Kurulum: ', h('code', null, 'agent-node/README.md')));
 
   root.replaceChildren(h('div', { class: 'page-inner' }, head, buildMasterCard(status),
     h('h2', { style: { fontSize: '16px', margin: '6px 0 12px' } }, `Kayıtlı ajanlar (${agents.length})`), listSection));

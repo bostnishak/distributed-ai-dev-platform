@@ -1,6 +1,7 @@
 // F204 Chat & Accessibility Enhancements: SOH-01..10, ERI-01..05, DOS-03, DOS-06 (offline, zero CDN, zero emojis).
 import { toggleVoiceMode } from './assistant_voice.js';
 import { bindGlobalEvent, safeFetchJson, storageGet, storageRemove, storageSet } from './storage.js';
+import { pillIcon } from './pill_icons.js';
 import { h } from './util.js';
 
 const DRAFT_KEY = 'cm6453_chat_draft';
@@ -24,12 +25,21 @@ async function mountModelAndAgentPickers() {
   const inputWrap = document.getElementById('inputWrap');
   const inputPill = document.getElementById('inputPill');
   if (!inputWrap || !inputPill || document.getElementById('chatToolbarRow')) return;
-  const modelSel = h('select', { id: 'modelPicker', class: 'chat-toolbar-select', 'aria-label': 'Model seçici' }, h('option', { value: '' }, 'Model: Otomatik'));
-  const agentSel = h('select', { id: 'customAgentPicker', class: 'chat-toolbar-select', 'aria-label': 'Özel ajan seçici' }, h('option', { value: '' }, 'Ajan: Varsayılan Asistan'));
+  const modelSel = h('select', { id: 'modelPicker', class: 'chat-toolbar-select', 'aria-label': 'Model seçici' }, h('option', { value: '' }, 'Otomatik'));
+  const agentSel = h('select', { id: 'customAgentPicker', class: 'chat-toolbar-select', 'aria-label': 'Özel ajan seçici' }, h('option', { value: '' }, 'Varsayılan asistan'));
   modelSel.addEventListener('change', () => storageSet(MODEL_KEY, modelSel.value));
   agentSel.addEventListener('change', () => storageSet(AGENT_KEY, agentSel.value));
-  const row = h('div', { id: 'chatToolbarRow', class: 'chat-toolbar-row' }, modelSel, agentSel);
-  inputWrap.insertBefore(row, inputPill);
+  const popover = h('div', { id: 'chatToolbarRow', class: 'chat-options', role: 'dialog', 'aria-label': 'Sohbet seçenekleri', hidden: true },
+    h('label', { class: 'chat-options-field' }, h('span', null, 'Model'), modelSel),
+    h('label', { class: 'chat-options-field' }, h('span', null, 'Ajan'), agentSel));
+  const optionsBtn = h('button', { id: 'chatOptionsBtn', type: 'button', class: 'pill-icon-btn', title: 'Model ve ajan seç', 'aria-label': 'Model ve ajan seç', 'aria-expanded': 'false' }, pillIcon('tune'));
+  const setOpen = (open) => { popover.hidden = !open; optionsBtn.setAttribute('aria-expanded', String(open)); };
+  optionsBtn.addEventListener('click', (e) => { e.stopPropagation(); setOpen(popover.hidden); });
+  popover.addEventListener('click', (e) => e.stopPropagation());
+  bindGlobalEvent(document, 'click', () => setOpen(false));
+  bindGlobalEvent(document, 'keydown', (e) => { if (e.key === 'Escape') setOpen(false); });
+  inputWrap.append(popover);
+  inputPill.insertBefore(optionsBtn, document.getElementById('micBtn') || document.getElementById('sendBtn'));
 
   const [mRes, aRes] = await Promise.all([
     safeFetchJson('/api/gateway/models'),
@@ -47,7 +57,7 @@ async function mountModelAndAgentPickers() {
   const agents = (aRes.ok && aRes.data && aRes.data.agents) || [];
   for (const ag of agents) {
     const id = ag.agent_id || ag.id || '';
-    if (id) agentSel.append(h('option', { value: id }, `Ajan: ${ag.name || id}`));
+    if (id) agentSel.append(h('option', { value: id }, ag.name || id));
   }
   if (savedAgent) agentSel.value = savedAgent;
 }

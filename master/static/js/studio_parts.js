@@ -2,11 +2,11 @@
 import { h } from './util.js';
 
 export function fileIcon(name, isDir) {
-  if (isDir) return '[DIR]';
+  if (isDir) return '▸';
   const ext = (name.split('.').pop() || '').toLowerCase();
   const map = {
-    py: 'PY', html: 'WEB', htm: 'WEB', css: 'CSS', js: '!', ts: 'TS',
-    json: 'JSON', md: '', txt: '', exe: 'CFG', yml: 'CFG', yaml: 'CFG',
+    py: 'py', html: '‹›', htm: '‹›', css: '#', js: 'js', ts: 'ts',
+    json: '{}', md: '', txt: '', exe: '⚙', yml: '⚙', yaml: '⚙',
     sql: '', svg: '', png: '', jpg: '',
   };
   return map[ext] || '';

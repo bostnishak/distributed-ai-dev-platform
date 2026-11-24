@@ -156,9 +156,6 @@ function renderTopBar() {
   if (!bar || !profile) return;
   const s = profile.settings || DEFAULTS;
   const themeLabel = s.theme === 'dark' ? 'Koyu Mod' : s.theme === 'light' ? 'Açık Mod' : s.theme === 'high-contrast' ? 'Yüksek Kontrast' : 'Sistem Teması';
-  const crossOn = s.cross_chat_memory !== false;
-  const styleMap = { concise: 'Kısa', balanced: 'Dengeli', detailed: 'Ayrıntılı' };
-  const toneMap = { professional: 'Profesyonel', friendly: 'Samimi', technical: 'Teknik' };
 
   const greet = document.getElementById('heroGreeting');
   if (greet) {
@@ -172,21 +169,14 @@ function renderTopBar() {
       h('button', { type: 'button', class: 'sp-pill', title: 'Profil ve hesap ayarları', onClick: () => openPanel('profile') },
         avatar(profile, 'sm'),
         h('strong', null, profile.display_name),
-        profile.role_title ? h('span', { class: 'muted' }, `· ${profile.role_title}`) : null),
-      h('button', { type: 'button', class: 'sp-pill', title: 'Sohbetler arası bilgi ve öğrenilen hafıza', onClick: () => openPanel('memory') },
-        h('span', { class: `sp-pill-dot${crossOn ? '' : ' off'}` }),
-        `Sohbetler Arası Bilgi: ${crossOn ? 'Açık' : 'Kapalı'} · ${memoryCount} hafıza kaydı`),
-      h('button', { type: 'button', class: 'sp-pill', title: 'Asistan kişiselleştirme ayarları', onClick: () => openPanel('assistant') },
-        icon('spark'),
-        `${styleMap[s.response_style] || 'Dengeli'} · ${toneMap[s.tone] || 'Profesyonel'}`)),
+        profile.role_title ? h('span', { class: 'muted' }, `· ${profile.role_title}`) : null)),
     h('div', { class: 'sp-topbar-right' },
       h('button', { type: 'button', class: 'sp-pill', title: 'Token kullanımı ve performans istatistikleri', onClick: () => openPanel('overview') },
         icon('chart'),
         h('strong', null, `${compact(monthTokens || 0)} token`),
         h('span', { class: 'muted' }, `· ${monthMessages} mesaj`)),
-      h('button', { type: 'button', class: 'sp-pill', title: 'Görünüm, tema ve yazı boyutu ayarları', onClick: () => openPanel('appearance') },
-        icon(document.documentElement.dataset.theme === 'dark' ? 'sun' : 'moon'),
-        themeLabel)));
+      h('button', { type: 'button', class: 'sp-pill', title: `Görünüm ve tema: ${themeLabel}`, 'aria-label': 'Görünüm ve tema', onClick: () => openPanel('appearance') },
+        icon(document.documentElement.dataset.theme === 'dark' ? 'sun' : 'moon'))));
 }
 
 function renderCard() {

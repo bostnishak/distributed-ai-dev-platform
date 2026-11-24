@@ -9,6 +9,7 @@
 <link rel="manifest" href="/static/manifest.webmanifest">
 <link rel="stylesheet" href="/static/css/app.css">
 <link rel="stylesheet" href="/static/css/theme.css">
+<link rel="stylesheet" href="/static/css/refresh.css">
 <script src="/static/js/theme_boot.js"></script>
 </head>
 <body>
@@ -62,9 +63,9 @@
 
     <div id="centerStage">
       <div class="sp-hero-head">
-        <span class="sp-hero-kicker">YEREL YAPAY ZEKA ASİSTANI</span>
+        
         <h1 id="heroGreeting">Bugün aklında ne var?</h1>
-        <p class="sp-hero-sub">Her alanda soru sorabileceğiniz, dosya analiz edebileceğiniz, görsel ve doküman üretebileceğiniz, proje geliştirebileceğiniz kişisel çalışma alanınız.</p>
+        <p class="sp-hero-sub">Soru sorun, dosya inceleyin; belge, görsel ve kod üretin.</p>
       </div>
       <div id="heroCards" class="sp-hero-grid"></div>
     </div>
@@ -75,7 +76,7 @@
       <div id="fileChip"><span id="fileChipName"></span><span class="remove" id="removeFile">✕</span></div>
       <div id="inputPill">
         <button id="attachBtn" type="button" title="Dosya, görsel, ses veya çizim ekle" aria-label="Dosya, görsel, ses veya çizim ekle">＋</button>
-        <textarea id="promptInput" rows="1" aria-label="Mesajınızı yazın" placeholder="İstediğin bir şeyi sor, görsel/doküman üret, fotoğraf düzenle veya proje oluştur"></textarea>
+        <textarea id="promptInput" rows="1" aria-label="Mesajınızı yazın" placeholder="Bir şey sor veya üretmesini iste"></textarea>
         <button id="micBtn" title="Sesli mesajı metne çevir" type="button" aria-label="Sesle yaz">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/></svg>
         </button>

@@ -1,4 +1,5 @@
 // UX-02 Modular Split: Local Whisper STT voice capture + sandboxed Python code execution handlers.
+import { pillIcon } from './pill_icons.js';
 import { bindGlobalEvent, safeFetchJson, startManagedInterval } from './storage.js';
 
 let handsFreeActive = false;
@@ -12,7 +13,7 @@ export function toggleVoiceMode(forceState = null) {
   handsFreeActive = typeof forceState === 'boolean' ? forceState : !handsFreeActive;
   if (voiceToggleRef) {
     voiceToggleRef.setAttribute('aria-pressed', handsFreeActive ? 'true' : 'false');
-    voiceToggleRef.textContent = handsFreeActive ? 'Sesli Mod: Açık' : 'Sesli Mod';
+    voiceToggleRef.title = handsFreeActive ? 'Sesli sohbeti kapat' : 'Sesli sohbet (dinle ve sesli yanıtla)';
   }
   if (!handsFreeActive && typeof window !== 'undefined' && window.speechSynthesis) {
     window.speechSynthesis.cancel();
@@ -145,22 +146,23 @@ async function transcribeAudioBlob(blob, filename, els, ui, updateSendState, isR
 }
 
 function mountVoiceModeToggle(st, startRecording, stopAndTranscribe) {
-  const toolbar = document.getElementById('chatToolbarRow') || document.getElementById('inputWrap');
-  if (toolbar && !document.getElementById('voiceModeBtn')) {
+  const pill = document.getElementById('inputPill');
+  if (pill && !document.getElementById('voiceModeBtn')) {
     const vBtn = document.createElement('button');
     vBtn.id = 'voiceModeBtn';
     vBtn.type = 'button';
-    vBtn.className = 'voice-mode-btn';
+    vBtn.className = 'pill-icon-btn';
     vBtn.setAttribute('aria-pressed', 'false');
-    vBtn.title = 'Sürekli sesli sohbet döngüsünü aç/kapat';
-    vBtn.textContent = 'Sesli Mod';
+    vBtn.setAttribute('aria-label', 'Sesli sohbet');
+    vBtn.title = 'Sesli sohbet (dinle ve sesli yanıtla)';
+    vBtn.append(pillIcon('wave'));
     vBtn.addEventListener('click', () => {
       const on = toggleVoiceMode();
       if (on && !st.recording) startRecording();
       else if (!on && st.recording) stopAndTranscribe();
     });
     voiceToggleRef = vBtn;
-    toolbar.appendChild(vBtn);
+    pill.insertBefore(vBtn, document.getElementById('sendBtn'));
   }
   bindGlobalEvent(document, 'assistant-reply-complete', (evt) => {
     if (!handsFreeActive) return;
