@@ -1,0 +1,1578 @@
+[
+ {
+  "category": "Sohbet",
+  "feature": "Mesajı düzenleyip yeniden gönderme (yerinde)",
+  "pattern": "editMessage|edit-message|messageEdit",
+  "hits": 0,
+  "present": false,
+  "build": "Gönderilmiş kullanıcı mesajını yerinde düzenleme ve dallanma"
+ },
+ {
+  "category": "Sohbet",
+  "feature": "Yanıt dalları arasında gezinme (1/3)",
+  "pattern": "branchIndex|responseVariants|alternatives\\b|variant",
+  "hits": 1,
+  "present": true,
+  "build": "Aynı soru için birden çok yanıt varyantı ve gezinme"
+ },
+ {
+  "category": "Sohbet",
+  "feature": "Yanıtı durdur ve devam ettir",
+  "pattern": "continue-generation|continueGeneration|resumeStream",
+  "hits": 0,
+  "present": false,
+  "build": "Kesilen yanıtı kaldığı yerden sürdürme"
+ },
+ {
+  "category": "Sohbet",
+  "feature": "Sohbet sabitleme (pin)",
+  "pattern": "pinChat|pinned_chat|chat.*pin",
+  "hits": 1,
+  "present": true,
+  "build": "Önemli sohbetleri sabitleme"
+ },
+ {
+  "category": "Sohbet",
+  "feature": "Sohbet klasörleri / projeler",
+  "pattern": "chat_folders|chatFolder|folders",
+  "hits": 5,
+  "present": true,
+  "build": "Sohbetleri klasörlere ayırma"
+ },
+ {
+  "category": "Sohbet",
+  "feature": "Sohbet arşivleme",
+  "pattern": "archiveChat|archived_chats|/archive",
+  "hits": 0,
+  "present": false,
+  "build": "Sohbeti silmeden arşive alma"
+ },
+ {
+  "category": "Sohbet",
+  "feature": "Sohbet başlığını otomatik üretme",
+  "pattern": "autoTitle|generate_title|generateTitle|auto_title",
+  "hits": 0,
+  "present": false,
+  "build": "İlk mesajdan kısa başlık üretme"
+ },
+ {
+  "category": "Sohbet",
+  "feature": "Mesaj bazlı alıntı/yanıtlama",
+  "pattern": "quoteMessage|replyTo|quote_reply",
+  "hits": 0,
+  "present": false,
+  "build": "Mesajın bir bölümünü alıntılayarak soru sorma"
+ },
+ {
+  "category": "Sohbet",
+  "feature": "Sesli sohbet modu (sürekli konuşma)",
+  "pattern": "voiceMode|voice_mode|handsFree|hands-free|continuous.*speech",
+  "hits": 0,
+  "present": false,
+  "build": "Kesintisiz sesli konuşma döngüsü"
+ },
+ {
+  "category": "Sohbet",
+  "feature": "Yanıt sesli okuma ayarları (ses/hız seçimi)",
+  "pattern": "speechRate|voiceName|utterance\\.rate|SpeechSynthesisUtterance",
+  "hits": 1,
+  "present": true,
+  "build": "TTS ses ve hız seçimi"
+ },
+ {
+  "category": "Sohbet",
+  "feature": "Sohbette kullanılan modeli değiştirme (model seçici)",
+  "pattern": "modelPicker|model-picker|selectModel|model_select",
+  "hits": 0,
+  "present": false,
+  "build": "Yanıt öncesi model/ajan seçimi"
+ },
+ {
+  "category": "Sohbet",
+  "feature": "Geçici (kayıtsız) sohbet modu",
+  "pattern": "incognito|temporaryChat|temporary_chat|ephemeral",
+  "hits": 2,
+  "present": true,
+  "build": "Hiçbir yere kaydedilmeyen sohbet"
+ },
+ {
+  "category": "Sohbet",
+  "feature": "Sohbet içi arama (Ctrl+F benzeri)",
+  "pattern": "searchInChat|find-in-chat|chatSearch",
+  "hits": 7,
+  "present": true,
+  "build": "Açık sohbet içinde arama"
+ },
+ {
+  "category": "Sohbet",
+  "feature": "Mesaj bağlantısı (kalıcı link)",
+  "pattern": "permalink|messageLink|message-link",
+  "hits": 0,
+  "present": false,
+  "build": "Tek mesaja bağlantı"
+ },
+ {
+  "category": "Sohbet",
+  "feature": "Yanıt uzunluğu/ton hızlı ayarı",
+  "pattern": "responseLength|tone",
+  "hits": 18,
+  "present": true,
+  "build": "Yanıt başına uzunluk/ton seçici"
+ },
+ {
+  "category": "Sohbet",
+  "feature": "Taslak mesajı kaydetme",
+  "pattern": "draft.*(save|store|localStorage)|saveDraft",
+  "hits": 0,
+  "present": false,
+  "build": "Gönderilmemiş mesajı koruma"
+ },
+ {
+  "category": "Sohbet",
+  "feature": "Çoklu dosya sürükle-bırak",
+  "pattern": "ondrop|dragover|drop.*files",
+  "hits": 2,
+  "present": true,
+  "build": "Sürükle-bırak yükleme"
+ },
+ {
+  "category": "Sohbet",
+  "feature": "Panodan görsel yapıştırma",
+  "pattern": "clipboardData|onpaste|addEventListener\\('paste'",
+  "hits": 0,
+  "present": false,
+  "build": "Panodan görsel/dosya yapıştırma"
+ },
+ {
+  "category": "Sohbet",
+  "feature": "Yanıtı Markdown/PDF/DOCX olarak dışa aktarma",
+  "pattern": "export.*(pdf|docx)|toPdf|to_docx",
+  "hits": 4,
+  "present": true,
+  "build": "Sohbet/yanıt PDF-DOCX dışa aktarma"
+ },
+ {
+  "category": "Sohbet",
+  "feature": "Mesaja tepki/emoji değil, kalite puanı (1-5)",
+  "pattern": "rating|stars|score_feedback",
+  "hits": 29,
+  "present": true,
+  "build": "Yanıt kalite puanı"
+ },
+ {
+  "category": "Hafıza",
+  "feature": "Hafıza kayıtlarını görme ve düzenleme arayüzü",
+  "pattern": "memories.*(edit|put|patch)|editMemory",
+  "hits": 2,
+  "present": true,
+  "build": "Hafıza kaydı düzenleme"
+ },
+ {
+  "category": "Hafıza",
+  "feature": "Hafızaya 'bunu hatırla' komutu",
+  "pattern": "remember_this|rememberThis|/remember|hatırla",
+  "hits": 3,
+  "present": true,
+  "build": "Sohbette doğal dille hafıza ekleme"
+ },
+ {
+  "category": "Hafıza",
+  "feature": "Hafıza dışa/içe aktarma",
+  "pattern": "memories.*export|importMemories|memory_export",
+  "hits": 1,
+  "present": true,
+  "build": "Hafıza taşıma"
+ },
+ {
+  "category": "Hafıza",
+  "feature": "Projeye özgü kalıcı talimatlar",
+  "pattern": "project_instructions|projectInstructions|custom_instructions.*project",
+  "hits": 0,
+  "present": false,
+  "build": "Proje düzeyinde sistem talimatı"
+ },
+ {
+  "category": "Hafıza",
+  "feature": "Kişilik/ton ön ayarları",
+  "pattern": "persona|personality_preset|tonePreset",
+  "hits": 35,
+  "present": true,
+  "build": "Hazır kişilik/ton profilleri"
+ },
+ {
+  "category": "Hafıza",
+  "feature": "Hafıza zaman çizelgesi (ne zaman öğrenildi)",
+  "pattern": "memory.*timeline|learned_at|created_at.*memory",
+  "hits": 0,
+  "present": false,
+  "build": "Hafıza geçmişi görünümü"
+ },
+ {
+  "category": "Hafıza",
+  "feature": "Konuşmalar arası bağlam arama ('geçen hafta ne konuştuk')",
+  "pattern": "history/search|searchHistory",
+  "hits": 3,
+  "present": true,
+  "build": "Geçmiş sohbet araması"
+ },
+ {
+  "category": "Hafıza",
+  "feature": "Kullanıcı bazlı veri saklama süresi arayüzü",
+  "pattern": "retention.*(ui|select|setting)|retentionDays",
+  "hits": 1,
+  "present": true,
+  "build": "Saklama süresi ayarı"
+ },
+ {
+  "category": "Dosya",
+  "feature": "PDF içinde sayfa önizleme",
+  "pattern": "pdf\\.js|pdfjs|renderPage|page-preview",
+  "hits": 0,
+  "present": false,
+  "build": "Kaynak PDF sayfasını görüntüleme"
+ },
+ {
+  "category": "Dosya",
+  "feature": "Görsel dosya yükleyip soru sorma (VQA)",
+  "pattern": "vision|VLM|image_url|describe_image",
+  "hits": 107,
+  "present": true,
+  "build": "Görsel anlama"
+ },
+ {
+  "category": "Dosya",
+  "feature": "Ekran görüntüsünden kod/arayüz üretme",
+  "pattern": "screenshot.*(to|→).*code|ui_from_image",
+  "hits": 0,
+  "present": false,
+  "build": "Görselden arayüz üretme"
+ },
+ {
+  "category": "Dosya",
+  "feature": "Dosya türüne göre önizleme (CSV tablo, JSON ağaç)",
+  "pattern": "jsonTree|csvPreview|previewCsv",
+  "hits": 0,
+  "present": false,
+  "build": "Dosya önizleyici"
+ },
+ {
+  "category": "Dosya",
+  "feature": "Google Drive / OneDrive bağlayıcısı",
+  "pattern": "drive\\.google|graph\\.microsoft|onedrive",
+  "hits": 0,
+  "present": false,
+  "build": "Bulut dosya bağlayıcısı"
+ },
+ {
+  "category": "Dosya",
+  "feature": "GitHub depo bağlayıcısı",
+  "pattern": "api\\.github\\.com|github_connector|githubRepo",
+  "hits": 0,
+  "present": false,
+  "build": "Depoyu bağlayıp soru sorma"
+ },
+ {
+  "category": "Dosya",
+  "feature": "Toplu belge yükleme (klasör)",
+  "pattern": "webkitdirectory|directory upload|folderUpload",
+  "hits": 0,
+  "present": false,
+  "build": "Klasör yükleme"
+ },
+ {
+  "category": "Dosya",
+  "feature": "Belge sürümleme ve yeniden yükleme",
+  "pattern": "document_versions|doc_version",
+  "hits": 0,
+  "present": false,
+  "build": "Belge sürümleri"
+ },
+ {
+  "category": "Dosya",
+  "feature": "OCR (taranmış belge)",
+  "pattern": "pytesseract|easyocr|paddleocr|ocr_enabled",
+  "hits": 5,
+  "present": true,
+  "build": "Taranmış PDF/görselden metin"
+ },
+ {
+  "category": "Dosya",
+  "feature": "El yazısı tanıma",
+  "pattern": "handwriting|trocr",
+  "hits": 0,
+  "present": false,
+  "build": "El yazısı OCR"
+ },
+ {
+  "category": "Dosya",
+  "feature": "Tablo çıkarma sonucunu XLSX indirme",
+  "pattern": "table.*xlsx|tables_to_xlsx",
+  "hits": 1,
+  "present": true,
+  "build": "Çıkarılan tabloyu Excel'e aktarma"
+ },
+ {
+  "category": "Dosya",
+  "feature": "Belge karşılaştırma (iki sürüm farkı)",
+  "pattern": "compare_documents|document_diff|docDiff",
+  "hits": 1,
+  "present": true,
+  "build": "İki belge farkı"
+ },
+ {
+  "category": "Dosya",
+  "feature": "E-posta (.eml/.msg) yükleme",
+  "pattern": "\\.eml|\\.msg|email.*parse",
+  "hits": 72,
+  "present": true,
+  "build": "E-posta dosyası ayrıştırma"
+ },
+ {
+  "category": "Dosya",
+  "feature": "Ses dosyası yükleyip transkripsiyon",
+  "pattern": "transcribe",
+  "hits": 18,
+  "present": true,
+  "build": "Toplantı kaydı transkripsiyonu"
+ },
+ {
+  "category": "Dosya",
+  "feature": "Video yükleyip özet (kare+ses)",
+  "pattern": "keyframe|key_frame|video_summary|ffmpeg",
+  "hits": 8,
+  "present": true,
+  "build": "Video analizi"
+ },
+ {
+  "category": "Dosya",
+  "feature": "Arşiv (zip) içindeki belgeleri toplu dizinleme",
+  "pattern": "index_zip|zip.*ingest|ingest.*zip",
+  "hits": 1,
+  "present": true,
+  "build": "ZIP toplu dizinleme"
+ },
+ {
+  "category": "Kod",
+  "feature": "Monaco/CodeMirror tabanlı editör",
+  "pattern": "monaco|codemirror|CodeMirror",
+  "hits": 0,
+  "present": false,
+  "build": "Gerçek kod editörü"
+ },
+ {
+  "category": "Kod",
+  "feature": "Sözdizimi vurgulama (highlight.js/Prism)",
+  "pattern": "highlight\\.js|hljs|prism",
+  "hits": 3,
+  "present": true,
+  "build": "Kod vurgulama kitaplığı"
+ },
+ {
+  "category": "Kod",
+  "feature": "Dil sunucusu (LSP) köprüsü",
+  "pattern": "pyright|tsserver|language.server|lsp",
+  "hits": 16,
+  "present": true,
+  "build": "Kod tamamlama/tanılama"
+ },
+ {
+  "category": "Kod",
+  "feature": "Etkileşimli terminal (PTY)",
+  "pattern": "pty|winpty|ConPTY|xterm",
+  "hits": 70,
+  "present": true,
+  "build": "Gerçek terminal"
+ },
+ {
+  "category": "Kod",
+  "feature": "Hata ayıklayıcı (DAP)",
+  "pattern": "debugpy|DAP|breakpoint",
+  "hits": 24,
+  "present": true,
+  "build": "Kesme noktalı hata ayıklama"
+ },
+ {
+  "category": "Kod",
+  "feature": "Çalışma alanında git geçmişi grafiği",
+  "pattern": "git log|gitgraph|commit.*graph",
+  "hits": 0,
+  "present": false,
+  "build": "Commit geçmişi arayüzü"
+ },
+ {
+  "category": "Kod",
+  "feature": "Çok dosyalı toplu yeniden düzenleme (rename symbol)",
+  "pattern": "rename_symbol|renameSymbol|refactor",
+  "hits": 1,
+  "present": true,
+  "build": "Sembol yeniden adlandırma"
+ },
+ {
+  "category": "Kod",
+  "feature": "Test üretme ve çalıştırma düğmesi",
+  "pattern": "generate_tests|run_tests|pytest.*action",
+  "hits": 6,
+  "present": true,
+  "build": "Testleri üret/çalıştır"
+ },
+ {
+  "category": "Kod",
+  "feature": "Kod incelemesi (PR benzeri) arayüzü",
+  "pattern": "code_review|review_comments|reviewPanel",
+  "hits": 1,
+  "present": true,
+  "build": "Diff üzerinde inceleme yorumları"
+ },
+ {
+  "category": "Kod",
+  "feature": "Bağımlılık güvenlik taraması (pip-audit/npm audit) üretilen projede",
+  "pattern": "pip-audit|npm audit|safety check",
+  "hits": 0,
+  "present": false,
+  "build": "Üretilen proje güvenlik taraması"
+ },
+ {
+  "category": "Kod",
+  "feature": "Docker/compose dosyası üretimi",
+  "pattern": "Dockerfile.*generate|generate_dockerfile|docker-compose",
+  "hits": 3,
+  "present": true,
+  "build": "Dockerfile üretimi"
+ },
+ {
+  "category": "Kod",
+  "feature": "Proje şablon galerisi (8 şablon)",
+  "pattern": "templates/|template_gallery",
+  "hits": 0,
+  "present": false,
+  "build": "Hazır başlangıç şablonları"
+ },
+ {
+  "category": "Kod",
+  "feature": "Canlı önizleme ile hot reload",
+  "pattern": "hot.?reload|livereload|websocket.*preview",
+  "hits": 0,
+  "present": false,
+  "build": "Önizlemede anlık yenileme"
+ },
+ {
+  "category": "Kod",
+  "feature": "Kod snippet kitaplığı",
+  "pattern": "snippet",
+  "hits": 43,
+  "present": true,
+  "build": "Kaydedilen kod parçaları"
+ },
+ {
+  "category": "Kod",
+  "feature": "Jupyter benzeri hücre çalıştırma (not defteri)",
+  "pattern": "notebook|ipynb|jupyter|nbformat",
+  "hits": 1,
+  "present": true,
+  "build": "Not defteri modu"
+ },
+ {
+  "category": "Kod",
+  "feature": "Veritabanı şeması görselleştirme (ERD) arayüzde",
+  "pattern": "erd|mermaid.*er",
+  "hits": 65,
+  "present": true,
+  "build": "ERD gösterimi"
+ },
+ {
+  "category": "Kod",
+  "feature": "API test aracı (istemci) arayüzü",
+  "pattern": "api_tester|requestBuilder|postman",
+  "hits": 0,
+  "present": false,
+  "build": "İstek gönderme paneli"
+ },
+ {
+  "category": "Kod",
+  "feature": "Kod açıklama modu (satır satır)",
+  "pattern": "explain_code|line_by_line|explainCode",
+  "hits": 0,
+  "present": false,
+  "build": "Kod parçası açıklayıcı"
+ },
+ {
+  "category": "Kod",
+  "feature": "Kod çevirisi (dilden dile) doğrulamalı",
+  "pattern": "translate_code|code_translate",
+  "hits": 0,
+  "present": false,
+  "build": "Python→JS gibi çeviri + test"
+ },
+ {
+  "category": "Kod",
+  "feature": "Regex test aracı",
+  "pattern": "regex_tester|regexTester",
+  "hits": 0,
+  "present": false,
+  "build": "Regex deneme paneli"
+ },
+ {
+  "category": "Kod",
+  "feature": "SQL çalıştırma (salt-okunur) ve sonuç tablosu",
+  "pattern": "run_sql|sql_query|/sql",
+  "hits": 5,
+  "present": true,
+  "build": "SQL aracı arayüzü"
+ },
+ {
+  "category": "Sunum",
+  "feature": "Sunum şablon/tema galerisi",
+  "pattern": "theme_gallery|slide_themes|presentation.*theme",
+  "hits": 3,
+  "present": true,
+  "build": "Tema seçimi"
+ },
+ {
+  "category": "Sunum",
+  "feature": "Slayt başına yeniden üretme",
+  "pattern": "regenerate_slide|regenerateSlide",
+  "hits": 0,
+  "present": false,
+  "build": "Tek slaytı yeniden üretme"
+ },
+ {
+  "category": "Sunum",
+  "feature": "Slayt görsel/ikon kitaplığı",
+  "pattern": "icon_library|iconSet|slide_icons",
+  "hits": 0,
+  "present": false,
+  "build": "Yerel ikon seti"
+ },
+ {
+  "category": "Sunum",
+  "feature": "PPTX → PDF/PNG önizleme",
+  "pattern": "libreoffice|soffice|pptx.*pdf|render_slide",
+  "hits": 7,
+  "present": true,
+  "build": "Sunum önizlemesi"
+ },
+ {
+  "category": "Sunum",
+  "feature": "Sunum notları sesli prova (konuşma süresi)",
+  "pattern": "rehearse|speaker_timer|speakerTimer",
+  "hits": 0,
+  "present": false,
+  "build": "Prova modu"
+ },
+ {
+  "category": "Sunum",
+  "feature": "Excel formül doğrulama",
+  "pattern": "formulas|xlcalculator|LibreOffice.*recalc",
+  "hits": 6,
+  "present": true,
+  "build": "XLSX formül hesaplama testi"
+ },
+ {
+  "category": "Sunum",
+  "feature": "Word belgesi stil/şablon yükleme",
+  "pattern": "docx.*template|template.*docx|DocxTemplate",
+  "hits": 0,
+  "present": false,
+  "build": "Kurumsal DOCX şablonu"
+ },
+ {
+  "category": "Sunum",
+  "feature": "Belgede yorum/değişiklik izleme",
+  "pattern": "tracked_changes|track_changes|w:ins|w:del",
+  "hits": 8,
+  "present": true,
+  "build": "Değişiklik izleme"
+ },
+ {
+  "category": "Sunum",
+  "feature": "Dilekçe/sözleşme alan doldurma (form)",
+  "pattern": "fill_form|pdf_form|AcroForm",
+  "hits": 0,
+  "present": false,
+  "build": "PDF form doldurma"
+ },
+ {
+  "category": "Sunum",
+  "feature": "LaTeX/Overleaf çıktısı",
+  "pattern": "latex|\\.tex\\b|pdflatex",
+  "hits": 8,
+  "present": true,
+  "build": "Bilimsel makale LaTeX"
+ },
+ {
+  "category": "Sunum",
+  "feature": "Markdown → kitap/rapor (TOC, sayfa numarası) PDF",
+  "pattern": "weasyprint|reportlab|fpdf|pdfkit",
+  "hits": 1,
+  "present": true,
+  "build": "PDF üretici"
+ },
+ {
+  "category": "Sunum",
+  "feature": "Poster/afiş/infografik üretimi",
+  "pattern": "infographic|poster",
+  "hits": 11,
+  "present": true,
+  "build": "Görsel tasarım çıktıları"
+ },
+ {
+  "category": "Sunum",
+  "feature": "Sertifika/fatura toplu üretimi (mail merge)",
+  "pattern": "mail_merge|mailMerge|bulk_generate",
+  "hits": 0,
+  "present": false,
+  "build": "Toplu belge üretimi"
+ },
+ {
+  "category": "Araştırma",
+  "feature": "Web arama sağlayıcısı yapılandırılmış",
+  "pattern": "SEARXNG_URL.*http|searx.*configured",
+  "hits": 1,
+  "present": true,
+  "build": "Çalışan bir arama sağlayıcısı (SearXNG vb.)"
+ },
+ {
+  "category": "Araştırma",
+  "feature": "Haber/RSS izleme",
+  "pattern": "feedparser|rss",
+  "hits": 4,
+  "present": true,
+  "build": "Konu izleme (RSS)"
+ },
+ {
+  "category": "Araştırma",
+  "feature": "Akademik arama (arXiv/Semantic Scholar/CrossRef)",
+  "pattern": "arxiv|semanticscholar|crossref|openalex",
+  "hits": 6,
+  "present": true,
+  "build": "Akademik kaynak arama"
+ },
+ {
+  "category": "Araştırma",
+  "feature": "Wikipedia/Wikidata arama",
+  "pattern": "wikipedia|wikidata",
+  "hits": 6,
+  "present": true,
+  "build": "Bilgi tabanı arama"
+ },
+ {
+  "category": "Araştırma",
+  "feature": "Kaynak PDF otomatik indirme ve dizinleme",
+  "pattern": "download_source|fetch_pdf|source_download",
+  "hits": 0,
+  "present": false,
+  "build": "Kaynak makaleyi indirip dizinleme"
+ },
+ {
+  "category": "Araştırma",
+  "feature": "Araştırma planı kullanıcı onayı",
+  "pattern": "approve_plan|research_plan|plan_approval",
+  "hits": 4,
+  "present": true,
+  "build": "Plana onay/düzenleme"
+ },
+ {
+  "category": "Araştırma",
+  "feature": "Araştırma geçmişi ve tekrar çalıştırma",
+  "pattern": "research_history|rerun_research",
+  "hits": 0,
+  "present": false,
+  "build": "Araştırma kayıtları"
+ },
+ {
+  "category": "Araştırma",
+  "feature": "Zamana duyarlı sorgular için tarih bağlamı",
+  "pattern": "current_date|today_iso|now_utc.*prompt",
+  "hits": 0,
+  "present": false,
+  "build": "Prompt'a güncel tarih"
+ },
+ {
+  "category": "Araştırma",
+  "feature": "Kaynak arşivleme (web sayfası anlık görüntüsü)",
+  "pattern": "archive_page|snapshot_page|wayback",
+  "hits": 0,
+  "present": false,
+  "build": "Sayfa arşivi"
+ },
+ {
+  "category": "Araştırma",
+  "feature": "Çoklu dilli arama (TR→EN sorgu)",
+  "pattern": "query_translation|translate_query|multilingual_search",
+  "hits": 0,
+  "present": false,
+  "build": "Sorgu çevirisi"
+ },
+ {
+  "category": "Araştırma",
+  "feature": "Alıntı biçimleri (APA/IEEE/Chicago) arayüzü",
+  "pattern": "citation_style|IEEE|Vancouver",
+  "hits": 20,
+  "present": true,
+  "build": "Kaynakça biçim seçici"
+ },
+ {
+  "category": "Araştırma",
+  "feature": "Kaynak güvenilirlik göstergesi arayüzde",
+  "pattern": "credibility.*(badge|ui)|source_credibility",
+  "hits": 5,
+  "present": true,
+  "build": "Kaynak güven rozeti"
+ },
+ {
+  "category": "Medya",
+  "feature": "Yerel görsel üretimi (SD/ComfyUI)",
+  "pattern": "stable.?diffusion|comfyui|diffusers|image_gen.*model",
+  "hits": 3,
+  "present": true,
+  "build": "Gerçek görsel üretim modeli"
+ },
+ {
+  "category": "Medya",
+  "feature": "Görsel düzenleme (arka plan kaldırma, kırpma)",
+  "pattern": "rembg|remove_background|image_edit|inpaint",
+  "hits": 5,
+  "present": true,
+  "build": "Görsel düzenleme"
+ },
+ {
+  "category": "Medya",
+  "feature": "Metinden sese (yerel TTS) dosya üretimi",
+  "pattern": "piper|coqui|pyttsx|edge.tts|tts_file",
+  "hits": 1,
+  "present": true,
+  "build": "Sunucu tarafı TTS"
+ },
+ {
+  "category": "Medya",
+  "feature": "Altyazı üretimi (SRT)",
+  "pattern": "\\.srt|srt_export|subtitle",
+  "hits": 16,
+  "present": true,
+  "build": "Video/ses altyazısı"
+ },
+ {
+  "category": "Medya",
+  "feature": "Ses temizleme/dönüştürme",
+  "pattern": "pydub|ffmpeg|audio_convert",
+  "hits": 0,
+  "present": false,
+  "build": "Ses işleme"
+ },
+ {
+  "category": "Medya",
+  "feature": "Diyagram üretimi (Mermaid/Graphviz) çizim",
+  "pattern": "mermaid\\.(render|init)|graphviz|dot -T",
+  "hits": 2,
+  "present": true,
+  "build": "Diyagram çizme"
+ },
+ {
+  "category": "Medya",
+  "feature": "QR/barkod üretimi",
+  "pattern": "qrcode|segno|barcode",
+  "hits": 0,
+  "present": false,
+  "build": "QR/barkod aracı"
+ },
+ {
+  "category": "Medya",
+  "feature": "Grafik üretimi (matplotlib/plotly) sohbetten",
+  "pattern": "matplotlib|plotly|vega|chart\\.js|echarts",
+  "hits": 1,
+  "present": true,
+  "build": "Veriden grafik"
+ },
+ {
+  "category": "Medya",
+  "feature": "SVG/ikon üretimi",
+  "pattern": "svg_generate|generate_svg",
+  "hits": 0,
+  "present": false,
+  "build": "SVG üretimi"
+ },
+ {
+  "category": "Medya",
+  "feature": "Video üretimi/montajı",
+  "pattern": "moviepy|video_generate",
+  "hits": 0,
+  "present": false,
+  "build": "Basit video montajı"
+ },
+ {
+  "category": "Medya",
+  "feature": "3B model (STL/OBJ) üretimi ve görüntüleme",
+  "pattern": "three\\.js|trimesh|\\.stl|\\.obj",
+  "hits": 8,
+  "present": true,
+  "build": "3B önizleme"
+ },
+ {
+  "category": "Medya",
+  "feature": "Harita/koordinat işleme",
+  "pattern": "geopy|folium|leaflet|geocod",
+  "hits": 0,
+  "present": false,
+  "build": "Harita araçları"
+ },
+ {
+  "category": "Veri",
+  "feature": "CSV'den otomatik grafik önerisi",
+  "pattern": "suggest_chart|autoChart|chart_suggest",
+  "hits": 0,
+  "present": false,
+  "build": "Grafik önerisi"
+ },
+ {
+  "category": "Veri",
+  "feature": "Pandas benzeri veri dönüştürme sohbetten",
+  "pattern": "pandas|polars|duckdb",
+  "hits": 1,
+  "present": true,
+  "build": "Veri çerçevesi motoru"
+ },
+ {
+  "category": "Veri",
+  "feature": "İstatistik testleri (t-test, ANOVA, ki-kare)",
+  "pattern": "scipy|statsmodels|stat-test",
+  "hits": 4,
+  "present": true,
+  "build": "İstatistik testi"
+ },
+ {
+  "category": "Veri",
+  "feature": "Zaman serisi tahmini (ARIMA/Prophet)",
+  "pattern": "statsmodels.*ARIMA|prophet|forecast",
+  "hits": 31,
+  "present": true,
+  "build": "Tahmin"
+ },
+ {
+  "category": "Veri",
+  "feature": "Aykırı değer ve veri kalitesi raporu",
+  "pattern": "outlier|data_quality|profile_report",
+  "hits": 5,
+  "present": true,
+  "build": "Veri profili"
+ },
+ {
+  "category": "Veri",
+  "feature": "Veri temizleme önerileri ve uygulama",
+  "pattern": "clean_data|dedupe_rows|fillna|impute",
+  "hits": 0,
+  "present": false,
+  "build": "Temizleme aracı"
+ },
+ {
+  "category": "Veri",
+  "feature": "Veritabanına bağlanma (PostgreSQL/MySQL) sohbetten",
+  "pattern": "psycopg|pymysql|sqlalchemy.*create_engine",
+  "hits": 4,
+  "present": true,
+  "build": "Harici DB bağlayıcısı"
+ },
+ {
+  "category": "Veri",
+  "feature": "Excel pivot tablo üretimi",
+  "pattern": "pivot",
+  "hits": 0,
+  "present": false,
+  "build": "Pivot tablo"
+ },
+ {
+  "category": "Veri",
+  "feature": "Dashboard üretimi (HTML) veriden",
+  "pattern": "generate_dashboard|dashboard_builder",
+  "hits": 0,
+  "present": false,
+  "build": "Veriden pano"
+ },
+ {
+  "category": "Veri",
+  "feature": "Makine öğrenmesi modeli eğitimi (sklearn) sohbetten",
+  "pattern": "sklearn|scikit|AutoML|automl",
+  "hits": 12,
+  "present": true,
+  "build": "Basit ML eğitim"
+ },
+ {
+  "category": "Veri",
+  "feature": "Anket/form üretimi ve toplama",
+  "pattern": "survey|form_builder",
+  "hits": 0,
+  "present": false,
+  "build": "Form oluşturucu"
+ },
+ {
+  "category": "Veri",
+  "feature": "Veri anonimleştirme",
+  "pattern": "anonymi[sz]e",
+  "hits": 15,
+  "present": true,
+  "build": "Anonimleştirme"
+ },
+ {
+  "category": "Ajan",
+  "feature": "Kullanıcı tanımlı ajan/asistan oluşturucu (GPTs benzeri)",
+  "pattern": "custom_agent|agent_builder|assistant_builder|create_assistant",
+  "hits": 0,
+  "present": false,
+  "build": "Kendi asistanını tanımlama"
+ },
+ {
+  "category": "Ajan",
+  "feature": "Zamanlanmış görevler (her sabah rapor)",
+  "pattern": "cron|apscheduler|scheduled_task|schedule_job",
+  "hits": 0,
+  "present": false,
+  "build": "Zamanlanmış asistan görevleri"
+ },
+ {
+  "category": "Ajan",
+  "feature": "Webhook/olay tetikleyici",
+  "pattern": "webhook",
+  "hits": 1,
+  "present": true,
+  "build": "Dış olayla görev tetikleme"
+ },
+ {
+  "category": "Ajan",
+  "feature": "Ajan başına GPU/VRAM görünür panosu",
+  "pattern": "vram|nvidia-smi|gpu_memory",
+  "hits": 63,
+  "present": true,
+  "build": "VRAM panosu"
+ },
+ {
+  "category": "Ajan",
+  "feature": "Ajan yetenek sınavı (benchmark) sonuç grafiği",
+  "pattern": "benchmark.*(chart|graph)|benchmarkChart",
+  "hits": 0,
+  "present": false,
+  "build": "Benchmark grafiği"
+ },
+ {
+  "category": "Ajan",
+  "feature": "Görev öncelik değiştirme arayüzü",
+  "pattern": "set_priority|priority.*(select|ui)",
+  "hits": 0,
+  "present": false,
+  "build": "Görev önceliği"
+ },
+ {
+  "category": "Ajan",
+  "feature": "Ajan bakım modu (boşalt)",
+  "pattern": "drain|maintenance_mode|cordon",
+  "hits": 0,
+  "present": false,
+  "build": "Ajanı boşaltma"
+ },
+ {
+  "category": "Ajan",
+  "feature": "Ajan etiketleri/gruplar",
+  "pattern": "agent_tags|agent_group|labels",
+  "hits": 77,
+  "present": true,
+  "build": "Ajan gruplama"
+ },
+ {
+  "category": "Ajan",
+  "feature": "Görev tekrar oynatma (replay) arayüzü",
+  "pattern": "replay",
+  "hits": 5,
+  "present": true,
+  "build": "Çalıştırma tekrarı"
+ },
+ {
+  "category": "Ajan",
+  "feature": "İnsan onayı gerektiren adımlar (human-in-the-loop) arayüzü",
+  "pattern": "approval_gate|approve_step|human_in_the_loop",
+  "hits": 0,
+  "present": false,
+  "build": "Onay kapısı"
+ },
+ {
+  "category": "Ajan",
+  "feature": "MCP sunucusu olarak dışa açma",
+  "pattern": "mcp_server|FastMCP|expose.*mcp",
+  "hits": 1,
+  "present": true,
+  "build": "Platformu MCP sunucusu yapma"
+ },
+ {
+  "category": "Ajan",
+  "feature": "Ajan marketplace/araç galerisi",
+  "pattern": "marketplace|tool_gallery",
+  "hits": 0,
+  "present": false,
+  "build": "Araç galerisi"
+ },
+ {
+  "category": "Operasyon",
+  "feature": "Kullanıcı yönetimi sayfası (liste/rol/devre dışı)",
+  "pattern": "list_users|users.*(table|admin)|/api/auth/users",
+  "hits": 2,
+  "present": true,
+  "build": "Kullanıcı yönetimi arayüzü"
+ },
+ {
+  "category": "Operasyon",
+  "feature": "Kota ve kullanım limitleri (token/gün)",
+  "pattern": "quota|usage_limit|token_budget",
+  "hits": 18,
+  "present": true,
+  "build": "Kullanıcı kotası"
+ },
+ {
+  "category": "Operasyon",
+  "feature": "Maliyet/enerji muhasebesi",
+  "pattern": "energy|cost_estimate|kwh",
+  "hits": 5,
+  "present": true,
+  "build": "Kullanım maliyeti"
+ },
+ {
+  "category": "Operasyon",
+  "feature": "Yapılandırma sayfası (env değerleri güvenli düzenleme)",
+  "pattern": "config_editor|settings.*env|admin.*config",
+  "hits": 2,
+  "present": true,
+  "build": "Yönetici ayarları"
+ },
+ {
+  "category": "Operasyon",
+  "feature": "Günlük görüntüleyici (arayüz)",
+  "pattern": "log_viewer|logs.*stream|/api/admin/logs",
+  "hits": 0,
+  "present": false,
+  "build": "Günlük sayfası"
+ },
+ {
+  "category": "Operasyon",
+  "feature": "Yedek zamanlama arayüzü",
+  "pattern": "backup.*(schedule|cron)|backup_ui",
+  "hits": 5,
+  "present": true,
+  "build": "Yedek ayarı"
+ },
+ {
+  "category": "Operasyon",
+  "feature": "Model indirme/silme arayüzü (Ollama pull)",
+  "pattern": "api/pull|ollama.*pull|pull_model",
+  "hits": 2,
+  "present": true,
+  "build": "Model yönetimi"
+ },
+ {
+  "category": "Operasyon",
+  "feature": "Sağlık sihirbazı otomatik düzeltme",
+  "pattern": "auto_fix|fix_it|remediate",
+  "hits": 0,
+  "present": false,
+  "build": "Tek tıkla düzeltme"
+ },
+ {
+  "category": "Operasyon",
+  "feature": "Sürüm/güncelleme denetimi",
+  "pattern": "check_update|latest_version|updater",
+  "hits": 2,
+  "present": true,
+  "build": "Güncelleme denetimi"
+ },
+ {
+  "category": "Operasyon",
+  "feature": "Çok dilli arayüz (en az 3 dil)",
+  "pattern": "'de'|'fr'|'es'|locale.*(de|fr|es)",
+  "hits": 4,
+  "present": true,
+  "build": "TR/EN dışında dil"
+ },
+ {
+  "category": "Operasyon",
+  "feature": "Telemetri/analitik (yerel) kullanım pano",
+  "pattern": "usage_analytics|analytics",
+  "hits": 0,
+  "present": false,
+  "build": "Kullanım analitiği"
+ },
+ {
+  "category": "Operasyon",
+  "feature": "Uyarı kanalları (e-posta/Telegram/Discord)",
+  "pattern": "smtp|telegram|discord|slack_webhook",
+  "hits": 1,
+  "present": true,
+  "build": "Uyarı gönderimi"
+ },
+ {
+  "category": "Operasyon",
+  "feature": "Yük dengeleyici/çoklu master",
+  "pattern": "leader_election|failover|ha_master",
+  "hits": 0,
+  "present": false,
+  "build": "Yüksek erişilebilirlik"
+ },
+ {
+  "category": "Operasyon",
+  "feature": "Veri tabanı bakım arayüzü (vacuum/doctor)",
+  "pattern": "db-doctor",
+  "hits": 2,
+  "present": true,
+  "build": "DB bakım sayfası"
+ },
+ {
+  "category": "Operasyon",
+  "feature": "Terraform/Compose dağıtım betikleri",
+  "pattern": "docker-compose\\.ya?ml|compose\\.ya?ml",
+  "hits": 3,
+  "present": true,
+  "build": "Dağıtım dosyaları"
+ },
+ {
+  "category": "Güvenlik",
+  "feature": "İki aşamalı doğrulama (TOTP)",
+  "pattern": "totp|pyotp|otpauth",
+  "hits": 0,
+  "present": false,
+  "build": "2FA"
+ },
+ {
+  "category": "Güvenlik",
+  "feature": "Parola gücü denetimi",
+  "pattern": "zxcvbn|password_strength|min_length.*password",
+  "hits": 0,
+  "present": false,
+  "build": "Parola politikası"
+ },
+ {
+  "category": "Güvenlik",
+  "feature": "Oturum listesi ve uzaktan çıkış",
+  "pattern": "list_sessions|sessions.*revoke_all",
+  "hits": 0,
+  "present": false,
+  "build": "Oturum yönetimi"
+ },
+ {
+  "category": "Güvenlik",
+  "feature": "Hesap kilitleme ve bildirim",
+  "pattern": "account_lock|locked_until|lockout",
+  "hits": 0,
+  "present": false,
+  "build": "Hesap kilidi"
+ },
+ {
+  "category": "Güvenlik",
+  "feature": "API anahtarı üretimi (kullanıcı için)",
+  "pattern": "api_key.*(create|generate)|personal_access_token",
+  "hits": 1,
+  "present": true,
+  "build": "Kişisel API anahtarı"
+ },
+ {
+  "category": "Güvenlik",
+  "feature": "Güvenlik başlıkları (CSP, HSTS)",
+  "pattern": "Content-Security-Policy",
+  "hits": 5,
+  "present": true,
+  "build": "CSP"
+ },
+ {
+  "category": "Güvenlik",
+  "feature": "Gizlilik/veri kullanım sayfası",
+  "pattern": "privacy|gizlilik",
+  "hits": 8,
+  "present": true,
+  "build": "Gizlilik sayfası"
+ },
+ {
+  "category": "Güvenlik",
+  "feature": "Veri silme isteği arayüzü (hesap silme)",
+  "pattern": "delete_account|deleteAccount|erase_user",
+  "hits": 2,
+  "present": true,
+  "build": "Hesap silme düğmesi"
+ },
+ {
+  "category": "Güvenlik",
+  "feature": "IP izin listesi",
+  "pattern": "ip_allowlist|allowed_ips",
+  "hits": 0,
+  "present": false,
+  "build": "IP kısıtı"
+ },
+ {
+  "category": "Güvenlik",
+  "feature": "Dosya antivirüs taraması",
+  "pattern": "clamd|clamav",
+  "hits": 0,
+  "present": false,
+  "build": "Antivirüs"
+ },
+ {
+  "category": "Güvenlik",
+  "feature": "Gizli bilgi tespiti yüklemelerde (anahtar sızıntısı)",
+  "pattern": "detect_secrets|gitleaks|secret_scan",
+  "hits": 0,
+  "present": false,
+  "build": "Sır taraması"
+ },
+ {
+  "category": "Güvenlik",
+  "feature": "Denetim izi arayüzü",
+  "pattern": "audit.*(table|ui|viewer)|auditViewer",
+  "hits": 3,
+  "present": true,
+  "build": "Denetim görüntüleyici"
+ },
+ {
+  "category": "Entegrasyon",
+  "feature": "Takvim (.ics) dışa aktarma",
+  "pattern": "\\.ics|icalendar|VEVENT",
+  "hits": 0,
+  "present": false,
+  "build": "Takvim dosyası"
+ },
+ {
+  "category": "Entegrasyon",
+  "feature": "E-posta taslağı gönderme (mailto/SMTP)",
+  "pattern": "mailto:|smtplib",
+  "hits": 2,
+  "present": true,
+  "build": "E-posta entegrasyonu"
+ },
+ {
+  "category": "Entegrasyon",
+  "feature": "Notion/Obsidian içe-dışa aktarma",
+  "pattern": "notion|obsidian",
+  "hits": 5,
+  "present": true,
+  "build": "Not uygulaması bağlantısı"
+ },
+ {
+  "category": "Entegrasyon",
+  "feature": "Telegram/WhatsApp botu",
+  "pattern": "telegram|whatsapp|python-telegram-bot",
+  "hits": 0,
+  "present": false,
+  "build": "Mesajlaşma botu"
+ },
+ {
+  "category": "Entegrasyon",
+  "feature": "Tarayıcı eklentisi",
+  "pattern": "manifest\\.json.*extension|chrome\\.runtime",
+  "hits": 0,
+  "present": false,
+  "build": "Tarayıcı eklentisi"
+ },
+ {
+  "category": "Entegrasyon",
+  "feature": "Komut satırı istemcisi (CLI)",
+  "pattern": "argparse.*assistant|cli_client|dadp-cli",
+  "hits": 0,
+  "present": false,
+  "build": "CLI"
+ },
+ {
+  "category": "Entegrasyon",
+  "feature": "OpenAI uyumlu API uç noktası",
+  "pattern": "/v1/chat/completions",
+  "hits": 1,
+  "present": true,
+  "build": "OpenAI uyumlu API"
+ },
+ {
+  "category": "Entegrasyon",
+  "feature": "Python/JS SDK",
+  "pattern": "sdk/|client_sdk",
+  "hits": 0,
+  "present": false,
+  "build": "SDK"
+ },
+ {
+  "category": "Entegrasyon",
+  "feature": "Mobil uygulama/PWA manifest",
+  "pattern": "manifest\\.webmanifest|serviceWorker|service-worker",
+  "hits": 9,
+  "present": true,
+  "build": "PWA"
+ },
+ {
+  "category": "Entegrasyon",
+  "feature": "Masaüstü uygulaması (Electron/Tauri)",
+  "pattern": "electron|tauri",
+  "hits": 1,
+  "present": true,
+  "build": "Masaüstü paket"
+ },
+ {
+  "category": "Entegrasyon",
+  "feature": "Webhook ile dış sisteme bildirim",
+  "pattern": "outgoing_webhook|post_webhook",
+  "hits": 0,
+  "present": false,
+  "build": "Giden webhook"
+ },
+ {
+  "category": "Entegrasyon",
+  "feature": "Sosyal medya/metin biçimleri (tweet, LinkedIn)",
+  "pattern": "linkedin|tweet",
+  "hits": 0,
+  "present": false,
+  "build": "Platforma özel yazım"
+ },
+ {
+  "category": "Erişilebilirlik",
+  "feature": "Klavye kısayol haritası ekranı",
+  "pattern": "shortcuts.*(modal|help)|keyboardShortcuts",
+  "hits": 0,
+  "present": false,
+  "build": "Kısayol listesi"
+ },
+ {
+  "category": "Erişilebilirlik",
+  "feature": "Yüksek kontrast teması",
+  "pattern": "high-contrast|highContrast|data-theme=.contrast",
+  "hits": 1,
+  "present": true,
+  "build": "Yüksek kontrast"
+ },
+ {
+  "category": "Erişilebilirlik",
+  "feature": "Yazı boyutu ayarı",
+  "pattern": "fontScale|font-size.*setting|text-size",
+  "hits": 0,
+  "present": false,
+  "build": "Yazı boyutu"
+ },
+ {
+  "category": "Erişilebilirlik",
+  "feature": "Ekran okuyucu için canlı bölge (aria-live)",
+  "pattern": "aria-live",
+  "hits": 3,
+  "present": true,
+  "build": "Canlı bölge"
+ },
+ {
+  "category": "Erişilebilirlik",
+  "feature": "Hareketi azalt (prefers-reduced-motion)",
+  "pattern": "prefers-reduced-motion",
+  "hits": 0,
+  "present": false,
+  "build": "Hareket azaltma"
+ },
+ {
+  "category": "Erişilebilirlik",
+  "feature": "Sağdan sola dil desteği (RTL)",
+  "pattern": "dir=.rtl|rtl",
+  "hits": 15,
+  "present": true,
+  "build": "RTL"
+ },
+ {
+  "category": "Erişilebilirlik",
+  "feature": "Çevrimdışı mod (service worker)",
+  "pattern": "serviceWorker",
+  "hits": 2,
+  "present": true,
+  "build": "Çevrimdışı çalışma"
+ },
+ {
+  "category": "Erişilebilirlik",
+  "feature": "Yükleme iskeletleri (skeleton)",
+  "pattern": "skeleton",
+  "hits": 1,
+  "present": true,
+  "build": "İskelet yükleme"
+ },
+ {
+  "category": "Erişilebilirlik",
+  "feature": "Boş durum yönlendirmeleri",
+  "pattern": "empty-state|emptyState",
+  "hits": 0,
+  "present": false,
+  "build": "Boş durum"
+ },
+ {
+  "category": "Erişilebilirlik",
+  "feature": "Onboarding turu",
+  "pattern": "onboarding|tour|walkthrough",
+  "hits": 2,
+  "present": true,
+  "build": "İlk kullanım turu"
+ },
+ {
+  "category": "Erişilebilirlik",
+  "feature": "Bağlam yardım ipuçları (tooltip sistemi)",
+  "pattern": "tooltip",
+  "hits": 0,
+  "present": false,
+  "build": "İpucu sistemi"
+ },
+ {
+  "category": "Erişilebilirlik",
+  "feature": "Toast bildirim sistemi",
+  "pattern": "toast",
+  "hits": 0,
+  "present": false,
+  "build": "Bildirim sistemi"
+ },
+ {
+  "category": "Eğitim",
+  "feature": "Alıştırma/test üretimi ve puanlama",
+  "pattern": "quiz|exam_generate|generate_questions",
+  "hits": 0,
+  "present": false,
+  "build": "Test üretimi"
+ },
+ {
+  "category": "Eğitim",
+  "feature": "Aralıklı tekrar kartları (flashcards)",
+  "pattern": "flashcard|spaced_repetition|anki",
+  "hits": 4,
+  "present": true,
+  "build": "Bilgi kartları"
+ },
+ {
+  "category": "Eğitim",
+  "feature": "Adım adım problem çözümü (matematik)",
+  "pattern": "step_by_step|sympy",
+  "hits": 1,
+  "present": true,
+  "build": "Adım adım çözüm"
+ },
+ {
+  "category": "Eğitim",
+  "feature": "Müfredat/ders planı üretimi",
+  "pattern": "lesson_plan|curriculum",
+  "hits": 0,
+  "present": false,
+  "build": "Ders planı"
+ },
+ {
+  "category": "Eğitim",
+  "feature": "Öğrenme ilerleme takibi",
+  "pattern": "learning_progress|mastery|progress_tracker",
+  "hits": 0,
+  "present": false,
+  "build": "İlerleme takibi"
+ },
+ {
+  "category": "Eğitim",
+  "feature": "Kod ödevi otomatik değerlendirme",
+  "pattern": "autograder|grade_submission",
+  "hits": 0,
+  "present": false,
+  "build": "Ödev değerlendirme"
+ },
+ {
+  "category": "Eğitim",
+  "feature": "Dil öğrenme modu (telaffuz/çeviri)",
+  "pattern": "language_learning|pronunciation",
+  "hits": 0,
+  "present": false,
+  "build": "Dil öğrenme"
+ },
+ {
+  "category": "Eğitim",
+  "feature": "Konu haritası/zihin haritası",
+  "pattern": "mindmap|mind_map|markmap",
+  "hits": 6,
+  "present": true,
+  "build": "Zihin haritası"
+ },
+ {
+  "category": "Alan",
+  "feature": "Hukuk: mevzuat veri tabanı (madde atıflı)",
+  "pattern": "mevzuat|kanun_no|resmi_gazete",
+  "hits": 4,
+  "present": true,
+  "build": "Mevzuat arama"
+ },
+ {
+  "category": "Alan",
+  "feature": "Sağlık: ilaç/etkileşim veri tabanı",
+  "pattern": "drug_interaction|ilac_etkilesim|atc_code",
+  "hits": 0,
+  "present": false,
+  "build": "İlaç bilgisi"
+ },
+ {
+  "category": "Alan",
+  "feature": "Finans: canlı kur/hisse verisi",
+  "pattern": "exchange_rate|fx_rate|tcmb",
+  "hits": 1,
+  "present": true,
+  "build": "Kur verisi"
+ },
+ {
+  "category": "Alan",
+  "feature": "Mühendislik: malzeme veri tabanı",
+  "pattern": "material_db|materials_table|steel_grades",
+  "hits": 0,
+  "present": false,
+  "build": "Malzeme özellikleri"
+ },
+ {
+  "category": "Alan",
+  "feature": "Mimari/inşaat: metraj hesapları",
+  "pattern": "metraj|quantity_takeoff|bill_of_quantities",
+  "hits": 0,
+  "present": false,
+  "build": "Metraj"
+ },
+ {
+  "category": "Alan",
+  "feature": "Elektronik: devre şeması/Spice",
+  "pattern": "spice|ngspice|schematic",
+  "hits": 0,
+  "present": false,
+  "build": "Devre simülasyonu"
+ },
+ {
+  "category": "Alan",
+  "feature": "Kimya: formül/denklem dengeleme",
+  "pattern": "balance_equation|chem|molar_mass",
+  "hits": 177,
+  "present": true,
+  "build": "Kimya araçları"
+ },
+ {
+  "category": "Alan",
+  "feature": "Biyoloji: dizi analizi",
+  "pattern": "biopython|fasta|sequence_align",
+  "hits": 94,
+  "present": true,
+  "build": "Biyoinformatik"
+ },
+ {
+  "category": "Alan",
+  "feature": "Takvim/vergi/hesaplayıcılar (Türkiye)",
+  "pattern": "vergi|income_tax|gelir_vergisi",
+  "hits": 0,
+  "present": false,
+  "build": "Vergi hesaplayıcı"
+ },
+ {
+  "category": "Alan",
+  "feature": "Seyahat planı üretimi (rota/bütçe)",
+  "pattern": "itinerary|trip_plan",
+  "hits": 0,
+  "present": false,
+  "build": "Seyahat planlayıcı"
+ },
+ {
+  "category": "Alan",
+  "feature": "Tarif/beslenme hesabı",
+  "pattern": "recipe|nutrition|kalori",
+  "hits": 0,
+  "present": false,
+  "build": "Tarif/besin değeri"
+ },
+ {
+  "category": "Alan",
+  "feature": "Spor/antrenman planı",
+  "pattern": "workout|training_plan",
+  "hits": 1,
+  "present": true,
+  "build": "Antrenman planı"
+ }
+]

@@ -1,0 +1,1662 @@
+[
+ {
+  "rule": "header-missing",
+  "where": "GET /",
+  "text": "strict-transport-security yok"
+ },
+ {
+  "rule": "header-missing",
+  "where": "GET /",
+  "text": "cross-origin-opener-policy yok"
+ },
+ {
+  "rule": "header-missing",
+  "where": "GET /",
+  "text": "cross-origin-resource-policy yok"
+ },
+ {
+  "rule": "csp-unsafe-inline",
+  "where": "GET /",
+  "text": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; "
+ },
+ {
+  "rule": "api-no-cache-control",
+  "where": "GET /api/agents",
+  "text": "Cache-Control başlığı yok"
+ },
+ {
+  "rule": "no-rate-limit",
+  "where": "GET /api/agents",
+  "text": "120 istek 2.1 sn içinde, hiçbiri 429 değil"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /ready",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /metrics",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /metrics",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/admin/errors",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/admin/errors",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/admin/features",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/admin/features",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "PUT /api/admin/features/{name}",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "PUT /api/admin/features/{name}",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/admin/events",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/admin/events",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/admin/maintenance",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/admin/maintenance",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/admin/db-doctor",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/admin/db-doctor",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/admin/erd",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/admin/erd",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/admin/data-services",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/admin/data-services",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/agents/register",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/agents/register",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/agents/{agent_id}/heartbeat",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/agents/{agent_id}/heartbeat",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/agents/{agent_id}/revoke-key",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/agents/{agent_id}/rotate-key",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/agents/{agent_id}/approve",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/agents/{agent_id}/scores",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/agents/{agent_id}/scores",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/agents",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/agents",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/auth/status",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/auth/status",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/auth/setup",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/auth/setup",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/auth/login",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/auth/login",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/auth/logout",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/auth/logout",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/auth/me",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/auth/me",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/auth/users",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/auth/users",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/auth/reset-password",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/auth/reset-password",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/auth/tailscale-me",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/auth/tailscale-me",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/projects",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/projects",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/projects",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/projects",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/projects/{project_id}",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/projects/{project_id}",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "DELETE /api/projects/{project_id}",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "DELETE /api/projects/{project_id}",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/projects/{project_id}/reanalyze",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/projects/{project_id}/reanalyze",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/assistant/chat",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/assistant/media/{filename}",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/assistant/chat/stream",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/assistant/config",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/assistant/transcribe",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/assistant/enterprise-status",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/agents/{agent_id}/tasks/next",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/tasks/{task_id}/result",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/tasks/{task_id}/fix-tasks",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/tasks/{task_id}/cancel",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/eval/start",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/projects/{project_id}/output.zip",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/projects/{project_id}/output",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/perf/stats",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/dashboard",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/projects/{project_id}/conflicts",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/projects/{project_id}/conflicts/{conflict_id}/resolve",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/events",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/cnc/jobs",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/cnc/jobs/{id}",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/cnc/balloon",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "PUT /api/cnc/jobs/{id}/balloons",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/cnc/jobs/{id}/file/{kind}",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/cnc/demo",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/cnc/jobs/{id}/evaluate-measurements",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/studio/workspaces",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/studio/workspaces",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/studio/generate",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/studio/generate",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/studio/workspaces/{id}/iterate",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/studio/workspaces/{id}/iterate",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/studio/workspaces/{id}/tree",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/studio/workspaces/{id}/tree",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/studio/workspaces/{id}/file",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/studio/workspaces/{id}/file",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "PUT /api/studio/workspaces/{id}/file",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "PUT /api/studio/workspaces/{id}/file",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "DELETE /api/studio/workspaces/{id}/file",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "DELETE /api/studio/workspaces/{id}/file",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "DELETE /api/studio/workspaces/{id}",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "DELETE /api/studio/workspaces/{id}",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/studio/workspaces/{id}/build-exe",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/studio/workspaces/{id}/build-exe",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/studio/workspaces/{id}/launch-exe",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/studio/workspaces/{id}/download-exe",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/studio/workspaces/{id}/download-exe",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/studio/workspaces/{id}/download.zip",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/studio/workspaces/{id}/download.zip",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/studio/workspaces/{id}/preview/{filepath}",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/studio/workspaces/{id}/history",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/studio/workspaces/{id}/history",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/studio/workspaces/{id}/restore/{version}",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/studio/workspaces/{id}/restore/{version}",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/studio/workspaces/{id}/start-server",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/studio/workspaces/{id}/diff",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/studio/workspaces/{id}/actions",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/studio/workspaces/{id}/exec",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/studio/workspaces/{id}/git",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/studio/workspaces/{id}/search",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/studio/workspaces/{id}/code-graph",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/studio/workspaces/{id}/security-scan",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/user/profiles",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/user/profiles",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/user/profiles",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/user/profiles",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/user/{user_id}/profile",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/user/{user_id}/profile",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "PUT /api/user/{user_id}/profile",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "PUT /api/user/{user_id}/profile",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "DELETE /api/user/{user_id}",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "DELETE /api/user/{user_id}",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/user/{user_id}/stats",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/user/{user_id}/stats",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/user/{user_id}/personalization-preview",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/user/{user_id}/personalization-preview",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/user/{user_id}/memories",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/user/{user_id}/memories",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/user/{user_id}/memories",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/user/{user_id}/memories",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "DELETE /api/user/{user_id}/memories/{fact_id}",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "DELETE /api/user/{user_id}/memories/{fact_id}",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/user/{user_id}/conversations",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/user/{user_id}/conversations",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/user/{user_id}/chats",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/user/{user_id}/chats",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "PUT /api/user/{user_id}/chats/{chat_id}",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "PUT /api/user/{user_id}/chats/{chat_id}",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "DELETE /api/user/{user_id}/chats/{chat_id}",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "DELETE /api/user/{user_id}/chats/{chat_id}",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/user/{user_id}/history/search",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/user/{user_id}/history/search",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/user/{user_id}/export",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/user/{user_id}/export",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "DELETE /api/user/{user_id}/data",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "DELETE /api/user/{user_id}/data",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/mcp/connectors",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/mcp/connectors",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/mcp/connectors",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/mcp/connectors",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "PUT /api/mcp/connectors/{connector_id}",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "PUT /api/mcp/connectors/{connector_id}",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "DELETE /api/mcp/connectors/{connector_id}",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "DELETE /api/mcp/connectors/{connector_id}",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/mcp/connectors/{connector_id}/discover",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/mcp/connectors/{connector_id}/discover",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/mcp/connectors/{connector_id}/call",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/mcp/connectors/{connector_id}/call",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/admin/backup.zip",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/admin/backup/restore",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/admin/audit/verify",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/admin/audit/events",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/gateway/status",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/gateway/status",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/gateway/models",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/gateway/models",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/gateway/traces/{run_id}",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/gateway/traces/{run_id}",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/orchestrator/intents",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/orchestrator/intents",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/orchestrator/tools",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/orchestrator/tools",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/orchestrator/run",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/orchestrator/run",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/orchestrator/runs/{run_id}",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/orchestrator/runs/{run_id}/replay",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/orchestrator/jobs/{job_id}",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/orchestrator/jobs/{job_id}",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/orchestrator/artifacts",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/orchestrator/artifacts",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/orchestrator/artifacts/{artifact_id}",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/orchestrator/artifacts/{artifact_id}",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/orchestrator/artifacts/{artifact_id}/versions",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/orchestrator/artifacts/{artifact_id}/versions",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/orchestrator/artifacts/{artifact_id}/edit",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/orchestrator/artifacts/{artifact_id}/edit",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/orchestrator/feedback",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/orchestrator/feedback",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/orchestrator/feedback/summary",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/orchestrator/feedback/summary",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/rag/collections",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/rag/collections",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/rag/collections",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/rag/collections",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/rag/ingest",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/rag/ingest",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/rag/ingest-file",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/rag/collections/{collection_id}/documents",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/rag/collections/{collection_id}/documents",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "DELETE /api/rag/documents/{doc_id}",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "DELETE /api/rag/documents/{doc_id}",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/rag/search",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/rag/search",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/rag/chunks/{chunk_id}",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/rag/jobs/{job_id}",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/rag/jobs/{job_id}",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/rag/web/search",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/rag/web/search",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/rag/doctor",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/rag/doctor",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/hallucination/taxonomy",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/hallucination/taxonomy",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/hallucination/verify",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/hallucination/verify",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/hallucination/telemetry",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/hallucination/telemetry",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/hallucination/profiles",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/hallucination/profiles",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/hallucination/reports",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/hallucination/reports",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/hallucination/reports/{report_id}/approve",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/hallucination/reports/{report_id}/approve",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/hallucination/reliability",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/ml/models",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/ml/models",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/ml/models/register",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/ml/models/register",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/ml/models/{model_id}/canary-check",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/ml/models/{model_id}/canary-check",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/ml/drift",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/ml/drift",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/ml/active-learning",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/ml/active-learning",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/ml/dpo/export",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/ml/dpo/export",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/studios/capabilities",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/studios/capabilities",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/studios/research",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/studios/research",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/studios/presentation/outline",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/studios/presentation/outline",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/studios/documents/audit",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/studios/documents/audit",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/studios/data/profile",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/studios/data/profile",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/studios/data/forecast",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/studios/data/forecast",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/studios/data/stat-test",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/studios/data/stat-test",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/studios/media/anonymize",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/studios/media/anonymize",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/studios/media/diagram/validate",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/studios/media/diagram/validate",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/studios/media/{media_id}",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/factory/templates",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/factory/templates",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/factory/plan",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/factory/plan",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/factory/build",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/factory/build",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/factory/hunk-diff",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/factory/hunk-diff",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/factory/workspaces/{plan_id}/package",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/factory/workspaces/{plan_id}/package",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/factory/workspaces/{plan_id}/sast",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/factory/workspaces/{plan_id}/sast",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/games/genres",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/games/genres",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/games/build",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/games/build",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/games/level/validate",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/games/level/validate",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/domains/specs",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/domains/specs",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/domains/finance/dcf",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/domains/finance/dcf",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/domains/legal/analyze",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/domains/legal/analyze",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/domains/health/info",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/domains/health/info",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/domains/engineering/convert",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/domains/engineering/convert",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/domains/cnc/kienzle",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/domains/cnc/kienzle",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/domains/cnc/gcode/validate",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/domains/cnc/gcode/validate",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/distributed/taxonomy",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/distributed/taxonomy",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/distributed/benchmarks/tasks",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/distributed/benchmarks/tasks",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/distributed/agents/stream",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/distributed/performance",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/distributed/performance",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/distributed/performance.csv",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/distributed/performance.csv",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/distributed/setup-command",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/distributed/setup-command",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/distributed/select",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/distributed/select",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/distributed/conflicts/merge",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/distributed/conflicts/merge",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/distributed/diagnose/tailscale",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/distributed/diagnose/tailscale",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/ux/health-wizard",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/ux/health-wizard",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/ux/settings/schema",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/ux/settings/schema",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/ux/settings/validate",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/ux/settings/validate",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "POST /api/ux/shares",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "POST /api/ux/shares",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/ux/shares/{share_id}",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/ux/shares/{share_id}",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/ux/slo",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/admin/contract-check",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /health",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /health",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /api/master/status",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /api/master/status",
+  "text": "açıklama/docstring yok"
+ },
+ {
+  "rule": "route-without-response-schema",
+  "where": "GET /",
+  "text": "200 yanıtı için şema yok (sözleşme testi yazılamaz)"
+ },
+ {
+  "rule": "route-without-description",
+  "where": "GET /",
+  "text": "açıklama/docstring yok"
+ }
+]

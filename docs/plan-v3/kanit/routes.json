@@ -1,0 +1,1244 @@
+[
+ {
+  "route": "GET /ready",
+  "status": 200,
+  "ms": 1166,
+  "flags": [],
+  "snippet": "{\"status\":\"ok\",\"components\":{\"database\":{\"status\":\"ok\",\"detail\":\"yazılabilir (2 ms)\"},\"disk\":{\"status\":\"ok\",\"detail\":\"134034 MB boş\"},\"ollama\":{\"status\":\"ok\",\"d"
+ },
+ {
+  "route": "GET /metrics",
+  "status": 200,
+  "ms": 7,
+  "flags": [
+   "non-json"
+  ],
+  "snippet": "# HELP http_requests_total HTTP requests by method, route template and status\n# TYPE http_requests_total counter\nhttp_requests_total{method=\"GET\",route=\"/health"
+ },
+ {
+  "route": "GET /api/admin/errors",
+  "status": 200,
+  "ms": 17,
+  "flags": [],
+  "snippet": "{\"errors\":[]}"
+ },
+ {
+  "route": "GET /api/admin/features",
+  "status": 200,
+  "ms": 25,
+  "flags": [],
+  "snippet": "{\"features\":{\"reasoning_council\":{\"enabled\":false,\"description\":\"Çok modelli tartışma konseyi (GW-18); yalnız eval'de kazanç gösterirse açılır\"},\"chain_of_verif"
+ },
+ {
+  "route": "PUT /api/admin/features/{name}",
+  "status": 422,
+  "ms": 21,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"enabled\"],\"msg\":\"Field required\",\"input\":{}}]}"
+ },
+ {
+  "route": "GET /api/admin/events",
+  "status": 200,
+  "ms": 27,
+  "flags": [],
+  "snippet": "{\"events\":[]}"
+ },
+ {
+  "route": "GET /api/admin/maintenance",
+  "status": 200,
+  "ms": 18,
+  "flags": [],
+  "snippet": "{\"last_run\":\"2026-11-24T04:35:42+00:00\",\"last_error\":null,\"rounds\":1,\"failures\":0,\"running\":true}"
+ },
+ {
+  "route": "GET /api/admin/db-doctor",
+  "status": 200,
+  "ms": 25,
+  "flags": [],
+  "snippet": "{\"ok\":true,\"findings\":[]}"
+ },
+ {
+  "route": "GET /api/admin/erd",
+  "status": 200,
+  "ms": 8,
+  "flags": [
+   "non-json"
+  ],
+  "snippet": "# Veri modeli (ERD)\n\nBu dosya `python master/erd.py` ile şemadan üretilir; elle değiştirilmez.\n\n```mermaid\nerDiagram\n    agent_scores {\n        integer id PK\n  "
+ },
+ {
+  "route": "GET /api/admin/data-services",
+  "status": 200,
+  "ms": 19,
+  "flags": [],
+  "snippet": "{\"portability_format\":\"cm6453-user-export-v1\",\"sql_dialect\":\"sqlite\",\"memory_consolidation_available\":true,\"sample_tokens\":[],\"supervisors\":[]}"
+ },
+ {
+  "route": "POST /api/agents/register",
+  "status": 401,
+  "ms": 14,
+  "flags": [],
+  "snippet": "{\"detail\":\"Geçersiz ajan anahtarı (AGENT_TOKEN).\"}"
+ },
+ {
+  "route": "POST /api/agents/{agent_id}/heartbeat",
+  "status": 401,
+  "ms": 18,
+  "flags": [],
+  "snippet": "{\"detail\":\"Geçersiz ajan anahtarı (AGENT_TOKEN).\"}"
+ },
+ {
+  "route": "POST /api/agents/{agent_id}/revoke-key",
+  "status": 404,
+  "ms": 19,
+  "flags": [],
+  "snippet": "{\"detail\":\"Ajan bulunamadı.\"}"
+ },
+ {
+  "route": "POST /api/agents/{agent_id}/rotate-key",
+  "status": 404,
+  "ms": 39,
+  "flags": [],
+  "snippet": "{\"detail\":\"Ajan bulunamadı.\"}"
+ },
+ {
+  "route": "POST /api/agents/{agent_id}/approve",
+  "status": 404,
+  "ms": 19,
+  "flags": [],
+  "snippet": "{\"detail\":\"Ajan bulunamadı.\"}"
+ },
+ {
+  "route": "GET /api/agents/{agent_id}/scores",
+  "status": 404,
+  "ms": 22,
+  "flags": [],
+  "snippet": "{\"detail\":\"Ajan bulunamadı.\"}"
+ },
+ {
+  "route": "GET /api/agents",
+  "status": 200,
+  "ms": 6,
+  "flags": [],
+  "snippet": "[]"
+ },
+ {
+  "route": "GET /api/auth/status",
+  "status": 200,
+  "ms": 6,
+  "flags": [],
+  "snippet": "{\"initialized\":false,\"authenticated\":false,\"user\":null}"
+ },
+ {
+  "route": "POST /api/auth/setup",
+  "status": 422,
+  "ms": 21,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"username\"],\"msg\":\"Field required\",\"input\":{}},{\"type\":\"missing\",\"loc\":[\"body\",\"password\"],\"msg\":\"Field required\",\"in"
+ },
+ {
+  "route": "POST /api/auth/login",
+  "status": 422,
+  "ms": 15,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"username\"],\"msg\":\"Field required\",\"input\":{}},{\"type\":\"missing\",\"loc\":[\"body\",\"password\"],\"msg\":\"Field required\",\"in"
+ },
+ {
+  "route": "POST /api/auth/logout",
+  "status": 200,
+  "ms": 19,
+  "flags": [],
+  "snippet": "{\"ok\":true}"
+ },
+ {
+  "route": "GET /api/auth/me",
+  "status": 401,
+  "ms": 15,
+  "flags": [],
+  "snippet": "{\"detail\":\"Oturum açmanız gerekiyor.\"}"
+ },
+ {
+  "route": "POST /api/auth/users",
+  "status": 401,
+  "ms": 5,
+  "flags": [],
+  "snippet": "{\"detail\":\"Oturum açmanız gerekiyor.\"}"
+ },
+ {
+  "route": "POST /api/auth/reset-password",
+  "status": 401,
+  "ms": 18,
+  "flags": [],
+  "snippet": "{\"detail\":\"Oturum açmanız gerekiyor.\"}"
+ },
+ {
+  "route": "GET /api/auth/tailscale-me",
+  "status": 403,
+  "ms": 10,
+  "flags": [],
+  "snippet": "{\"detail\":\"Tailscale kimliği doğrulanamadı veya güvenilir proxy kapalı.\"}"
+ },
+ {
+  "route": "GET /api/projects",
+  "status": 200,
+  "ms": 20,
+  "flags": [],
+  "snippet": "[]"
+ },
+ {
+  "route": "POST /api/projects",
+  "skipped": true,
+  "why": "multipart"
+ },
+ {
+  "route": "GET /api/projects/{project_id}",
+  "status": 404,
+  "ms": 39,
+  "flags": [],
+  "snippet": "{\"detail\":\"Proje bulunamadı.\"}"
+ },
+ {
+  "route": "POST /api/projects/{project_id}/reanalyze",
+  "status": 404,
+  "ms": 18,
+  "flags": [],
+  "snippet": "{\"detail\":\"Proje bulunamadı.\"}"
+ },
+ {
+  "route": "POST /api/assistant/chat",
+  "skipped": true
+ },
+ {
+  "route": "GET /api/assistant/media/{filename}",
+  "status": 404,
+  "ms": 27,
+  "flags": [],
+  "snippet": "{\"detail\":\"Dosya bulunamadı.\"}"
+ },
+ {
+  "route": "POST /api/assistant/chat/stream",
+  "skipped": true
+ },
+ {
+  "route": "GET /api/assistant/config",
+  "status": 200,
+  "ms": 598,
+  "flags": [],
+  "snippet": "{\"code_run_enabled\":false,\"sandbox_available\":true,\"sandbox_reason\":\"Docker 29.9.1 aktif\",\"capabilities\":{\"stt\":{\"available\":true,\"reason\":\"Hazır\"},\"tts\":{\"avai"
+ },
+ {
+  "route": "POST /api/assistant/run-code",
+  "skipped": true
+ },
+ {
+  "route": "POST /api/assistant/transcribe",
+  "skipped": true,
+  "why": "multipart"
+ },
+ {
+  "route": "GET /api/assistant/enterprise-status",
+  "status": 200,
+  "ms": 34,
+  "flags": [
+   "leaks-internals"
+  ],
+  "snippet": "{\"telemetry\":{\"timestamp\":\"2026-11-24T04:36:05.778240+00:00\",\"cpu_percent\":33.3,\"cpu_cores_physical\":14,\"cpu_cores_logical\":20,\"ram_total_gb\":31.747,\"ram_used_g"
+ },
+ {
+  "route": "GET /api/agents/{agent_id}/tasks/next",
+  "status": 401,
+  "ms": 16,
+  "flags": [],
+  "snippet": "{\"detail\":\"Geçersiz ajan anahtarı (AGENT_TOKEN).\"}"
+ },
+ {
+  "route": "POST /api/tasks/{task_id}/result",
+  "status": 401,
+  "ms": 15,
+  "flags": [],
+  "snippet": "{\"detail\":\"Geçersiz ajan anahtarı (AGENT_TOKEN).\"}"
+ },
+ {
+  "route": "POST /api/tasks/{task_id}/fix-tasks",
+  "status": 401,
+  "ms": 20,
+  "flags": [],
+  "snippet": "{\"detail\":\"Geçersiz ajan anahtarı (AGENT_TOKEN).\"}"
+ },
+ {
+  "route": "POST /api/tasks/{task_id}/cancel",
+  "status": 401,
+  "ms": 15,
+  "flags": [],
+  "snippet": "{\"detail\":\"Geçersiz ajan anahtarı (AGENT_TOKEN).\"}"
+ },
+ {
+  "route": "POST /api/eval/start",
+  "status": 400,
+  "ms": 26,
+  "flags": [],
+  "snippet": "{\"detail\":\"Çevrimiçi ajan yok.\"}"
+ },
+ {
+  "route": "GET /api/projects/{project_id}/output.zip",
+  "status": 404,
+  "ms": 32,
+  "flags": [],
+  "snippet": "{\"detail\":\"Proje bulunamadı.\"}"
+ },
+ {
+  "route": "GET /api/projects/{project_id}/output",
+  "status": 404,
+  "ms": 8,
+  "flags": [],
+  "snippet": "{\"detail\":\"Proje bulunamadı.\"}"
+ },
+ {
+  "route": "GET /api/perf/stats",
+  "status": 200,
+  "ms": 26,
+  "flags": [],
+  "snippet": "{\"total_tasks\":0,\"avg_ms\":0,\"min_ms\":null,\"max_ms\":null,\"by_type\":[],\"by_agent\":[]}"
+ },
+ {
+  "route": "GET /api/dashboard",
+  "status": 200,
+  "ms": 43,
+  "flags": [],
+  "snippet": "{\"agents\":{\"total\":0,\"online\":0,\"busy\":0,\"offline\":0},\"projects\":{\"total\":0,\"active\":0},\"recent_events\":[],\"perf\":{\"total_tasks\":0,\"avg_ms\":0,\"min_ms\":null,\"max"
+ },
+ {
+  "route": "GET /api/projects/{project_id}/conflicts",
+  "status": 200,
+  "ms": 16,
+  "flags": [],
+  "snippet": "[]"
+ },
+ {
+  "route": "POST /api/projects/{project_id}/conflicts/{conflict_id}/resolve",
+  "status": 200,
+  "ms": 10,
+  "flags": [],
+  "snippet": "{\"ok\":false}"
+ },
+ {
+  "route": "GET /api/events",
+  "status": 200,
+  "ms": 31,
+  "flags": [],
+  "snippet": "[]"
+ },
+ {
+  "route": "GET /api/cnc/jobs",
+  "status": 200,
+  "ms": 24,
+  "flags": [],
+  "snippet": "{\"jobs\":[]}"
+ },
+ {
+  "route": "GET /api/cnc/jobs/{id}",
+  "status": 404,
+  "ms": 12,
+  "flags": [],
+  "snippet": "{\"detail\":\"Balonlama işi bulunamadı.\"}"
+ },
+ {
+  "route": "POST /api/cnc/balloon",
+  "skipped": true,
+  "why": "multipart"
+ },
+ {
+  "route": "PUT /api/cnc/jobs/{id}/balloons",
+  "status": 422,
+  "ms": 20,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"balloons\"],\"msg\":\"Field required\",\"input\":{}}]}"
+ },
+ {
+  "route": "GET /api/cnc/jobs/{id}/file/{kind}",
+  "status": 404,
+  "ms": 14,
+  "flags": [],
+  "snippet": "{\"detail\":\"Bilinmeyen dosya türü.\"}"
+ },
+ {
+  "route": "POST /api/cnc/demo",
+  "status": 200,
+  "ms": 636,
+  "flags": [],
+  "snippet": "{\"id\":\"demo-flange-fln2026\",\"filename\":\"FLN-2026-042_Bearing_Housing_Flange.pdf\",\"created_at\":\"2026-11-24T04:36:06.739083+00:00\",\"engine_used\":\"pymupdf-vector+i"
+ },
+ {
+  "route": "POST /api/cnc/jobs/{id}/evaluate-measurements",
+  "status": 422,
+  "ms": 16,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"measurements\"],\"msg\":\"Field required\",\"input\":{}}]}"
+ },
+ {
+  "route": "GET /api/studio/workspaces",
+  "status": 200,
+  "ms": 14,
+  "flags": [],
+  "snippet": "{\"workspaces\":[]}"
+ },
+ {
+  "route": "POST /api/studio/generate",
+  "status": 422,
+  "ms": 21,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"prompt\"],\"msg\":\"Field required\",\"input\":{}}]}"
+ },
+ {
+  "route": "POST /api/studio/workspaces/{id}/iterate",
+  "status": 422,
+  "ms": 15,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"instruction\"],\"msg\":\"Field required\",\"input\":{}}]}"
+ },
+ {
+  "route": "GET /api/studio/workspaces/{id}/tree",
+  "status": 404,
+  "ms": 20,
+  "flags": [],
+  "snippet": "{\"detail\":\"Çalışma alanı bulunamadı.\"}"
+ },
+ {
+  "route": "GET /api/studio/workspaces/{id}/file",
+  "status": 404,
+  "ms": 7,
+  "flags": [],
+  "snippet": "{\"detail\":\"Dosya bulunamadı.\"}"
+ },
+ {
+  "route": "PUT /api/studio/workspaces/{id}/file",
+  "status": 422,
+  "ms": 12,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"path\"],\"msg\":\"Field required\",\"input\":{}},{\"type\":\"missing\",\"loc\":[\"body\",\"content\"],\"msg\":\"Field required\",\"input\":"
+ },
+ {
+  "route": "POST /api/studio/workspaces/{id}/build-exe",
+  "skipped": true
+ },
+ {
+  "route": "POST /api/studio/workspaces/{id}/launch-exe",
+  "skipped": true
+ },
+ {
+  "route": "GET /api/studio/workspaces/{id}/download-exe",
+  "skipped": true
+ },
+ {
+  "route": "GET /api/studio/workspaces/{id}/download.zip",
+  "skipped": true
+ },
+ {
+  "route": "GET /api/studio/workspaces/{id}/preview/{filepath}",
+  "status": 404,
+  "ms": 17,
+  "flags": [],
+  "snippet": "{\"detail\":\"Önizleme dosyası bulunamadı.\"}"
+ },
+ {
+  "route": "GET /api/studio/workspaces/{id}/history",
+  "status": 404,
+  "ms": 12,
+  "flags": [],
+  "snippet": "{\"detail\":\"Çalışma alanı bulunamadı.\"}"
+ },
+ {
+  "route": "POST /api/studio/workspaces/{id}/restore/{version}",
+  "skipped": true
+ },
+ {
+  "route": "POST /api/studio/workspaces/{id}/start-server",
+  "skipped": true
+ },
+ {
+  "route": "GET /api/studio/workspaces/{id}/diff",
+  "status": 404,
+  "ms": 15,
+  "flags": [],
+  "snippet": "{\"detail\":\"Dosya bulunamadı.\"}"
+ },
+ {
+  "route": "POST /api/studio/workspaces/{id}/actions",
+  "status": 422,
+  "ms": 14,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"action\"],\"msg\":\"Field required\",\"input\":{}}]}"
+ },
+ {
+  "route": "POST /api/studio/workspaces/{id}/exec",
+  "skipped": true
+ },
+ {
+  "route": "POST /api/studio/workspaces/{id}/git",
+  "skipped": true
+ },
+ {
+  "route": "GET /api/studio/workspaces/{id}/search",
+  "status": 404,
+  "ms": 21,
+  "flags": [],
+  "snippet": "{\"detail\":\"Çalışma alanı bulunamadı.\"}"
+ },
+ {
+  "route": "GET /api/studio/workspaces/{id}/code-graph",
+  "status": 404,
+  "ms": 13,
+  "flags": [],
+  "snippet": "{\"detail\":\"Çalışma alanı bulunamadı.\"}"
+ },
+ {
+  "route": "GET /api/studio/workspaces/{id}/security-scan",
+  "status": 404,
+  "ms": 27,
+  "flags": [],
+  "snippet": "{\"detail\":\"Çalışma alanı bulunamadı.\"}"
+ },
+ {
+  "route": "GET /api/user/profiles",
+  "status": 200,
+  "ms": 65,
+  "flags": [],
+  "snippet": "{\"profiles\":[{\"user_id\":\"default\",\"display_name\":\"Kullanici\",\"role_title\":\"\",\"avatar_color\":\"#4f46e5\"}],\"avatar_colors\":[\"#4f46e5\",\"#0d9488\",\"#059669\",\"#e11d48\""
+ },
+ {
+  "route": "POST /api/user/profiles",
+  "status": 422,
+  "ms": 11,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"display_name\"],\"msg\":\"Field required\",\"input\":{}}]}"
+ },
+ {
+  "route": "GET /api/user/{user_id}/profile",
+  "status": 200,
+  "ms": 30,
+  "flags": [],
+  "snippet": "{\"user_id\":\"1\",\"display_name\":\"1\",\"role_title\":\"\",\"bio\":\"\",\"avatar_color\":\"#4f46e5\",\"settings\":{\"theme\":\"system\",\"accent\":\"indigo\",\"font_size\":\"medium\",\"density"
+ },
+ {
+  "route": "PUT /api/user/{user_id}/profile",
+  "status": 200,
+  "ms": 47,
+  "flags": [
+   "accepts-empty-body"
+  ],
+  "snippet": "{\"user_id\":\"1\",\"display_name\":\"1\",\"role_title\":\"\",\"bio\":\"\",\"avatar_color\":\"#4f46e5\",\"settings\":{\"theme\":\"system\",\"accent\":\"indigo\",\"font_size\":\"medium\",\"density"
+ },
+ {
+  "route": "GET /api/user/{user_id}/stats",
+  "status": 200,
+  "ms": 28,
+  "flags": [],
+  "snippet": "{\"user_id\":\"1\",\"days\":30,\"totals\":{\"messages\":0,\"conversations\":0,\"prompt_tokens\":0,\"completion_tokens\":0,\"total_tokens\":0,\"avg_tokens_per_message\":0,\"avg_laten"
+ },
+ {
+  "route": "GET /api/user/{user_id}/personalization-preview",
+  "status": 200,
+  "ms": 23,
+  "flags": [],
+  "snippet": "{\"system_note\":\"--- Kullanici Kisisellestirmesi ---\\nKullanicinin adi: 1\\nYanitlari dengeli uzunlukta ver; gerektiginde ornek ekle.\\nResmi ve profesyonel bir di"
+ },
+ {
+  "route": "GET /api/user/{user_id}/memories",
+  "status": 200,
+  "ms": 35,
+  "flags": [],
+  "snippet": "{\"memories\":[]}"
+ },
+ {
+  "route": "POST /api/user/{user_id}/memories",
+  "status": 422,
+  "ms": 21,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"fact_value\"],\"msg\":\"Field required\",\"input\":{}}]}"
+ },
+ {
+  "route": "GET /api/user/{user_id}/conversations",
+  "status": 200,
+  "ms": 21,
+  "flags": [],
+  "snippet": "{\"conversations\":[]}"
+ },
+ {
+  "route": "GET /api/user/{user_id}/chats",
+  "skipped": true
+ },
+ {
+  "route": "PUT /api/user/{user_id}/chats/{chat_id}",
+  "skipped": true
+ },
+ {
+  "route": "GET /api/user/{user_id}/history/search",
+  "status": 200,
+  "ms": 18,
+  "flags": [],
+  "snippet": "{\"results\":[]}"
+ },
+ {
+  "route": "GET /api/user/{user_id}/export",
+  "skipped": true
+ },
+ {
+  "route": "GET /api/memory/conversations",
+  "status": 200,
+  "ms": 28,
+  "flags": [],
+  "snippet": "{\"ok\":true,\"user_id\":\"default\",\"count\":0,\"conversations\":[]}"
+ },
+ {
+  "route": "GET /api/memory/facts",
+  "status": 200,
+  "ms": 25,
+  "flags": [],
+  "snippet": "{\"ok\":true,\"user_id\":\"default\",\"count\":0,\"facts\":[]}"
+ },
+ {
+  "route": "POST /api/memory/compact/{conversation_id}",
+  "status": 404,
+  "ms": 20,
+  "flags": [],
+  "snippet": "{\"detail\":\"Conversation '1' not found.\"}"
+ },
+ {
+  "route": "GET /api/mcp/connectors",
+  "status": 200,
+  "ms": 32,
+  "flags": [],
+  "snippet": "{\"connectors\":[]}"
+ },
+ {
+  "route": "POST /api/mcp/connectors",
+  "status": 422,
+  "ms": 19,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"name\"],\"msg\":\"Field required\",\"input\":{}},{\"type\":\"missing\",\"loc\":[\"body\",\"url\"],\"msg\":\"Field required\",\"input\":{}}]"
+ },
+ {
+  "route": "PUT /api/mcp/connectors/{connector_id}",
+  "status": 404,
+  "ms": 35,
+  "flags": [],
+  "snippet": "{\"detail\":\"'MCP bağlayıcı bulunamadı.'\"}"
+ },
+ {
+  "route": "POST /api/mcp/connectors/{connector_id}/discover",
+  "status": 404,
+  "ms": 19,
+  "flags": [],
+  "snippet": "{\"detail\":\"'MCP bağlayıcı bulunamadı.'\"}"
+ },
+ {
+  "route": "POST /api/mcp/connectors/{connector_id}/call",
+  "status": 422,
+  "ms": 16,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"tool_name\"],\"msg\":\"Field required\",\"input\":{}}]}"
+ },
+ {
+  "route": "GET /api/admin/backup.zip",
+  "skipped": true
+ },
+ {
+  "route": "POST /api/admin/backup/restore",
+  "skipped": true
+ },
+ {
+  "route": "GET /api/admin/audit/verify",
+  "status": 200,
+  "ms": 17,
+  "flags": [],
+  "snippet": "{\"valid\":true,\"total_entries\":0,\"corrupted_line\":null,\"reason\":\"\"}"
+ },
+ {
+  "route": "GET /api/admin/audit/events",
+  "status": 200,
+  "ms": 18,
+  "flags": [],
+  "snippet": "{\"total\":0,\"valid\":true,\"events\":[]}"
+ },
+ {
+  "route": "GET /api/gateway/status",
+  "status": 200,
+  "ms": 185,
+  "flags": [],
+  "snippet": "{\"status\":\"healthy\",\"reason\":\"Tüm yerel sağlayıcılar hazır\",\"providers\":[\"ollama\"],\"warm_models\":[\"qwen3.5:4b\"],\"registered_models\":0,\"active_queue_depth\":0,\"er"
+ },
+ {
+  "route": "GET /api/gateway/models",
+  "status": 200,
+  "ms": 3132,
+  "flags": [
+   "slow"
+  ],
+  "snippet": "{\"models\":[{\"name\":\"qwen3.5:4b\",\"provider\":\"ollama\",\"node_id\":\"master\",\"param_size\":\"4.2B\",\"quantization\":\"Q4_K_M\",\"context_length\":262144,\"capabilities\":[\"comp"
+ },
+ {
+  "route": "GET /api/gateway/traces/{run_id}",
+  "status": 404,
+  "ms": 22,
+  "flags": [],
+  "snippet": "{\"detail\":\"Bu run_id için çağrı izi bulunamadı.\"}"
+ },
+ {
+  "route": "GET /api/orchestrator/intents",
+  "status": 200,
+  "ms": 47,
+  "flags": [],
+  "snippet": "{\"version\":\"2.0.0\",\"count\":30,\"intents\":[{\"id\":\"greeting\",\"route\":\"fast_chat\",\"mode\":\"short\",\"tier\":\"fast\",\"risk\":\"low\",\"tools\":[]},{\"id\":\"chat\",\"route\":\"genera"
+ },
+ {
+  "route": "GET /api/orchestrator/tools",
+  "status": 200,
+  "ms": 17,
+  "flags": [],
+  "snippet": "{\"tools\":[{\"name\":\"calculator\",\"description\":\"Deterministik matematiksel ifadeleri güvenli AST ile hesaplar.\",\"side_effect\":\"read_only\",\"parameters\":{\"type\":\"ob"
+ },
+ {
+  "route": "POST /api/orchestrator/run",
+  "status": 422,
+  "ms": 12,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"prompt\"],\"msg\":\"Field required\",\"input\":{}}]}"
+ },
+ {
+  "route": "GET /api/orchestrator/runs/{run_id}",
+  "status": 404,
+  "ms": 31,
+  "flags": [],
+  "snippet": "{\"detail\":\"Çalıştırma kaydı bulunamadı.\"}"
+ },
+ {
+  "route": "POST /api/orchestrator/runs/{run_id}/replay",
+  "status": 404,
+  "ms": 27,
+  "flags": [],
+  "snippet": "{\"detail\":\"Çalıştırma kaydı bulunamadı.\"}"
+ },
+ {
+  "route": "GET /api/orchestrator/jobs/{job_id}",
+  "status": 404,
+  "ms": 12,
+  "flags": [],
+  "snippet": "{\"detail\":\"İş kaydı bulunamadı.\"}"
+ },
+ {
+  "route": "GET /api/orchestrator/artifacts",
+  "status": 200,
+  "ms": 22,
+  "flags": [],
+  "snippet": "{\"artifacts\":[]}"
+ },
+ {
+  "route": "GET /api/orchestrator/artifacts/{artifact_id}",
+  "status": 404,
+  "ms": 12,
+  "flags": [],
+  "snippet": "{\"detail\":\"Artefakt bulunamadı.\"}"
+ },
+ {
+  "route": "GET /api/orchestrator/artifacts/{artifact_id}/versions",
+  "status": 404,
+  "ms": 22,
+  "flags": [],
+  "snippet": "{\"detail\":\"Artefakt bulunamadı.\"}"
+ },
+ {
+  "route": "POST /api/orchestrator/artifacts/{artifact_id}/edit",
+  "status": 422,
+  "ms": 34,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"section_index\"],\"msg\":\"Field required\",\"input\":{}},{\"type\":\"missing\",\"loc\":[\"body\",\"content\"],\"msg\":\"Field required\""
+ },
+ {
+  "route": "POST /api/orchestrator/feedback",
+  "status": 422,
+  "ms": 23,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"run_id\"],\"msg\":\"Field required\",\"input\":{}},{\"type\":\"missing\",\"loc\":[\"body\",\"rating\"],\"msg\":\"Field required\",\"input\""
+ },
+ {
+  "route": "GET /api/orchestrator/feedback/summary",
+  "status": 200,
+  "ms": 17,
+  "flags": [],
+  "snippet": "{\"total\":0,\"positive\":0,\"negative\":0,\"tags\":{}}"
+ },
+ {
+  "route": "GET /api/rag/collections",
+  "status": 200,
+  "ms": 1,
+  "flags": [],
+  "snippet": "{\"embedding_status\":\"ready\",\"embedding_reason\":\"\",\"collections\":[]}"
+ },
+ {
+  "route": "POST /api/rag/collections",
+  "status": 422,
+  "ms": 19,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"collection_id\"],\"msg\":\"Field required\",\"input\":{}}]}"
+ },
+ {
+  "route": "POST /api/rag/ingest",
+  "status": 422,
+  "ms": 16,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"title\"],\"msg\":\"Field required\",\"input\":{}},{\"type\":\"missing\",\"loc\":[\"body\",\"content\"],\"msg\":\"Field required\",\"input\""
+ },
+ {
+  "route": "POST /api/rag/ingest-file",
+  "skipped": true,
+  "why": "multipart"
+ },
+ {
+  "route": "GET /api/rag/collections/{collection_id}/documents",
+  "status": 200,
+  "ms": 24,
+  "flags": [],
+  "snippet": "{\"documents\":[]}"
+ },
+ {
+  "route": "POST /api/rag/search",
+  "status": 422,
+  "ms": 30,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"query\"],\"msg\":\"Field required\",\"input\":{}}]}"
+ },
+ {
+  "route": "GET /api/rag/chunks/{chunk_id}",
+  "status": 404,
+  "ms": 24,
+  "flags": [],
+  "snippet": "{\"detail\":\"Kaynak artık yok.\"}"
+ },
+ {
+  "route": "GET /api/rag/jobs/{job_id}",
+  "status": 404,
+  "ms": 15,
+  "flags": [],
+  "snippet": "{\"detail\":\"Dizinleme işi bulunamadı.\"}"
+ },
+ {
+  "route": "GET /api/rag/web/search",
+  "status": 200,
+  "ms": 40,
+  "flags": [],
+  "snippet": "{\"status\":\"offline\",\"verification_badge\":\"offline_model_memory\",\"warning\":\"Web erişimi kapalı (çevrimdışı mod); yanıt model hafızası etiketli üretilir.\",\"source"
+ },
+ {
+  "route": "POST /api/rag/doctor",
+  "status": 200,
+  "ms": 16,
+  "flags": [],
+  "snippet": "{\"healthy\":true,\"orphans\":0,\"empty_embeddings\":0,\"duplicates\":0,\"model_mismatches\":0,\"repaired\":0}"
+ },
+ {
+  "route": "GET /api/hallucination/taxonomy",
+  "status": 200,
+  "ms": 22,
+  "flags": [],
+  "snippet": "{\"taxonomy\":{\"fabricated_fact\":{\"name\":\"Uydurma olgu\",\"detector\":\"HAL-07 NLI claim-source entailment + HAL-15 abstention\",\"owner\":\"rag+hallucination\"},\"fabricat"
+ },
+ {
+  "route": "POST /api/hallucination/verify",
+  "status": 422,
+  "ms": 22,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"text\"],\"msg\":\"Field required\",\"input\":{}}]}"
+ },
+ {
+  "route": "GET /api/hallucination/telemetry",
+  "status": 200,
+  "ms": 13,
+  "flags": [],
+  "snippet": "{\"count\":0,\"avg_support_ratio\":1.0,\"avg_confidence\":1.0,\"abstention_rate\":0.0,\"alert\":false}"
+ },
+ {
+  "route": "GET /api/hallucination/profiles",
+  "status": 200,
+  "ms": 19,
+  "flags": [],
+  "snippet": "{\"profiles\":[]}"
+ },
+ {
+  "route": "POST /api/hallucination/reports",
+  "status": 422,
+  "ms": 25,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"run_id\"],\"msg\":\"Field required\",\"input\":{}},{\"type\":\"missing\",\"loc\":[\"body\",\"prompt\"],\"msg\":\"Field required\",\"input\""
+ },
+ {
+  "route": "POST /api/hallucination/reports/{report_id}/approve",
+  "status": 404,
+  "ms": 13,
+  "flags": [],
+  "snippet": "{\"detail\":\"Bildirim bulunamadı.\"}"
+ },
+ {
+  "route": "GET /api/hallucination/reliability",
+  "status": 200,
+  "ms": 27,
+  "flags": [],
+  "snippet": "{\"taxonomy\":{\"fabricated_fact\":{\"name\":\"Uydurma olgu\",\"detector\":\"HAL-07 NLI claim-source entailment + HAL-15 abstention\",\"owner\":\"rag+hallucination\"},\"fabricat"
+ },
+ {
+  "route": "GET /api/ml/models",
+  "status": 200,
+  "ms": 30,
+  "flags": [],
+  "snippet": "{\"models\":[]}"
+ },
+ {
+  "route": "POST /api/ml/models/register",
+  "status": 422,
+  "ms": 30,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"base_model\"],\"msg\":\"Field required\",\"input\":{}},{\"type\":\"missing\",\"loc\":[\"body\",\"adapter_name\"],\"msg\":\"Field require"
+ },
+ {
+  "route": "POST /api/ml/models/{model_id}/canary-check",
+  "status": 422,
+  "ms": 12,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"canary_error_rate\"],\"msg\":\"Field required\",\"input\":{}},{\"type\":\"missing\",\"loc\":[\"body\",\"baseline_error_rate\"],\"msg\":"
+ },
+ {
+  "route": "POST /api/ml/drift",
+  "status": 422,
+  "ms": 21,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"baseline_counts\"],\"msg\":\"Field required\",\"input\":{}},{\"type\":\"missing\",\"loc\":[\"body\",\"current_counts\"],\"msg\":\"Field "
+ },
+ {
+  "route": "GET /api/ml/active-learning",
+  "status": 200,
+  "ms": 34,
+  "flags": [],
+  "snippet": "{\"items\":[]}"
+ },
+ {
+  "route": "POST /api/ml/dpo/export",
+  "skipped": true
+ },
+ {
+  "route": "GET /api/studios/capabilities",
+  "status": 200,
+  "ms": 11,
+  "flags": [],
+  "snippet": "{\"research_speed_modes\":{\"fast\":{\"max_seconds\":60,\"min_sources\":3,\"max_sources\":5,\"max_subquestions\":3},\"standard\":{\"max_seconds\":240,\"min_sources\":6,\"max_sourc"
+ },
+ {
+  "route": "POST /api/studios/research",
+  "status": 422,
+  "ms": 16,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"topic\"],\"msg\":\"Field required\",\"input\":{}}]}"
+ },
+ {
+  "route": "POST /api/studios/presentation/outline",
+  "status": 200,
+  "ms": 17,
+  "flags": [],
+  "snippet": "{\"topic\":\"1\",\"slide_count\":6,\"slides\":[{\"slide_no\":1,\"layout\":\"cover\",\"claim_title\":\"1: Stratejik Değerlendirme\",\"bullets\":[\"Hedef kitle: yönetici\",\"Süre: 9 dk "
+ },
+ {
+  "route": "POST /api/studios/documents/audit",
+  "status": 200,
+  "ms": 18,
+  "flags": [],
+  "snippet": "{\"passed\":true,\"placeholders\":[],\"repeated_words\":[],\"numeric_audit\":{\"passed\":true,\"unsourced_numbers\":[],\"table_sum_errors\":[]}}"
+ },
+ {
+  "route": "POST /api/studios/data/profile",
+  "status": 422,
+  "ms": 22,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"rows\"],\"msg\":\"Field required\",\"input\":{}}]}"
+ },
+ {
+  "route": "POST /api/studios/data/forecast",
+  "status": 422,
+  "ms": 22,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"series\"],\"msg\":\"Field required\",\"input\":{}}]}"
+ },
+ {
+  "route": "POST /api/studios/data/stat-test",
+  "status": 422,
+  "ms": 25,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"group_a\"],\"msg\":\"Field required\",\"input\":{}},{\"type\":\"missing\",\"loc\":[\"body\",\"group_b\"],\"msg\":\"Field required\",\"inpu"
+ },
+ {
+  "route": "POST /api/studios/media/anonymize",
+  "status": 422,
+  "ms": 12,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"text\"],\"msg\":\"Field required\",\"input\":{}}]}"
+ },
+ {
+  "route": "POST /api/studios/media/diagram/validate",
+  "status": 422,
+  "ms": 0,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"code\"],\"msg\":\"Field required\",\"input\":{}}]}"
+ },
+ {
+  "route": "GET /api/studios/media/{media_id}",
+  "status": 404,
+  "ms": 18,
+  "flags": [],
+  "snippet": "{\"detail\":\"Medya bulunamadı.\"}"
+ },
+ {
+  "route": "GET /api/factory/templates",
+  "status": 200,
+  "ms": 18,
+  "flags": [],
+  "snippet": "{\"count\":8,\"templates\":[{\"id\":\"fastapi_sqlite\",\"name\":\"FastAPI + SQLite Web API\",\"stack\":[\"python\",\"fastapi\",\"sqlite\",\"pytest\"],\"files\":[\".github/workflows/ci.y"
+ },
+ {
+  "route": "POST /api/factory/plan",
+  "status": 422,
+  "ms": 20,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"prompt\"],\"msg\":\"Field required\",\"input\":{}}]}"
+ },
+ {
+  "route": "POST /api/factory/build",
+  "status": 422,
+  "ms": 14,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"prompt\"],\"msg\":\"Field required\",\"input\":{}}]}"
+ },
+ {
+  "route": "POST /api/factory/hunk-diff",
+  "status": 422,
+  "ms": 16,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"old_text\"],\"msg\":\"Field required\",\"input\":{}},{\"type\":\"missing\",\"loc\":[\"body\",\"new_text\"],\"msg\":\"Field required\",\"in"
+ },
+ {
+  "route": "POST /api/factory/workspaces/{plan_id}/package",
+  "status": 404,
+  "ms": 19,
+  "flags": [],
+  "snippet": "{\"detail\":\"Çalışma alanı bulunamadı.\"}"
+ },
+ {
+  "route": "POST /api/factory/workspaces/{plan_id}/sast",
+  "status": 404,
+  "ms": 19,
+  "flags": [],
+  "snippet": "{\"detail\":\"Çalışma alanı bulunamadı.\"}"
+ },
+ {
+  "route": "GET /api/games/genres",
+  "status": 200,
+  "ms": 16,
+  "flags": [],
+  "snippet": "{\"count\":10,\"genres\":[{\"id\":\"platformer\",\"title\":\"Platform Macerası\",\"controls\":\"Ok tuşları / WASD + Boşluk (Zıpla)\"},{\"id\":\"space_shooter\",\"title\":\"Uzay Savunm"
+ },
+ {
+  "route": "POST /api/games/build",
+  "status": 422,
+  "ms": 19,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"prompt\"],\"msg\":\"Field required\",\"input\":{}}]}"
+ },
+ {
+  "route": "POST /api/games/level/validate",
+  "status": 422,
+  "ms": 31,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"grid\"],\"msg\":\"Field required\",\"input\":{}}]}"
+ },
+ {
+  "route": "GET /api/domains/specs",
+  "status": 200,
+  "ms": 47,
+  "flags": [],
+  "snippet": "{\"count\":1,\"domains\":[{\"id\":\"architecture_construction\",\"name\":\"Mimari ve İnşaat Mühendisliği\",\"risk_level\":\"high\",\"eval_count\":20}]}"
+ },
+ {
+  "route": "POST /api/domains/finance/dcf",
+  "status": 422,
+  "ms": 17,
+  "flags": [],
+  "snippet": "{\"detail\":{\"missing\":[\"cash_flows\",\"wacc\",\"terminal_growth\",\"net_debt\",\"shares_outstanding\",\"currency\"],\"questions\":[\"Lütfen 'cash_flows' değerini sayısal/açık "
+ },
+ {
+  "route": "POST /api/domains/legal/analyze",
+  "status": 422,
+  "ms": 14,
+  "flags": [],
+  "snippet": "{\"detail\":{\"missing\":[\"contract_text\",\"jurisdiction\"],\"questions\":[\"Lütfen 'contract_text' değerini sayısal/açık olarak belirtin.\",\"Lütfen 'jurisdiction' değeri"
+ },
+ {
+  "route": "POST /api/domains/health/info",
+  "status": 422,
+  "ms": 21,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"query\"],\"msg\":\"Field required\",\"input\":{}}]}"
+ },
+ {
+  "route": "POST /api/domains/engineering/convert",
+  "status": 422,
+  "ms": 15,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"value\"],\"msg\":\"Field required\",\"input\":{}},{\"type\":\"missing\",\"loc\":[\"body\",\"from_unit\"],\"msg\":\"Field required\",\"inpu"
+ },
+ {
+  "route": "POST /api/domains/cnc/kienzle",
+  "status": 422,
+  "ms": 24,
+  "flags": [],
+  "snippet": "{\"detail\":{\"missing\":[\"kc1_1_mpa\",\"mc\",\"ap_mm\",\"f_mm_rev\",\"kappa_deg\"],\"questions\":[\"Lütfen 'kc1_1_mpa' değerini sayısal/açık olarak belirtin.\",\"Lütfen 'mc' değ"
+ },
+ {
+  "route": "POST /api/domains/cnc/gcode/validate",
+  "status": 422,
+  "ms": 3,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"gcode\"],\"msg\":\"Field required\",\"input\":{}}]}"
+ },
+ {
+  "route": "GET /api/distributed/taxonomy",
+  "status": 200,
+  "ms": 21,
+  "flags": [],
+  "snippet": "{\"intent_to_task_type\":{\"greeting\":\"general\",\"chat\":\"general\",\"factual_qa\":\"research\",\"lesson\":\"documentation\",\"code_write\":\"backend\",\"code_only\":\"backend\",\"cod"
+ },
+ {
+  "route": "GET /api/distributed/benchmarks/tasks",
+  "status": 200,
+  "ms": 14,
+  "flags": [],
+  "snippet": "{\"count\":50,\"tasks\":[{\"id\":\"BM-COD-01\",\"dimension\":\"coding\",\"prompt\":\"coding değerlendirme görevi #1\",\"expected\":\"ok-1\"},{\"id\":\"BM-COD-02\",\"dimension\":\"coding\","
+ },
+ {
+  "route": "GET /api/distributed/agents/stream",
+  "skipped": true
+ },
+ {
+  "route": "GET /api/distributed/performance",
+  "status": 200,
+  "ms": 28,
+  "flags": [],
+  "snippet": "{\"rows\":[],\"csv\":\"agent_id,model,task_type,runs,success_rate,avg_tok_s,avg_latency_ms,total_retries,avg_hal_rate\\r\\n\"}"
+ },
+ {
+  "route": "GET /api/distributed/performance.csv",
+  "status": 200,
+  "ms": 14,
+  "flags": [
+   "non-json"
+  ],
+  "snippet": "agent_id,model,task_type,runs,success_rate,avg_tok_s,avg_latency_ms,total_retries,avg_hal_rate\r\n"
+ },
+ {
+  "route": "GET /api/distributed/setup-command",
+  "status": 200,
+  "ms": 14,
+  "flags": [],
+  "snippet": "{\"os\":\"windows\",\"master_url\":\"http://127.0.0.1:8000\",\"model\":\"qwen2.5-coder:7b\",\"command\":\".\\\\agent-node\\\\setup.ps1 -MasterUrl 'http://127.0.0.1:8000' -Model 'q"
+ },
+ {
+  "route": "POST /api/distributed/select",
+  "status": 422,
+  "ms": 16,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"agents\"],\"msg\":\"Field required\",\"input\":{}}]}"
+ },
+ {
+  "route": "POST /api/distributed/conflicts/merge",
+  "status": 422,
+  "ms": 18,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"base\"],\"msg\":\"Field required\",\"input\":{}},{\"type\":\"missing\",\"loc\":[\"body\",\"ours\"],\"msg\":\"Field required\",\"input\":{}}"
+ },
+ {
+  "route": "POST /api/distributed/diagnose/tailscale",
+  "status": 200,
+  "ms": 17,
+  "flags": [
+   "accepts-empty-body"
+  ],
+  "snippet": "{\"category\":\"healthy\",\"message\":\"Tailscale ve Master bağlantısı sağlıklı.\",\"fix\":\"\"}"
+ },
+ {
+  "route": "GET /api/ux/health-wizard",
+  "status": 200,
+  "ms": 600,
+  "flags": [],
+  "snippet": "{\"ready_count\":4,\"total\":6,\"checks\":[{\"id\":\"ollama\",\"ok\":true,\"title\":\"Yerel Ollama Servisi\",\"remediation\":\"\"},{\"id\":\"models\",\"ok\":true,\"title\":\"Yüklü Dil Model"
+ },
+ {
+  "route": "GET /api/ux/settings/schema",
+  "status": 200,
+  "ms": 15,
+  "flags": [],
+  "snippet": "{\"schema\":{\"language\":{\"type\":\"enum\",\"values\":[\"tr\",\"en\"],\"default\":\"tr\"},\"theme\":{\"type\":\"enum\",\"values\":[\"dark\",\"light\",\"high_contrast\"],\"default\":\"dark\"},\"re"
+ },
+ {
+  "route": "POST /api/ux/settings/validate",
+  "status": 200,
+  "ms": 18,
+  "flags": [
+   "accepts-empty-body"
+  ],
+  "snippet": "{\"valid\":true,\"settings\":{\"language\":\"tr\",\"theme\":\"dark\",\"responseLength\":\"balanced\",\"tone\":\"professional\",\"showConfidenceBadges\":true,\"webSearchEnabled\":false,"
+ },
+ {
+  "route": "POST /api/ux/shares",
+  "status": 422,
+  "ms": 21,
+  "flags": [],
+  "snippet": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"title\"],\"msg\":\"Field required\",\"input\":{}},{\"type\":\"missing\",\"loc\":[\"body\",\"content\"],\"msg\":\"Field required\",\"input\""
+ },
+ {
+  "route": "GET /api/ux/shares/{share_id}",
+  "status": 404,
+  "ms": 32,
+  "flags": [],
+  "snippet": "{\"detail\":\"Paylaşım bağlantısı bulunamadı veya süresi doldu.\"}"
+ },
+ {
+  "route": "GET /api/ux/slo",
+  "status": 200,
+  "ms": 28,
+  "flags": [],
+  "snippet": "{\"hallucination_7d\":{\"count\":0,\"avg_support_ratio\":1.0,\"avg_confidence\":1.0,\"abstention_rate\":0.0,\"alert\":false},\"agent_performance\":[]}"
+ },
+ {
+  "route": "GET /api/admin/contract-check",
+  "status": 200,
+  "ms": 18,
+  "flags": [],
+  "snippet": "{\"frontend_routes\":[\"/api/assistant/chat/stream\",\"/api/assistant/config\",\"/api/assistant/run-code\",\"/api/assistant/transcribe\",\"/api/auth/logout\",\"/api/auth/sta"
+ },
+ {
+  "route": "GET /health",
+  "status": 200,
+  "ms": 16,
+  "flags": [],
+  "snippet": "{\"status\":\"ok\"}"
+ },
+ {
+  "route": "GET /api/master/status",
+  "status": 200,
+  "ms": 489,
+  "flags": [],
+  "snippet": "{\"model\":\"qwen3.5:4b\",\"reachable\":true,\"model_available\":true}"
+ },
+ {
+  "route": "GET /",
+  "status": 200,
+  "ms": 15,
+  "flags": [],
+  "snippet": "<!DOCTYPE html>\r\n<html lang=\"tr\">\r\n<head>\r\n<meta charset=\"UTF-8\">\r\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\r\n<meta name=\"theme-col"
+ }
+]

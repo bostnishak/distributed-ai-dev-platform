@@ -1,0 +1,7264 @@
+[
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 25
+    },
+    "filename": "<ROOT>\\master\\access_control.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 25
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 25,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 48
+    },
+    "filename": "<ROOT>\\master\\access_control.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 48
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 48,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 25,
+      "row": 374
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 374
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 374,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 30,
+      "row": 522
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 522
+    },
+    "message": "`_try_extended_calculation` is too complex (11 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 522,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 32,
+      "row": 678
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 678
+    },
+    "message": "`_prepare_chat_request` is too complex (30 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 678,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 32,
+      "row": 678
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 678
+    },
+    "message": "Too many branches (33 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 678,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 32,
+      "row": 678
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 678
+    },
+    "message": "Too many statements (133 > 50)",
+    "name": "too-many-statements",
+    "noqa_row": 678,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 29,
+      "row": 769
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 20,
+      "row": 769
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 769,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 29,
+      "row": 788
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 20,
+      "row": 788
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 788,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 29,
+      "row": 796
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 20,
+      "row": 796
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 796,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 29,
+      "row": 818
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 20,
+      "row": 818
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 818,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 30,
+      "row": 917
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 917
+    },
+    "message": "`get_assistant_media` is too complex (11 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 917,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 26,
+      "row": 953
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 953
+    },
+    "message": "`_tracked_stream` is too complex (11 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 953,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 26,
+      "row": 953
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 953
+    },
+    "message": "Too many statements (69 > 50)",
+    "name": "too-many-statements",
+    "noqa_row": 953,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 33,
+      "row": 1012
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 24,
+      "row": 1012
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 1012,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 28,
+      "row": 1151
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 1151
+    },
+    "message": "`_chat_stream_impl` is too complex (102 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 1151,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 28,
+      "row": 1151
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 1151
+    },
+    "message": "Too many branches (33 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 1151,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 28,
+      "row": 1151
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 1151
+    },
+    "message": "Too many statements (342 > 50)",
+    "name": "too-many-statements",
+    "noqa_row": 1151,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 29,
+      "row": 1265
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 20,
+      "row": 1265
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 1265,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 29,
+      "row": 1322
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 20,
+      "row": 1322
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 1322,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 29,
+      "row": 1360
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 20,
+      "row": 1360
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 1360,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 29,
+      "row": 1395
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 20,
+      "row": 1395
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 1395,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 29,
+      "row": 1411
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 20,
+      "row": 1411
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 1411,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 29,
+      "row": 1499
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 20,
+      "row": 1499
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 1499,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 25,
+      "row": 1513
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 1513
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 1513,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 29,
+      "row": 1535
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 20,
+      "row": 1535
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 1535,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 29,
+      "row": 1563
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 20,
+      "row": 1563
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 1563,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 29,
+      "row": 1621
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 20,
+      "row": 1621
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 1621,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 1678
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 1678
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 1678,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 25,
+      "row": 1738
+    },
+    "filename": "<ROOT>\\master\\assistant.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 1738
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 1738,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 25,
+      "row": 90
+    },
+    "filename": "<ROOT>\\master\\auth\\service.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 90
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 90,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 25,
+      "row": 99
+    },
+    "filename": "<ROOT>\\master\\auth\\service.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 99
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 99,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 20,
+      "row": 38
+    },
+    "filename": "<ROOT>\\master\\automl_studio.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 38
+    },
+    "message": "`profile_dataset` is too complex (27 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 38,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 20,
+      "row": 38
+    },
+    "filename": "<ROOT>\\master\\automl_studio.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 38
+    },
+    "message": "Too many branches (28 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 38,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 20,
+      "row": 38
+    },
+    "filename": "<ROOT>\\master\\automl_studio.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 38
+    },
+    "message": "Too many statements (77 > 50)",
+    "name": "too-many-statements",
+    "noqa_row": 38,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 23,
+      "row": 205
+    },
+    "filename": "<ROOT>\\master\\automl_studio.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 205
+    },
+    "message": "`train_and_forecast` is too complex (16 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 205,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 23,
+      "row": 205
+    },
+    "filename": "<ROOT>\\master\\automl_studio.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 205
+    },
+    "message": "Too many branches (16 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 205,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 23,
+      "row": 205
+    },
+    "filename": "<ROOT>\\master\\automl_studio.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 205
+    },
+    "message": "Too many statements (73 > 50)",
+    "name": "too-many-statements",
+    "noqa_row": 205,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 34,
+      "row": 95
+    },
+    "filename": "<ROOT>\\master\\backup_manager.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 95
+    },
+    "message": "`restore_enterprise_backup_zip` is too complex (12 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 95,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 387
+    },
+    "filename": "<ROOT>\\master\\benchmarks.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 387
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 387,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 399
+    },
+    "filename": "<ROOT>\\master\\benchmarks.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 399
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 399,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 10,
+      "row": 69
+    },
+    "filename": "<ROOT>\\master\\blobstore.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 69
+    },
+    "message": "Too many arguments in function definition (7 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 69,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 24,
+      "row": 137
+    },
+    "filename": "<ROOT>\\master\\cad_cam_physics.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 137
+    },
+    "message": "`analyze_3d_cad_file` is too complex (29 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 137,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 24,
+      "row": 137
+    },
+    "filename": "<ROOT>\\master\\cad_cam_physics.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 137
+    },
+    "message": "Too many branches (29 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 137,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 24,
+      "row": 137
+    },
+    "filename": "<ROOT>\\master\\cad_cam_physics.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 137
+    },
+    "message": "Too many statements (107 > 50)",
+    "name": "too-many-statements",
+    "noqa_row": 137,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 37,
+      "row": 636
+    },
+    "filename": "<ROOT>\\master\\cad_cam_physics.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 636
+    },
+    "message": "Too many arguments in function definition (17 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 636,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "ERA001",
+    "end_location": {
+      "column": 76,
+      "row": 691
+    },
+    "filename": "<ROOT>\\master\\cad_cam_physics.py",
+    "fix": {
+      "applicability": "displayonly",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 692
+          },
+          "location": {
+            "column": 1,
+            "row": 691
+          }
+        }
+      ],
+      "message": "Remove commented-out code"
+    },
+    "location": {
+      "column": 5,
+      "row": 691
+    },
+    "message": "Found commented-out code",
+    "name": "commented-out-code",
+    "noqa_row": 691,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/commented-out-code"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 35,
+      "row": 732
+    },
+    "filename": "<ROOT>\\master\\cad_cam_physics.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 732
+    },
+    "message": "Too many arguments in function definition (7 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 732,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "S311",
+    "end_location": {
+      "column": 40,
+      "row": 48
+    },
+    "filename": "<ROOT>\\master\\cluster_telemetry.py",
+    "fix": null,
+    "location": {
+      "column": 21,
+      "row": 48
+    },
+    "message": "Standard pseudo-random generators are not suitable for cryptographic purposes",
+    "name": "suspicious-non-cryptographic-random-usage",
+    "noqa_row": 48,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/suspicious-non-cryptographic-random-usage"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 25,
+      "row": 70
+    },
+    "filename": "<ROOT>\\master\\cluster_telemetry.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 70
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 70,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 217
+    },
+    "filename": "<ROOT>\\master\\cluster_telemetry.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 217
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 217,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 299
+    },
+    "filename": "<ROOT>\\master\\cluster_telemetry.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 299
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 299,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 32,
+      "row": 60
+    },
+    "filename": "<ROOT>\\master\\cmm_closed_loop.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 60
+    },
+    "message": "Too many arguments in function definition (12 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 60,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 29,
+      "row": 77
+    },
+    "filename": "<ROOT>\\master\\cnc_api.py",
+    "fix": null,
+    "location": {
+      "column": 20,
+      "row": 77
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 77,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 29,
+      "row": 93
+    },
+    "filename": "<ROOT>\\master\\cnc_api.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 93
+    },
+    "message": "Too many arguments in function definition (7 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 93,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 34,
+      "row": 135
+    },
+    "filename": "<ROOT>\\master\\cnc_ballooning.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 135
+    },
+    "message": "`enrich_cnc_engineering_fields` is too complex (13 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 135,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 34,
+      "row": 135
+    },
+    "filename": "<ROOT>\\master\\cnc_ballooning.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 135
+    },
+    "message": "Too many branches (15 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 135,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 34,
+      "row": 135
+    },
+    "filename": "<ROOT>\\master\\cnc_ballooning.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 135
+    },
+    "message": "Too many statements (58 > 50)",
+    "name": "too-many-statements",
+    "noqa_row": 135,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 33,
+      "row": 231
+    },
+    "filename": "<ROOT>\\master\\cnc_ballooning.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 231
+    },
+    "message": "`build_cnc_manufacturing_plan` is too complex (13 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 231,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 33,
+      "row": 231
+    },
+    "filename": "<ROOT>\\master\\cnc_ballooning.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 231
+    },
+    "message": "Too many branches (13 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 231,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 24,
+      "row": 552
+    },
+    "filename": "<ROOT>\\master\\cnc_ballooning.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 552
+    },
+    "message": "`parse_cnc_dimension` is too complex (29 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 552,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 24,
+      "row": 552
+    },
+    "filename": "<ROOT>\\master\\cnc_ballooning.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 552
+    },
+    "message": "Too many branches (31 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 552,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 24,
+      "row": 552
+    },
+    "filename": "<ROOT>\\master\\cnc_ballooning.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 552
+    },
+    "message": "Too many statements (108 > 50)",
+    "name": "too-many-statements",
+    "noqa_row": 552,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 817
+    },
+    "filename": "<ROOT>\\master\\cnc_ballooning.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 817
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 817,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 34,
+      "row": 843
+    },
+    "filename": "<ROOT>\\master\\cnc_ballooning.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 843
+    },
+    "message": "`_analyze_image_with_vlm` is too complex (14 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 843,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 34,
+      "row": 843
+    },
+    "filename": "<ROOT>\\master\\cnc_ballooning.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 843
+    },
+    "message": "Too many branches (13 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 843,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 895
+    },
+    "filename": "<ROOT>\\master\\cnc_ballooning.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 895
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 895,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 26,
+      "row": 941
+    },
+    "filename": "<ROOT>\\master\\cnc_ballooning.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 941
+    },
+    "message": "`_extract_dxf_balloons` is too complex (19 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 941,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 26,
+      "row": 941
+    },
+    "filename": "<ROOT>\\master\\cnc_ballooning.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 941
+    },
+    "message": "Too many branches (18 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 941,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 26,
+      "row": 941
+    },
+    "filename": "<ROOT>\\master\\cnc_ballooning.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 941
+    },
+    "message": "Too many statements (83 > 50)",
+    "name": "too-many-statements",
+    "noqa_row": 941,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 33,
+      "row": 1135
+    },
+    "filename": "<ROOT>\\master\\cnc_ballooning.py",
+    "fix": null,
+    "location": {
+      "column": 24,
+      "row": 1135
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 1135,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 26,
+      "row": 1145
+    },
+    "filename": "<ROOT>\\master\\cnc_ballooning.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 1145
+    },
+    "message": "`process_drawing` is too complex (34 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 1145,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 26,
+      "row": 1145
+    },
+    "filename": "<ROOT>\\master\\cnc_ballooning.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 1145
+    },
+    "message": "Too many branches (40 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 1145,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 26,
+      "row": 1145
+    },
+    "filename": "<ROOT>\\master\\cnc_ballooning.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 1145
+    },
+    "message": "Too many statements (92 > 50)",
+    "name": "too-many-statements",
+    "noqa_row": 1145,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 24,
+      "row": 1446
+    },
+    "filename": "<ROOT>\\master\\cnc_ballooning.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 1446
+    },
+    "message": "`export_excel_report` is too complex (27 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 1446,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 24,
+      "row": 1446
+    },
+    "filename": "<ROOT>\\master\\cnc_ballooning.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 1446
+    },
+    "message": "Too many branches (28 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 1446,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 24,
+      "row": 1446
+    },
+    "filename": "<ROOT>\\master\\cnc_ballooning.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 1446
+    },
+    "message": "Too many statements (131 > 50)",
+    "name": "too-many-statements",
+    "noqa_row": 1446,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 23,
+      "row": 1674
+    },
+    "filename": "<ROOT>\\master\\cnc_ballooning.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 1674
+    },
+    "message": "`export_word_report` is too complex (25 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 1674,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 23,
+      "row": 1674
+    },
+    "filename": "<ROOT>\\master\\cnc_ballooning.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 1674
+    },
+    "message": "Too many branches (24 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 1674,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 23,
+      "row": 1674
+    },
+    "filename": "<ROOT>\\master\\cnc_ballooning.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 1674
+    },
+    "message": "Too many statements (51 > 50)",
+    "name": "too-many-statements",
+    "noqa_row": 1674,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 36,
+      "row": 1780
+    },
+    "filename": "<ROOT>\\master\\cnc_ballooning.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 1780
+    },
+    "message": "Too many statements (69 > 50)",
+    "name": "too-many-statements",
+    "noqa_row": 1780,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 217
+    },
+    "filename": "<ROOT>\\master\\code_graph.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 217
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 217,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 22,
+      "row": 281
+    },
+    "filename": "<ROOT>\\master\\code_graph.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 281
+    },
+    "message": "`parse_python_file` is too complex (15 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 281,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 22,
+      "row": 281
+    },
+    "filename": "<ROOT>\\master\\code_graph.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 281
+    },
+    "message": "Too many branches (14 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 281,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 21,
+      "row": 391
+    },
+    "filename": "<ROOT>\\master\\code_graph.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 391
+    },
+    "message": "`parse_js_ts_file` is too complex (13 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 391,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 27,
+      "row": 539
+    },
+    "filename": "<ROOT>\\master\\code_graph.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 539
+    },
+    "message": "`_resolve_python_import` is too complex (16 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 539,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 27,
+      "row": 539
+    },
+    "filename": "<ROOT>\\master\\code_graph.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 539
+    },
+    "message": "Too many branches (15 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 539,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 31,
+      "row": 631
+    },
+    "filename": "<ROOT>\\master\\code_graph.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 631
+    },
+    "message": "`build_workspace_code_graph` is too complex (32 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 631,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 31,
+      "row": 631
+    },
+    "filename": "<ROOT>\\master\\code_graph.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 631
+    },
+    "message": "Too many branches (34 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 631,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 31,
+      "row": 631
+    },
+    "filename": "<ROOT>\\master\\code_graph.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 631
+    },
+    "message": "Too many statements (82 > 50)",
+    "name": "too-many-statements",
+    "noqa_row": 631,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 28,
+      "row": 849
+    },
+    "filename": "<ROOT>\\master\\code_graph.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 849
+    },
+    "message": "`_format_symbol_contract` is too complex (19 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 849,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 28,
+      "row": 849
+    },
+    "filename": "<ROOT>\\master\\code_graph.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 849
+    },
+    "message": "Too many branches (18 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 849,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 30,
+      "row": 890
+    },
+    "filename": "<ROOT>\\master\\code_graph.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 890
+    },
+    "message": "`get_file_context_contract` is too complex (16 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 890,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 30,
+      "row": 890
+    },
+    "filename": "<ROOT>\\master\\code_graph.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 890
+    },
+    "message": "Too many branches (15 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 890,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 44
+    },
+    "filename": "<ROOT>\\master\\company_rag.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 44
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 44,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 20,
+      "row": 18
+    },
+    "filename": "<ROOT>\\master\\conflict_detector.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 18
+    },
+    "message": "`detect_and_save` is too complex (11 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 18,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "S608",
+    "end_location": {
+      "column": 99,
+      "row": 269
+    },
+    "filename": "<ROOT>\\master\\db.py",
+    "fix": null,
+    "location": {
+      "column": 17,
+      "row": 269
+    },
+    "message": "Possible SQL injection vector through string-based query construction",
+    "name": "hardcoded-sql-expression",
+    "noqa_row": 269,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-sql-expression"
+  },
+  {
+    "cell": null,
+    "code": "S608",
+    "end_location": {
+      "column": 66,
+      "row": 277
+    },
+    "filename": "<ROOT>\\master\\db.py",
+    "fix": null,
+    "location": {
+      "column": 17,
+      "row": 276
+    },
+    "message": "Possible SQL injection vector through string-based query construction",
+    "name": "hardcoded-sql-expression",
+    "noqa_row": 276,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-sql-expression"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 34,
+      "row": 429
+    },
+    "filename": "<ROOT>\\master\\db.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 429
+    },
+    "message": "Too many arguments in function definition (6 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 429,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 23,
+      "row": 584
+    },
+    "filename": "<ROOT>\\master\\db.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 584
+    },
+    "message": "Too many arguments in function definition (6 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 584,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 16,
+      "row": 623
+    },
+    "filename": "<ROOT>\\master\\db.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 623
+    },
+    "message": "Too many arguments in function definition (8 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 623,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 13,
+      "row": 47
+    },
+    "filename": "<ROOT>\\master\\db_doctor.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 47
+    },
+    "message": "`diagnose` is too complex (21 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 47,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 13,
+      "row": 47
+    },
+    "filename": "<ROOT>\\master\\db_doctor.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 47
+    },
+    "message": "Too many branches (20 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 47,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "S608",
+    "end_location": {
+      "column": 109,
+      "row": 58
+    },
+    "filename": "<ROOT>\\master\\db_doctor.py",
+    "fix": null,
+    "location": {
+      "column": 45,
+      "row": 58
+    },
+    "message": "Possible SQL injection vector through string-based query construction",
+    "name": "hardcoded-sql-expression",
+    "noqa_row": 58,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-sql-expression"
+  },
+  {
+    "cell": null,
+    "code": "S608",
+    "end_location": {
+      "column": 98,
+      "row": 68
+    },
+    "filename": "<ROOT>\\master\\db_doctor.py",
+    "fix": null,
+    "location": {
+      "column": 21,
+      "row": 68
+    },
+    "message": "Possible SQL injection vector through string-based query construction",
+    "name": "hardcoded-sql-expression",
+    "noqa_row": 68,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-sql-expression"
+  },
+  {
+    "cell": null,
+    "code": "S608",
+    "end_location": {
+      "column": 45,
+      "row": 29
+    },
+    "filename": "<ROOT>\\master\\dbunify.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 28
+    },
+    "message": "Possible SQL injection vector through string-based query construction",
+    "name": "hardcoded-sql-expression",
+    "noqa_row": 28,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-sql-expression"
+  },
+  {
+    "cell": null,
+    "code": "S608",
+    "end_location": {
+      "column": 94,
+      "row": 54
+    },
+    "filename": "<ROOT>\\master\\dbunify.py",
+    "fix": null,
+    "location": {
+      "column": 26,
+      "row": 54
+    },
+    "message": "Possible SQL injection vector through string-based query construction",
+    "name": "hardcoded-sql-expression",
+    "noqa_row": 54,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-sql-expression"
+  },
+  {
+    "cell": null,
+    "code": "S608",
+    "end_location": {
+      "column": 74,
+      "row": 55
+    },
+    "filename": "<ROOT>\\master\\dbunify.py",
+    "fix": null,
+    "location": {
+      "column": 35,
+      "row": 55
+    },
+    "message": "Possible SQL injection vector through string-based query construction",
+    "name": "hardcoded-sql-expression",
+    "noqa_row": 55,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-sql-expression"
+  },
+  {
+    "cell": null,
+    "code": "S608",
+    "end_location": {
+      "column": 71,
+      "row": 56
+    },
+    "filename": "<ROOT>\\master\\dbunify.py",
+    "fix": null,
+    "location": {
+      "column": 34,
+      "row": 56
+    },
+    "message": "Possible SQL injection vector through string-based query construction",
+    "name": "hardcoded-sql-expression",
+    "noqa_row": 56,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-sql-expression"
+  },
+  {
+    "cell": null,
+    "code": "S608",
+    "end_location": {
+      "column": 47,
+      "row": 63
+    },
+    "filename": "<ROOT>\\master\\dbunify.py",
+    "fix": null,
+    "location": {
+      "column": 17,
+      "row": 62
+    },
+    "message": "Possible SQL injection vector through string-based query construction",
+    "name": "hardcoded-sql-expression",
+    "noqa_row": 62,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-sql-expression"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 16,
+      "row": 214
+    },
+    "filename": "<ROOT>\\master\\decompose.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 214
+    },
+    "message": "`merge_specs` is too complex (15 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 214,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 16,
+      "row": 214
+    },
+    "filename": "<ROOT>\\master\\decompose.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 214
+    },
+    "message": "Too many branches (14 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 214,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 20,
+      "row": 346
+    },
+    "filename": "<ROOT>\\master\\decompose.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 346
+    },
+    "message": "`build_task_plan` is too complex (11 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 346,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 12,
+      "row": 351
+    },
+    "filename": "<ROOT>\\master\\decompose.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 351
+    },
+    "message": "Too many arguments in function definition (7 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 351,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 28,
+      "row": 136
+    },
+    "filename": "<ROOT>\\master\\deep_research.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 136
+    },
+    "message": "Too many statements (142 > 50)",
+    "name": "too-many-statements",
+    "noqa_row": 136,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 388
+    },
+    "filename": "<ROOT>\\master\\deep_research.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 388
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 388,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 25,
+      "row": 63
+    },
+    "filename": "<ROOT>\\master\\distributed\\api.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 63
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 63,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "S311",
+    "end_location": {
+      "column": 40,
+      "row": 216
+    },
+    "filename": "<ROOT>\\master\\distributed\\core.py",
+    "fix": null,
+    "location": {
+      "column": 21,
+      "row": 216
+    },
+    "message": "Standard pseudo-random generators are not suitable for cryptographic purposes",
+    "name": "suspicious-non-cryptographic-random-usage",
+    "noqa_row": 216,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/suspicious-non-cryptographic-random-usage"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 29,
+      "row": 335
+    },
+    "filename": "<ROOT>\\master\\distributed\\core.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 335
+    },
+    "message": "Too many arguments in function definition (6 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 335,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 29,
+      "row": 416
+    },
+    "filename": "<ROOT>\\master\\distributed\\core.py",
+    "fix": null,
+    "location": {
+      "column": 20,
+      "row": 416
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 416,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 26,
+      "row": 524
+    },
+    "filename": "<ROOT>\\master\\distributed\\core.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 524
+    },
+    "message": "Too many arguments in function definition (9 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 524,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "ARG001",
+    "end_location": {
+      "column": 50,
+      "row": 70
+    },
+    "filename": "<ROOT>\\master\\document_factory.py",
+    "fix": null,
+    "location": {
+      "column": 42,
+      "row": 70
+    },
+    "message": "Unused function argument: `has_file`",
+    "name": "unused-function-argument",
+    "noqa_row": 70,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/unused-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 157
+    },
+    "filename": "<ROOT>\\master\\document_factory.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 157
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 157,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 16,
+      "row": 205
+    },
+    "filename": "<ROOT>\\master\\document_factory.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 205
+    },
+    "message": "`_build_xlsx` is too complex (16 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 205,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 16,
+      "row": 205
+    },
+    "filename": "<ROOT>\\master\\document_factory.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 205
+    },
+    "message": "Too many arguments in function definition (6 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 205,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 16,
+      "row": 205
+    },
+    "filename": "<ROOT>\\master\\document_factory.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 205
+    },
+    "message": "Too many branches (15 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 205,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 16,
+      "row": 205
+    },
+    "filename": "<ROOT>\\master\\document_factory.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 205
+    },
+    "message": "Too many statements (86 > 50)",
+    "name": "too-many-statements",
+    "noqa_row": 205,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 16,
+      "row": 329
+    },
+    "filename": "<ROOT>\\master\\document_factory.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 329
+    },
+    "message": "`_build_docx` is too complex (16 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 329,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 16,
+      "row": 329
+    },
+    "filename": "<ROOT>\\master\\document_factory.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 329
+    },
+    "message": "Too many arguments in function definition (6 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 329,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 16,
+      "row": 329
+    },
+    "filename": "<ROOT>\\master\\document_factory.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 329
+    },
+    "message": "Too many branches (15 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 329,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 15,
+      "row": 387
+    },
+    "filename": "<ROOT>\\master\\document_factory.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 387
+    },
+    "message": "`_build_pdf` is too complex (17 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 387,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 15,
+      "row": 387
+    },
+    "filename": "<ROOT>\\master\\document_factory.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 387
+    },
+    "message": "Too many arguments in function definition (6 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 387,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 15,
+      "row": 387
+    },
+    "filename": "<ROOT>\\master\\document_factory.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 387
+    },
+    "message": "Too many statements (54 > 50)",
+    "name": "too-many-statements",
+    "noqa_row": 387,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 27,
+      "row": 172
+    },
+    "filename": "<ROOT>\\master\\domain_experts.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 172
+    },
+    "message": "`analyze_legal_contract` is too complex (11 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 172,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 31,
+      "row": 264
+    },
+    "filename": "<ROOT>\\master\\domain_experts.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 264
+    },
+    "message": "Too many arguments in function definition (19 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 264,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 29,
+      "row": 439
+    },
+    "filename": "<ROOT>\\master\\domain_experts.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 439
+    },
+    "message": "Too many arguments in function definition (7 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 439,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 36,
+      "row": 576
+    },
+    "filename": "<ROOT>\\master\\domain_experts.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 576
+    },
+    "message": "`_translate_natural_query_to_sql` is too complex (15 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 576,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 36,
+      "row": 576
+    },
+    "filename": "<ROOT>\\master\\domain_experts.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 576
+    },
+    "message": "Too many branches (14 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 576,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "S608",
+    "end_location": {
+      "column": 63,
+      "row": 604
+    },
+    "filename": "<ROOT>\\master\\domain_experts.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 604
+    },
+    "message": "Possible SQL injection vector through string-based query construction",
+    "name": "hardcoded-sql-expression",
+    "noqa_row": 604,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-sql-expression"
+  },
+  {
+    "cell": null,
+    "code": "S608",
+    "end_location": {
+      "column": 102,
+      "row": 613
+    },
+    "filename": "<ROOT>\\master\\domain_experts.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 613
+    },
+    "message": "Possible SQL injection vector through string-based query construction",
+    "name": "hardcoded-sql-expression",
+    "noqa_row": 613,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-sql-expression"
+  },
+  {
+    "cell": null,
+    "code": "S608",
+    "end_location": {
+      "column": 100,
+      "row": 621
+    },
+    "filename": "<ROOT>\\master\\domain_experts.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 621
+    },
+    "message": "Possible SQL injection vector through string-based query construction",
+    "name": "hardcoded-sql-expression",
+    "noqa_row": 621,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-sql-expression"
+  },
+  {
+    "cell": null,
+    "code": "S608",
+    "end_location": {
+      "column": 69,
+      "row": 638
+    },
+    "filename": "<ROOT>\\master\\domain_experts.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 638
+    },
+    "message": "Possible SQL injection vector through string-based query construction",
+    "name": "hardcoded-sql-expression",
+    "noqa_row": 638,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-sql-expression"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 26,
+      "row": 270
+    },
+    "filename": "<ROOT>\\master\\domains\\engines.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 270
+    },
+    "message": "`validate_gcode_safety` is too complex (12 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 270,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 25,
+      "row": 115
+    },
+    "filename": "<ROOT>\\master\\enterprise_security_mcp.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 115
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 115,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "T201",
+    "end_location": {
+      "column": 10,
+      "row": 83
+    },
+    "filename": "<ROOT>\\master\\erd.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 84
+          },
+          "location": {
+            "column": 1,
+            "row": 83
+          }
+        }
+      ],
+      "message": "Remove `print`"
+    },
+    "location": {
+      "column": 5,
+      "row": 83
+    },
+    "message": "`print` found",
+    "name": "print",
+    "noqa_row": 83,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/print"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 28,
+      "row": 14
+    },
+    "filename": "<ROOT>\\master\\erp_mes_scheduler.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 14
+    },
+    "message": "`optimize_1d_bar_nesting` is too complex (12 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 14,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 30,
+      "row": 99
+    },
+    "filename": "<ROOT>\\master\\erp_mes_scheduler.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 99
+    },
+    "message": "`optimize_2d_sheet_nesting` is too complex (15 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 99,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 30,
+      "row": 99
+    },
+    "filename": "<ROOT>\\master\\erp_mes_scheduler.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 99
+    },
+    "message": "Too many branches (14 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 99,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 26,
+      "row": 227
+    },
+    "filename": "<ROOT>\\master\\erp_mes_scheduler.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 227
+    },
+    "message": "`schedule_cnc_job_shop` is too complex (13 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 227,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 26,
+      "row": 227
+    },
+    "filename": "<ROOT>\\master\\erp_mes_scheduler.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 227
+    },
+    "message": "Too many branches (14 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 227,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 26,
+      "row": 227
+    },
+    "filename": "<ROOT>\\master\\erp_mes_scheduler.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 227
+    },
+    "message": "Too many statements (58 > 50)",
+    "name": "too-many-statements",
+    "noqa_row": 227,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 36
+    },
+    "filename": "<ROOT>\\master\\error_tracker.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 36
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 36,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 10,
+      "row": 17
+    },
+    "filename": "<ROOT>\\master\\events_log.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 17
+    },
+    "message": "Too many arguments in function definition (8 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 17,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "S608",
+    "end_location": {
+      "column": 61,
+      "row": 41
+    },
+    "filename": "<ROOT>\\master\\events_log.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 40
+    },
+    "message": "Possible SQL injection vector through string-based query construction",
+    "name": "hardcoded-sql-expression",
+    "noqa_row": 40,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-sql-expression"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 44
+    },
+    "filename": "<ROOT>\\master\\extract.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 44
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 44,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 21,
+      "row": 81
+    },
+    "filename": "<ROOT>\\master\\extract.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 81
+    },
+    "message": "`extract_zip_text` is too complex (13 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 81,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 21,
+      "row": 81
+    },
+    "filename": "<ROOT>\\master\\extract.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 81
+    },
+    "message": "Too many branches (13 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 81,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 33,
+      "row": 113
+    },
+    "filename": "<ROOT>\\master\\extract.py",
+    "fix": null,
+    "location": {
+      "column": 24,
+      "row": 113
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 113,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 28,
+      "row": 54
+    },
+    "filename": "<ROOT>\\master\\factory\\deploy_verify.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 54
+    },
+    "message": "`verify_web_workspace_ui` is too complex (17 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 54,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 28,
+      "row": 54
+    },
+    "filename": "<ROOT>\\master\\factory\\deploy_verify.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 54
+    },
+    "message": "Too many branches (16 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 54,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 40,
+      "row": 99
+    },
+    "filename": "<ROOT>\\master\\file_converter.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 99
+    },
+    "message": "`detect_conversion_or_archive_action` is too complex (11 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 99,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 31,
+      "row": 145
+    },
+    "filename": "<ROOT>\\master\\file_converter.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 145
+    },
+    "message": "`extract_structured_content` is too complex (25 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 145,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 31,
+      "row": 145
+    },
+    "filename": "<ROOT>\\master\\file_converter.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 145
+    },
+    "message": "Too many branches (26 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 145,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 31,
+      "row": 145
+    },
+    "filename": "<ROOT>\\master\\file_converter.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 145
+    },
+    "message": "Too many statements (87 > 50)",
+    "name": "too-many-statements",
+    "noqa_row": 145,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 26,
+      "row": 257
+    },
+    "filename": "<ROOT>\\master\\file_converter.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 257
+    },
+    "message": "`convert_uploaded_file` is too complex (13 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 257,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 26,
+      "row": 257
+    },
+    "filename": "<ROOT>\\master\\file_converter.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 257
+    },
+    "message": "Too many branches (14 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 257,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 26,
+      "row": 94
+    },
+    "filename": "<ROOT>\\master\\file_inspector.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 94
+    },
+    "message": "`inspect_uploaded_file` is too complex (40 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 94,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 26,
+      "row": 94
+    },
+    "filename": "<ROOT>\\master\\file_inspector.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 94
+    },
+    "message": "Too many branches (39 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 94,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 26,
+      "row": 94
+    },
+    "filename": "<ROOT>\\master\\file_inspector.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 94
+    },
+    "message": "Too many statements (97 > 50)",
+    "name": "too-many-statements",
+    "noqa_row": 94,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "S603",
+    "end_location": {
+      "column": 38,
+      "row": 165
+    },
+    "filename": "<ROOT>\\master\\file_inspector.py",
+    "fix": null,
+    "location": {
+      "column": 24,
+      "row": 165
+    },
+    "message": "`subprocess` call: check for execution of untrusted input",
+    "name": "subprocess-without-shell-equals-true",
+    "noqa_row": 165,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/subprocess-without-shell-equals-true"
+  },
+  {
+    "cell": null,
+    "code": "S607",
+    "end_location": {
+      "column": 66,
+      "row": 165
+    },
+    "filename": "<ROOT>\\master\\file_inspector.py",
+    "fix": null,
+    "location": {
+      "column": 39,
+      "row": 165
+    },
+    "message": "Starting a process with a partial executable path",
+    "name": "start-process-with-partial-path",
+    "noqa_row": 165,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/start-process-with-partial-path"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 31,
+      "row": 191
+    },
+    "filename": "<ROOT>\\master\\games\\studio.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 191
+    },
+    "message": "`run_automated_bot_playtest` is too complex (12 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 191,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 17,
+      "row": 212
+    },
+    "filename": "<ROOT>\\master\\gateway\\client.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 212
+    },
+    "message": "Too many arguments in function definition (14 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 212,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 19,
+      "row": 375
+    },
+    "filename": "<ROOT>\\master\\gateway\\client.py",
+    "fix": null,
+    "location": {
+      "column": 15,
+      "row": 375
+    },
+    "message": "`chat` is too complex (15 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 375,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 19,
+      "row": 375
+    },
+    "filename": "<ROOT>\\master\\gateway\\client.py",
+    "fix": null,
+    "location": {
+      "column": 15,
+      "row": 375
+    },
+    "message": "Too many arguments in function definition (19 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 375,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 19,
+      "row": 375
+    },
+    "filename": "<ROOT>\\master\\gateway\\client.py",
+    "fix": null,
+    "location": {
+      "column": 15,
+      "row": 375
+    },
+    "message": "Too many branches (15 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 375,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 19,
+      "row": 375
+    },
+    "filename": "<ROOT>\\master\\gateway\\client.py",
+    "fix": null,
+    "location": {
+      "column": 15,
+      "row": 375
+    },
+    "message": "Too many statements (56 > 50)",
+    "name": "too-many-statements",
+    "noqa_row": 375,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 41,
+      "row": 511
+    },
+    "filename": "<ROOT>\\master\\gateway\\client.py",
+    "fix": null,
+    "location": {
+      "column": 32,
+      "row": 511
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 511,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 21,
+      "row": 539
+    },
+    "filename": "<ROOT>\\master\\gateway\\client.py",
+    "fix": null,
+    "location": {
+      "column": 15,
+      "row": 539
+    },
+    "message": "Too many arguments in function definition (9 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 539,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 25,
+      "row": 637
+    },
+    "filename": "<ROOT>\\master\\gateway\\client.py",
+    "fix": null,
+    "location": {
+      "column": 15,
+      "row": 637
+    },
+    "message": "Too many arguments in function definition (7 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 637,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 30,
+      "row": 686
+    },
+    "filename": "<ROOT>\\master\\gateway\\client.py",
+    "fix": null,
+    "location": {
+      "column": 15,
+      "row": 686
+    },
+    "message": "Too many arguments in function definition (7 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 686,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 26,
+      "row": 735
+    },
+    "filename": "<ROOT>\\master\\gateway\\client.py",
+    "fix": null,
+    "location": {
+      "column": 15,
+      "row": 735
+    },
+    "message": "Too many arguments in function definition (7 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 735,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 27,
+      "row": 791
+    },
+    "filename": "<ROOT>\\master\\gateway\\client.py",
+    "fix": null,
+    "location": {
+      "column": 15,
+      "row": 791
+    },
+    "message": "Too many arguments in function definition (7 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 791,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 29,
+      "row": 842
+    },
+    "filename": "<ROOT>\\master\\gateway\\client.py",
+    "fix": null,
+    "location": {
+      "column": 20,
+      "row": 842
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 842,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "S110",
+    "end_location": {
+      "column": 17,
+      "row": 878
+    },
+    "filename": "<ROOT>\\master\\gateway\\client.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 877
+    },
+    "message": "`try`-`except`-`pass` detected, consider logging the exception",
+    "name": "try-except-pass",
+    "noqa_row": 877,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/try-except-pass"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 25,
+      "row": 877
+    },
+    "filename": "<ROOT>\\master\\gateway\\client.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 877
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 877,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 27,
+      "row": 12
+    },
+    "filename": "<ROOT>\\master\\gateway\\fake_ollama.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 12
+    },
+    "message": "`create_fake_ollama_app` is too complex (13 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 12,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "ARG001",
+    "end_location": {
+      "column": 24,
+      "row": 38
+    },
+    "filename": "<ROOT>\\master\\gateway\\fake_ollama.py",
+    "fix": null,
+    "location": {
+      "column": 20,
+      "row": 38
+    },
+    "message": "Unused function argument: `body`",
+    "name": "unused-function-argument",
+    "noqa_row": 38,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/unused-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "ARG001",
+    "end_location": {
+      "column": 25,
+      "row": 70
+    },
+    "filename": "<ROOT>\\master\\gateway\\fake_ollama.py",
+    "fix": null,
+    "location": {
+      "column": 21,
+      "row": 70
+    },
+    "message": "Unused function argument: `body`",
+    "name": "unused-function-argument",
+    "noqa_row": 70,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/unused-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 32,
+      "row": 57
+    },
+    "filename": "<ROOT>\\master\\gateway\\prompts.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 57
+    },
+    "message": "Too many arguments in function definition (7 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 57,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 19,
+      "row": 44
+    },
+    "filename": "<ROOT>\\master\\gateway\\providers.py",
+    "fix": null,
+    "location": {
+      "column": 15,
+      "row": 44
+    },
+    "message": "Too many arguments in function definition (6 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 44,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 19,
+      "row": 76
+    },
+    "filename": "<ROOT>\\master\\gateway\\providers.py",
+    "fix": null,
+    "location": {
+      "column": 15,
+      "row": 76
+    },
+    "message": "Too many arguments in function definition (6 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 76,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 19,
+      "row": 206
+    },
+    "filename": "<ROOT>\\master\\gateway\\providers.py",
+    "fix": null,
+    "location": {
+      "column": 15,
+      "row": 206
+    },
+    "message": "Too many arguments in function definition (6 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 206,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 19,
+      "row": 270
+    },
+    "filename": "<ROOT>\\master\\gateway\\providers.py",
+    "fix": null,
+    "location": {
+      "column": 15,
+      "row": 270
+    },
+    "message": "Too many arguments in function definition (6 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 270,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 17,
+      "row": 151
+    },
+    "filename": "<ROOT>\\master\\gateway\\registry.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 151
+    },
+    "message": "Too many arguments in function definition (13 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 151,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "S110",
+    "end_location": {
+      "column": 13,
+      "row": 252
+    },
+    "filename": "<ROOT>\\master\\gateway\\registry.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 251
+    },
+    "message": "`try`-`except`-`pass` detected, consider logging the exception",
+    "name": "try-except-pass",
+    "noqa_row": 251,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/try-except-pass"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 251
+    },
+    "filename": "<ROOT>\\master\\gateway\\registry.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 251
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 251,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "S110",
+    "end_location": {
+      "column": 17,
+      "row": 264
+    },
+    "filename": "<ROOT>\\master\\gateway\\registry.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 263
+    },
+    "message": "`try`-`except`-`pass` detected, consider logging the exception",
+    "name": "try-except-pass",
+    "noqa_row": 263,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/try-except-pass"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 25,
+      "row": 263
+    },
+    "filename": "<ROOT>\\master\\gateway\\registry.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 263
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 263,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "S110",
+    "end_location": {
+      "column": 13,
+      "row": 300
+    },
+    "filename": "<ROOT>\\master\\gateway\\registry.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 299
+    },
+    "message": "`try`-`except`-`pass` detected, consider logging the exception",
+    "name": "try-except-pass",
+    "noqa_row": 299,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/try-except-pass"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 299
+    },
+    "filename": "<ROOT>\\master\\gateway\\registry.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 299
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 299,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 17,
+      "row": 304
+    },
+    "filename": "<ROOT>\\master\\gateway\\registry.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 304
+    },
+    "message": "Too many arguments in function definition (6 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 304,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "S101",
+    "end_location": {
+      "column": 11,
+      "row": 166
+    },
+    "filename": "<ROOT>\\master\\hallucination\\eval_runner.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 166
+    },
+    "message": "Use of `assert` detected",
+    "name": "assert",
+    "noqa_row": 166,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/assert"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 30,
+      "row": 241
+    },
+    "filename": "<ROOT>\\master\\hallucination\\verifier.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 241
+    },
+    "message": "`verify_numbers_and_tables` is too complex (11 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 241,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 27,
+      "row": 328
+    },
+    "filename": "<ROOT>\\master\\hallucination\\verifier.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 328
+    },
+    "message": "`audit_python_code_apis` is too complex (20 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 328,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 27,
+      "row": 328
+    },
+    "filename": "<ROOT>\\master\\hallucination\\verifier.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 328
+    },
+    "message": "Too many branches (22 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 328,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "S110",
+    "end_location": {
+      "column": 25,
+      "row": 358
+    },
+    "filename": "<ROOT>\\master\\hallucination\\verifier.py",
+    "fix": null,
+    "location": {
+      "column": 17,
+      "row": 357
+    },
+    "message": "`try`-`except`-`pass` detected, consider logging the exception",
+    "name": "try-except-pass",
+    "noqa_row": 357,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/try-except-pass"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 33,
+      "row": 357
+    },
+    "filename": "<ROOT>\\master\\hallucination\\verifier.py",
+    "fix": null,
+    "location": {
+      "column": 24,
+      "row": 357
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 357,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "S110",
+    "end_location": {
+      "column": 25,
+      "row": 380
+    },
+    "filename": "<ROOT>\\master\\hallucination\\verifier.py",
+    "fix": null,
+    "location": {
+      "column": 17,
+      "row": 379
+    },
+    "message": "`try`-`except`-`pass` detected, consider logging the exception",
+    "name": "try-except-pass",
+    "noqa_row": 379,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/try-except-pass"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 33,
+      "row": 379
+    },
+    "filename": "<ROOT>\\master\\hallucination\\verifier.py",
+    "fix": null,
+    "location": {
+      "column": 24,
+      "row": 379
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 379,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 23,
+      "row": 392
+    },
+    "filename": "<ROOT>\\master\\hallucination\\verifier.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 392
+    },
+    "message": "Too many arguments in function definition (6 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 392,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "ARG001",
+    "end_location": {
+      "column": 52,
+      "row": 518
+    },
+    "filename": "<ROOT>\\master\\hallucination\\verifier.py",
+    "fix": null,
+    "location": {
+      "column": 46,
+      "row": 518
+    },
+    "message": "Unused function argument: `domain`",
+    "name": "unused-function-argument",
+    "noqa_row": 518,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/unused-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 31,
+      "row": 629
+    },
+    "filename": "<ROOT>\\master\\hallucination\\verifier.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 629
+    },
+    "message": "Too many arguments in function definition (8 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 629,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 31,
+      "row": 674
+    },
+    "filename": "<ROOT>\\master\\hallucination\\verifier.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 674
+    },
+    "message": "Too many arguments in function definition (6 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 674,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 188
+    },
+    "filename": "<ROOT>\\master\\hybrid_graph_rag.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 188
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 188,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "S101",
+    "end_location": {
+      "column": 11,
+      "row": 217
+    },
+    "filename": "<ROOT>\\master\\hybrid_graph_rag.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 217
+    },
+    "message": "Use of `assert` detected",
+    "name": "assert",
+    "noqa_row": 217,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/assert"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 29,
+      "row": 298
+    },
+    "filename": "<ROOT>\\master\\hybrid_graph_rag.py",
+    "fix": null,
+    "location": {
+      "column": 20,
+      "row": 298
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 298,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 15,
+      "row": 357
+    },
+    "filename": "<ROOT>\\master\\hybrid_graph_rag.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 357
+    },
+    "message": "`search` is too complex (11 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 357,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 34,
+      "row": 446
+    },
+    "filename": "<ROOT>\\master\\hybrid_graph_rag.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 446
+    },
+    "message": "`extract_and_store_triples` is too complex (11 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 446,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 33,
+      "row": 531
+    },
+    "filename": "<ROOT>\\master\\hybrid_graph_rag.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 531
+    },
+    "message": "`query_knowledge_subgraph` is too complex (12 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 531,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLW0603",
+    "end_location": {
+      "column": 24,
+      "row": 667
+    },
+    "filename": "<ROOT>\\master\\hybrid_graph_rag.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 667
+    },
+    "message": "Using the global statement to update `_DEFAULT_RAG` is discouraged",
+    "name": "global-statement",
+    "noqa_row": 667,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/global-statement"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 21,
+      "row": 701
+    },
+    "filename": "<ROOT>\\master\\hybrid_graph_rag.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 701
+    },
+    "message": "`verify_citations` is too complex (19 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 701,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 21,
+      "row": 701
+    },
+    "filename": "<ROOT>\\master\\hybrid_graph_rag.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 701
+    },
+    "message": "Too many branches (20 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 701,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "S105",
+    "end_location": {
+      "column": 182,
+      "row": 51
+    },
+    "filename": "<ROOT>\\master\\injection.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 50
+    },
+    "message": "Possible hardcoded password assigned to: \"_SECRET_OBJECT\"",
+    "name": "hardcoded-password-string",
+    "noqa_row": 50,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-password-string"
+  },
+  {
+    "cell": null,
+    "code": "ARG001",
+    "end_location": {
+      "column": 72,
+      "row": 13
+    },
+    "filename": "<ROOT>\\master\\llm.py",
+    "fix": null,
+    "location": {
+      "column": 65,
+      "row": 13
+    },
+    "message": "Unused function argument: `num_ctx`",
+    "name": "unused-function-argument",
+    "noqa_row": 13,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/unused-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 29,
+      "row": 150
+    },
+    "filename": "<ROOT>\\master\\llmops_pipeline.py",
+    "fix": null,
+    "location": {
+      "column": 20,
+      "row": 150
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 150,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 25,
+      "row": 86
+    },
+    "filename": "<ROOT>\\master\\log_sanitizer.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 86
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 86,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 78
+    },
+    "filename": "<ROOT>\\master\\logging_setup.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 78
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 78,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "PLW0603",
+    "end_location": {
+      "column": 19,
+      "row": 76
+    },
+    "filename": "<ROOT>\\master\\maintenance.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 76
+    },
+    "message": "Using the global statement to update `_thread` is discouraged",
+    "name": "global-statement",
+    "noqa_row": 76,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/global-statement"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 21,
+      "row": 112
+    },
+    "filename": "<ROOT>\\master\\mcp_connector.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 112
+    },
+    "message": "Too many arguments in function definition (6 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 112,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 23,
+      "row": 228
+    },
+    "filename": "<ROOT>\\master\\mcp_connector.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 228
+    },
+    "message": "Too many arguments in function definition (6 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 228,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 290
+    },
+    "filename": "<ROOT>\\master\\mcp_connector.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 290
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 290,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 29,
+      "row": 90
+    },
+    "filename": "<ROOT>\\master\\memory_engine.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 90
+    },
+    "message": "Too many arguments in function definition (7 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 90,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "ARG001",
+    "end_location": {
+      "column": 37,
+      "row": 264
+    },
+    "filename": "<ROOT>\\master\\memory_engine.py",
+    "fix": null,
+    "location": {
+      "column": 32,
+      "row": 264
+    },
+    "message": "Unused function argument: `query`",
+    "name": "unused-function-argument",
+    "noqa_row": 264,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/unused-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "S608",
+    "end_location": {
+      "column": 108,
+      "row": 127
+    },
+    "filename": "<ROOT>\\master\\migrate.py",
+    "fix": null,
+    "location": {
+      "column": 17,
+      "row": 124
+    },
+    "message": "Possible SQL injection vector through string-based query construction",
+    "name": "hardcoded-sql-expression",
+    "noqa_row": 124,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-sql-expression"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 30,
+      "row": 304
+    },
+    "filename": "<ROOT>\\master\\ml_ops\\models.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 304
+    },
+    "message": "Too many arguments in function definition (8 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 304,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 69
+    },
+    "filename": "<ROOT>\\master\\multimodal_studio.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 69
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 69,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 27,
+      "row": 95
+    },
+    "filename": "<ROOT>\\master\\multimodal_studio.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 95
+    },
+    "message": "`process_and_edit_image` is too complex (19 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 95,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 27,
+      "row": 95
+    },
+    "filename": "<ROOT>\\master\\multimodal_studio.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 95
+    },
+    "message": "Too many branches (18 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 95,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 27,
+      "row": 95
+    },
+    "filename": "<ROOT>\\master\\multimodal_studio.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 95
+    },
+    "message": "Too many statements (96 > 50)",
+    "name": "too-many-statements",
+    "noqa_row": 95,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 32,
+      "row": 443
+    },
+    "filename": "<ROOT>\\master\\multimodal_studio.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 443
+    },
+    "message": "`_design_spec_from_llm` is too complex (12 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 443,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 514
+    },
+    "filename": "<ROOT>\\master\\multimodal_studio.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 514
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 514,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 732
+    },
+    "filename": "<ROOT>\\master\\multimodal_studio.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 732
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 732,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 764
+    },
+    "filename": "<ROOT>\\master\\multimodal_studio.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 764
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 764,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "PLW0603",
+    "end_location": {
+      "column": 32,
+      "row": 796
+    },
+    "filename": "<ROOT>\\master\\multimodal_studio.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 796
+    },
+    "message": "Using the global statement to update `_WHISPER_MODEL_CACHE` is discouraged",
+    "name": "global-statement",
+    "noqa_row": 796,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/global-statement"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 33,
+      "row": 804
+    },
+    "filename": "<ROOT>\\master\\multimodal_studio.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 804
+    },
+    "message": "`_decode_audio_to_float32_16k` is too complex (12 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 804,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 25,
+      "row": 828
+    },
+    "filename": "<ROOT>\\master\\multimodal_studio.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 828
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 828,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 848
+    },
+    "filename": "<ROOT>\\master\\multimodal_studio.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 848
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 848,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 25,
+      "row": 870
+    },
+    "filename": "<ROOT>\\master\\multimodal_studio.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 870
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 870,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "S603",
+    "end_location": {
+      "column": 34,
+      "row": 885
+    },
+    "filename": "<ROOT>\\master\\multimodal_studio.py",
+    "fix": null,
+    "location": {
+      "column": 20,
+      "row": 885
+    },
+    "message": "`subprocess` call: check for execution of untrusted input",
+    "name": "subprocess-without-shell-equals-true",
+    "noqa_row": 885,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/subprocess-without-shell-equals-true"
+  },
+  {
+    "cell": null,
+    "code": "S607",
+    "end_location": {
+      "column": 68,
+      "row": 886
+    },
+    "filename": "<ROOT>\\master\\multimodal_studio.py",
+    "fix": null,
+    "location": {
+      "column": 17,
+      "row": 886
+    },
+    "message": "Starting a process with a partial executable path",
+    "name": "start-process-with-partial-path",
+    "noqa_row": 886,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/start-process-with-partial-path"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 25,
+      "row": 895
+    },
+    "filename": "<ROOT>\\master\\multimodal_studio.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 895
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 895,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 23,
+      "row": 52
+    },
+    "filename": "<ROOT>\\master\\ops.py",
+    "fix": null,
+    "location": {
+      "column": 15,
+      "row": 52
+    },
+    "message": "`__call__` is too complex (11 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 52,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 29,
+      "row": 153
+    },
+    "filename": "<ROOT>\\master\\ops.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 153
+    },
+    "message": "Too many arguments in function definition (7 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 153,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 22,
+      "row": 163
+    },
+    "filename": "<ROOT>\\master\\orchestrator\\contracts.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 163
+    },
+    "message": "`validate_contract` is too complex (27 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 163,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 22,
+      "row": 163
+    },
+    "filename": "<ROOT>\\master\\orchestrator\\contracts.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 163
+    },
+    "message": "Too many branches (26 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 163,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 22,
+      "row": 163
+    },
+    "filename": "<ROOT>\\master\\orchestrator\\contracts.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 163
+    },
+    "message": "Too many statements (60 > 50)",
+    "name": "too-many-statements",
+    "noqa_row": 163,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 24,
+      "row": 187
+    },
+    "filename": "<ROOT>\\master\\orchestrator\\pipeline.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 187
+    },
+    "message": "`stage_execute` is too complex (11 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 187,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "S101",
+    "end_location": {
+      "column": 11,
+      "row": 202
+    },
+    "filename": "<ROOT>\\master\\orchestrator\\pipeline.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 202
+    },
+    "message": "Use of `assert` detected",
+    "name": "assert",
+    "noqa_row": 202,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/assert"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 23,
+      "row": 382
+    },
+    "filename": "<ROOT>\\master\\orchestrator\\pipeline.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 382
+    },
+    "message": "Too many arguments in function definition (13 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 382,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 22,
+      "row": 175
+    },
+    "filename": "<ROOT>\\master\\orchestrator\\planner.py",
+    "fix": null,
+    "location": {
+      "column": 15,
+      "row": 175
+    },
+    "message": "`execute` is too complex (11 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 175,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 37,
+      "row": 217
+    },
+    "filename": "<ROOT>\\master\\orchestrator\\planner.py",
+    "fix": null,
+    "location": {
+      "column": 28,
+      "row": 217
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 217,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 239
+    },
+    "filename": "<ROOT>\\master\\orchestrator\\planner.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 239
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 239,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 271
+    },
+    "filename": "<ROOT>\\master\\orchestrator\\planner.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 271
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 271,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 18,
+      "row": 213
+    },
+    "filename": "<ROOT>\\master\\orchestrator\\state.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 213
+    },
+    "message": "Too many arguments in function definition (7 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 213,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 25,
+      "row": 170
+    },
+    "filename": "<ROOT>\\master\\orchestrator\\tools_registry.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 170
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 170,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 25,
+      "row": 190
+    },
+    "filename": "<ROOT>\\master\\orchestrator\\tools_registry.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 190
+    },
+    "message": "Too many arguments in function definition (6 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 190,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "ARG001",
+    "end_location": {
+      "column": 28,
+      "row": 301
+    },
+    "filename": "<ROOT>\\master\\orchestrator\\tools_registry.py",
+    "fix": null,
+    "location": {
+      "column": 24,
+      "row": 301
+    },
+    "message": "Unused function argument: `args`",
+    "name": "unused-function-argument",
+    "noqa_row": 301,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/unused-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 18,
+      "row": 72
+    },
+    "filename": "<ROOT>\\master\\ownership.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 72
+    },
+    "message": "Too many arguments in function definition (9 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 72,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "S608",
+    "end_location": {
+      "column": 82,
+      "row": 88
+    },
+    "filename": "<ROOT>\\master\\ownership.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 88
+    },
+    "message": "Possible SQL injection vector through string-based query construction",
+    "name": "hardcoded-sql-expression",
+    "noqa_row": 88,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-sql-expression"
+  },
+  {
+    "cell": null,
+    "code": "S608",
+    "end_location": {
+      "column": 105,
+      "row": 104
+    },
+    "filename": "<ROOT>\\master\\ownership.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 104
+    },
+    "message": "Possible SQL injection vector through string-based query construction",
+    "name": "hardcoded-sql-expression",
+    "noqa_row": 104,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-sql-expression"
+  },
+  {
+    "cell": null,
+    "code": "S608",
+    "end_location": {
+      "column": 84,
+      "row": 115
+    },
+    "filename": "<ROOT>\\master\\ownership.py",
+    "fix": null,
+    "location": {
+      "column": 43,
+      "row": 115
+    },
+    "message": "Possible SQL injection vector through string-based query construction",
+    "name": "hardcoded-sql-expression",
+    "noqa_row": 115,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-sql-expression"
+  },
+  {
+    "cell": null,
+    "code": "S608",
+    "end_location": {
+      "column": 70,
+      "row": 121
+    },
+    "filename": "<ROOT>\\master\\ownership.py",
+    "fix": null,
+    "location": {
+      "column": 29,
+      "row": 121
+    },
+    "message": "Possible SQL injection vector through string-based query construction",
+    "name": "hardcoded-sql-expression",
+    "noqa_row": 121,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-sql-expression"
+  },
+  {
+    "cell": null,
+    "code": "ARG001",
+    "end_location": {
+      "column": 32,
+      "row": 53
+    },
+    "filename": "<ROOT>\\master\\perf_api.py",
+    "fix": null,
+    "location": {
+      "column": 22,
+      "row": 53
+    },
+    "message": "Unused function argument: `project_id`",
+    "name": "unused-function-argument",
+    "noqa_row": 53,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/unused-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "S608",
+    "end_location": {
+      "column": 80,
+      "row": 48
+    },
+    "filename": "<ROOT>\\master\\portability.py",
+    "fix": null,
+    "location": {
+      "column": 37,
+      "row": 48
+    },
+    "message": "Possible SQL injection vector through string-based query construction",
+    "name": "hardcoded-sql-expression",
+    "noqa_row": 48,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-sql-expression"
+  },
+  {
+    "cell": null,
+    "code": "S608",
+    "end_location": {
+      "column": 98,
+      "row": 53
+    },
+    "filename": "<ROOT>\\master\\portability.py",
+    "fix": null,
+    "location": {
+      "column": 31,
+      "row": 52
+    },
+    "message": "Possible SQL injection vector through string-based query construction",
+    "name": "hardcoded-sql-expression",
+    "noqa_row": 52,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-sql-expression"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 16,
+      "row": 69
+    },
+    "filename": "<ROOT>\\master\\portability.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 69
+    },
+    "message": "`import_user` is too complex (11 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 69,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLW0603",
+    "end_location": {
+      "column": 28,
+      "row": 64
+    },
+    "filename": "<ROOT>\\master\\preview_server.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 64
+    },
+    "message": "Using the global statement to update `_preview_started` is discouraged",
+    "name": "global-statement",
+    "noqa_row": 64,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/global-statement"
+  },
+  {
+    "cell": null,
+    "code": "PLW0603",
+    "end_location": {
+      "column": 28,
+      "row": 64
+    },
+    "filename": "<ROOT>\\master\\preview_server.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 64
+    },
+    "message": "Using the global statement to update `_preview_started` is discouraged",
+    "name": "global-statement",
+    "noqa_row": 64,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/global-statement"
+  },
+  {
+    "cell": null,
+    "code": "S110",
+    "end_location": {
+      "column": 17,
+      "row": 88
+    },
+    "filename": "<ROOT>\\master\\preview_server.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 87
+    },
+    "message": "`try`-`except`-`pass` detected, consider logging the exception",
+    "name": "try-except-pass",
+    "noqa_row": 87,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/try-except-pass"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 29,
+      "row": 87
+    },
+    "filename": "<ROOT>\\master\\preview_server.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 87
+    },
+    "message": "Do not catch blind exception: `BaseException`",
+    "name": "blind-except",
+    "noqa_row": 87,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 16,
+      "row": 27
+    },
+    "filename": "<ROOT>\\master\\process_utils.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 27
+    },
+    "message": "Too many arguments in function definition (6 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 27,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "S603",
+    "end_location": {
+      "column": 30,
+      "row": 41
+    },
+    "filename": "<ROOT>\\master\\process_utils.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 41
+    },
+    "message": "`subprocess` call: check for execution of untrusted input",
+    "name": "subprocess-without-shell-equals-true",
+    "noqa_row": 41,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/subprocess-without-shell-equals-true"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 114
+    },
+    "filename": "<ROOT>\\master\\rag\\parsing.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 114
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 114,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "S101",
+    "end_location": {
+      "column": 11,
+      "row": 155
+    },
+    "filename": "<ROOT>\\master\\rag\\parsing.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 155
+    },
+    "message": "Use of `assert` detected",
+    "name": "assert",
+    "noqa_row": 155,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/assert"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 25,
+      "row": 322
+    },
+    "filename": "<ROOT>\\master\\rag\\parsing.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 322
+    },
+    "message": "`_split_atomic_blocks` is too complex (11 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 322,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 19,
+      "row": 367
+    },
+    "filename": "<ROOT>\\master\\rag\\parsing.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 367
+    },
+    "message": "`chunk_document` is too complex (12 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 367,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 24,
+      "row": 442
+    },
+    "filename": "<ROOT>\\master\\rag\\parsing.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 442
+    },
+    "message": "`query_table_numeric` is too complex (15 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 442,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 24,
+      "row": 442
+    },
+    "filename": "<ROOT>\\master\\rag\\parsing.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 442
+    },
+    "message": "Too many branches (15 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 442,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 26,
+      "row": 224
+    },
+    "filename": "<ROOT>\\master\\rag\\store.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 224
+    },
+    "message": "Too many arguments in function definition (6 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 224,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "S110",
+    "end_location": {
+      "column": 17,
+      "row": 312
+    },
+    "filename": "<ROOT>\\master\\rag\\store.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 311
+    },
+    "message": "`try`-`except`-`pass` detected, consider logging the exception",
+    "name": "try-except-pass",
+    "noqa_row": 311,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/try-except-pass"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 25,
+      "row": 311
+    },
+    "filename": "<ROOT>\\master\\rag\\store.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 311
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 311,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 30,
+      "row": 324
+    },
+    "filename": "<ROOT>\\master\\rag\\store.py",
+    "fix": null,
+    "location": {
+      "column": 15,
+      "row": 324
+    },
+    "message": "Too many arguments in function definition (8 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 324,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 21,
+      "row": 448
+    },
+    "filename": "<ROOT>\\master\\rag\\store.py",
+    "fix": null,
+    "location": {
+      "column": 15,
+      "row": 448
+    },
+    "message": "`search` is too complex (15 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 448,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 21,
+      "row": 448
+    },
+    "filename": "<ROOT>\\master\\rag\\store.py",
+    "fix": null,
+    "location": {
+      "column": 15,
+      "row": 448
+    },
+    "message": "Too many arguments in function definition (9 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 448,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 21,
+      "row": 448
+    },
+    "filename": "<ROOT>\\master\\rag\\store.py",
+    "fix": null,
+    "location": {
+      "column": 15,
+      "row": 448
+    },
+    "message": "Too many branches (14 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 448,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 21,
+      "row": 448
+    },
+    "filename": "<ROOT>\\master\\rag\\store.py",
+    "fix": null,
+    "location": {
+      "column": 15,
+      "row": 448
+    },
+    "message": "Too many statements (58 > 50)",
+    "name": "too-many-statements",
+    "noqa_row": 448,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "S608",
+    "end_location": {
+      "column": 117,
+      "row": 484
+    },
+    "filename": "<ROOT>\\master\\rag\\store.py",
+    "fix": null,
+    "location": {
+      "column": 25,
+      "row": 483
+    },
+    "message": "Possible SQL injection vector through string-based query construction",
+    "name": "hardcoded-sql-expression",
+    "noqa_row": 483,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-sql-expression"
+  },
+  {
+    "cell": null,
+    "code": "S608",
+    "end_location": {
+      "column": 20,
+      "row": 499
+    },
+    "filename": "<ROOT>\\master\\rag\\store.py",
+    "fix": null,
+    "location": {
+      "column": 17,
+      "row": 494
+    },
+    "message": "Possible SQL injection vector through string-based query construction",
+    "name": "hardcoded-sql-expression",
+    "noqa_row": 499,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-sql-expression"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 19,
+      "row": 686
+    },
+    "filename": "<ROOT>\\master\\rag\\store.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 686
+    },
+    "message": "Too many arguments in function definition (6 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 686,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 25,
+      "row": 257
+    },
+    "filename": "<ROOT>\\master\\rag\\web.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 257
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 257,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 317
+    },
+    "filename": "<ROOT>\\master\\rag\\web.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 317
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 317,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "S110",
+    "end_location": {
+      "column": 13,
+      "row": 358
+    },
+    "filename": "<ROOT>\\master\\rag\\web.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 357
+    },
+    "message": "`try`-`except`-`pass` detected, consider logging the exception",
+    "name": "try-except-pass",
+    "noqa_row": 357,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/try-except-pass"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 357
+    },
+    "filename": "<ROOT>\\master\\rag\\web.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 357
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 357,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 40
+    },
+    "filename": "<ROOT>\\master\\readiness.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 40
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 40,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 63
+    },
+    "filename": "<ROOT>\\master\\readiness.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 63
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 63,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 86
+    },
+    "filename": "<ROOT>\\master\\readiness.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 86
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 86,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 24,
+      "row": 106
+    },
+    "filename": "<ROOT>\\master\\safe_archive.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 106
+    },
+    "message": "`scan_active_content` is too complex (12 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 106,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "S603",
+    "end_location": {
+      "column": 30,
+      "row": 45
+    },
+    "filename": "<ROOT>\\master\\sandbox\\runner.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 45
+    },
+    "message": "`subprocess` call: check for execution of untrusted input",
+    "name": "subprocess-without-shell-equals-true",
+    "noqa_row": 45,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/subprocess-without-shell-equals-true"
+  },
+  {
+    "cell": null,
+    "code": "S607",
+    "end_location": {
+      "column": 58,
+      "row": 46
+    },
+    "filename": "<ROOT>\\master\\sandbox\\runner.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 46
+    },
+    "message": "Starting a process with a partial executable path",
+    "name": "start-process-with-partial-path",
+    "noqa_row": 46,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/start-process-with-partial-path"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 53
+    },
+    "filename": "<ROOT>\\master\\sandbox\\runner.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 53
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 53,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "S607",
+    "end_location": {
+      "column": 65,
+      "row": 63
+    },
+    "filename": "<ROOT>\\master\\sandbox\\runner.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 63
+    },
+    "message": "Starting a process with a partial executable path",
+    "name": "start-process-with-partial-path",
+    "noqa_row": 63,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/start-process-with-partial-path"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 74
+    },
+    "filename": "<ROOT>\\master\\sandbox\\runner.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 74
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 74,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "S603",
+    "end_location": {
+      "column": 28,
+      "row": 95
+    },
+    "filename": "<ROOT>\\master\\sandbox\\runner.py",
+    "fix": null,
+    "location": {
+      "column": 14,
+      "row": 95
+    },
+    "message": "`subprocess` call: check for execution of untrusted input",
+    "name": "subprocess-without-shell-equals-true",
+    "noqa_row": 95,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/subprocess-without-shell-equals-true"
+  },
+  {
+    "cell": null,
+    "code": "S607",
+    "end_location": {
+      "column": 71,
+      "row": 96
+    },
+    "filename": "<ROOT>\\master\\sandbox\\runner.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 96
+    },
+    "message": "Starting a process with a partial executable path",
+    "name": "start-process-with-partial-path",
+    "noqa_row": 96,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/start-process-with-partial-path"
+  },
+  {
+    "cell": null,
+    "code": "ARG001",
+    "end_location": {
+      "column": 14,
+      "row": 115
+    },
+    "filename": "<ROOT>\\master\\sandbox\\runner.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 115
+    },
+    "message": "Unused function argument: `timeout_s`",
+    "name": "unused-function-argument",
+    "noqa_row": 115,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/unused-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "S108",
+    "end_location": {
+      "column": 41,
+      "row": 127
+    },
+    "filename": "<ROOT>\\master\\sandbox\\runner.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 127
+    },
+    "message": "Probable insecure usage of temporary file or directory: \"/tmp:rw,noexec,nosuid,size=64m\"",
+    "name": "hardcoded-temp-file",
+    "noqa_row": 127,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-temp-file"
+  },
+  {
+    "cell": null,
+    "code": "S603",
+    "end_location": {
+      "column": 30,
+      "row": 169
+    },
+    "filename": "<ROOT>\\master\\sandbox\\runner.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 169
+    },
+    "message": "`subprocess` call: check for execution of untrusted input",
+    "name": "subprocess-without-shell-equals-true",
+    "noqa_row": 169,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/subprocess-without-shell-equals-true"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 193
+    },
+    "filename": "<ROOT>\\master\\sandbox\\runner.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 193
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 193,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "PLW0603",
+    "end_location": {
+      "column": 20,
+      "row": 26
+    },
+    "filename": "<ROOT>\\master\\scheduler.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 26
+    },
+    "message": "Using the global statement to update `_running` is discouraged",
+    "name": "global-statement",
+    "noqa_row": 26,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/global-statement"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 25,
+      "row": 35
+    },
+    "filename": "<ROOT>\\master\\scheduler.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 35
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 35,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "PLW0603",
+    "end_location": {
+      "column": 21,
+      "row": 44
+    },
+    "filename": "<ROOT>\\master\\scheduler.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 44
+    },
+    "message": "Using the global statement to update `_dag_task` is discouraged",
+    "name": "global-statement",
+    "noqa_row": 44,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/global-statement"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 10,
+      "row": 51
+    },
+    "filename": "<ROOT>\\master\\search_index.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 51
+    },
+    "message": "Too many arguments in function definition (6 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 51,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 11,
+      "row": 71
+    },
+    "filename": "<ROOT>\\master\\search_index.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 71
+    },
+    "message": "Too many arguments in function definition (6 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 71,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 45
+    },
+    "filename": "<ROOT>\\master\\secret_store.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 45
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 45,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 69
+    },
+    "filename": "<ROOT>\\master\\secret_store.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 69
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 69,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 186
+    },
+    "filename": "<ROOT>\\master\\secret_store.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 186
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 186,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "T201",
+    "end_location": {
+      "column": 14,
+      "row": 202
+    },
+    "filename": "<ROOT>\\master\\secret_store.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 203
+          },
+          "location": {
+            "column": 1,
+            "row": 202
+          }
+        }
+      ],
+      "message": "Remove `print`"
+    },
+    "location": {
+      "column": 9,
+      "row": 202
+    },
+    "message": "`print` found",
+    "name": "print",
+    "noqa_row": 202,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/print"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 56
+    },
+    "filename": "<ROOT>\\master\\security_middleware.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 56
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 56,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "S324",
+    "end_location": {
+      "column": 36,
+      "row": 138
+    },
+    "filename": "<ROOT>\\master\\selection.py",
+    "fix": null,
+    "location": {
+      "column": 25,
+      "row": 138
+    },
+    "message": "Probable use of insecure hash functions in `hashlib`: `md5`",
+    "name": "hashlib-insecure-hash-function",
+    "noqa_row": 138,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hashlib-insecure-hash-function"
+  },
+  {
+    "cell": null,
+    "code": "S324",
+    "end_location": {
+      "column": 49,
+      "row": 139
+    },
+    "filename": "<ROOT>\\master\\selection.py",
+    "fix": null,
+    "location": {
+      "column": 38,
+      "row": 139
+    },
+    "message": "Probable use of insecure hash functions in `hashlib`: `md5`",
+    "name": "hashlib-insecure-hash-function",
+    "noqa_row": 139,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hashlib-insecure-hash-function"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 23,
+      "row": 133
+    },
+    "filename": "<ROOT>\\master\\self_healing_runner.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 133
+    },
+    "message": "`scan_code_security` is too complex (24 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 133,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 23,
+      "row": 133
+    },
+    "filename": "<ROOT>\\master\\self_healing_runner.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 133
+    },
+    "message": "Too many branches (21 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 133,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 19,
+      "row": 147
+    },
+    "filename": "<ROOT>\\master\\self_healing_runner.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 147
+    },
+    "message": "Too many arguments in function definition (6 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 147,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 30,
+      "row": 276
+    },
+    "filename": "<ROOT>\\master\\self_healing_runner.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 276
+    },
+    "message": "`run_workspace_smoke_check` is too complex (14 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 276,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 30,
+      "row": 276
+    },
+    "filename": "<ROOT>\\master\\self_healing_runner.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 276
+    },
+    "message": "Too many branches (13 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 276,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "S603",
+    "end_location": {
+      "column": 34,
+      "row": 318
+    },
+    "filename": "<ROOT>\\master\\self_healing_runner.py",
+    "fix": null,
+    "location": {
+      "column": 20,
+      "row": 318
+    },
+    "message": "`subprocess` call: check for execution of untrusted input",
+    "name": "subprocess-without-shell-equals-true",
+    "noqa_row": 318,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/subprocess-without-shell-equals-true"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 25,
+      "row": 336
+    },
+    "filename": "<ROOT>\\master\\self_healing_runner.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 336
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 336,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 25,
+      "row": 66
+    },
+    "filename": "<ROOT>\\master\\studio_api.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 66
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 66,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 25,
+      "row": 89
+    },
+    "filename": "<ROOT>\\master\\studio_api.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 89
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 89,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "S603",
+    "end_location": {
+      "column": 30,
+      "row": 466
+    },
+    "filename": "<ROOT>\\master\\studio_api.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 466
+    },
+    "message": "`subprocess` call: check for execution of untrusted input",
+    "name": "subprocess-without-shell-equals-true",
+    "noqa_row": 466,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/subprocess-without-shell-equals-true"
+  },
+  {
+    "cell": null,
+    "code": "S607",
+    "end_location": {
+      "column": 45,
+      "row": 466
+    },
+    "filename": "<ROOT>\\master\\studio_api.py",
+    "fix": null,
+    "location": {
+      "column": 31,
+      "row": 466
+    },
+    "message": "Starting a process with a partial executable path",
+    "name": "start-process-with-partial-path",
+    "noqa_row": 466,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/start-process-with-partial-path"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 31,
+      "row": 116
+    },
+    "filename": "<ROOT>\\master\\studios\\data_science.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 116
+    },
+    "message": "Too many arguments in function definition (6 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 116,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 29,
+      "row": 250
+    },
+    "filename": "<ROOT>\\master\\studios\\multimedia.py",
+    "fix": null,
+    "location": {
+      "column": 20,
+      "row": 250
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 250,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 24,
+      "row": 179
+    },
+    "filename": "<ROOT>\\master\\studios\\presentation.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 179
+    },
+    "message": "Too many statements (71 > 50)",
+    "name": "too-many-statements",
+    "noqa_row": 179,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 28,
+      "row": 139
+    },
+    "filename": "<ROOT>\\master\\studios\\research.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 139
+    },
+    "message": "`run_deep_research` is too complex (13 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 139,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 28,
+      "row": 139
+    },
+    "filename": "<ROOT>\\master\\studios\\research.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 139
+    },
+    "message": "Too many arguments in function definition (7 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 139,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 28,
+      "row": 139
+    },
+    "filename": "<ROOT>\\master\\studios\\research.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 139
+    },
+    "message": "Too many statements (58 > 50)",
+    "name": "too-many-statements",
+    "noqa_row": 139,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "PLW0603",
+    "end_location": {
+      "column": 31,
+      "row": 34
+    },
+    "filename": "<ROOT>\\master\\tasks_api.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 34
+    },
+    "message": "Using the global statement to update `_lease_task_running` is discouraged",
+    "name": "global-statement",
+    "noqa_row": 34,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/global-statement"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 25,
+      "row": 43
+    },
+    "filename": "<ROOT>\\master\\tasks_api.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 43
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 43,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "PLW0603",
+    "end_location": {
+      "column": 23,
+      "row": 49
+    },
+    "filename": "<ROOT>\\master\\tasks_api.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 49
+    },
+    "message": "Using the global statement to update `_lease_task` is discouraged",
+    "name": "global-statement",
+    "noqa_row": 49,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/global-statement"
+  },
+  {
+    "cell": null,
+    "code": "ERA001",
+    "end_location": {
+      "column": 34,
+      "row": 54
+    },
+    "filename": "<ROOT>\\master\\tasks_api.py",
+    "fix": {
+      "applicability": "displayonly",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 55
+          },
+          "location": {
+            "column": 1,
+            "row": 54
+          }
+        }
+      ],
+      "message": "Remove commented-out code"
+    },
+    "location": {
+      "column": 1,
+      "row": 54
+    },
+    "message": "Found commented-out code",
+    "name": "commented-out-code",
+    "noqa_row": 54,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/commented-out-code"
+  },
+  {
+    "cell": null,
+    "code": "ARG001",
+    "end_location": {
+      "column": 21,
+      "row": 60
+    },
+    "filename": "<ROOT>\\master\\tasks_api.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 60
+    },
+    "message": "Unused function argument: `background_tasks`",
+    "name": "unused-function-argument",
+    "noqa_row": 60,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/unused-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "ERA001",
+    "end_location": {
+      "column": 30,
+      "row": 116
+    },
+    "filename": "<ROOT>\\master\\tasks_api.py",
+    "fix": {
+      "applicability": "displayonly",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 117
+          },
+          "location": {
+            "column": 1,
+            "row": 116
+          }
+        }
+      ],
+      "message": "Remove commented-out code"
+    },
+    "location": {
+      "column": 1,
+      "row": 116
+    },
+    "message": "Found commented-out code",
+    "name": "commented-out-code",
+    "noqa_row": 116,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/commented-out-code"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 18,
+      "row": 132
+    },
+    "filename": "<ROOT>\\master\\tasks_api.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 132
+    },
+    "message": "`submit_result` is too complex (11 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 132,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "S608",
+    "end_location": {
+      "column": 65,
+      "row": 164
+    },
+    "filename": "<ROOT>\\master\\tool_executor.py",
+    "fix": null,
+    "location": {
+      "column": 22,
+      "row": 164
+    },
+    "message": "Possible SQL injection vector through string-based query construction",
+    "name": "hardcoded-sql-expression",
+    "noqa_row": 164,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-sql-expression"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 22,
+      "row": 135
+    },
+    "filename": "<ROOT>\\master\\user_profile.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 135
+    },
+    "message": "`sanitize_settings` is too complex (12 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 135,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 19,
+      "row": 233
+    },
+    "filename": "<ROOT>\\master\\user_profile.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 233
+    },
+    "message": "Too many arguments in function definition (6 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 233,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "PLR0913",
+    "end_location": {
+      "column": 17,
+      "row": 281
+    },
+    "filename": "<ROOT>\\master\\user_profile.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 281
+    },
+    "message": "Too many arguments in function definition (8 > 5)",
+    "name": "too-many-arguments",
+    "noqa_row": 281,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-arguments"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 24,
+      "row": 431
+    },
+    "filename": "<ROOT>\\master\\user_profile.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 431
+    },
+    "message": "`cross_chat_snippets` is too complex (14 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 431,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 24,
+      "row": 431
+    },
+    "filename": "<ROOT>\\master\\user_profile.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 431
+    },
+    "message": "Too many branches (14 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 431,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 25,
+      "row": 503
+    },
+    "filename": "<ROOT>\\master\\user_profile.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 503
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 503,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 29,
+      "row": 584
+    },
+    "filename": "<ROOT>\\master\\user_profile.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 584
+    },
+    "message": "`cross_chat_context_block` is too complex (19 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 584,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 29,
+      "row": 584
+    },
+    "filename": "<ROOT>\\master\\user_profile.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 584
+    },
+    "message": "Too many branches (18 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 584,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 29,
+      "row": 584
+    },
+    "filename": "<ROOT>\\master\\user_profile.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 584
+    },
+    "message": "Too many statements (61 > 50)",
+    "name": "too-many-statements",
+    "noqa_row": 584,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 14,
+      "row": 851
+    },
+    "filename": "<ROOT>\\master\\user_profile.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 851
+    },
+    "message": "`wipe_data` is too complex (13 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 851,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 14,
+      "row": 851
+    },
+    "filename": "<ROOT>\\master\\user_profile.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 851
+    },
+    "message": "Too many branches (13 > 12)",
+    "name": "too-many-branches",
+    "noqa_row": 851,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 913
+    },
+    "filename": "<ROOT>\\master\\user_profile.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 913
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 913,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 68
+    },
+    "filename": "<ROOT>\\master\\ux_api.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 68
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 68,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 20,
+      "row": 11
+    },
+    "filename": "<ROOT>\\master\\validation.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 11
+    },
+    "message": "`validate_result` is too complex (12 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 11,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 30,
+      "row": 50
+    },
+    "filename": "<ROOT>\\master\\validation.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 50
+    },
+    "message": "`extract_files_from_output` is too complex (12 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 50,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "S608",
+    "end_location": {
+      "column": 109,
+      "row": 33
+    },
+    "filename": "<ROOT>\\master\\vector_meta.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 33
+    },
+    "message": "Possible SQL injection vector through string-based query construction",
+    "name": "hardcoded-sql-expression",
+    "noqa_row": 33,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-sql-expression"
+  },
+  {
+    "cell": null,
+    "code": "S608",
+    "end_location": {
+      "column": 40,
+      "row": 44
+    },
+    "filename": "<ROOT>\\master\\vector_meta.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 43
+    },
+    "message": "Possible SQL injection vector through string-based query construction",
+    "name": "hardcoded-sql-expression",
+    "noqa_row": 43,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/hardcoded-sql-expression"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 21,
+      "row": 169
+    },
+    "filename": "<ROOT>\\master\\workspace_builder.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 169
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 169,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "C901",
+    "end_location": {
+      "column": 24,
+      "row": 492
+    },
+    "filename": "<ROOT>\\master\\workspace_builder.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 492
+    },
+    "message": "`_build_exe_blocking` is too complex (12 > 10)",
+    "name": "complex-structure",
+    "noqa_row": 492,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/complex-structure"
+  },
+  {
+    "cell": null,
+    "code": "S603",
+    "end_location": {
+      "column": 30,
+      "row": 533
+    },
+    "filename": "<ROOT>\\master\\workspace_builder.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 533
+    },
+    "message": "`subprocess` call: check for execution of untrusted input",
+    "name": "subprocess-without-shell-equals-true",
+    "noqa_row": 533,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/subprocess-without-shell-equals-true"
+  },
+  {
+    "cell": null,
+    "code": "BLE001",
+    "end_location": {
+      "column": 29,
+      "row": 629
+    },
+    "filename": "<ROOT>\\master\\workspace_builder.py",
+    "fix": null,
+    "location": {
+      "column": 20,
+      "row": 629
+    },
+    "message": "Do not catch blind exception: `Exception`",
+    "name": "blind-except",
+    "noqa_row": 629,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/blind-except"
+  },
+  {
+    "cell": null,
+    "code": "S603",
+    "end_location": {
+      "column": 28,
+      "row": 759
+    },
+    "filename": "<ROOT>\\master\\workspace_builder.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 759
+    },
+    "message": "`subprocess` call: check for execution of untrusted input",
+    "name": "subprocess-without-shell-equals-true",
+    "noqa_row": 759,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/subprocess-without-shell-equals-true"
+  }
+]

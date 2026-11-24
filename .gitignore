@@ -38,3 +38,6 @@ training/cnc_ballooning/lora_adapter/
 .vscode/*
 !.vscode/extensions.json
 .claude/
+
+# audit scratch output
+.audit_tmp/

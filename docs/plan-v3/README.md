@@ -1,58 +1,46 @@
-# Plan v3 — kanıt kapanışı ve derinleştirme planı
+# Plan v3 — doğrulanmış eksikler ve yol haritası
 
-**566 madde**, 12 alan. Plan v2'nin (376 madde) "tamam" dediği işlerin **gerçekten** kabul ölçütünü karşılayıp karşılamadığını sınamak, karşılamayanları kapatmak ve yeni zaaflara (güvenlik, ölçüm, arayüz, alan uzmanlığı, operasyon) girmek için yazıldı.
+**1405 madde.** Bunların **1031'i doğrulanmış bulgu** (çalıştırılmış bir yoklama, tarama veya gerçek istek ürettiği kanıta bağlı), **374'i yol haritası** (34 program ve 340 iş paketi; `[ÖNERİ]`, 07 ve 08 numaralı dosyalarda).
 
-## 1. Neden v3
+Önceki taslak (566 aday öneri) `aday-oneriler/` altında duruyor; orada çoğu madde henüz doğrulanmadı ve sayıya dahil değildir.
 
-Plan v2'nin 376 maddesi `PROGRESS.json`'da `done`. Bu oturumda maddeler tek tek kabul ölçütüne karşı sınandı ve şu görüldü: birçok madde "kod var" anlamında tamamdı, ölçütü ("saldırı başarısı < %5", "6 ajanla 3x hızlanma", `safe_archive` modülü, 4 rol...) karşılamıyordu. v3 bu farkı kapatır. Kural: **bir madde kabul ölçütü ölçülmeden `done` olmaz**; ölçülemiyorsa `partial` ve `gap` yazılır.
+## 1. Bu plan nasıl üretildi
 
-Madde etiketi: `[DOĞRULANDI: F#]` aşağıdaki tabloda yeniden üretilebilen bir bulguya dayanır; `[ÖNERİ]` henüz ölçülmemiş bir tasarım kararıdır. Dürüst sınır: ÖNERİ maddeleri kanıtlanmış zaaf değil, aday iyileştirmedir.
+Proje bu oturumda izole bir sunucuda (port 8099, geçici veri) gerçekten çalıştırıldı ve beş yolla incelendi:
+
+1. **HTTP yoklaması:** 162 route'a istek, başlık/CORS/hız sınırı/bozuk JSON/yol geçişi/şema kontrolleri.
+2. **Gerçek sohbet bataryası:** 0 istek gerçek modele (qwen3.5) gönderildi, yanıtlar makinece denetlendi (olgusal, hesap, talimat, kod çalıştırma, dosya, güvenlik, üretim istekleri).
+3. **Eksik yetenek taraması:** ChatGPT/Claude/Gemini sınıfı asistanların sunduğu 197 yetenek için kodda ve OpenAPI'de iz arandı; **hiç iz bulunmayanlar** madde yapıldı.
+4. **Statik analiz:** ruff (güvenlik, karmaşıklık, hata yutma, dinamik SQL) ve arayüz kaynak taraması.
+5. **Tarayıcı taraması:** 8 sayfa açılıp konsol/ağ/erişilebilirlik ve mobil denetimi yapıldı.
+
+Kanıt dosyaları `kanit/` altındadır; yoklama betikleri `scripts/audit/` altındadır ve yeniden çalıştırılabilir.
 
 ## 2. Denetim bulguları (yeniden üretilebilir)
 
-Komutlar repo kökünde, `master\venv\Scripts\python.exe` ile çalıştırılır.
+Komutlar repo kökünde çalıştırılır. Sunucu: `$env:DB_PATH="$PWD\.audit_tmp\data\platform.db"; masterenv\Scripts\python.exe -m uvicorn app:app --app-dir master --port 8099`.
 
 | Kod | Bulgu | Yeniden üretme | Durum |
 |---|---|---|---|
-| F101 | Plan v2'de 150 maddenin kanıt testinde madde kimliği geçmiyor; kimlik taramasında 116 madde hiçbir test dosyasında anılmıyor | `python scripts/scan_ids.py` (bkz. `KANIT_DENETIMI.md` v2) | Açık |
-| F102 | SEC-09 enjeksiyon dedektörü 40 saldırıdan 5'ini yakalıyordu (%87 saldırı başarısı; hedef < %5). Ağırlıklı dedektör 40/40, 0/40 yanlış alarm verdi ama kendi kaçırdıklarına bakılarak ayarlandı: iyimser | `python eval/security/make_set.py` ve `eval/security/injection.jsonl` | Kısmen düzeltildi, dışlanmış küme gerekli |
-| F103 | `safe_archive` modülü ve `auth/policy.py` yoktu; yalnız admin/member rolü vardı | `Test-Path master/safe_archive.py`, `master/auth/policy.py` | Modüller eklendi, tam bağlama açık |
-| F104 | `eval/security` ve `eval/latency` dizinleri yoktu | `Test-Path eval/security` | `eval/security` eklendi, `latency` açık |
-| F105 | `pytest.ini` yalnız `security` işaretini tanımlıyor (OPS-09 altı işaret ister) | `pytest.ini` | Açık |
-| F106 | Monaco yerel paketi yok (`master/static/vendor` yok) | `Test-Path master/static/vendor` | Açık |
-| F107 | `templates/` proje şablon deposu yok (IDE-17) | `Test-Path templates` | Açık |
-| F108 | Birçok rota `user_id` değerini sorgu parametresinden alıyor, oturumdan değil (SEC-03) | `grep -rn "user_id: str = \"default\"" master` | Açık |
-| F109 | `GET /api/orchestrator/artifacts/{id}` ve `POST /api/memory/compact/{id}` sahip denetimi yapmıyor | `master/tests/test_ux_panels_backend.py` ile deneme | Açık |
-| F110 | rag.db, hallucination.db, ml_ops.db, ux_shares.db ortak bağlantı ve sahiplik kaydı dışında | `grep -rn "sqlite3.connect" master` | Açık |
-| F111 | Altın kümedeki cevaplanamaz örnekler 3 kalıbın tekrarı; `detect_false_premise` 4 varlıklı | `eval/golden`, `master/hallucination/verifier.py` | Açık |
-| F112 | İnsan etiketli veri yok: ECE, Cohen κ, NLI makro-F1 ölçülemiyor | `docs/plan-v2/EVAL_OLCUMU.md` | Açık |
-| F113 | Hız sınırı yalnız giriş denemesinde; pahalı rotalarda token-bucket yok | `master/auth/service.py` | `ratelimit.py` eklendi, orta katman açık |
+| F201 | 378 Python statik analiz bulgusu (kapsamsız except, karmaşık/uzun fonksiyon, dinamik SQL, alt süreç) | `masterenv\Scripts\python.exe -m ruff check master --isolated --select C901,PLR0912,PLR0915,PLR0913,BLE001,S110,S608,S603,S607` | Açık |
+| F202 | 157 arayüz kaynak bulgusu (innerHTML, hata yolu olmayan fetch, uzun fonksiyon, odak halkası) | `masterenv\Scripts\python.exe scripts/audit/scan_js.py out.json` | Açık |
+| F203 | 332 HTTP bulgusu: 188 route'un 200 yanıtında şema yok, 138'inde açıklama yok, eksik güvenlik başlıkları, hız sınırı yok | `masterenv\Scripts\python.exe scripts/audit/probe_http.py out.json` | Açık |
+| F204 | 93 yetenek için kodda ve OpenAPI'de hiç iz yok | `masterenv\Scripts\python.exe scripts/audit/features.py out.json` | Açık |
+| F205 | 0 gerçek sohbet isteği başarısız | `masterenv\Scripts\python.exe scripts/audit/battery.py` | Açık |
+| F206 | 7 tarayıcı bulgusu (aynı başlık, çoklu h1, 341 etiketsiz kontrol, küçük hedefler) | Tarayıcıda 8 rota gezilir (bkz. kanit/ui.md) | Açık |
+| F208 | 49 Python kaynak bulgusu (gömülü uzun prompt/metin, 600 satırı aşan modül) | `masterenv\Scripts\python.exe scripts/audit/scan_py.py out.json` | Açık |
+| F207 | 15 sistem bulgusu (OCR yok, web araması yok, IDOR, frontend araç zinciri yok, plan v2 iddiaları) | Her maddenin 'Sorun' satırındaki komut/endpoint | Açık |
 
-## 3. Alanlar
+## 3. Dürüstlük notları
 
-| Alan | Konu | Dosya |
-|---|---|---|
-| AUD | Plan v2 kanıt kapanışı | 01 |
-| TST | Test, kalite kapıları, süreç | 01 |
-| GVN | Güvenlik ve gizlilik | 02 |
-| HLC | Halüsinasyon ölçümü | 03 |
-| RGX | RAG ve arama | 03 |
-| MDL | Model, gateway, niyet, ML | 04 |
-| ALN | Alan uzmanlıkları | 04 |
-| ARY | Arayüz ve erişilebilirlik | 05 |
-| FAB | Yazılım fabrikası, IDE, oyun | 06 |
-| BEL | Araştırma, sunum, belge, veri, medya | 07 |
-| DGT | Dağıtık ajanlar ve operasyon | 08 |
-| VRI | Veri katmanı | 08 |
+- **F204** "bulunamadı", kod okunarak değil desen aranarak belirlendi. Desen 0 eşleşme verdiyse özellik yoktur; ancak özellik farklı adla yazılmışsa yanlış negatif olabilir. Her maddenin Kabul satırı bu yüzden *davranışı* sınayan testi ister.
+- **F201/F202** araç bulgularıdır: gerçek ve konumludur, ama her biri hata değildir (ör. bir `innerHTML` sabit metin olabilir). Kabul satırı bunu ayırt etmek için inceleme ister.
+- Yoklama izole sunucuda yapıldı; üretim verisine dokunulmadı.
+- Sayı, kalite değil kapsamdır. Öncelik: P0 ve P1 maddeleri önce.
 
 ## 4. Kurallar
 
-1. `python scripts/plan_tool.py check --plan-dir docs/plan-v3` yapıyı doğrular; `status --plan-dir docs/plan-v3` ilerleme dosyasını yazar.
+1. `python scripts/plan_tool.py --plan-dir docs/plan-v3 check` yapıyı doğrular.
 2. Plan dosyaları yalnız "Durum: açık" der; ilerleme `PROGRESS.json`'dadır.
-3. `done` için: testi madde kimliğini taşır, commit vardır, **ve** kabul ölçütü ölçülmüştür. Sayısal hedefler `measured` alanı olmadan ölçülmüş sayılmaz.
-4. Kabul ölçütü karşılanmıyorsa durum `partial` ve `gap` açıklaması yazılır; `done` denmez.
-5. Etiketli veri, dışlanmış küme ve gerçek donanım (Docker, GPU, Windows temiz kurulum) isteyen maddeler bu kaynaklar olmadan kapatılamaz; sahte veriyle kapatmak yasaktır.
-
-## 5. "Hiçbir eksik yok" iddiası hakkında
-
-Bu planın amacı eksiksizliği *kanıtlamak* değil, eksikleri görünür ve sınanabilir kılmaktır. Hiçbir yazılım için "eksiksiz" doğrulanamaz; doğrulanabilen şey "şu ölçütler bu veriyle ölçüldü ve geçti"dir. v3 her madde için o ölçütü yazar. Bittiğinde elde edilecek şey: her iddianın yanında ölçüm, veri kümesi ve komut.
+3. `done` için testin madde kimliğini taşıması, commit ve kabul ölçütünün ölçülmesi gerekir.
+4. Düzeltme sonrası ilgili yoklama betiği yeniden çalıştırılır; bulgu kaybolmalıdır.

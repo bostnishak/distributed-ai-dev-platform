@@ -1,0 +1,944 @@
+[
+ {
+  "file": "css/app.css",
+  "line": 1,
+  "rule": "css-size",
+  "text": "875 satır, 11 !important"
+ },
+ {
+  "file": "css/app.css",
+  "line": 129,
+  "rule": "focus-outline-removed",
+  "text": "outline: none;"
+ },
+ {
+  "file": "css/app.css",
+  "line": 323,
+  "rule": "focus-outline-removed",
+  "text": "outline: none; resize: none; font-size: 14.5px;"
+ },
+ {
+  "file": "css/app.css",
+  "line": 451,
+  "rule": "focus-outline-removed",
+  "text": "outline: none; }"
+ },
+ {
+  "file": "css/app.css",
+  "line": 516,
+  "rule": "focus-outline-removed",
+  "text": "outline: none;"
+ },
+ {
+  "file": "css/app.css",
+  "line": 541,
+  "rule": "focus-outline-removed",
+  "text": "outline: none; }"
+ },
+ {
+  "file": "css/app.css",
+  "line": 752,
+  "rule": "focus-outline-removed",
+  "text": "outline: none;"
+ },
+ {
+  "file": "css/app.css",
+  "line": 796,
+  "rule": "focus-outline-removed",
+  "text": "outline: none; }"
+ },
+ {
+  "file": "css/app.css",
+  "line": 851,
+  "rule": "focus-outline-removed",
+  "text": "outline: none; }"
+ },
+ {
+  "file": "css/app.css",
+  "line": 610,
+  "rule": "tiny-font",
+  "text": "font-size: 10px"
+ },
+ {
+  "file": "css/app.css",
+  "line": 679,
+  "rule": "tiny-font",
+  "text": "font-size: 9px"
+ },
+ {
+  "file": "css/theme.css",
+  "line": 1,
+  "rule": "css-size",
+  "text": "480 satır, 11 !important"
+ },
+ {
+  "file": "css/theme.css",
+  "line": 208,
+  "rule": "focus-outline-removed",
+  "text": "outline: none;"
+ },
+ {
+  "file": "css/theme.css",
+  "line": 323,
+  "rule": "focus-outline-removed",
+  "text": "outline: none; margin-bottom: 4px;"
+ },
+ {
+  "file": "css/theme.css",
+  "line": 270,
+  "rule": "tiny-font",
+  "text": "font-size: 10px"
+ },
+ {
+  "file": "index.html",
+  "line": 27,
+  "rule": "button-without-type",
+  "text": "<button id=\"sidebarToggle\" aria-label=\"Menüyü aç/kapat\">"
+ },
+ {
+  "file": "index.html",
+  "line": 57,
+  "rule": "button-without-type",
+  "text": "<button id=\"newChatBtn\">"
+ },
+ {
+  "file": "index.html",
+  "line": 91,
+  "rule": "button-without-type",
+  "text": "<button id=\"attachBtn\" title=\"Dosya, görsel, ses veya çizim ekle\">"
+ },
+ {
+  "file": "index.html",
+  "line": 96,
+  "rule": "button-without-type",
+  "text": "<button id=\"sendBtn\">"
+ },
+ {
+  "file": "js/agents.js",
+  "line": 126,
+  "rule": "function-over-80-lines",
+  "text": "export async function renderAgents(root, ctx) { (97 satır)"
+ },
+ {
+  "file": "js/app.js",
+  "line": 76,
+  "rule": "setInterval-no-clear",
+  "text": "pollTimer = setInterval(async () => {"
+ },
+ {
+  "file": "js/app.js",
+  "line": 92,
+  "rule": "addEventListener-on-window-document",
+  "text": "window.addEventListener('hashchange', route);"
+ },
+ {
+  "file": "js/assistant.js",
+  "line": 100,
+  "rule": "localStorage-direct",
+  "text": "try { localStorage.setItem(storageKeys().lastChatKey, id); } catch { /* ignore */ }"
+ },
+ {
+  "file": "js/assistant.js",
+  "line": 102,
+  "rule": "innerHTML-assignment",
+  "text": "els.messages.innerHTML = '';"
+ },
+ {
+  "file": "js/assistant.js",
+  "line": 129,
+  "rule": "innerHTML-assignment",
+  "text": "els.messages.innerHTML = '';"
+ },
+ {
+  "file": "js/assistant.js",
+  "line": 143,
+  "rule": "inline-style-assignment",
+  "text": "wrap.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end;max-width:65%;';"
+ },
+ {
+  "file": "js/assistant.js",
+  "line": 177,
+  "rule": "innerHTML-assignment",
+  "text": "else bubble.innerHTML = renderMarkdown(text);"
+ },
+ {
+  "file": "js/assistant.js",
+  "line": 241,
+  "rule": "innerHTML-assignment",
+  "text": "streamBar.innerHTML = '<span class=\"sp-think-ring sm\"></span><span class=\"sp-stream-text\">Yanıt yazılıyor...</"
+ },
+ {
+  "file": "js/assistant.js",
+  "line": 248,
+  "rule": "innerHTML-assignment",
+  "text": "bubble.innerHTML = `<div class=\"sp-think-head\"><span class=\"sp-think-ring\"></span><span class=\"sp-think-label\""
+ },
+ {
+  "file": "js/assistant.js",
+  "line": 256,
+  "rule": "setInterval-no-clear",
+  "text": "const thinkTicker = setInterval(() => {"
+ },
+ {
+  "file": "js/assistant.js",
+  "line": 264,
+  "rule": "innerHTML-assignment",
+  "text": "thinkLabelEl.innerHTML = `${stages[stageIdx]}<span class=\"sp-think-dots\"><i></i><i></i><i></i></span>`;"
+ },
+ {
+  "file": "js/assistant.js",
+  "line": 296,
+  "rule": "fetch-no-catch-nearby",
+  "text": "const resp = await fetch('/api/assistant/chat/stream', { method: 'POST', body: formData, signal: controller.si"
+ },
+ {
+  "file": "js/assistant.js",
+  "line": 329,
+  "rule": "innerHTML-assignment",
+  "text": "bubble.innerHTML = renderMarkdown(fullText);"
+ },
+ {
+  "file": "js/assistant.js",
+  "line": 349,
+  "rule": "innerHTML-assignment",
+  "text": "bubble.innerHTML = renderMarkdown(fullText);"
+ },
+ {
+  "file": "js/assistant.js",
+  "line": 360,
+  "rule": "insertAdjacentHTML",
+  "text": "badgeRow.insertAdjacentHTML('beforeend', ' ' + renderConfidenceBadgeHtml(verificationInfo.confidence_label, ve"
+ },
+ {
+  "file": "js/assistant.js",
+  "line": 368,
+  "rule": "innerHTML-assignment",
+  "text": "det.innerHTML = `<summary style=\"cursor:pointer;font-weight:600;font-size:12.5px;\">Ajan Konseyi Düşünce Zincir"
+ },
+ {
+  "file": "js/assistant.js",
+  "line": 389,
+  "rule": "innerHTML-assignment",
+  "text": "bubble.innerHTML = renderMarkdown(fullText);"
+ },
+ {
+  "file": "js/assistant.js",
+  "line": 465,
+  "rule": "magic-timeout",
+  "text": "setTimeout(() => { copyBtn.textContent = 'Kopyala'; copyBtn.classList.remove('copied'); }, 1600);"
+ },
+ {
+  "file": "js/assistant.js",
+  "line": 474,
+  "rule": "addEventListener-on-window-document",
+  "text": "document.addEventListener('open-saved-chat', (e) => {"
+ },
+ {
+  "file": "js/assistant.js",
+  "line": 480,
+  "rule": "addEventListener-on-window-document",
+  "text": "document.addEventListener('chats-wiped', () => {"
+ },
+ {
+  "file": "js/assistant.js",
+  "line": 492,
+  "rule": "file-over-400-lines",
+  "text": "492 satır"
+ },
+ {
+  "file": "js/assistant.js",
+  "line": 205,
+  "rule": "function-over-80-lines",
+  "text": "async function sendMessage(overridePrompt = null) { (206 satır)"
+ },
+ {
+  "file": "js/assistant_hero.js",
+  "line": 39,
+  "rule": "magic-timeout",
+  "text": "setTimeout(() => { copyBtn.textContent = 'Kopyala'; }, 1600);"
+ },
+ {
+  "file": "js/assistant_hero.js",
+  "line": 126,
+  "rule": "innerHTML-assignment",
+  "text": "els.heroCards.innerHTML = '';"
+ },
+ {
+  "file": "js/assistant_hero.js",
+  "line": 131,
+  "rule": "innerHTML-assignment",
+  "text": "btn.innerHTML = `"
+ },
+ {
+  "file": "js/assistant_history.js",
+  "line": 14,
+  "rule": "localStorage-direct",
+  "text": "return JSON.parse(localStorage.getItem(storageKeys().storageKey) || '{}');"
+ },
+ {
+  "file": "js/assistant_history.js",
+  "line": 22,
+  "rule": "localStorage-direct",
+  "text": "localStorage.setItem(storageKeys().storageKey, JSON.stringify(chats));"
+ },
+ {
+  "file": "js/assistant_history.js",
+  "line": 35,
+  "rule": "localStorage-direct",
+  "text": "try { localStorage.setItem(storageKeys().lastChatKey, chatId); } catch { /* ignore */ }"
+ },
+ {
+  "file": "js/assistant_history.js",
+  "line": 50,
+  "rule": "fetch-no-catch-nearby",
+  "text": "const resp = await fetch(`/api/user/${encodeURIComponent(uid)}/chats`);"
+ },
+ {
+  "file": "js/assistant_history.js",
+  "line": 74,
+  "rule": "localStorage-direct",
+  "text": "const lastId = localStorage.getItem(storageKeys().lastChatKey);"
+ },
+ {
+  "file": "js/assistant_history.js",
+  "line": 84,
+  "rule": "innerHTML-assignment",
+  "text": "els.chatList.innerHTML = '';"
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 30,
+  "rule": "innerHTML-assignment",
+  "text": "dots.innerHTML = '<span class=\"dot-r\"></span><span class=\"dot-y\"></span><span class=\"dot-g\"></span>';"
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 65,
+  "rule": "fetch-no-catch-nearby",
+  "text": "const r = await fetch(`/api/studio/workspaces/${wsId}/launch-exe`, { method: 'POST' });"
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 68,
+  "rule": "magic-timeout",
+  "text": "setTimeout(() => { launchBtn.disabled = false; launchBtn.textContent = 'EXE Çalıştır'; }, 1800);"
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 90,
+  "rule": "fetch-no-catch-nearby",
+  "text": "const resp = await fetch(`/api/studio/workspaces/${wsId}/build-exe`, {"
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 118,
+  "rule": "fetch-no-catch-nearby",
+  "text": "const r = await fetch(`/api/studio/workspaces/${wsId}/history`);"
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 123,
+  "rule": "innerHTML-assignment",
+  "text": "verSelect.innerHTML = '';"
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 137,
+  "rule": "fetch-no-catch-nearby",
+  "text": "const r = await fetch(`/api/studio/workspaces/${wsId}/restore/${v}`, { method: 'POST' });"
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 178,
+  "rule": "innerHTML-assignment",
+  "text": "rootHeader.innerHTML = `<span class=\"ide-chev\">▾</span> <span>${(wsMeta.name || wsId).toUpperCase()}</span>`;"
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 264,
+  "rule": "innerHTML-assignment",
+  "text": "statusLeft.innerHTML = '<span>⎇ main</span><span>✓ 0 hata</span>';"
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 293,
+  "rule": "innerHTML-assignment",
+  "text": "gutter.innerHTML = lines.map((_, i) => `<div>${i + 1}</div>`).join('');"
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 294,
+  "rule": "innerHTML-assignment",
+  "text": "codeBlock.innerHTML = highlightCodeHtml(activeContent, path);"
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 298,
+  "rule": "innerHTML-assignment",
+  "text": "breadcrumb.innerHTML = `<span class=\"bc-root\">${wsMeta.name || wsId}</span> › ` + (path || '').split('/').map("
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 302,
+  "rule": "innerHTML-assignment",
+  "text": "tabBar.innerHTML = '';"
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 308,
+  "rule": "innerHTML-assignment",
+  "text": "iconSpan.innerHTML = wsSvgIcon(fname, false);"
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 339,
+  "rule": "fetch-no-catch-nearby",
+  "text": "const resp = await fetch(`/api/studio/workspaces/${wsId}/file?path=${encodeURIComponent(path)}`);"
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 348,
+  "rule": "innerHTML-assignment",
+  "text": "treeContainer.innerHTML = '';"
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 357,
+  "rule": "innerHTML-assignment",
+  "text": "row.innerHTML = `${chev}${wsSvgIcon(node.name, isDir, !isCollapsed)}<span class=\"ide-node-name\">${node.name}</"
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 376,
+  "rule": "magic-timeout",
+  "text": "setTimeout(() => { copyCodeBtn.textContent = 'Kopyala'; }, 1400);"
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 387,
+  "rule": "fetch-no-catch-nearby",
+  "text": "const r = await fetch(`/api/studio/workspaces/${wsId}/diff?path=${encodeURIComponent(activePath)}`);"
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 390,
+  "rule": "innerHTML-assignment",
+  "text": "gutter.innerHTML = lines.map((_, i) => `<div>${i + 1}</div>`).join('');"
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 391,
+  "rule": "innerHTML-assignment",
+  "text": "codeBlock.innerHTML = lines.map((ln) => {"
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 414,
+  "rule": "innerHTML-assignment",
+  "text": "statusLeft.innerHTML = `<span>⎇ main</span><span>${errCount + issueCount === 0 ? '✓ 0 hata / SAST temiz' : `! "
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 432,
+  "rule": "fetch-no-catch-nearby",
+  "text": "await fetch(`/api/studio/workspaces/${wsId}/file`, {"
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 445,
+  "rule": "alert-confirm-prompt",
+  "text": "const rel = prompt('Yeni dosya yolu (ör. css/theme.css veya js/modal.js):');"
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 448,
+  "rule": "fetch-no-catch-nearby",
+  "text": "await fetch(`/api/studio/workspaces/${wsId}/file`, {"
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 451,
+  "rule": "fetch-no-catch-nearby",
+  "text": "const tResp = await fetch(`/api/studio/workspaces/${wsId}/tree`);"
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 485,
+  "rule": "file-over-400-lines",
+  "text": "485 satır"
+ },
+ {
+  "file": "js/assistant_ide_card.js",
+  "line": 10,
+  "rule": "function-over-80-lines",
+  "text": "export function buildInlineWorkspaceCard(wsMeta, wsTree) { (476 satır)"
+ },
+ {
+  "file": "js/assistant_ide_render.js",
+  "line": 49,
+  "rule": "double-equals",
+  "text": "html = html.replace(/\\b([a-zA-Z-]+)(?==)/g, '<span class=\"hl-attr\">$1</span>');"
+ },
+ {
+  "file": "js/assistant_ide_render.js",
+  "line": 64,
+  "rule": "inline-style-assignment",
+  "text": "termDrawer.style.cssText = 'background:#0d1017;border-top:1px solid #2b2b36;padding:8px 12px;font-family:Conso"
+ },
+ {
+  "file": "js/assistant_ide_render.js",
+  "line": 67,
+  "rule": "inline-style-assignment",
+  "text": "termOut.style.cssText = 'margin:0 0 6px;max-height:150px;overflow-y:auto;white-space:pre-wrap;color:#a7f3d0;';"
+ },
+ {
+  "file": "js/assistant_ide_render.js",
+  "line": 70,
+  "rule": "inline-style-assignment",
+  "text": "termRow.style.cssText = 'display:flex;gap:6px;align-items:center;';"
+ },
+ {
+  "file": "js/assistant_ide_render.js",
+  "line": 74,
+  "rule": "inline-style-assignment",
+  "text": "termIn.style.cssText = 'flex:1;background:#161b26;border:1px solid #334155;color:#f8fafc;border-radius:6px;pad"
+ },
+ {
+  "file": "js/assistant_ide_render.js",
+  "line": 86,
+  "rule": "fetch-no-catch-nearby",
+  "text": "const r = await fetch(`/api/studio/workspaces/${wsId}/exec`, {"
+ },
+ {
+  "file": "js/assistant_ide_render.js",
+  "line": 116,
+  "rule": "fetch-no-catch-nearby",
+  "text": "await fetch(`/api/studio/workspaces/${wsId}/git`, {"
+ },
+ {
+  "file": "js/assistant_ide_render.js",
+  "line": 121,
+  "rule": "fetch-no-catch-nearby",
+  "text": "const r = await fetch(`/api/studio/workspaces/${wsId}/git`, {"
+ },
+ {
+  "file": "js/assistant_ide_render.js",
+  "line": 134,
+  "rule": "alert-confirm-prompt",
+  "text": "const q = prompt('Proje dosyalarında ara (Ctrl+Shift+F):');"
+ },
+ {
+  "file": "js/assistant_ide_render.js",
+  "line": 139,
+  "rule": "fetch-no-catch-nearby",
+  "text": "const r = await fetch(`/api/studio/workspaces/${wsId}/search?q=${encodeURIComponent(q.trim())}`);"
+ },
+ {
+  "file": "js/assistant_ide_render.js",
+  "line": 171,
+  "rule": "fetch-no-catch-nearby",
+  "text": "const resp = await fetch(`/api/studio/workspaces/${wsId}/iterate`, {"
+ },
+ {
+  "file": "js/assistant_ide_render.js",
+  "line": 62,
+  "rule": "function-over-80-lines",
+  "text": "export function createTerminalDrawer(wsId, termToggleBtn, gitWsBtn, searchWsBtn) (91 satır)"
+ },
+ {
+  "file": "js/assistant_voice.js",
+  "line": 65,
+  "rule": "innerHTML-assignment",
+  "text": "statusPill.innerHTML = isLive"
+ },
+ {
+  "file": "js/assistant_voice.js",
+  "line": 80,
+  "rule": "fetch-no-catch-nearby",
+  "text": "const resp = await fetch('/api/assistant/transcribe', { method: 'POST', body: fd });"
+ },
+ {
+  "file": "js/assistant_voice.js",
+  "line": 109,
+  "rule": "innerHTML-assignment",
+  "text": "statusPill.innerHTML = '';"
+ },
+ {
+  "file": "js/assistant_voice.js",
+  "line": 175,
+  "rule": "setInterval-no-clear",
+  "text": "recTimer = setInterval(() => {"
+ },
+ {
+  "file": "js/assistant_voice.js",
+  "line": 197,
+  "rule": "fetch-no-catch-nearby",
+  "text": "const resp = await fetch('/api/assistant/config');"
+ },
+ {
+  "file": "js/assistant_voice.js",
+  "line": 219,
+  "rule": "fetch-no-catch-nearby",
+  "text": "const resp = await fetch('/api/assistant/run-code', {"
+ },
+ {
+  "file": "js/assistant_voice.js",
+  "line": 39,
+  "rule": "function-over-80-lines",
+  "text": "export function initVoiceRecognition(els, updateSendState) { (155 satır)"
+ },
+ {
+  "file": "js/auth_modal.js",
+  "line": 13,
+  "rule": "inline-style-assignment",
+  "text": "overlay.style.cssText ="
+ },
+ {
+  "file": "js/auth_modal.js",
+  "line": 16,
+  "rule": "innerHTML-assignment",
+  "text": "overlay.innerHTML = `"
+ },
+ {
+  "file": "js/auth_modal.js",
+  "line": 51,
+  "rule": "fetch-no-catch-nearby",
+  "text": "const resp = await fetch('/api/auth/status');"
+ },
+ {
+  "file": "js/auth_modal.js",
+  "line": 105,
+  "rule": "fetch-no-catch-nearby",
+  "text": "const r = await fetch(endpoint, {"
+ },
+ {
+  "file": "js/auth_modal.js",
+  "line": 123,
+  "rule": "fetch-no-catch-nearby",
+  "text": "await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});"
+ },
+ {
+  "file": "js/auth_modal.js",
+  "line": 139,
+  "rule": "innerHTML-assignment",
+  "text": "btn.innerHTML ="
+ },
+ {
+  "file": "js/canvas_widgets.js",
+  "line": 165,
+  "rule": "double-equals",
+  "text": "const mFlow = ln.match(/^([A-Za-z0-9_]+)(?:\\[\"?([^\"\\]]+)\"?\\])?\\s*(?:-->|->|---|==>|\\|\\|--o\\{)\\s*(?:\\|([^|]+)\\|"
+ },
+ {
+  "file": "js/canvas_widgets.js",
+  "line": 13,
+  "rule": "function-over-80-lines",
+  "text": "export function renderChartSvg(specJson) { (129 satır)"
+ },
+ {
+  "file": "js/cnc.js",
+  "line": 15,
+  "rule": "innerHTML-assignment",
+  "text": "root.innerHTML = '';"
+ },
+ {
+  "file": "js/cnc.js",
+  "line": 78,
+  "rule": "innerHTML-assignment",
+  "text": "jobsBar.innerHTML = '';"
+ },
+ {
+  "file": "js/cnc.js",
+  "line": 114,
+  "rule": "innerHTML-assignment",
+  "text": "workspace.innerHTML = '';"
+ },
+ {
+  "file": "js/cnc.js",
+  "line": 157,
+  "rule": "alert-confirm-prompt",
+  "text": "const raw = prompt(`(${xPct}%, ${yPct}%) konumuna eklenecek CNC ölçüsü (ör. Ø25 H7, Ra 1.6, M8x1.25):`);"
+ },
+ {
+  "file": "js/cnc.js",
+  "line": 198,
+  "rule": "innerHTML-assignment",
+  "text": "tbody.innerHTML = '';"
+ },
+ {
+  "file": "js/cnc.js",
+  "line": 14,
+  "rule": "function-over-80-lines",
+  "text": "export async function renderCnc(root) { (364 satır)"
+ },
+ {
+  "file": "js/hub.js",
+  "line": 94,
+  "rule": "alert-confirm-prompt",
+  "text": "if (!window.confirm(`${method} ${path} kalıcı bir değişiklik yapabilir. Devam edilsin mi?`)) return;"
+ },
+ {
+  "file": "js/hub.js",
+  "line": 126,
+  "rule": "fetch-no-catch-nearby",
+  "text": "const resp = await fetch(url, init);"
+ },
+ {
+  "file": "js/hub.js",
+  "line": 165,
+  "rule": "fetch-no-catch-nearby",
+  "text": "if (!spec) spec = await (await fetch('/openapi.json')).json();"
+ },
+ {
+  "file": "js/markdown.js",
+  "line": 35,
+  "rule": "function-over-80-lines",
+  "text": "export function renderMarkdown(raw) { (94 satır)"
+ },
+ {
+  "file": "js/message_tools.js",
+  "line": 63,
+  "rule": "addEventListener-on-window-document",
+  "text": "document.addEventListener('visibilitychange', restore);"
+ },
+ {
+  "file": "js/palette.js",
+  "line": 70,
+  "rule": "addEventListener-on-window-document",
+  "text": "document.addEventListener('keydown', (e) => {"
+ },
+ {
+  "file": "js/panels.js",
+  "line": 11,
+  "rule": "magic-timeout",
+  "text": "setTimeout(() => URL.revokeObjectURL(url), 2000);"
+ },
+ {
+  "file": "js/panels.js",
+  "line": 95,
+  "rule": "fetch-no-catch-nearby",
+  "text": "const resp = await fetch('/api/rag/ingest-file', { method: 'POST', body });"
+ },
+ {
+  "file": "js/panels.js",
+  "line": 124,
+  "rule": "alert-confirm-prompt",
+  "text": "if (!window.confirm(`${d.title || d.doc_id} silinsin mi?`)) return;"
+ },
+ {
+  "file": "js/panels.js",
+  "line": 101,
+  "rule": "function-over-80-lines",
+  "text": "export async function renderFiles(root, ctx) { (83 satır)"
+ },
+ {
+  "file": "js/personal.js",
+  "line": 21,
+  "rule": "localStorage-direct",
+  "text": "let activeUserId = localStorage.getItem(LS_USER) || 'default';"
+ },
+ {
+  "file": "js/personal.js",
+  "line": 30,
+  "rule": "localStorage-direct",
+  "text": "try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(LS_PREFS) || '{}') }; } catch { return { ...DEF"
+ },
+ {
+  "file": "js/personal.js",
+  "line": 70,
+  "rule": "localStorage-direct",
+  "text": "try { localStorage.setItem(LS_PREFS, JSON.stringify(s)); } catch { /* storage unavailable */ }"
+ },
+ {
+  "file": "js/personal.js",
+  "line": 168,
+  "rule": "double-equals",
+  "text": "if (n == null) return '—';"
+ },
+ {
+  "file": "js/personal.js",
+  "line": 219,
+  "rule": "double-equals",
+  "text": "h('div', { class: 'sp-usercard-sub' }, monthTokens == null ? 'Kişisel alan ve ayarlar' : `${compact(monthToken"
+ },
+ {
+  "file": "js/personal.js",
+  "line": 345,
+  "rule": "localStorage-direct",
+  "text": "localStorage.setItem(LS_USER, uid);"
+ },
+ {
+  "file": "js/personal.js",
+  "line": 466,
+  "rule": "addEventListener-on-window-document",
+  "text": "document.addEventListener('keydown', onKey);"
+ },
+ {
+  "file": "js/personal.js",
+  "line": 489,
+  "rule": "addEventListener-on-window-document",
+  "text": "document.addEventListener('usage-updated', refreshMonthTokens);"
+ },
+ {
+  "file": "js/personal.js",
+  "line": 492,
+  "rule": "file-over-400-lines",
+  "text": "492 satır"
+ },
+ {
+  "file": "js/personal_sections.js",
+  "line": 116,
+  "rule": "alert-confirm-prompt",
+  "text": "const pwd = prompt('Şifreli AES-256 yedek için parola belirleyin (boş bırakırsanız yerel anahtar kullanılır):'"
+ },
+ {
+  "file": "js/personal_sections.js",
+  "line": 167,
+  "rule": "alert-confirm-prompt",
+  "text": "const rawArgs = prompt(`\"${t.name}\" aracı için JSON argümanları (boş bırakabilirsiniz):`, '{}');"
+ },
+ {
+  "file": "js/personal_sections.js",
+  "line": 223,
+  "rule": "hardcoded-http-url",
+  "text": "const urlIn = h('input', { class: 'sp-input', type: 'url', placeholder: 'MCP Sunucu URL (ör. https://mcp.examp"
+ },
+ {
+  "file": "js/personal_sections.js",
+  "line": 4,
+  "rule": "function-over-80-lines",
+  "text": "export async function renderSectionMemory(body, ctx) { (90 satır)"
+ },
+ {
+  "file": "js/personal_sections.js",
+  "line": 148,
+  "rule": "function-over-80-lines",
+  "text": "export async function renderSectionMcp(body, ctx) { (111 satır)"
+ },
+ {
+  "file": "js/projects.js",
+  "line": 70,
+  "rule": "function-over-80-lines",
+  "text": "export function renderNewProject(root) { (109 satır)"
+ },
+ {
+  "file": "js/projects.js",
+  "line": 229,
+  "rule": "function-over-80-lines",
+  "text": "export async function renderProjectDetail(root, id, ctx) { (161 satır)"
+ },
+ {
+  "file": "js/store.js",
+  "line": 20,
+  "rule": "localStorage-direct",
+  "text": "return window.localStorage.getItem(key);"
+ },
+ {
+  "file": "js/store.js",
+  "line": 28,
+  "rule": "localStorage-direct",
+  "text": "window.localStorage.setItem(key, value);"
+ },
+ {
+  "file": "js/studio.js",
+  "line": 23,
+  "rule": "double-equals",
+  "text": "if (bytes == null) return '';"
+ },
+ {
+  "file": "js/studio.js",
+  "line": 30,
+  "rule": "innerHTML-assignment",
+  "text": "root.innerHTML = '';"
+ },
+ {
+  "file": "js/studio.js",
+  "line": 131,
+  "rule": "innerHTML-assignment",
+  "text": "consoleLog.innerHTML = '';"
+ },
+ {
+  "file": "js/studio.js",
+  "line": 190,
+  "rule": "innerHTML-assignment",
+  "text": "treeEl.innerHTML = '';"
+ },
+ {
+  "file": "js/studio.js",
+  "line": 248,
+  "rule": "innerHTML-assignment",
+  "text": "wsSelect.innerHTML = '';"
+ },
+ {
+  "file": "js/studio.js",
+  "line": 290,
+  "rule": "alert-confirm-prompt",
+  "text": "const rel = prompt('Yeni dosya yolu (ör. js/utils.js veya game/levels.py):');"
+ },
+ {
+  "file": "js/studio.js",
+  "line": 396,
+  "rule": "fetch-no-catch-nearby",
+  "text": "const resp = await fetch('/api/studio/generate', {"
+ },
+ {
+  "file": "js/studio.js",
+  "line": 417,
+  "rule": "fetch-no-catch-nearby",
+  "text": "const resp = await fetch(`/api/studio/workspaces/${activeWsId}/iterate`, {"
+ },
+ {
+  "file": "js/studio.js",
+  "line": 440,
+  "rule": "file-over-400-lines",
+  "text": "440 satır"
+ },
+ {
+  "file": "js/studio.js",
+  "line": 29,
+  "rule": "function-over-80-lines",
+  "text": "export async function renderStudio(root) { (412 satır)"
+ },
+ {
+  "file": "js/util.js",
+  "line": 8,
+  "rule": "double-equals",
+  "text": "if (value == null || value === false) continue;"
+ },
+ {
+  "file": "js/util.js",
+  "line": 20,
+  "rule": "double-equals",
+  "text": "if (child == null || child === false) continue;"
+ },
+ {
+  "file": "js/util.js",
+  "line": 72,
+  "rule": "fetch-no-catch-nearby",
+  "text": "const resp = await fetch(path, { ...options, headers });"
+ },
+ {
+  "file": "js/util.js",
+  "line": 96,
+  "rule": "double-equals",
+  "text": "if (seconds == null) return '—';"
+ },
+ {
+  "file": "js/util.js",
+  "line": 103,
+  "rule": "double-equals",
+  "text": "return value == null ? '—' : Number(value).toLocaleString('tr-TR');"
+ },
+ {
+  "file": "js/ux_shell.js",
+  "line": 51,
+  "rule": "fetch-no-catch-nearby",
+  "text": "const resp = await fetch('/api/orchestrator/feedback', {"
+ },
+ {
+  "file": "js/ux_shell.js",
+  "line": 60,
+  "rule": "fetch-no-catch-nearby",
+  "text": "const resp = await fetch('/api/ux/health-wizard');"
+ }
+]

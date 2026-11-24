@@ -1,0 +1,247 @@
+[
+ {
+  "rule": "embedded-long-string",
+  "where": "assistant.py:636",
+  "text": "13 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "module-over-600-lines",
+  "where": "assistant.py",
+  "text": "1874 satır"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "auth/service.py:45",
+  "text": "21 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "benchmarks.py:140",
+  "text": "18 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "benchmarks.py:166",
+  "text": "17 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "benchmarks.py:191",
+  "text": "16 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "benchmarks.py:215",
+  "text": "14 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "benchmarks.py:237",
+  "text": "15 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "module-over-600-lines",
+  "where": "cad_cam_physics.py",
+  "text": "785 satır"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "cmm_closed_loop.py:30",
+  "text": "26 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "cnc_ballooning.py:825",
+  "text": "12 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "module-over-600-lines",
+  "where": "cnc_ballooning.py",
+  "text": "2028 satır"
+ },
+ {
+  "rule": "module-over-600-lines",
+  "where": "code_graph.py",
+  "text": "935 satır"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "db.py:89",
+  "text": "113 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "module-over-600-lines",
+  "where": "db.py",
+  "text": "782 satır"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "decompose.py:58",
+  "text": "23 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "deep_research.py:333",
+  "text": "23 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "distributed/core.py:70",
+  "text": "46 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "distributed/core.py:555",
+  "text": "12 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "module-over-600-lines",
+  "where": "distributed/core.py",
+  "text": "616 satır"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "document_factory.py:96",
+  "text": "17 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "module-over-600-lines",
+  "where": "domain_experts.py",
+  "text": "732 satır"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "factory/templates.py:14",
+  "text": "12 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "factory/templates.py:50",
+  "text": "15 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "games/studio.py:15",
+  "text": "39 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "gateway/client.py:179",
+  "text": "30 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "module-over-600-lines",
+  "where": "gateway/client.py",
+  "text": "911 satır"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "gateway/registry.py:78",
+  "text": "19 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "gateway/registry.py:173",
+  "text": "20 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "hallucination/verifier.py:593",
+  "text": "33 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "module-over-600-lines",
+  "where": "hallucination/verifier.py",
+  "text": "736 satır"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "hybrid_graph_rag.py:247",
+  "text": "38 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "hybrid_graph_rag.py:323",
+  "text": "11 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "module-over-600-lines",
+  "where": "hybrid_graph_rag.py",
+  "text": "778 satır"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "mcp_connector.py:43",
+  "text": "17 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "memory_engine.py:35",
+  "text": "50 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "ml_ops/models.py:275",
+  "text": "26 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "multimodal_studio.py:568",
+  "text": "13 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "module-over-600-lines",
+  "where": "multimodal_studio.py",
+  "text": "910 satır"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "orchestrator/state.py:75",
+  "text": "73 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "orchestrator/state.py:364",
+  "text": "13 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "rag/store.py:146",
+  "text": "74 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "module-over-600-lines",
+  "where": "rag/store.py",
+  "text": "711 satır"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "studios/multimedia.py:281",
+  "text": "11 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "user_profile.py:89",
+  "text": "34 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "module-over-600-lines",
+  "where": "user_profile.py",
+  "text": "917 satır"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "ux_api.py:122",
+  "text": "11 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "embedded-long-string",
+  "where": "workspace_builder.py:218",
+  "text": "19 satırlık gömülü metin/prompt"
+ },
+ {
+  "rule": "module-over-600-lines",
+  "where": "workspace_builder.py",
+  "text": "766 satır"
+ }
+]
