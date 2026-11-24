@@ -26,7 +26,7 @@ _WINDOW_SECONDS = 60.0
 
 
 def _auth_db_path() -> Path:
-    p = config.data_dir() / "auth.db"
+    p = dbconn.database_file("auth.db")
     p.parent.mkdir(parents=True, exist_ok=True)
     return p
 

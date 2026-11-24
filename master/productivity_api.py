@@ -392,6 +392,7 @@ async def api_create_custom_agent(body: CustomAgentBody):
 
     saved = upsert_custom_agent(
         {
+            "agent_id": f"asst_{uuid.uuid4().hex[:8]}",
             "user_id": "default",
             "name": body.name,
             "instructions": body.instructions,

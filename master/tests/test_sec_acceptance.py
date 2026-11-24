@@ -205,7 +205,10 @@ def test_sec08_macro_pdf_js_dde_and_external_links_are_flagged_but_clean_files_a
     assert scan_active_content(_zip({"word/document.xml": b"<w:t>hello</w:t>"}), "ok.docx") == []
 
 
-def test_sec08_upload_warns_in_the_response_and_still_indexes_the_text():
+def test_sec08_upload_warns_in_the_response_and_still_indexes_the_text(monkeypatch):
+    from rag.store import default_rag_store
+
+    monkeypatch.setattr(default_rag_store, "allow_test_embeddings", True)
     pdf_like = b"%PDF-1.4\n/OpenAction /JavaScript\n"
     with TestClient(master_app.app) as client:
         resp = client.post(

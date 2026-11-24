@@ -57,9 +57,9 @@ def test_p0_unified_db_default_and_single_source_productivity(client):
     import dbunify
 
     assert config.UNIFIED_DB is True
-    assert "gateway.db" in dbunify.LEGACY_FILES
-    assert "rag.db" in dbunify.LEGACY_FILES
     assert "auth.db" in dbunify.LEGACY_FILES
+    assert "user_profile.db" in dbunify.LEGACY_FILES
+    assert "graph_rag.db" in dbunify.LEGACY_FILES
 
     created = client.post(
         "/api/productivity/agents/custom",

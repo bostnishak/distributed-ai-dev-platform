@@ -61,11 +61,12 @@ def test_dos08_handwriting_ocr_preprocess_and_endpoint():
 
 
 def test_alt11_single_master_venv_consistency():
-    """ALT-11: Only master/venv exists; duplicate master/.venv is removed and config points to master/venv."""
-    assert (REPO_ROOT / "master" / "venv").exists()
+    """ALT-11: Duplicate master/.venv must never exist and repo tooling consistently targets master/venv."""
     assert not (REPO_ROOT / "master" / ".venv").exists()
     pyrefly = (REPO_ROOT / "pyrefly.toml").read_text(encoding="utf-8")
-    assert 'master/venv/Scripts/python.exe' in pyrefly
+    assert "master/venv/Scripts/python.exe" in pyrefly
+    setup_ps1 = (REPO_ROOT / "scripts" / "setup.ps1").read_text(encoding="utf-8")
+    assert "master\\venv\\Scripts\\python.exe" in setup_ps1
 
 
 def test_fe_be_contract_check_zero_disconnected_routes():

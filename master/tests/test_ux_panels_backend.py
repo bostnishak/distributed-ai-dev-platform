@@ -33,7 +33,10 @@ def test_edit_keeps_every_earlier_version(client):
     assert client.get("/api/orchestrator/artifacts/yok/versions").status_code == 404
 
 
-def test_upload_indexes_a_text_file_and_rejects_bad_ones(client):
+def test_upload_indexes_a_text_file_and_rejects_bad_ones(client, monkeypatch):
+    from rag.store import default_rag_store
+
+    monkeypatch.setattr(default_rag_store, "allow_test_embeddings", True)
     ok = client.post(
         "/api/rag/ingest-file",
         files={"file": ("notlar.md", "# Başlık\n\nTürkiye'nin başkenti Ankara'dır.".encode(), "text/markdown")},

@@ -33,7 +33,7 @@ jobs:
           python scripts/audit/scan_js.py /tmp/scan_js.json
       - name: Frontend unit & syntax checks (Node.js)
         run: |
-          node --test frontend/tests/
+          node --test frontend/tests/*.test.mjs
           for f in master/static/js/*.js master/static/vendor/*.js extensions/browser/*.js; do node --check "$f"; done
 
   master:

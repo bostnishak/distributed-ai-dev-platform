@@ -174,7 +174,7 @@ def test_vision_rag_drawing_fingerprint_similarity(tmp_path, monkeypatch):
     rag.index_drawing("DRW-FLANGE-01", "Flanş Rev A", flange_a, metadata={"cycle_min": 14.5})
     rag.index_drawing("DRW-SHAFT-02", "Kademeli Mil", shaft, metadata={"cycle_min": 9.0})
 
-    similar = hybrid_graph_rag.find_similar_drawings(flange_b, top_k=2)
+    similar = rag.find_similar_drawings(flange_b, top_k=2)
     assert len(similar) == 2
     assert similar[0]["drawing_id"] == "DRW-FLANGE-01"
     assert similar[0]["similarity"] > similar[1]["similarity"]
