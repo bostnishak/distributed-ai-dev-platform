@@ -1,0 +1,81 @@
+// Interactive Workbench Catalog Part 2: Education, Engineering/Domains, Security/2FA, Auth & Memory.
+
+export const DOMAIN_AND_EDU_TOOLS = [
+  // Eğitim Modülü
+  { id: 'edu-lesson', group: 'Eğitim Stüdyosu', title: 'Ders Planı Oluştur', method: 'POST', path: '/api/tools/education/lesson-plan',
+    body: { topic: 'Doğrusal Cebir ve Matrisler', level: 'lisans', duration_min: 50 } },
+  { id: 'edu-quiz', group: 'Eğitim Stüdyosu', title: 'Çoktan Seçmeli Quiz Üret', method: 'POST', path: '/api/tools/education/quiz',
+    body: { topic: 'Python Veri Yapıları', count: 4, difficulty: 'orta' } },
+  { id: 'edu-grade', group: 'Eğitim Stüdyosu', title: 'Otomatik Ödev Değerlendirici', method: 'POST', path: '/api/tools/education/autograder',
+    body: { question: 'HTTP 404 ne anlama gelir?', rubric: ['kaynak bulunamadı', 'istemci hatası'], answer: 'İstenen kaynak sunucuda bulunamadı istemci hatasıdır.' } },
+  { id: 'edu-lang', group: 'Eğitim Stüdyosu', title: 'Dil Öğrenme Alıştırması', method: 'POST', path: '/api/tools/education/language-learning',
+    body: { target_lang: 'en', level: 'B1', topic: 'teknik mülakat' } },
+  { id: 'edu-prog', group: 'Eğitim Stüdyosu', title: 'Öğrenci İlerleme Kaydı', method: 'POST', path: '/api/tools/education/progress',
+    body: { learner_id: 'ogrenci-1', topic: 'Matrisler', score: 88 } },
+
+  // Alan & Mühendislik Motorları
+  { id: 'dom-mat', group: 'Mühendislik & Alan Motorları', title: 'Malzeme Özellikleri Veritabanı', method: 'GET', path: '/api/tools/domains/materials' },
+  { id: 'dom-circuit', group: 'Mühendislik & Alan Motorları', title: 'Elektrik Devre Hesaplayıcı', method: 'POST', path: '/api/tools/domains/circuit',
+    body: { voltage_v: 12, resistance_ohm: 470 } },
+  { id: 'dom-metraj', group: 'Mühendislik & Alan Motorları', title: 'İnşaat Metraj & Maliyet', method: 'POST', path: '/api/tools/domains/metraj',
+    body: { area_m2: 120, unit_price_tl: 18500, waste_pct: 5 } },
+  { id: 'dom-tax', group: 'Mühendislik & Alan Motorları', title: 'Türkiye Vergi / KDV Hesaplama', method: 'POST', path: '/api/tools/domains/turkey-tax',
+    body: { amount_tl: 50000, vat_rate: 20 } },
+  { id: 'dom-drug', group: 'Mühendislik & Alan Motorları', title: 'İlaç Etkileşim Kontrolü', method: 'POST', path: '/api/tools/domains/drug-interaction',
+    body: { drugs: ['aspirin', 'warfarin'] } },
+  { id: 'dom-nutr', group: 'Mühendislik & Alan Motorları', title: 'Beslenme ve Kalori Hesabı', method: 'POST', path: '/api/tools/domains/nutrition',
+    body: { weight_kg: 75, height_cm: 178, age: 26, activity: 'moderate' } },
+  { id: 'dom-trip', group: 'Mühendislik & Alan Motorları', title: 'Seyahat Planlayıcı', method: 'POST', path: '/api/tools/domains/trip-plan',
+    body: { destination: 'İzmir', days: 3, budget_tl: 12000 } },
+  { id: 'dom-specs', group: 'Mühendislik & Alan Motorları', title: 'Alan Motoru Özellikleri', method: 'GET', path: '/api/domains/specs' },
+  { id: 'dom-kienzle', group: 'Mühendislik & Alan Motorları', title: 'CNC Kienzle Kesme Kuvveti', method: 'POST', path: '/api/domains/cnc/kienzle',
+    body: { material: 'AISI_4140', depth_mm: 2.0, feed_mm_rev: 0.25, vc_m_min: 180 } },
+  { id: 'dom-gcode', group: 'Mühendislik & Alan Motorları', title: 'CNC G-Code Doğrulama', method: 'POST', path: '/api/domains/cnc/gcode/validate',
+    body: { gcode: 'G21 G90\nG00 X0 Y0 Z50\nM30' } },
+  { id: 'dom-conv', group: 'Mühendislik & Alan Motorları', title: 'Mühendislik Birim Çevirici', method: 'POST', path: '/api/domains/engineering/convert',
+    body: { value: 25.4, from_unit: 'mm', to_unit: 'inch' } },
+  { id: 'dom-dcf', group: 'Mühendislik & Alan Motorları', title: 'Finansal DCF Değerleme', method: 'POST', path: '/api/domains/finance/dcf',
+    body: { cash_flows: [100000, 120000, 145000], discount_rate: 0.12, terminal_growth: 0.03 } },
+  { id: 'dom-health', group: 'Mühendislik & Alan Motorları', title: 'Sağlık Bilgi Motoru', method: 'POST', path: '/api/domains/health/info',
+    body: { query: 'D vitamini eksikliği belirtileri' } },
+  { id: 'dom-legal', group: 'Mühendislik & Alan Motorları', title: 'Hukuk / Sözleşme Analizi', method: 'POST', path: '/api/domains/legal/analyze',
+    body: { text: 'Taraflar işbu gizlilik sözleşmesi kapsamında ticari sırları 5 yıl korur.' } },
+];
+
+export const SECURITY_AND_MEMORY_TOOLS = [
+  // Güvenlik & 2FA
+  { id: 'sec-totp-setup', group: 'Güvenlik & 2FA', title: '2FA (TOTP) Kurulumu Başlat', method: 'POST', path: '/api/security/totp/setup',
+    body: { username: 'admin' } },
+  { id: 'sec-totp-verify', group: 'Güvenlik & 2FA', title: '2FA (TOTP) Kodu Doğrula', method: 'POST', path: '/api/security/totp/verify',
+    body: { username: 'admin', code: '123456' } },
+  { id: 'sec-sessions', group: 'Güvenlik & 2FA', title: 'Aktif Oturumları Listele', method: 'GET', path: '/api/security/sessions' },
+  { id: 'sec-revoke-all', group: 'Güvenlik & 2FA', title: 'Tüm Oturumları Sonlandır', method: 'POST', path: '/api/security/sessions/revoke-all',
+    body: { username: 'admin' }, dangerous: true },
+  { id: 'sec-pw', group: 'Güvenlik & 2FA', title: 'Parola Gücü Ölçer', method: 'POST', path: '/api/security/password-strength',
+    body: { password: 'Ornek!Guclu2026Parola' } },
+  { id: 'sec-scan', group: 'Güvenlik & 2FA', title: 'Gizli Anahtar / Secret Taraması', method: 'POST', path: '/api/security/secret-scan',
+    body: { text: 'API_KEY=demo_safe_placeholder' } },
+  { id: 'sec-ip-get', group: 'Güvenlik & 2FA', title: 'IP İzin Listesini Görüntüle', method: 'GET', path: '/api/security/ip-allowlist' },
+  { id: 'sec-ip-put', group: 'Güvenlik & 2FA', title: 'IP İzin Listesini Güncelle', method: 'PUT', path: '/api/security/ip-allowlist',
+    body: { cidrs: ['127.0.0.1/32', '100.64.0.0/10'] } },
+  { id: 'sec-av', group: 'Güvenlik & 2FA', title: 'Antivirüs / Tarayıcı Durumu', method: 'GET', path: '/api/security/antivirus/status' },
+  { id: 'sec-lockout', group: 'Güvenlik & 2FA', title: 'Hesap Kilit Durumu', method: 'GET', path: '/api/security/lockout/{username}',
+    params: { username: 'admin' } },
+
+  // Hesap & Kimlik
+  { id: 'auth-me', group: 'Hesap & Hafıza', title: 'Aktif Kullanıcı Bilgisi', method: 'GET', path: '/api/auth/me' },
+  { id: 'auth-ts', group: 'Hesap & Hafıza', title: 'Tailscale Kimlik Kontrolü', method: 'GET', path: '/api/auth/tailscale-me' },
+  { id: 'auth-users', group: 'Hesap & Hafıza', title: 'Yeni Kullanıcı Oluştur', method: 'POST', path: '/api/auth/users',
+    body: { username: 'yeni_uye', password: 'Guclu!2026Password', role: 'user' } },
+  { id: 'auth-reset', group: 'Hesap & Hafıza', title: 'Parola Sıfırla', method: 'POST', path: '/api/auth/reset-password',
+    body: { username: 'yeni_uye', new_password: 'Yeni!2026Password' }, dangerous: true },
+
+  // Hafıza & Zaman Çizelgesi
+  { id: 'mem-facts', group: 'Hesap & Hafıza', title: 'Semantik Hafıza Kayıtları', method: 'GET', path: '/api/memory/facts' },
+  { id: 'mem-del', group: 'Hesap & Hafıza', title: 'Hafıza Kaydını Sil', method: 'DELETE', path: '/api/memory/facts/{fact_id}',
+    params: { fact_id: '1' }, dangerous: true },
+  { id: 'mem-convs', group: 'Hesap & Hafıza', title: 'Hafıza Sohbetleri', method: 'GET', path: '/api/memory/conversations' },
+  { id: 'mem-compact', group: 'Hesap & Hafıza', title: 'Sohbet Hafızasını Sıkıştır', method: 'POST', path: '/api/memory/compact/{conversation_id}',
+    params: { conversation_id: 'default' }, body: {} },
+  { id: 'mem-timeline', group: 'Hesap & Hafıza', title: 'Hafıza Zaman Çizelgesi', method: 'GET', path: '/api/productivity/memory/timeline' },
+];

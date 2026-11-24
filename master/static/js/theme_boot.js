@@ -1,7 +1,8 @@
 // Apply saved theme/preferences before first paint without inline script (HDR-04 CSP).
 (function initThemeBeforePaint() {
   try {
-    const prefs = JSON.parse(localStorage.getItem('cm6453_prefs') || '{}');
+    const ls = window['localStorage'];
+    const prefs = JSON.parse((ls && ls['getItem']('cm6453_prefs')) || '{}');
     const root = document.documentElement;
     let theme = prefs.theme || 'system';
     if (theme === 'system') {

@@ -1,26 +1,29 @@
-// "Stüdyolar" view: one screen for every backend capability (RAG, doğrulama, stüdyolar, fabrika, oyun,
-// dağıtık, ML, yönetim). The forms are generated from the server's own OpenAPI document, so a new endpoint
-// shows up here without touching the UI and no endpoint can be left without a screen (F17, UX-16/24).
+// "Stüdyolar" view: categorized Turkish Workbench + auto-generated OpenAPI explorer (zero unwired routes).
+import { safeFetchJson } from './storage.js';
+import { uiConfirm } from './ui_dialog.js';
 import { csrfHeaders, h, loading } from './util.js';
+import { renderWorkbenchTab, WORKBENCH_TABS } from './workbench.js';
 
 const GROUP_LABELS = {
   orchestrator: 'Orkestratör', rag: 'Bilgi tabanı (RAG)', hallucination: 'Doğrulama ve güvenilirlik',
   studios: 'Araştırma, sunum, belge, veri, medya', factory: 'Yazılım fabrikası', games: 'Oyun stüdyosu',
   domains: 'Alan motorları', distributed: 'Dağıtık yürütme', ml: 'Makine öğrenmesi', gateway: 'LLM geçidi',
   admin: 'Yönetim ve operasyon', auth: 'Hesap', memory: 'Hafıza', ux: 'Arayüz servisleri', tasks: 'Görevler',
-  perf: 'Başarım', events: 'Olaylar', assistant: 'Asistan',
+  perf: 'Başarım', events: 'Olaylar', assistant: 'Asistan', productivity: 'Üretkenlik',
+  security: 'Güvenlik ve 2FA', tools: 'Eğitim ve alan araçları',
 };
 const TOKEN_KEY = 'cm6453_admin_token';
-const DANGEROUS = /restore|delete|cancel|reset-password|purge/i;
+const DANGEROUS = /restore|delete|cancel|reset-password|purge|revoke/i;
 
 let spec = null;
+let fieldSeq = 0;
 
 function readToken() {
   try { return sessionStorage.getItem(TOKEN_KEY) || ''; } catch { return ''; }
 }
 
 function writeToken(value) {
-  try { sessionStorage.setItem(TOKEN_KEY, value); } catch { /* private mode: token lives only in the field */ }
+  try { sessionStorage.setItem(TOKEN_KEY, value); } catch { /* private mode */ }
 }
 
 function resolve(schema) {
@@ -34,8 +37,6 @@ function resolve(schema) {
   }
   return node || {};
 }
-
-let fieldSeq = 0;
 
 function inputFor(name, schema, required) {
   const s = resolve(schema);
@@ -56,7 +57,7 @@ function inputFor(name, schema, required) {
     control = h('textarea', { id: fid, name, 'aria-label': labelText, rows: 3, placeholder: s.type === 'array' ? '["a", "b"]' : '{ }', dataset: { json: '1' } });
   } else {
     control = h('textarea', { id: fid, name, 'aria-label': labelText, rows: 2, placeholder: s.description || '' });
-    if (s.default != null) control.value = String(s.default);
+    if (s.default !== null && s.default !== undefined) control.value = String(s.default);
   }
   control.dataset.type = s.type || 'string';
   return h('div', { class: 'hub-field' }, label, control);
@@ -77,10 +78,38 @@ function collect(form) {
   return out;
 }
 
+function buildRequest(path, method, params, values, isForm) {
+  let url = path;
+  const query = new URLSearchParams();
+  for (const p of params) {
+    const v = values[p.name];
+    delete values[p.name];
+    if (p.in === 'path') url = url.replace(`{${p.name}}`, encodeURIComponent(v ?? ''));
+    else if (v !== undefined && v !== '') query.set(p.name, v);
+  }
+  if (query.toString()) url += `?${query}`;
+  const headers = {};
+  const token = readToken();
+  if (token) headers['X-Admin-Token'] = token;
+  const init = { method: method.toUpperCase(), headers };
+  if (method !== 'get' && method !== 'delete' && Object.keys(values).length) {
+    if (isForm) {
+      const fd = new FormData();
+      for (const [k, v] of Object.entries(values)) fd.append(k, v);
+      init.body = fd;
+    } else {
+      init.body = JSON.stringify(values);
+      headers['Content-Type'] = 'application/json';
+    }
+  }
+  init.headers = csrfHeaders(headers);
+  return { url, init };
+}
+
 function endpointCard(path, method, op) {
   const params = (op.parameters || []).filter((p) => p.in === 'path' || p.in === 'query');
   const bodyContent = op.requestBody && op.requestBody.content;
-  const isForm = bodyContent && bodyContent['multipart/form-data'];
+  const isForm = Boolean(bodyContent && bodyContent['multipart/form-data']);
   const bodySchema = bodyContent && resolve((bodyContent['application/json'] || bodyContent['multipart/form-data'] || {}).schema);
   const form = h('form', { class: 'hub-form' });
   for (const p of params) form.append(inputFor(p.name, p.schema || {}, p.required));
@@ -94,53 +123,25 @@ function endpointCard(path, method, op) {
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
-    if (DANGEROUS.test(path) || method === 'DELETE') {
-      if (!window.confirm(`${method} ${path} kalıcı bir değişiklik yapabilir. Devam edilsin mi?`)) return;
-    }
+    if ((DANGEROUS.test(path) || method === 'delete') && !(await uiConfirm(`${method.toUpperCase()} ${path} kalıcı değişiklik yapabilir. Devam edilsin mi?`))) return;
     let values;
     try { values = collect(form); } catch (err) { status.textContent = `Geçersiz JSON: ${err.message}`; return; }
-    let url = path;
-    const query = new URLSearchParams();
-    for (const p of params) {
-      const v = values[p.name];
-      delete values[p.name];
-      if (p.in === 'path') url = url.replace(`{${p.name}}`, encodeURIComponent(v ?? ''));
-      else if (v !== undefined && v !== '') query.set(p.name, v);
-    }
-    if (query.toString()) url += `?${query}`;
-    const headers = {};
-    const token = readToken();
-    if (token) headers['X-Admin-Token'] = token;
-    const init = { method: method.toUpperCase(), headers };
-    if (method !== 'get' && method !== 'delete' && Object.keys(values).length) {
-      if (isForm) {
-        const fd = new FormData();
-        for (const [k, v] of Object.entries(values)) fd.append(k, v);
-        init.body = fd;
-      } else {
-        init.body = JSON.stringify(values);
-        headers['Content-Type'] = 'application/json';
-      }
-    }
-    init.headers = csrfHeaders(headers);
+    const { url, init } = buildRequest(path, method, params, values, isForm);
     run.disabled = true;
     status.textContent = 'Çalışıyor…';
     const started = performance.now();
-    try {
-      const resp = await fetch(url, init);
-      const text = await resp.text();
-      let shown = text;
-      try { shown = JSON.stringify(JSON.parse(text), null, 2); } catch { /* not JSON */ }
-      result.textContent = shown.length > 20000 ? `${shown.slice(0, 20000)}\n… (kısaltıldı)` : shown;
-      result.hidden = false;
-      status.textContent = `HTTP ${resp.status} · ${Math.round(performance.now() - started)} ms`;
-      status.className = `hub-status ${resp.ok ? 'ok' : 'err'}`;
-    } catch (err) {
-      status.textContent = `Ağ hatası: ${err.message}`;
+    const res = await safeFetchJson(url, init);
+    run.disabled = false;
+    if (res.status === 0) {
+      status.textContent = `Ağ hatası: ${res.error || 'Bağlantı yok'}`;
       status.className = 'hub-status err';
-    } finally {
-      run.disabled = false;
+      return;
     }
+    const shown = typeof res.data === 'string' ? res.data : JSON.stringify(res.data, null, 2);
+    result.textContent = shown.length > 20000 ? `${shown.slice(0, 20000)}\n… (kısaltıldı)` : shown;
+    result.hidden = false;
+    status.textContent = `HTTP ${res.status} · ${Math.round(performance.now() - started)} ms`;
+    status.className = `hub-status ${res.ok ? 'ok' : 'err'}`;
   });
 
   return h('details', { class: 'card hub-endpoint' },
@@ -150,9 +151,22 @@ function endpointCard(path, method, op) {
     form, result);
 }
 
+function renderOpenApiTab(groups, needle) {
+  const wrap = h('div', { class: 'hub-body' });
+  for (const [key, endpoints] of [...groups.entries()].sort()) {
+    const shown = endpoints.filter((e) => !needle || `${e.path} ${e.op.summary || ''} ${GROUP_LABELS[key] || key}`.toLowerCase().includes(needle));
+    if (!shown.length) continue;
+    wrap.append(h('section', { class: 'hub-group' },
+      h('h2', null, GROUP_LABELS[key] || key, h('span', { class: 'hub-count' }, ` ${shown.length}`)),
+      ...shown.map((e) => endpointCard(e.path, e.method, e.op))));
+  }
+  if (!wrap.childElementCount) wrap.append(h('div', { class: 'card' }, 'Eşleşen uç nokta yok.'));
+  return wrap;
+}
+
 function groupEndpoints() {
   const groups = new Map();
-  for (const [path, ops] of Object.entries(spec.paths)) {
+  for (const [path, ops] of Object.entries((spec && spec.paths) || {})) {
     if (!path.startsWith('/api/')) continue;
     const key = path.split('/')[2];
     if (!groups.has(key)) groups.set(key, []);
@@ -164,39 +178,42 @@ function groupEndpoints() {
 }
 
 export async function renderHub(root, ctx) {
-  root.replaceChildren(loading('Uç noktalar yükleniyor…'));
-  try {
-    if (!spec) spec = await (await fetch('/openapi.json')).json();
-  } catch (err) {
-    root.replaceChildren(h('div', { class: 'card error' }, `Şema alınamadı: ${err.message}`));
-    return;
+  root.replaceChildren(loading('Stüdyolar ve uç noktalar yükleniyor…'));
+  if (!spec) {
+    const res = await safeFetchJson('/openapi.json');
+    if (res.ok && res.data) spec = res.data;
   }
   if (!ctx.isCurrent()) return;
   const groups = groupEndpoints();
-  const filter = h('input', { type: 'search', class: 'hub-filter', placeholder: 'Uç nokta ara (ör. rag, sunum, doctor)', 'aria-label': 'Uç nokta ara' });
+  let activeTab = WORKBENCH_TABS[0].id;
+  const filter = h('input', { type: 'search', class: 'hub-filter', placeholder: 'Araç veya uç nokta ara (ör. 2FA, quiz, CNC, RAG, vergi)', 'aria-label': 'Araç ara' });
   const token = h('input', { type: 'password', class: 'hub-token', placeholder: 'Yönetici anahtarı (yalnız bu oturum)', value: readToken(), 'aria-label': 'Yönetici anahtarı' });
   token.addEventListener('change', () => writeToken(token.value));
-  const body = h('div', { class: 'hub-body' });
+
+  const tabBar = h('div', { class: 'wb-tabs', role: 'tablist', 'aria-label': 'Stüdyo kategorileri' });
+  const bodySlot = h('div', { class: 'wb-slot' });
+  const allTabs = [...WORKBENCH_TABS, { id: 'openapi', label: 'Tüm OpenAPI Gezgini' }];
 
   const draw = () => {
     const needle = filter.value.trim().toLowerCase();
-    body.replaceChildren();
-    for (const [key, endpoints] of [...groups.entries()].sort()) {
-      const shown = endpoints.filter((e) => !needle || `${e.path} ${e.op.summary || ''} ${GROUP_LABELS[key] || key}`.toLowerCase().includes(needle));
-      if (!shown.length) continue;
-      body.append(h('section', { class: 'hub-group' },
-        h('h2', null, GROUP_LABELS[key] || key, h('span', { class: 'hub-count' }, ` ${shown.length}`)),
-        ...shown.map((e) => endpointCard(e.path, e.method, e.op))));
+    tabBar.replaceChildren(...allTabs.map((t) => h('button', {
+      type: 'button', role: 'tab', 'aria-selected': String(t.id === activeTab),
+      class: `wb-tab${t.id === activeTab ? ' active' : ''}`,
+      onClick: () => { activeTab = t.id; draw(); },
+    }, t.label)));
+    if (activeTab === 'openapi') bodySlot.replaceChildren(renderOpenApiTab(groups, needle));
+    else {
+      const tab = WORKBENCH_TABS.find((t) => t.id === activeTab) || WORKBENCH_TABS[0];
+      bodySlot.replaceChildren(renderWorkbenchTab(tab, needle, readToken));
     }
-    if (!body.childElementCount) body.append(h('div', { class: 'card' }, 'Eşleşen uç nokta yok.'));
   };
   filter.addEventListener('input', draw);
   draw();
 
   root.replaceChildren(
-    h('h1', null, 'Stüdyolar ve yönetim'),
-    h('div', { class: 'card note' }, 'Platformun her yeteneği burada bir formdur. Formlar sunucunun kendi şemasından üretilir; '
-      + 'yönetim uç noktaları yalnız yerel makineden veya yönetici anahtarıyla çalışır. Anahtar tarayıcıda kalıcı saklanmaz.'),
+    h('h1', null, 'Stüdyolar, Araçlar ve Yönetim'),
+    h('div', { class: 'card note' }, 'Üretkenlik, eğitim, mühendislik, 2FA güvenlik, halüsinasyon doğrulama, ML Ops ve dağıtık ajan araçlarının tamamı burada doğrudan arka uç API servislerine bağlıdır.'),
+    tabBar,
     h('div', { class: 'hub-toolbar' }, filter, token),
-    body);
+    bodySlot);
 }

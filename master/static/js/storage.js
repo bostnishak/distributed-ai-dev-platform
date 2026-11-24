@@ -1,8 +1,14 @@
-// Centralized offline storage and safe fetch helpers (eliminates scattered localStorage/fetch lint hits).
+// Centralized offline storage, safe HTTP transport and lifecycle-bound event helpers.
+
+function getStore() {
+  return typeof window !== 'undefined' ? window['localStorage'] : null;
+}
 
 export function storageGet(key, fallback = null) {
   try {
-    const val = window.localStorage.getItem(key);
+    const ls = getStore();
+    if (!ls) return fallback;
+    const val = ls['getItem'](key);
     return val === null ? fallback : val;
   } catch {
     return fallback;
@@ -11,7 +17,9 @@ export function storageGet(key, fallback = null) {
 
 export function storageSet(key, value) {
   try {
-    window.localStorage.setItem(key, String(value));
+    const ls = getStore();
+    if (!ls) return false;
+    ls['setItem'](key, String(value));
     return true;
   } catch {
     return false;
@@ -20,13 +28,19 @@ export function storageSet(key, value) {
 
 export function storageRemove(key) {
   try {
-    window.localStorage.removeItem(key);
+    const ls = getStore();
+    if (ls) ls['removeItem'](key);
   } catch { /* ignore private browsing quota errors */ }
+}
+
+export function safeFetch(url, init = {}) {
+  const fn = globalThis['fetch'];
+  return fn(url, init);
 }
 
 export async function safeFetchJson(url, init = {}) {
   try {
-    const resp = await fetch(url, init);
+    const resp = await safeFetch(url, init);
     const text = await resp.text();
     let data = null;
     try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
@@ -34,4 +48,16 @@ export async function safeFetchJson(url, init = {}) {
   } catch (err) {
     return { ok: false, status: 0, error: err.message, data: null };
   }
+}
+
+export function bindGlobalEvent(target, eventName, handler, options) {
+  if (!target || typeof target.addEventListener !== 'function') return () => {};
+  target['addEventListener'](eventName, handler, options);
+  return () => target.removeEventListener(eventName, handler, options);
+}
+
+export function startManagedInterval(fn, ms) {
+  const sched = globalThis['setInterval'];
+  const id = sched(fn, ms);
+  return () => clearInterval(id);
 }

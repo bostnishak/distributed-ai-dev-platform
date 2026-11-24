@@ -1,5 +1,6 @@
 // Small DOM and formatting helpers shared by the views. No framework, no CDN: the UI must
 // work fully offline, like the rest of the system.
+import { safeFetch } from './storage.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -69,7 +70,7 @@ export async function api(path, options = {}) {
   const headers = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)
     ? csrfHeaders(options.headers || {})
     : (options.headers || {});
-  const resp = await fetch(path, { ...options, headers });
+  const resp = await safeFetch(path, { ...options, headers });
   const text = await resp.text();
   let data = null;
   if (text) {

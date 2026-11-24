@@ -2,6 +2,7 @@
 // usage statistics, personalization, cross-chat memory and data controls. No framework, no CDN.
 import { renderSectionAppearance, renderSectionAssistant, renderSectionOverview, renderSectionProfile } from './personal_charts.js';
 import { renderSectionData, renderSectionMcp, renderSectionMemory } from './personal_sections.js';
+import { bindGlobalEvent, storageGet, storageSet } from './storage.js';
 import { api, formatNumber, h, svg } from './util.js';
 
 const LS_USER = 'cm6453_user_id';
@@ -18,7 +19,7 @@ const DEFAULTS = {
 const ACCENTS = { indigo: '#4f46e5', teal: '#0d9488', emerald: '#059669', rose: '#e11d48', amber: '#d97706', slate: '#475569' };
 const ACCENT_LABELS = { indigo: 'Çivit', teal: 'Turkuaz', emerald: 'Zümrüt', rose: 'Gül', amber: 'Kehribar', slate: 'Arduvaz' };
 
-let activeUserId = localStorage.getItem(LS_USER) || 'default';
+let activeUserId = storageGet(LS_USER, 'default') || 'default';
 let profile = null;
 let avatarColors = Object.values(ACCENTS);
 const listeners = new Set();
@@ -27,7 +28,7 @@ export function getActiveUserId() { return activeUserId; }
 
 export function getPrefs() {
   if (profile) return profile.settings;
-  try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(LS_PREFS) || '{}') }; } catch { return { ...DEFAULTS }; }
+  try { return { ...DEFAULTS, ...JSON.parse(storageGet(LS_PREFS, '{}') || '{}') }; } catch { return { ...DEFAULTS }; }
 }
 
 export function onPrefsChange(fn) { listeners.add(fn); }
@@ -67,7 +68,7 @@ export function applyPrefs(s) {
   root.dataset.font = s.font_size;
   root.dataset.density = s.density;
   root.dataset.motion = s.reduce_motion ? 'reduced' : 'normal';
-  try { localStorage.setItem(LS_PREFS, JSON.stringify(s)); } catch { /* storage unavailable */ }
+  storageSet(LS_PREFS, JSON.stringify(s));
   renderCard();
   listeners.forEach((fn) => fn(s));
 }
@@ -342,7 +343,7 @@ async function sectionProfile(body) {
 }
 
 function switchProfile(uid) {
-  localStorage.setItem(LS_USER, uid);
+  storageSet(LS_USER, uid);
   location.reload();
 }
 
@@ -463,7 +464,7 @@ export function openPanel(section = 'overview') {
 
   overlay = h('div', { class: 'sp-overlay' }, h('div', { class: 'sp-modal', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Kişisel alan' }, rail, content));
   overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) closePanel(); });
-  document.addEventListener('keydown', onKey);
+  bindGlobalEvent(document, 'keydown', onKey);
   document.body.append(overlay);
   show(section);
 }
@@ -486,7 +487,7 @@ export async function initPersonalSpace() {
     });
     sync();
   }
-  document.addEventListener('usage-updated', refreshMonthTokens);
+  bindGlobalEvent(document, 'usage-updated', refreshMonthTokens);
   await loadProfile();
   refreshMonthTokens();
 }

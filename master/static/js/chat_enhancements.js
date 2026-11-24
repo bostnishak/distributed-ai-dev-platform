@@ -1,4 +1,5 @@
 // F204 Chat & Accessibility Enhancements: SOH-01..10, ERI-01..05, DOS-03, DOS-06 (offline, zero CDN, zero emojis).
+import { bindGlobalEvent, safeFetchJson, storageGet, storageRemove, storageSet } from './storage.js';
 import { h } from './util.js';
 
 const DRAFT_KEY = 'cm6453_chat_draft';
@@ -36,14 +37,12 @@ export function applyFontScale(scale) {
 }
 
 export function saveDraft(text) {
-  try {
-    if (text && text.trim()) localStorage.setItem(DRAFT_KEY, text);
-    else localStorage.removeItem(DRAFT_KEY);
-  } catch { /* storage unavailable */ }
+  if (text && text.trim()) storageSet(DRAFT_KEY, text);
+  else storageRemove(DRAFT_KEY);
 }
 
 export function loadDraft() {
-  try { return localStorage.getItem(DRAFT_KEY) || ''; } catch { return ''; }
+  return storageGet(DRAFT_KEY, '') || '';
 }
 
 export function autoTitle(firstPrompt) {
@@ -76,10 +75,10 @@ export function continueGenerationPrompt(partialText) {
 }
 
 export async function archiveChat(chatId, archived = true) {
-  const resp = await fetch(`/api/productivity/chats/${encodeURIComponent(chatId)}/archive?archived=${archived}`, { method: 'POST' });
-  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  const res = await safeFetchJson(`/api/productivity/chats/${encodeURIComponent(chatId)}/archive?archived=${archived}`, { method: 'POST' });
+  if (!res.ok) throw new Error(res.error || `HTTP ${res.status}`);
   showToast(archived ? 'Sohbet arşive alındı.' : 'Sohbet arşivden çıkarıldı.');
-  return resp.json();
+  return res.data;
 }
 
 export function renderCsvPreview(csvText) {
@@ -153,7 +152,7 @@ export function initChatEnhancements() {
       }
     });
   }
-  document.addEventListener('keydown', (e) => {
+  bindGlobalEvent(document, 'keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === '/') {
       e.preventDefault();
       openKeyboardShortcutsModal();

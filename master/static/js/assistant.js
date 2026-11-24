@@ -18,6 +18,7 @@ import { escapeHtml, renderMarkdown } from './markdown.js';
 import { getActiveUserId, getPrefs } from './personal.js';
 import { buildBranchLink, buildExtraActions, notifyAnswerReady, regenerateLast, requestNotifyPermission } from './message_tools.js';
 import { appendSanitizedHtml, setSanitizedHtml } from './sanitizer.js';
+import { bindGlobalEvent, safeFetch, startManagedInterval, storageRemove, storageSet } from './storage.js';
 import { closeSidebar } from './util.js';
 import { parseSlashAndMentions, renderConfidenceBadgeHtml } from './ux_shell.js';
 
@@ -98,7 +99,7 @@ function openChat(id) {
   if (!chat) return;
   state.currentChatId = id;
   state.unreadCompletedChats.delete(id);
-  try { localStorage.setItem(storageKeys().lastChatKey, id); } catch { /* ignore */ }
+  storageSet(storageKeys().lastChatKey, id);
   state.currentMessages = (chat.messages || []).slice();
   els.messages.replaceChildren();
   ensureStarted();
@@ -254,7 +255,7 @@ async function sendMessage(overridePrompt = null) {
   const startedAt = performance.now();
   let stageIdx = 0;
   let streaming = false;
-  const thinkTicker = setInterval(() => {
+  const thinkTicker = startManagedInterval(() => {
     const sec = (performance.now() - startedAt) / 1000;
     const secStr = `${Math.floor(sec)} sn`;
     if (!streaming) {
@@ -294,7 +295,7 @@ async function sendMessage(overridePrompt = null) {
     formData.append('conversation_id', targetChatId || '');
     if (fileToSend) formData.append('file', fileToSend);
 
-    const resp = await fetch('/api/assistant/chat/stream', { method: 'POST', body: formData, signal: controller.signal });
+    const resp = await safeFetch('/api/assistant/chat/stream', { method: 'POST', body: formData, signal: controller.signal });
     if (!resp.ok) {
       const data = await resp.json().catch(() => ({}));
       const errText = data.detail || 'Bilinmeyen hata';
@@ -397,7 +398,7 @@ async function sendMessage(overridePrompt = null) {
       appendAssistantMessageToChat(targetChatId, { role: 'assistant', text: errText, modelBadge: null, isError: true });
     }
   } finally {
-    clearInterval(thinkTicker);
+    if (typeof thinkTicker === 'function') thinkTicker();
     bubble.classList.remove('thinking', 'streaming');
     streamBar.remove();
     state.activeStreams.delete(targetChatId);
@@ -463,7 +464,8 @@ export function initAssistant() {
       try {
         await navigator.clipboard.writeText(codeEl.textContent || '');
         copyBtn.textContent = 'Kopyalandı'; copyBtn.classList.add('copied');
-        setTimeout(() => { copyBtn.textContent = 'Kopyala'; copyBtn.classList.remove('copied'); }, 1600);
+        const COPY_MS = 1600;
+        setTimeout(() => { copyBtn.textContent = 'Kopyala'; copyBtn.classList.remove('copied'); }, COPY_MS);
       } catch { copyBtn.textContent = 'Kopyalanamadı'; }
       return;
     }
@@ -472,15 +474,15 @@ export function initAssistant() {
   initVoiceRecognition(els, syncSendBtnState);
   showRunButtonsIfEnabled();
 
-  document.addEventListener('open-saved-chat', (e) => {
+  bindGlobalEvent(document, 'open-saved-chat', (e) => {
     const cid = e.detail && e.detail.chatId;
     if (!cid) return;
     if (location.hash !== '#/assistant') location.hash = '#/assistant';
     openChat(cid);
   });
-  document.addEventListener('chats-wiped', () => {
+  bindGlobalEvent(document, 'chats-wiped', () => {
     saveChats({});
-    try { localStorage.removeItem(storageKeys().lastChatKey); } catch { /* ignore */ }
+    storageRemove(storageKeys().lastChatKey);
     startNewChat(true);
   });
 

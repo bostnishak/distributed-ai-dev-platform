@@ -1,4 +1,6 @@
 // AI Project Studio / Workspace Builder (VS Code / Antigravity-style Explorer + Editor + Live Preview + EXE Builder).
+import { safeFetch } from './storage.js';
+import { uiPrompt } from './ui_dialog.js';
 import { api, h } from './util.js';
 
 let activeWsId = null;
@@ -287,7 +289,7 @@ export async function renderStudio(root) {
 
   newFileBtn.addEventListener('click', async () => {
     if (!activeWsId) return;
-    const rel = prompt('Yeni dosya yolu (ör. js/utils.js veya game/levels.py):');
+    const rel = await uiPrompt('Yeni dosya yolu (ör. js/utils.js veya game/levels.py):', '', 'Yeni Dosya');
     if (!rel || !rel.trim()) return;
     try {
       await api(`/api/studio/workspaces/${activeWsId}/file`, {
@@ -393,7 +395,7 @@ export async function renderStudio(root) {
     iterBtn.disabled = true;
     clearLog('AI Proje Oluşturucu başlatıldı...');
     try {
-      const resp = await fetch('/api/studio/generate', {
+      const resp = await safeFetch('/api/studio/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: promptText, project_type: typeSelect.value }),
@@ -414,7 +416,7 @@ export async function renderStudio(root) {
     iterBtn.disabled = true;
     clearLog(`Mevcut proje (${activeWsMeta?.name}) güncelleniyor...`);
     try {
-      const resp = await fetch(`/api/studio/workspaces/${activeWsId}/iterate`, {
+      const resp = await safeFetch(`/api/studio/workspaces/${activeWsId}/iterate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ instruction: instr }),

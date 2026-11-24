@@ -10,6 +10,7 @@ import { renderArtifacts, renderFiles, renderShare } from './panels.js';
 import { initPersonalSpace } from './personal.js';
 import { renderNewProject, renderProjectDetail, renderProjects } from './projects.js';
 import { createReactiveStore } from './store.js';
+import { bindGlobalEvent, startManagedInterval } from './storage.js';
 import { closeSidebar, isDesktop, openSidebar } from './util.js';
 import { announceAriaLive, fetchHealthWizardStatus } from './ux_shell.js';
 
@@ -54,7 +55,7 @@ let pollTimer = null;
 let routeToken = 0;
 
 function stopPoll() {
-  if (pollTimer) clearInterval(pollTimer);
+  if (typeof pollTimer === 'function') pollTimer();
   pollTimer = null;
 }
 
@@ -92,7 +93,7 @@ function route() {
     stopPoll,
     poll(fn, ms) {
       stopPoll();
-      pollTimer = setInterval(async () => {
+      pollTimer = startManagedInterval(async () => {
         if (token !== routeToken) return stopPoll();
         try { await fn(); } catch { /* transient network error: try again on the next tick */ }
       }, ms);
@@ -109,7 +110,7 @@ document.getElementById('sidebarToggle').addEventListener('click', () => {
   document.getElementById('sidebar').classList.contains('open') ? closeSidebar() : openSidebar();
 });
 document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
-window.addEventListener('hashchange', route);
+bindGlobalEvent(window, 'hashchange', route);
 
 initAssistant();
 initChatEnhancements();

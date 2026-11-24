@@ -1,4 +1,5 @@
 // UX-02 Modular Split: Personal Space Memory, Data/Privacy & MCP Connector sections (<= 500 lines).
+import { uiPrompt } from './ui_dialog.js';
 import { api, formatDateTime, h } from './util.js';
 
 export async function renderSectionMemory(body, ctx) {
@@ -113,7 +114,7 @@ export function renderSectionData(body, ctx) {
     type: 'button',
     class: 'sp-btn',
     onClick: async () => {
-      const pwd = prompt('Şifreli AES-256 yedek için parola belirleyin (boş bırakırsanız yerel anahtar kullanılır):', '');
+      const pwd = await uiPrompt('Şifreli AES-256 yedek için parola belirleyin (boş bırakırsanız yerel anahtar kullanılır):', '', 'Şifreli Yedek');
       if (pwd === null) return;
       const q = pwd.trim() ? `?password=${encodeURIComponent(pwd.trim())}` : '';
       window.location.href = `/api/admin/backup.zip${q}`;
@@ -164,7 +165,7 @@ export async function renderSectionMcp(body, ctx) {
             class: 'sp-btn sm',
             title: t.description || t.name,
             onClick: async () => {
-              const rawArgs = prompt(`"${t.name}" aracı için JSON argümanları (boş bırakabilirsiniz):`, '{}');
+              const rawArgs = await uiPrompt(`"${t.name}" aracı için JSON argümanları (boş bırakabilirsiniz):`, '{}', 'MCP Araç Argümanı');
               if (rawArgs === null) return;
               let parsed = {};
               try { parsed = rawArgs.trim() ? JSON.parse(rawArgs) : {}; } catch { setStatus('Geçersiz JSON argümanı.'); return; }
@@ -220,7 +221,7 @@ export async function renderSectionMcp(body, ctx) {
   }
 
   const nameIn = h('input', { class: 'sp-input', type: 'text', placeholder: 'Bağlayıcı adı (ör. GitHub MCP, Notion, Özel API)' });
-  const urlIn = h('input', { class: 'sp-input', type: 'url', placeholder: 'MCP Sunucu URL (ör. https://mcp.example.com/mcp)' });
+  const urlIn = h('input', { class: 'sp-input', type: 'url', placeholder: 'MCP Sunucu URL (ör. mcp.example.local/mcp)' });
   const keyIn = h('input', { class: 'sp-input', type: 'password', placeholder: 'MCP Connector API Key / Bearer Token (opsiyonel)' });
   const hdrIn = h('input', { class: 'sp-input', type: 'text', value: 'Authorization', placeholder: 'Başlık (Authorization veya X-API-Key)' });
   const addBtn = h('button', {

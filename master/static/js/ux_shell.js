@@ -3,6 +3,7 @@
  */
 
 import { sanitizeHtmlOrSvg } from './sanitizer.js';
+import { safeFetchJson } from './storage.js';
 import { translate } from './i18n.js';
 
 export const SLASH_COMMAND_MAP = Object.freeze({
@@ -48,15 +49,15 @@ export function announceAriaLive(message) {
 }
 
 export async function submitRunFeedback({ runId, rating, reasonTags = [], note = '' }) {
-  const resp = await fetch('/api/orchestrator/feedback', {
+  const res = await safeFetchJson('/api/orchestrator/feedback', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ run_id: runId, rating, reason_tags: reasonTags, note }),
   });
-  return resp.ok ? resp.json() : null;
+  return res.ok ? res.data : null;
 }
 
 export async function fetchHealthWizardStatus() {
-  const resp = await fetch('/api/ux/health-wizard');
-  return resp.ok ? resp.json() : null;
+  const res = await safeFetchJson('/api/ux/health-wizard');
+  return res.ok ? res.data : null;
 }

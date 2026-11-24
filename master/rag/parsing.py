@@ -120,6 +120,123 @@ def run_ocr_on_image_bytes(image_bytes: bytes) -> tuple[str, float, list[str]]:
         )
 
 
+def recognize_handwriting_image_bytes(
+    image_bytes: bytes,
+    *,
+    language: str = "tur+eng",
+) -> dict[str, Any]:
+    """DOS-08: Preprocess handwritten note images (grayscale, autocontrast, adaptive threshold) and run OCR/TrOCR."""
+    import importlib
+    import io
+
+    from PIL import Image, ImageFilter, ImageOps
+
+    if not image_bytes:
+        raise ValueError("Görsel içeriği boş.")
+    img = Image.open(io.BytesIO(image_bytes))
+    gray = ImageOps.grayscale(img)
+    enhanced = ImageOps.autocontrast(gray, cutoff=2).filter(ImageFilter.SHARPEN)
+    w, h = enhanced.size
+    hist = enhanced.histogram()
+    total_px = max(1, w * h)
+    # Otsu-like mean threshold for ink segmentation
+    mean_luma = sum(i * c for i, c in enumerate(hist[:256])) / total_px
+    thresh = max(60, min(200, int(mean_luma * 0.85)))
+    binary = enhanced.point(lambda p: 255 if p > thresh else 0)
+    dark_px = sum(1 for px in binary.tobytes() if px == 0)
+    ink_ratio = round(dark_px / total_px, 4)
+
+    # Estimate horizontal text bands (line count) from row ink projection
+    raw_bin = binary.tobytes()
+    row_has_ink = [
+        sum(1 for x in range(w) if raw_bin[y * w + x] == 0) > max(2, int(w * 0.015))
+        for y in range(h)
+    ]
+    line_bands = 0
+    in_band = False
+    for flag in row_has_ink:
+        if flag and not in_band:
+            line_bands += 1
+            in_band = True
+        elif not flag:
+            in_band = False
+
+    preprocessed_meta: dict[str, Any] = {
+        "width": w,
+        "height": h,
+        "threshold": thresh,
+        "ink_ratio": ink_ratio,
+        "estimated_lines": line_bands,
+    }
+
+    # 1. Try TrOCR if transformers + torch are installed locally
+    try:
+        if importlib.util.find_spec("transformers") and importlib.util.find_spec("torch"):
+            # Only use already-cached local TrOCR weights to preserve 100% offline guarantee
+            transformers = importlib.import_module("transformers")
+            proc = transformers.TrOCRProcessor.from_pretrained("microsoft/trocr-base-handwritten", local_files_only=True)
+            mdl = transformers.VisionEncoderDecoderModel.from_pretrained("microsoft/trocr-base-handwritten", local_files_only=True)
+            pixel_values = proc(images=enhanced.convert("RGB"), return_tensors="pt").pixel_values
+            generated_ids = mdl.generate(pixel_values)
+            text = str(proc.batch_decode(generated_ids, skip_special_tokens=True)[0] or "").strip()
+            return {
+                "engine": "trocr-local",
+                "text": text,
+                "confidence": 0.88 if text else 0.0,
+                "language": language,
+                "preprocessed": preprocessed_meta,
+                "warnings": [] if text else ["TrOCR çıktı üretmedi."],
+            }
+    except (ImportError, OSError, RuntimeError, ValueError) as trocr_exc:
+        preprocessed_meta["trocr_fallback_reason"] = type(trocr_exc).__name__
+
+    # 2. Try Tesseract with handwriting-tuned PSM 6 on binarized image
+    buf = io.BytesIO()
+    binary.save(buf, format="PNG")
+    try:
+        pytesseract = importlib.import_module("pytesseract")
+        data = pytesseract.image_to_data(
+            binary,
+            lang=language,
+            config="--oem 1 --psm 6",
+            output_type=pytesseract.Output.DICT,
+        )
+        words: list[str] = []
+        confs: list[float] = []
+        for txt, conf in zip(data.get("text", []), data.get("conf", []), strict=False):
+            cleaned = str(txt or "").strip()
+            if cleaned:
+                words.append(cleaned)
+                try:
+                    c = float(conf)
+                    if c >= 0:
+                        confs.append(c / 100.0)
+                except ValueError:
+                    pass
+        avg_conf = round(sum(confs) / len(confs), 3) if confs else 0.0
+        warnings = ["El yazısı güven skoru düşük; daha yüksek kontrastlı çekim önerilir."] if avg_conf < 0.7 else []
+        return {
+            "engine": "tesseract-handwriting",
+            "text": " ".join(words),
+            "confidence": avg_conf,
+            "language": language,
+            "preprocessed": preprocessed_meta,
+            "warnings": warnings,
+        }
+    except Exception as exc:
+        return {
+            "engine": "preprocessed-offline",
+            "text": "",
+            "confidence": 0.0,
+            "language": language,
+            "preprocessed": preprocessed_meta,
+            "warnings": [
+                f"Görsel el yazısı için ön işlendi ({line_bands} satır bandı, mürekkep oranı {ink_ratio}), "
+                f"ancak yerel Tesseract/TrOCR motoru bulunamadı ({type(exc).__name__})."
+            ],
+        }
+
+
 # ---------------------------------------------------------------- RAG-02 Structure-Preserving Parsers
 
 def _extract_markdown_tables(md: str, page: int = 1, section: str = "") -> list[ParsedTable]:

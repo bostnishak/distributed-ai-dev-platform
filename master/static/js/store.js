@@ -2,6 +2,8 @@
  * UX-03 & UX-16: Versioned Reactive Store with localStorage Migration & Private-Window Fallback.
  */
 
+import { storageGet, storageSet } from './storage.js';
+
 export const STORAGE_SCHEMA_VERSION = 2;
 const STORAGE_KEY = 'platform_ui_state_v2';
 
@@ -16,20 +18,11 @@ export const DEFAULT_SETTINGS = Object.freeze({
 });
 
 function safeReadStorage(key) {
-  try {
-    return window.localStorage.getItem(key);
-  } catch (_) {
-    return null;
-  }
+  return storageGet(key, null);
 }
 
 function safeWriteStorage(key, value) {
-  try {
-    window.localStorage.setItem(key, value);
-    return true;
-  } catch (_) {
-    return false;
-  }
+  return storageSet(key, value);
 }
 
 export function migrateState(rawObj) {

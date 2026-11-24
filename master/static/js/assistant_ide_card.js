@@ -7,6 +7,8 @@ import {
   wsSvgIcon,
 } from './assistant_ide_render.js';
 import { setSanitizedHtml } from './sanitizer.js';
+import { safeFetchJson } from './storage.js';
+import { uiPrompt } from './ui_dialog.js';
 import { mountOfflineCodeEditor } from '../vendor/code_editor.js';
 
 export function buildInlineWorkspaceCard(wsMeta, wsTree) {
@@ -63,12 +65,10 @@ export function buildInlineWorkspaceCard(wsMeta, wsTree) {
     launchBtn.addEventListener('click', async () => {
       launchBtn.disabled = true;
       launchBtn.textContent = 'Açılıyor...';
-      try {
-        const r = await fetch(`/api/studio/workspaces/${wsId}/launch-exe`, { method: 'POST' });
-        launchBtn.textContent = r.ok ? 'Açıldı' : 'Açılamadı';
-      } catch { launchBtn.textContent = 'Hata'; } finally {
-        setTimeout(() => { launchBtn.disabled = false; launchBtn.textContent = 'EXE Çalıştır'; }, 1800);
-      }
+      const r = await safeFetchJson(`/api/studio/workspaces/${wsId}/launch-exe`, { method: 'POST' });
+      launchBtn.textContent = r.ok ? 'Açıldı' : 'Açılamadı';
+      const RESET_MS = 1800;
+      setTimeout(() => { launchBtn.disabled = false; launchBtn.textContent = 'EXE Çalıştır'; }, RESET_MS);
     });
     const dlExe = document.createElement('a');
     dlExe.className = 'ide-btn';
@@ -88,17 +88,14 @@ export function buildInlineWorkspaceCard(wsMeta, wsTree) {
     exeBtn.addEventListener('click', async () => {
       exeBtn.disabled = true;
       exeBtn.textContent = 'Derleniyor...';
-      try {
-        const resp = await fetch(`/api/studio/workspaces/${wsId}/build-exe`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}',
-        });
-        const res = await resp.json();
-        if (res.ok) {
-          exeBtn.remove();
-          typeBadge.textContent = 'WINDOWS .EXE';
-          appendExeButtons(res.exe_name);
-        } else { exeBtn.textContent = 'Hata'; }
-      } catch { exeBtn.textContent = 'Hata'; }
+      const r = await safeFetchJson(`/api/studio/workspaces/${wsId}/build-exe`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}',
+      });
+      if (r.ok && r.data && r.data.ok) {
+        exeBtn.remove();
+        typeBadge.textContent = 'WINDOWS .EXE';
+        appendExeButtons(r.data.exe_name);
+      } else { exeBtn.textContent = 'Hata'; }
     });
     actions.appendChild(exeBtn);
   }
@@ -116,30 +113,26 @@ export function buildInlineWorkspaceCard(wsMeta, wsTree) {
   verSelect.title = 'Sürüm Geçmişi (Geri Al)';
   verSelect.hidden = true;
   async function refreshVersions() {
-    try {
-      const r = await fetch(`/api/studio/workspaces/${wsId}/history`);
-      if (!r.ok) return;
-      const d = await r.json();
-      const vers = d.versions || [];
-      if (vers.length > 0) {
-        verSelect.replaceChildren();
-        for (const v of vers) {
-          const opt = document.createElement('option');
-          opt.value = v.version;
-          opt.textContent = `${v.version}: ${(v.label || '').slice(0, 22)}`;
-          verSelect.appendChild(opt);
-        }
-        verSelect.hidden = false;
+    const r = await safeFetchJson(`/api/studio/workspaces/${wsId}/history`);
+    if (!r.ok || !r.data) return;
+    const vers = r.data.versions || [];
+    if (vers.length > 0) {
+      verSelect.replaceChildren();
+      for (const v of vers) {
+        const opt = document.createElement('option');
+        opt.value = v.version;
+        opt.textContent = `${v.version}: ${(v.label || '').slice(0, 22)}`;
+        verSelect.appendChild(opt);
       }
-    } catch { /* ignore */ }
+      verSelect.hidden = false;
+    }
   }
   verSelect.addEventListener('change', async () => {
     const v = verSelect.value;
     if (!v) return;
-    const r = await fetch(`/api/studio/workspaces/${wsId}/restore/${v}`, { method: 'POST' });
-    if (r.ok) {
-      const d = await r.json();
-      currentTree = d.tree || currentTree;
+    const r = await safeFetchJson(`/api/studio/workspaces/${wsId}/restore/${v}`, { method: 'POST' });
+    if (r.ok && r.data) {
+      currentTree = r.data.tree || currentTree;
       fileCache.clear();
       renderTree();
       if (activePath) selectFile(activePath);
@@ -338,13 +331,11 @@ export function buildInlineWorkspaceCard(wsMeta, wsTree) {
     renderTree();
     if (fileCache.has(path)) { renderCodeView(fileCache.get(path), path); return; }
     renderCodeView('// Yükleniyor...', path);
-    try {
-      const resp = await fetch(`/api/studio/workspaces/${wsId}/file?path=${encodeURIComponent(path)}`);
-      const data = await resp.json();
-      const text = data.content || '';
-      fileCache.set(path, text);
-      if (activePath === path) renderCodeView(text, path);
-    } catch (err) { renderCodeView(`// Dosya okunamadı: ${err.message}`, path); }
+    const r = await safeFetchJson(`/api/studio/workspaces/${wsId}/file?path=${encodeURIComponent(path)}`);
+    if (!r.ok) { renderCodeView(`// Dosya okunamadı: ${r.error || r.status}`, path); return; }
+    const text = (r.data && r.data.content) || '';
+    fileCache.set(path, text);
+    if (activePath === path) renderCodeView(text, path);
   }
 
   function renderTree() {
@@ -376,7 +367,8 @@ export function buildInlineWorkspaceCard(wsMeta, wsTree) {
     try {
       await navigator.clipboard.writeText(editMode ? rawTextarea.value : activeContent);
       copyCodeBtn.textContent = 'Kopyalandı';
-      setTimeout(() => { copyCodeBtn.textContent = 'Kopyala'; }, 1400);
+      const COPY_MS = 1400;
+      setTimeout(() => { copyCodeBtn.textContent = 'Kopyala'; }, COPY_MS);
     } catch { /* clipboard unavailable */ }
   });
 
@@ -386,19 +378,17 @@ export function buildInlineWorkspaceCard(wsMeta, wsTree) {
     diffMode = !diffMode;
     diffToggleBtn.classList.toggle('primary', diffMode);
     if (!diffMode) { renderCodeView(activeContent, activePath); return; }
-    try {
-      const r = await fetch(`/api/studio/workspaces/${wsId}/diff?path=${encodeURIComponent(activePath)}`);
-      const d = await r.json();
-      const lines = (d.diff || '').split('\n');
-      setSanitizedHtml(gutter, lines.map((_, i) => `<div>${i + 1}</div>`).join(''));
-      setSanitizedHtml(codeBlock, lines.map((ln) => {
-        const esc = ln.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        if (ln.startsWith('+') && !ln.startsWith('+++')) return `<div class="diff-add">${esc}</div>`;
-        if (ln.startsWith('-') && !ln.startsWith('---')) return `<div class="diff-del">${esc}</div>`;
-        if (ln.startsWith('@@')) return `<div class="diff-hunk">${esc}</div>`;
-        return `<div>${esc}</div>`;
-      }).join(''));
-    } catch { diffMode = false; }
+    const r = await safeFetchJson(`/api/studio/workspaces/${wsId}/diff?path=${encodeURIComponent(activePath)}`);
+    if (!r.ok || !r.data) { diffMode = false; return; }
+    const lines = (r.data.diff || '').split('\n');
+    setSanitizedHtml(gutter, lines.map((_, i) => `<div>${i + 1}</div>`).join(''));
+    setSanitizedHtml(codeBlock, lines.map((ln) => {
+      const esc = ln.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      if (ln.startsWith('+') && !ln.startsWith('+++')) return `<div class="diff-add">${esc}</div>`;
+      if (ln.startsWith('-') && !ln.startsWith('---')) return `<div class="diff-del">${esc}</div>`;
+      if (ln.startsWith('@@')) return `<div class="diff-hunk">${esc}</div>`;
+      return `<div>${esc}</div>`;
+    }).join(''));
   });
 
   secScanBtn.addEventListener('click', async () => {
@@ -431,29 +421,29 @@ export function buildInlineWorkspaceCard(wsMeta, wsTree) {
     if (!activePath) return;
     saveFileBtn.disabled = true;
     saveFileBtn.textContent = 'Kaydediliyor...';
-    try {
-      await fetch(`/api/studio/workspaces/${wsId}/file`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path: activePath, content: rawTextarea.value }),
-      });
+    const res = await safeFetchJson(`/api/studio/workspaces/${wsId}/file`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: activePath, content: rawTextarea.value }),
+    });
+    if (res.ok) {
       fileCache.set(activePath, rawTextarea.value);
       editMode = false; codeBlock.hidden = false; rawTextarea.hidden = true; saveFileBtn.hidden = true;
       editToggleBtn.textContent = 'Düzenle';
       renderCodeView(rawTextarea.value, activePath);
       if (viewMode === 'split') iframe.src = `/api/studio/workspaces/${wsId}/preview/index.html?t=${Date.now()}`;
-    } finally { saveFileBtn.disabled = false; saveFileBtn.textContent = 'Kaydet'; }
+    }
+    saveFileBtn.disabled = false; saveFileBtn.textContent = 'Kaydet';
   });
 
   newFileBtn.addEventListener('click', async () => {
-    const rel = prompt('Yeni dosya yolu (ör. css/theme.css veya js/modal.js):');
+    const rel = await uiPrompt('Yeni dosya yolu (ör. css/theme.css veya js/modal.js):', '', 'Yeni Dosya');
     if (!rel || !rel.trim()) return;
     const clean = rel.trim();
-    await fetch(`/api/studio/workspaces/${wsId}/file`, {
+    await safeFetchJson(`/api/studio/workspaces/${wsId}/file`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: clean, content: '' }),
     });
-    const tResp = await fetch(`/api/studio/workspaces/${wsId}/tree`);
-    const tData = await tResp.json();
-    currentTree = tData.tree || currentTree;
+    const tRes = await safeFetchJson(`/api/studio/workspaces/${wsId}/tree`);
+    currentTree = (tRes.data && tRes.data.tree) || currentTree;
     fileCache.set(clean, '');
     await selectFile(clean);
   });

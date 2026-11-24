@@ -1,5 +1,6 @@
 // UX-02 Modular Split: Chat history localStorage + SQLite persistence & sidebar chat list renderer.
 import { getActiveUserId } from './personal.js';
+import { safeFetchJson, storageGet, storageSet } from './storage.js';
 
 export function storageKeys() {
   const uid = getActiveUserId();
@@ -11,16 +12,14 @@ export function storageKeys() {
 
 export function loadChats() {
   try {
-    return JSON.parse(localStorage.getItem(storageKeys().storageKey) || '{}');
+    return JSON.parse(storageGet(storageKeys().storageKey, '{}') || '{}');
   } catch {
     return {};
   }
 }
 
 export function saveChats(chats) {
-  try {
-    localStorage.setItem(storageKeys().storageKey, JSON.stringify(chats));
-  } catch { /* storage unavailable */ }
+  storageSet(storageKeys().storageKey, JSON.stringify(chats));
 }
 
 export function persistChatRecord(chatId, messages, currentChatId, onListChanged) {
@@ -32,51 +31,48 @@ export function persistChatRecord(chatId, messages, currentChatId, onListChanged
   chats[chatId] = record;
   saveChats(chats);
   if (chatId === currentChatId) {
-    try { localStorage.setItem(storageKeys().lastChatKey, chatId); } catch { /* ignore */ }
+    storageSet(storageKeys().lastChatKey, chatId);
   }
   if (typeof onListChanged === 'function') onListChanged();
   const uid = getActiveUserId();
-  fetch(`/api/user/${encodeURIComponent(uid)}/chats/${encodeURIComponent(chatId)}`, {
+  safeFetchJson(`/api/user/${encodeURIComponent(uid)}/chats/${encodeURIComponent(chatId)}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(record),
-  }).catch(() => { /* offline fallback already saved */ });
+  });
 }
 
 export async function syncChatsWithServer(state, callbacks) {
   const uid = getActiveUserId();
   const localChats = loadChats();
-  try {
-    const resp = await fetch(`/api/user/${encodeURIComponent(uid)}/chats`);
-    if (!resp.ok) return;
-    const data = await resp.json();
-    const serverChats = (data && data.chats) || {};
-    const merged = { ...serverChats };
-    const toUpload = [];
-    for (const [cid, lchat] of Object.entries(localChats)) {
-      if (!lchat || !Array.isArray(lchat.messages) || lchat.messages.length === 0) continue;
-      const schat = serverChats[cid];
-      if (!schat || (lchat.updatedAt || 0) > (schat.updatedAt || 0)) {
-        merged[cid] = lchat;
-        toUpload.push([cid, lchat]);
-      }
+  const res = await safeFetchJson(`/api/user/${encodeURIComponent(uid)}/chats`);
+  if (!res.ok || !res.data) return;
+  const serverChats = (res.data && res.data.chats) || {};
+  const merged = { ...serverChats };
+  const toUpload = [];
+  for (const [cid, lchat] of Object.entries(localChats)) {
+    if (!lchat || !Array.isArray(lchat.messages) || lchat.messages.length === 0) continue;
+    const schat = serverChats[cid];
+    if (!schat || (lchat.updatedAt || 0) > (schat.updatedAt || 0)) {
+      merged[cid] = lchat;
+      toUpload.push([cid, lchat]);
     }
-    saveChats(merged);
-    callbacks.renderChatList();
-    for (const [cid, chatObj] of toUpload) {
-      fetch(`/api/user/${encodeURIComponent(uid)}/chats/${encodeURIComponent(cid)}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(chatObj),
-      }).catch(() => { /* ignore */ });
+  }
+  saveChats(merged);
+  callbacks.renderChatList();
+  for (const [cid, chatObj] of toUpload) {
+    safeFetchJson(`/api/user/${encodeURIComponent(uid)}/chats/${encodeURIComponent(cid)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(chatObj),
+    });
+  }
+  if (!state.started && state.currentMessages.length === 0) {
+    const lastId = storageGet(storageKeys().lastChatKey, null);
+    if (lastId && merged[lastId] && merged[lastId].messages && merged[lastId].messages.length > 0) {
+      callbacks.openChat(lastId);
     }
-    if (!state.started && state.currentMessages.length === 0) {
-      const lastId = localStorage.getItem(storageKeys().lastChatKey);
-      if (lastId && merged[lastId] && merged[lastId].messages && merged[lastId].messages.length > 0) {
-        callbacks.openChat(lastId);
-      }
-    }
-  } catch { /* keep localStorage chats */ }
+  }
 }
 
 export function renderSidebarChatList(els, state, callbacks) {

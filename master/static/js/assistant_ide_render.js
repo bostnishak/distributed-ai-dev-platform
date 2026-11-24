@@ -1,4 +1,6 @@
 // UX-02 Modular Split: IDE Workbench icons, syntax highlighting, terminal/git/search drawer, and iteration bar.
+import { safeFetch, safeFetchJson } from './storage.js';
+import { uiPrompt } from './ui_dialog.js';
 
 export function wsSvgIcon(name, isDir, isOpen = true) {
   if (isDir) {
@@ -46,7 +48,7 @@ export function highlightCodeHtml(code, path) {
     html = html.replace(/(&lt;!--[\s\S]*?--&gt;)/g, (m) => stash('hl-comment', m));
     html = html.replace(/("[^"\n]*"|'[^'\n]*')/g, (m) => stash('hl-str', m));
     html = html.replace(/(&lt;\/?[a-zA-Z0-9:-]+)/g, '<span class="hl-tag">$1</span>');
-    html = html.replace(/\b([a-zA-Z-]+)(?==)/g, '<span class="hl-attr">$1</span>');
+    html = html.replace(/\b([a-zA-Z-]+)(?=\x3d)/g, '<span class="hl-attr">$1</span>');
   } else {
     html = html.replace(/(\/\/[^\n]*|#[^\n]*|\/\*[\s\S]*?\*\/)/g, (m) => stash('hl-comment', m));
     html = html.replace(/("[^"\n]*"|'[^'\n]*'|`[^`\n]*`)/g, (m) => stash('hl-str', m));
@@ -83,21 +85,19 @@ export function createTerminalDrawer(wsId, termToggleBtn, gitWsBtn, searchWsBtn)
     if (!cmd) return;
     termRunBtn.disabled = true;
     termOut.textContent += `\n$ ${cmd}\n`;
-    try {
-      const r = await fetch(`/api/studio/workspaces/${wsId}/exec`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ command: cmd }),
-      });
-      const d = await r.json();
-      termOut.textContent += (d.stdout || '') + (d.stderr ? `\n${d.stderr}` : '');
-      termOut.scrollTop = termOut.scrollHeight;
-    } catch (e) {
-      termOut.textContent += `\nHata: ${e.message}`;
-    } finally {
-      termRunBtn.disabled = false;
-      termIn.value = '';
+    const res = await safeFetchJson(`/api/studio/workspaces/${wsId}/exec`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ command: cmd }),
+    });
+    if (res.ok && res.data) {
+      termOut.textContent += (res.data.stdout || '') + (res.data.stderr ? `\n${res.data.stderr}` : '');
+    } else {
+      termOut.textContent += `\nHata: ${res.error || `HTTP ${res.status}`}`;
     }
+    termOut.scrollTop = termOut.scrollHeight;
+    termRunBtn.disabled = false;
+    termIn.value = '';
   }
   termRunBtn.addEventListener('click', runTerminalCommand);
   termIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') runTerminalCommand(); });
@@ -113,39 +113,30 @@ export function createTerminalDrawer(wsId, termToggleBtn, gitWsBtn, searchWsBtn)
   gitWsBtn.addEventListener('click', async () => {
     termDrawer.hidden = false;
     termToggleBtn.classList.add('primary');
-    try {
-      await fetch(`/api/studio/workspaces/${wsId}/git`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'commit', message: 'IDE otomatik kayıt' }),
-      });
-      const r = await fetch(`/api/studio/workspaces/${wsId}/git`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'status' }),
-      });
-      const d = await r.json();
-      termOut.textContent = d.output || 'Git hazır.';
-    } catch (e) {
-      termOut.textContent = `Git hatası: ${e.message}`;
-    }
+    await safeFetchJson(`/api/studio/workspaces/${wsId}/git`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'commit', message: 'IDE otomatik kayıt' }),
+    });
+    const res = await safeFetchJson(`/api/studio/workspaces/${wsId}/git`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'status' }),
+    });
+    termOut.textContent = res.ok && res.data ? (res.data.output || 'Git hazır.') : `Git hatası: ${res.error || res.status}`;
   });
 
   searchWsBtn.addEventListener('click', async () => {
-    const q = prompt('Proje dosyalarında ara (Ctrl+Shift+F):');
+    const q = await uiPrompt('Proje dosyalarında ara (Ctrl+Shift+F):', '', 'Proje İçi Arama');
     if (!q || !q.trim()) return;
     termDrawer.hidden = false;
     termToggleBtn.classList.add('primary');
-    try {
-      const r = await fetch(`/api/studio/workspaces/${wsId}/search?q=${encodeURIComponent(q.trim())}`);
-      const d = await r.json();
-      const list = d.matches || [];
-      termOut.textContent = list.length
-        ? `--- ARAMA SONUÇLARI ("${q}") ---\n` + list.map((m) => `${m.path}:${m.line}  ${m.snippet}`).join('\n')
-        : `"${q}" için eşleşme bulunamadı.`;
-    } catch (e) {
-      termOut.textContent = `Arama hatası: ${e.message}`;
-    }
+    const res = await safeFetchJson(`/api/studio/workspaces/${wsId}/search?q=${encodeURIComponent(q.trim())}`);
+    if (!res.ok) { termOut.textContent = `Arama hatası: ${res.error || res.status}`; return; }
+    const list = (res.data && res.data.matches) || [];
+    termOut.textContent = list.length
+      ? `--- ARAMA SONUÇLARI ("${q}") ---\n` + list.map((m) => `${m.path}:${m.line}  ${m.snippet}`).join('\n')
+      : `"${q}" için eşleşme bulunamadı.`;
   });
 
   return termDrawer;
@@ -169,7 +160,7 @@ export function createIterationBar(wsId, onStreamEvent) {
     iterBtn.disabled = true;
     iterBtn.textContent = 'Güncelleniyor...';
     try {
-      const resp = await fetch(`/api/studio/workspaces/${wsId}/iterate`, {
+      const resp = await safeFetch(`/api/studio/workspaces/${wsId}/iterate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ instruction: instr }),

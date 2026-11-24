@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
 from access_control import require_local_or_admin
+from rag.parsing import recognize_handwriting_image_bytes
 from rag.store import default_rag_store
 from rag.web import web_search
 from safe_archive import declared_matches_content, scan_active_content
@@ -105,6 +106,39 @@ async def api_ingest_file(
             return result
         except Exception as exc:
             raise HTTPException(status_code=422, detail=f"{name} dizinlenemedi: {exc}") from exc
+
+
+@router.post("/ocr/handwriting", dependencies=_LOCAL_OR_ADMIN)
+async def api_handwriting_ocr(
+    file: Annotated[UploadFile, File()],
+    language: Annotated[str, Form()] = "tur+eng",
+    ingest: Annotated[bool, Form()] = False,
+    collection_id: Annotated[str, Form()] = "default",
+    user_id: Annotated[str, Form()] = "default",
+):
+    """DOS-08: Recognize handwritten notes from an uploaded image (with optional RAG indexing)."""
+    name = Path(file.filename or "handwriting.png").name
+    suffix = Path(name).suffix.lower()
+    if suffix not in {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff"}:
+        raise HTTPException(status_code=415, detail=f"Desteklenmeyen görsel türü: {suffix or 'uzantısız'}")
+    data = await file.read(MAX_UPLOAD_BYTES + 1)
+    if not data:
+        raise HTTPException(status_code=400, detail="Görsel dosyası boş.")
+    if len(data) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="Görsel 25 MB sınırını aşıyor.")
+    try:
+        result = recognize_handwriting_image_bytes(data, language=language)
+    except Exception as exc:
+        raise HTTPException(status_code=422, detail=f"El yazısı işlenemedi: {exc}") from exc
+    if ingest and result.get("text"):
+        ingested = await default_rag_store.ingest_document(
+            collection_id=collection_id,
+            raw_text=str(result["text"]),
+            title=f"[El Yazısı] {name}",
+            user_id=user_id,
+        )
+        result["ingested"] = ingested
+    return {"filename": name, **result}
 
 
 @router.get("/collections/{collection_id}/documents")

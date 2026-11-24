@@ -2,6 +2,7 @@
 // notifications when a long answer finishes in a background tab (UX-25).
 import { downloadText } from './panels.js';
 import { getActiveUserId } from './personal.js';
+import { bindGlobalEvent } from './storage.js';
 import { api, h } from './util.js';
 
 export function chatToMarkdown(messages, title = 'Sohbet') {
@@ -59,8 +60,9 @@ export function notifyAnswerReady(title) {
   } catch { /* fall through to the title indicator */ }
   const original = document.title;
   document.title = '(1) Yanıt hazır';
-  const restore = () => { document.title = original; document.removeEventListener('visibilitychange', restore); };
-  document.addEventListener('visibilitychange', restore);
+  let off = () => {};
+  const restore = () => { document.title = original; off(); };
+  off = bindGlobalEvent(document, 'visibilitychange', restore);
 }
 
 // "Düzenle & Dallandır": cut the chat at this message and put its text back in the input to be edited (UX-08).

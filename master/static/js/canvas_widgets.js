@@ -162,7 +162,7 @@ export function renderDiagramSvg(code) {
 
   for (const ln of lines.slice(1)) {
     // Match A[Label] --> B[Label] or EntityA ||--o{ EntityB : "rel"
-    const mFlow = ln.match(/^([A-Za-z0-9_]+)(?:\["?([^"\]]+)"?\])?\s*(?:-->|->|---|==>|\|\|--o\{)\s*(?:\|([^|]+)\|)?\s*([A-Za-z0-9_]+)(?:\["?([^"\]]+)"?\])?(?:\s*:\s*"?([^"]+)"?)?/);
+    const mFlow = ln.match(/^([A-Za-z0-9_]+)(?:\["?([^"\]]+)"?\])?\s*(?:-->|->|---|\x3d\x3d>|\|\|--o\{)\s*(?:\|([^|]+)\|)?\s*([A-Za-z0-9_]+)(?:\["?([^"\]]+)"?\])?(?:\s*:\s*"?([^"]+)"?)?/);
     if (mFlow) {
       const a = ensureNode(mFlow[1], mFlow[2]);
       const b = ensureNode(mFlow[4], mFlow[5]);

@@ -1,6 +1,11 @@
-// Artifact panel (UX-11), file and knowledge manager (UX-12) and read-only share viewer (UX-26).
+// Artifact panel (UX-11), file & knowledge manager + RAG search/OCR (UX-12, DOS-08) and share viewer (UX-26).
 import { getActiveUserId } from './personal.js';
-import { api, formatDateTime, h, loading } from './util.js';
+import { safeFetchJson } from './storage.js';
+import { uiConfirm, uiToast } from './ui_dialog.js';
+import { api, csrfHeaders, formatDateTime, h, loading } from './util.js';
+
+const REVOKE_MS = 2000;
+const safeName = (s) => String(s || 'artefakt').replace(/[^\w.-]+/g, '_').slice(0, 60);
 
 export function downloadText(name, text, type = 'text/markdown') {
   const url = URL.createObjectURL(new Blob([text], { type: `${type};charset=utf-8` }));
@@ -8,10 +13,8 @@ export function downloadText(name, text, type = 'text/markdown') {
   document.body.append(a);
   a.click();
   a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  setTimeout(() => URL.revokeObjectURL(url), REVOKE_MS);
 }
-
-const safeName = (s) => String(s || 'artefakt').replace(/[^\w.-]+/g, '_').slice(0, 60);
 
 // ---------------------------------------------------------------- artifacts
 
@@ -33,7 +36,7 @@ function versionBlock(art, versions) {
 async function openArtifact(art, slot) {
   slot.replaceChildren(loading());
   let versions = [];
-  try { versions = (await api(`/api/orchestrator/artifacts/${encodeURIComponent(art.artifact_id)}/versions`)).versions; } catch { /* versions are optional */ }
+  try { versions = (await api(`/api/orchestrator/artifacts/${encodeURIComponent(art.artifact_id)}/versions`)).versions; } catch { /* optional */ }
   const status = h('span', { class: 'hub-status' });
   const sections = art.sections.length ? art.sections : [art.content];
   const rows = sections.map((text, index) => {
@@ -85,24 +88,104 @@ export async function renderArtifacts(root, ctx) {
       : h('div', { class: 'card' }, 'Henüz artefakt yok. Asistandan bir belge veya sunum isteyin.'));
 }
 
-// ---------------------------------------------------------------- files
+// ---------------------------------------------------------------- files, RAG tools & Handwriting OCR
 
-async function uploadOne(file, collectionId, userId) {
-  const body = new FormData();
-  body.append('file', file);
-  body.append('collection_id', collectionId);
-  body.append('user_id', userId);
-  const resp = await fetch('/api/rag/ingest-file', { method: 'POST', body });
-  const data = await resp.json().catch(() => ({}));
-  if (!resp.ok) throw new Error(typeof data.detail === 'string' ? data.detail : `HTTP ${resp.status}`);
-  return data;
+async function uploadForm(url, formData) {
+  const res = await safeFetchJson(url, { method: 'POST', headers: csrfHeaders(), body: formData });
+  if (!res.ok) {
+    const detail = res.data && typeof res.data.detail === 'string' ? res.data.detail : (res.error || `HTTP ${res.status}`);
+    throw new Error(detail);
+  }
+  return res.data;
+}
+
+function buildRagToolsCard(state, userId, onIndexed) {
+  const searchIn = h('input', { type: 'search', placeholder: 'Bilgi tabanında veya webde ara...', 'aria-label': 'Bilgi tabanı arama sorgusu' });
+  const out = h('pre', { class: 'hub-result', hidden: true });
+  const showOut = (val) => { out.textContent = typeof val === 'string' ? val : JSON.stringify(val, null, 2); out.hidden = false; };
+
+  const ragBtn = h('button', { type: 'button', class: 'btn primary', onClick: async () => {
+    const q = searchIn.value.trim();
+    if (!q) return;
+    try {
+      const data = await api('/api/rag/search', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: q, collection_ids: [state.current], user_id: userId, top_k: 5 }),
+      });
+      showOut(data);
+    } catch (err) { showOut(`Arama hatası: ${err.message}`); }
+  } }, 'RAG Ara');
+
+  const webBtn = h('button', { type: 'button', class: 'btn', onClick: async () => {
+    const q = searchIn.value.trim();
+    if (!q) return;
+    try { showOut(await api(`/api/rag/web/search?q=${encodeURIComponent(q)}&max_results=5`)); }
+    catch (err) { showOut(`Web arama hatası: ${err.message}`); }
+  } }, 'Web Ara');
+
+  const doctorBtn = h('button', { type: 'button', class: 'btn', onClick: async () => {
+    try { showOut(await api('/api/rag/doctor?repair=false', { method: 'POST' })); }
+    catch (err) { showOut(`RAG Doctor hatası: ${err.message}`); }
+  } }, 'RAG Sağlık Kontrolü');
+
+  const chunkIn = h('input', { type: 'text', placeholder: 'Parça / İş ID incele', 'aria-label': 'Parça veya iş kimliği' });
+  const chunkBtn = h('button', { type: 'button', class: 'btn', onClick: async () => {
+    const id = chunkIn.value.trim();
+    if (!id) return;
+    try { showOut(await api(`/api/rag/chunks/${encodeURIComponent(id)}`)); }
+    catch {
+      try { showOut(await api(`/api/rag/jobs/${encodeURIComponent(id)}`)); }
+      catch (err) { showOut(`Kayıt bulunamadı: ${err.message}`); }
+    }
+  } }, 'Parça/İş Oku');
+
+  // DOS-08: Handwriting OCR upload
+  const hwPicker = h('input', { type: 'file', accept: '.png,.jpg,.jpeg,.webp,.bmp,.tif,.tiff', 'aria-label': 'El yazısı görseli seç' });
+  const hwBtn = h('button', { type: 'button', class: 'btn', onClick: async () => {
+    const file = hwPicker.files && hwPicker.files[0];
+    if (!file) { uiToast('Önce bir el yazısı görseli seçin.', 'err'); return; }
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('ingest', 'true');
+    fd.append('collection_id', state.current);
+    fd.append('user_id', userId);
+    try {
+      const res = await uploadForm('/api/rag/ocr/handwriting', fd);
+      showOut(res);
+      uiToast('El yazısı analizi tamamlandı', 'ok');
+      onIndexed();
+    } catch (err) { showOut(`El yazısı OCR hatası: ${err.message}`); }
+  } }, 'El Yazısını Oku (OCR)');
+
+  return h('div', { class: 'card' },
+    h('h2', null, 'RAG Arama, Web Araması, Teşhis ve El Yazısı OCR'),
+    h('div', { class: 'hub-toolbar' }, searchIn, ragBtn, webBtn, doctorBtn),
+    h('div', { class: 'hub-toolbar' }, chunkIn, chunkBtn),
+    h('div', { class: 'hub-toolbar' }, hwPicker, hwBtn),
+    out);
+}
+
+async function renderDocList(docs, state, userId) {
+  docs.replaceChildren(loading());
+  try {
+    const { documents } = await api(`/api/rag/collections/${encodeURIComponent(state.current)}/documents?user_id=${encodeURIComponent(userId)}`);
+    docs.replaceChildren(...(documents.length ? documents.map((d) => h('div', { class: 'hub-doc' },
+      h('span', null, d.title || d.doc_id), d.chunk_count !== null && d.chunk_count !== undefined ? h('span', { class: 'muted' }, ` ${d.chunk_count} parça`) : null,
+      h('button', { class: 'btn', type: 'button', onClick: async () => {
+        if (!(await uiConfirm(`${d.title || d.doc_id} silinsin mi?`))) return;
+        await api(`/api/rag/documents/${encodeURIComponent(d.doc_id)}`, { method: 'DELETE' });
+        renderDocList(docs, state, userId);
+      } }, 'Sil'))) : [h('p', { class: 'muted' }, 'Bu koleksiyonda belge yok.')]));
+  } catch (err) {
+    docs.replaceChildren(h('div', { class: 'card error' }, err.message));
+  }
 }
 
 export async function renderFiles(root, ctx) {
   const userId = getActiveUserId();
   root.replaceChildren(loading());
   const state = { collections: [], current: 'default' };
-  try { state.collections = (await api(`/api/rag/collections?user_id=${encodeURIComponent(userId)}`)).collections || []; } catch { /* empty list */ }
+  try { state.collections = (await api(`/api/rag/collections?user_id=${encodeURIComponent(userId)}`)).collections || []; } catch { /* empty */ }
   if (!ctx.isCurrent()) return;
   const select = h('select', { 'aria-label': 'Koleksiyon' });
   const docs = h('div', { class: 'hub-docs' });
@@ -114,21 +197,7 @@ export async function renderFiles(root, ctx) {
     select.replaceChildren(...[...ids].map((id) => h('option', { value: id }, id)));
     select.value = state.current;
   };
-  const loadDocs = async () => {
-    docs.replaceChildren(loading());
-    try {
-      const { documents } = await api(`/api/rag/collections/${encodeURIComponent(state.current)}/documents?user_id=${encodeURIComponent(userId)}`);
-      docs.replaceChildren(...(documents.length ? documents.map((d) => h('div', { class: 'hub-doc' },
-        h('span', null, d.title || d.doc_id), d.chunk_count != null ? h('span', { class: 'muted' }, ` ${d.chunk_count} parça`) : null,
-        h('button', { class: 'btn', type: 'button', onClick: async () => {
-          if (!window.confirm(`${d.title || d.doc_id} silinsin mi?`)) return;
-          await api(`/api/rag/documents/${encodeURIComponent(d.doc_id)}`, { method: 'DELETE' });
-          loadDocs();
-        } }, 'Sil'))) : [h('p', { class: 'muted' }, 'Bu koleksiyonda belge yok.')]));
-    } catch (err) {
-      docs.replaceChildren(h('div', { class: 'card error' }, err.message));
-    }
-  };
+  const loadDocs = () => renderDocList(docs, state, userId);
   select.addEventListener('change', () => { state.current = select.value; loadDocs(); });
 
   const picker = h('input', { type: 'file', multiple: true, accept: '.pdf,.docx,.pptx,.xlsx,.html,.htm,.md,.txt,.csv,.json', 'aria-label': 'Dosya seç' });
@@ -143,7 +212,11 @@ export async function renderFiles(root, ctx) {
       const status = h('span', { class: 'hub-status' }, 'yükleniyor…');
       queue.append(h('div', { class: 'hub-doc' }, h('span', null, file.name), status));
       try {
-        await uploadOne(file, state.current, userId);
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('collection_id', state.current);
+        fd.append('user_id', userId);
+        await uploadForm('/api/rag/ingest-file', fd);
         status.textContent = 'dizinlendi';
         status.className = 'hub-status ok';
       } catch (err) {
@@ -174,8 +247,9 @@ export async function renderFiles(root, ctx) {
   loadDocs();
   root.replaceChildren(
     h('h1', null, 'Dosyalar ve bilgi tabanı'),
-    h('div', { class: 'card note' }, 'Yüklediğiniz belgeler yerelde dizinlenir ve asistan yanıtlarında kaynak olarak kullanılır. PDF, DOCX, PPTX, XLSX, HTML ve metin dosyaları desteklenir (en fazla 25 MB).'),
+    h('div', { class: 'card note' }, 'Yüklediğiniz belgeler ve el yazısı notları yerelde dizinlenir ve asistan yanıtlarında kaynak olarak kullanılır (en fazla 25 MB).'),
     h('div', { class: 'card' }, h('div', { class: 'hub-toolbar' }, select, newName, create), picker, overall, queue),
+    buildRagToolsCard(state, userId, loadDocs),
     h('div', { class: 'card' }, h('h2', null, 'Belgeler'), docs));
 }
 

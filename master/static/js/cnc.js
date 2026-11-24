@@ -1,4 +1,5 @@
 // CNC Technical Drawing Ballooning View (AS9102 / ISO 2768-mK).
+import { uiPrompt, uiToast } from './ui_dialog.js';
 import { api, formatDateTime, h } from './util.js';
 
 let currentJob = null;
@@ -151,11 +152,11 @@ export async function renderCnc(root) {
     const balloons = (job.balloons || []).map((b) => ({ ...b }));
     let renderRowsFn = () => {};
 
-    imgEl.addEventListener('click', (ev) => {
+    imgEl.addEventListener('click', async (ev) => {
       const rect = imgEl.getBoundingClientRect();
       const xPct = +(((ev.clientX - rect.left) / rect.width) * 100).toFixed(1);
       const yPct = +(((ev.clientY - rect.top) / rect.height) * 100).toFixed(1);
-      const raw = prompt(`(${xPct}%, ${yPct}%) konumuna eklenecek CNC ölçüsü (ör. Ø25 H7, Ra 1.6, M8x1.25):`);
+      const raw = await uiPrompt(`(${xPct}%, ${yPct}%) konumuna eklenecek CNC ölçüsü (ör. Ø25 H7, Ra 1.6, M8x1.25):`, '', 'Yeni CNC Balonu');
       if (!raw || !raw.trim()) return;
       balloons.push({
         raw_text: raw.trim(), category: 'Lineer Ölçü', nominal: null, unit: 'mm',
@@ -167,7 +168,25 @@ export async function renderCnc(root) {
       setStatus(`Yeni balon (${raw.trim()}) eklendi. Çizime işlemek için "Kaydet ve Yeniden Balonla" butonuna basın.`);
     });
 
+    const evalBtn = h('button', {
+      type: 'button', class: 'btn',
+      onClick: async () => {
+        const sample = balloons.slice(0, 10).map((b, i) => ({ balloon: i + 1, measured: b.nominal ?? 0 }));
+        try {
+          const res = await api(`/api/cnc/jobs/${encodeURIComponent(job.id)}/evaluate-measurements`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ measurements: sample }),
+          });
+          setStatus(`Ölçüm değerlendirmesi tamamlandı (${res.evaluated ?? sample.length} karakteristik).`);
+          uiToast('CNC ölçüm değerlendirmesi tamamlandı', 'ok');
+        } catch (err) {
+          setStatus(`Ölçüm değerlendirme hatası: ${err.message}`, true);
+        }
+      },
+    }, 'Ölçümleri Değerlendir');
+
     const exportBar = h('div', { class: 'cnc-export-bar' },
+      evalBtn,
       h('a', { class: 'btn btn-primary', href: `/api/cnc/jobs/${job.id}/file/report.xlsx`, download: '' }, 'Excel Raporu (.xlsx)'),
       h('a', { class: 'btn btn-primary', href: `/api/cnc/jobs/${job.id}/file/report.docx`, download: '' }, 'Word Raporu (.docx)'),
       h('a', { class: 'btn', href: `/api/cnc/jobs/${job.id}/file/ballooned.pdf`, download: '' }, 'Balonlu PDF'),

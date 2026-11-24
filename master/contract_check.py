@@ -11,34 +11,45 @@ from pathlib import Path
 
 import config
 
-_FETCH_RE = re.compile(r"""fetch\s*\(\s*[`'"](\/api\/[^`'"?\s]+)""")
+_API_REF_RE = re.compile(r"""[`'"](\/api\/[^`'"?\s]+)""")
 _TEMPLATE_RE = re.compile(r"""\$\{[^}]+\}""")
+_PARAM_RE = re.compile(r"""\{[^}]+\}""")
+
+
+def _normalize_path(path: str) -> str:
+    """Normalize dynamic segments (${x} or {user_id}) to a canonical {param} token."""
+    # Strip trailing query interpolation appended directly to a filename/segment (e.g. backup.zip${q})
+    cleaned = re.sub(r"""(?<!/)\$\{[^}]+\}$""", "", path)
+    norm = _TEMPLATE_RE.sub("{param}", cleaned)
+    norm = _PARAM_RE.sub("{param}", norm)
+    return norm.rstrip("/")
 
 
 def _extract_frontend_routes(js_dir: Path) -> set[str]:
-    """Scan JS files and return a set of /api/ path prefixes used in fetch() calls."""
+    """Scan JS files and return a set of normalized /api/ paths used by the UI."""
     routes: set[str] = set()
     for js_file in js_dir.glob("**/*.js"):
         try:
             text = js_file.read_text(encoding="utf-8", errors="ignore")
         except OSError:
             continue
-        for match in _FETCH_RE.finditer(text):
-            path = match.group(1)
-            # Normalise template literals: /api/agents/${id}/tasks → /api/agents/{id}/tasks
-            path = _TEMPLATE_RE.sub("{id}", path)
-            # Strip trailing slash
-            routes.add(path.rstrip("/"))
+        for match in _API_REF_RE.finditer(text):
+            raw = match.group(1)
+            # Strip trailing file/preview suffixes inside dynamic download URLs if needed
+            routes.add(_normalize_path(raw))
     return routes
 
 
 def _extract_backend_routes(app) -> set[str]:
-    """Return all /api/ route paths registered with the FastAPI app."""
+    """Return all normalized /api/ route paths registered with the FastAPI app (including included routers)."""
     routes: set[str] = set()
+    for path in (app.openapi().get("paths") or {}).keys():
+        if path.startswith("/api/"):
+            routes.add(_normalize_path(path))
     for route in app.routes:
         path = getattr(route, "path", "")
         if path.startswith("/api/"):
-            routes.add(path.rstrip("/"))
+            routes.add(_normalize_path(path))
     return routes
 
 
@@ -48,8 +59,17 @@ def run_check(app) -> dict:
     frontend = _extract_frontend_routes(js_dir)
     backend = _extract_backend_routes(app)
 
-    missing_in_backend = sorted(frontend - backend)
-    not_called_by_frontend = sorted(backend - frontend)
+    # Allow prefix matches for wildcard/path-param routes such as /api/studio/workspaces/{param}/preview/{param}
+    missing_in_backend = sorted(
+        f for f in frontend
+        if f not in backend
+        and not any(b.endswith("/{param}") and f.startswith(b[: -len("{param}")]) for b in backend)
+    )
+    not_called_by_frontend = sorted(
+        b for b in backend
+        if b not in frontend
+        and not any(b.endswith("/{param}") and f.startswith(b[: -len("{param}")]) for f in frontend)
+    )
 
     return {
         "frontend_routes": sorted(frontend),

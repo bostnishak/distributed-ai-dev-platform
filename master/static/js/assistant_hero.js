@@ -36,7 +36,8 @@ export function createMessageActions(text, onPromptify) {
     try {
       await navigator.clipboard.writeText(text);
       copyBtn.textContent = 'Kopyalandı';
-      setTimeout(() => { copyBtn.textContent = 'Kopyala'; }, 1600);
+      const COPY_RESET_MS = 1600;
+      setTimeout(() => { copyBtn.textContent = 'Kopyala'; }, COPY_RESET_MS);
     } catch {
       copyBtn.textContent = 'Kopyalanamadı';
     }

@@ -1,5 +1,6 @@
 // SEC-01 UI: Accessible Turkish Login / Initial Admin Setup / Session Indicator Modal (zero CDN, zero emojis).
 import { setSanitizedHtml } from './sanitizer.js';
+import { safeFetchJson } from './storage.js';
 
 let authModalEl = null;
 
@@ -45,20 +46,16 @@ function buildModalDom() {
 }
 
 export async function refreshAuthBadge(btn) {
-  try {
-    const resp = await fetch('/api/auth/status');
-    if (!resp.ok) return null;
-    const st = await resp.json();
-    if (btn) {
-      btn.title = st.authenticated
-        ? `Oturum açık: ${st.user.username} (${st.user.role})`
-        : (st.initialized ? 'Oturum aç' : 'İlk yönetici hesabını oluştur');
-      btn.dataset.authState = st.authenticated ? 'signed-in' : 'signed-out';
-    }
-    return st;
-  } catch {
-    return null;
+  const res = await safeFetchJson('/api/auth/status');
+  if (!res.ok || !res.data) return null;
+  const st = res.data;
+  if (btn) {
+    btn.title = st.authenticated
+      ? `Oturum açık: ${st.user.username} (${st.user.role})`
+      : (st.initialized ? 'Oturum aç' : 'İlk yönetici hesabını oluştur');
+    btn.dataset.authState = st.authenticated ? 'signed-in' : 'signed-out';
   }
+  return st;
 }
 
 export async function openAuthModal(badgeBtn = null) {
@@ -99,26 +96,21 @@ export async function openAuthModal(badgeBtn = null) {
     const username = modal.querySelector('#authUsername').value.trim();
     const password = modal.querySelector('#authPassword').value;
     const endpoint = status.initialized ? '/api/auth/login' : '/api/auth/setup';
-    try {
-      const r = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
-      const d = await r.json().catch(() => ({}));
-      if (!r.ok) {
-        errEl.textContent = d.detail || 'İşlem başarısız.';
-        return;
-      }
-      await refreshAuthBadge(badgeBtn);
-      modal.hidden = true;
-    } catch (err) {
-      errEl.textContent = `Bağlantı hatası: ${err.message}`;
+    const res = await safeFetchJson(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    if (!res.ok) {
+      errEl.textContent = (res.data && res.data.detail) || res.error || 'İşlem başarısız.';
+      return;
     }
+    await refreshAuthBadge(badgeBtn);
+    modal.hidden = true;
   };
 
   modal.querySelector('#authLogoutBtn').onclick = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
+    await safeFetchJson('/api/auth/logout', { method: 'POST' });
     await refreshAuthBadge(badgeBtn);
     modal.hidden = true;
   };

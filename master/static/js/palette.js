@@ -1,4 +1,5 @@
 // UX-13: command palette (Ctrl+K / Cmd+K). Every main page and action is reachable from the keyboard.
+import { bindGlobalEvent } from './storage.js';
 import { h } from './util.js';
 
 const COMMANDS = [
@@ -67,7 +68,7 @@ function open() {
 }
 
 export function initPalette() {
-  document.addEventListener('keydown', (e) => {
+  bindGlobalEvent(document, 'keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
       e.preventDefault();
       if (overlay) close(); else open();

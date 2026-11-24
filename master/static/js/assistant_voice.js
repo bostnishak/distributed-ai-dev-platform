@@ -1,4 +1,5 @@
 // UX-02 Modular Split: Local Whisper STT voice capture + sandboxed Python code execution handlers.
+import { safeFetchJson, startManagedInterval } from './storage.js';
 
 export function encodeMonoWav16k(chunks, inputSampleRate) {
   let totalLen = 0;
@@ -80,27 +81,27 @@ export function initVoiceRecognition(els, updateSendState) {
 
   async function transcribeBlob(blob, filename) {
     showVoiceStatus('Ses metne çevriliyor (yerel Whisper STT)...', false);
-    try {
-      const fd = new FormData();
-      fd.append('file', blob, filename);
-      const resp = await fetch('/api/assistant/transcribe', { method: 'POST', body: fd });
-      const data = await resp.json();
-      if (resp.ok && data.transcript) {
-        const prefix = els.promptInput.value.trim() ? els.promptInput.value.trim() + ' ' : '';
-        els.promptInput.value = prefix + data.transcript;
-        els.promptInput.style.height = 'auto';
-        els.promptInput.style.height = Math.min(els.promptInput.scrollHeight, 160) + 'px';
-        updateSendState();
-        els.promptInput.focus();
-        showVoiceStatus(`Metne çevrildi (${data.duration_sec || 0} sn)`, false);
-        hideVoiceStatus(2400);
-      } else {
-        showVoiceStatus('Konuşma algılanamadı, mikrofona biraz daha yakın konuşup tekrar deneyin.', false);
-        hideVoiceStatus(3200);
-      }
-    } catch (err) {
-      showVoiceStatus(`Ses çevirme hatası: ${err.message}`, false);
+    const fd = new FormData();
+    fd.append('file', blob, filename);
+    const res = await safeFetchJson('/api/assistant/transcribe', { method: 'POST', body: fd });
+    if (res.status === 0) {
+      showVoiceStatus(`Ses çevirme hatası: ${res.error}`, false);
       hideVoiceStatus(3400);
+      return;
+    }
+    const data = res.data || {};
+    if (res.ok && data.transcript) {
+      const prefix = els.promptInput.value.trim() ? els.promptInput.value.trim() + ' ' : '';
+      els.promptInput.value = prefix + data.transcript;
+      els.promptInput.style.height = 'auto';
+      els.promptInput.style.height = Math.min(els.promptInput.scrollHeight, 160) + 'px';
+      updateSendState();
+      els.promptInput.focus();
+      showVoiceStatus(`Metne çevrildi (${data.duration_sec || 0} sn)`, false);
+      hideVoiceStatus(2400);
+    } else {
+      showVoiceStatus('Konuşma algılanamadı, mikrofona biraz daha yakın konuşup tekrar deneyin.', false);
+      hideVoiceStatus(3200);
     }
   }
 
@@ -124,7 +125,8 @@ export function initVoiceRecognition(els, updateSendState) {
 
   async function stopAndTranscribe() {
     recording = false;
-    clearInterval(recTimer);
+    if (typeof recTimer === 'function') recTimer();
+    recTimer = null;
     els.micBtn.classList.remove('recording');
     els.micBtn.title = 'Sesli mesajı metne çevir';
 
@@ -178,7 +180,7 @@ export function initVoiceRecognition(els, updateSendState) {
       els.micBtn.classList.add('recording');
       els.micBtn.title = 'Kayıt yapılıyor... Durdurmak için tıklayın';
       showVoiceStatus('Dinleniyor · 0 sn (Bitirmek için mikrofona tekrar basın)', true);
-      recTimer = setInterval(() => {
+      recTimer = startManagedInterval(() => {
         const sec = Math.floor((Date.now() - recStart) / 1000);
         const levelTxt = heardVoice ? ' · Ses algılandı' : '';
         showVoiceStatus(`Dinleniyor · ${sec} sn${levelTxt} (Bitirmek için tekrar basın)`, true);
@@ -199,13 +201,8 @@ export function initVoiceRecognition(els, updateSendState) {
 
 export async function showRunButtonsIfEnabled() {
   document.body.classList.add('code-run-disabled');
-  try {
-    const resp = await fetch('/api/assistant/config');
-    const data = await resp.json();
-    if (data.code_run_enabled) document.body.classList.remove('code-run-disabled');
-  } catch {
-    // Leave buttons hidden if master cannot be reached.
-  }
+  const res = await safeFetchJson('/api/assistant/config');
+  if (res.ok && res.data && res.data.code_run_enabled) document.body.classList.remove('code-run-disabled');
 }
 
 export async function handleRunCodeClick(e) {
@@ -221,28 +218,25 @@ export async function handleRunCodeClick(e) {
   outputEl.classList.remove('run-error');
   outputEl.textContent = '';
 
-  try {
-    const resp = await fetch('/api/assistant/run-code', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code }),
-    });
-    const data = await resp.json();
-    if (!resp.ok) {
-      outputEl.textContent = data.detail || 'Kod çalıştırılamadı.';
-      outputEl.classList.add('run-error');
-    } else {
-      const parts = [];
-      if (data.stdout) parts.push(data.stdout);
-      if (data.stderr) parts.push(data.stderr);
-      outputEl.textContent = parts.join('\n') || '(çıktı yok)';
-      outputEl.classList.toggle('run-error', data.exit_code !== 0);
-    }
-  } catch (err) {
-    outputEl.textContent = 'Bağlantı hatası: ' + err.message;
+  const res = await safeFetchJson('/api/assistant/run-code', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code }),
+  });
+  if (res.status === 0) {
+    outputEl.textContent = `Bağlantı hatası: ${res.error}`;
     outputEl.classList.add('run-error');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '▶ Çalıştır';
+  } else if (!res.ok) {
+    outputEl.textContent = (res.data && res.data.detail) || 'Kod çalıştırılamadı.';
+    outputEl.classList.add('run-error');
+  } else {
+    const data = res.data || {};
+    const parts = [];
+    if (data.stdout) parts.push(data.stdout);
+    if (data.stderr) parts.push(data.stderr);
+    outputEl.textContent = parts.join('\n') || '(çıktı yok)';
+    outputEl.classList.toggle('run-error', data.exit_code !== 0);
   }
+  btn.disabled = false;
+  btn.textContent = '▶ Çalıştır';
 }
