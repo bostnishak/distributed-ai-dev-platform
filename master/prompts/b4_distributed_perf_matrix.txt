@@ -1,0 +1,10 @@
+SELECT agent_id, model, task_type,
+       COUNT(*) AS runs,
+       AVG(success) AS success_rate,
+       AVG(tok_per_sec) AS avg_tok_s,
+       AVG(latency_ms) AS avg_latency_ms,
+       SUM(retries) AS total_retries,
+       AVG(hallucination_rate) AS avg_hal_rate
+FROM agent_perf_log
+GROUP BY agent_id, model, task_type
+ORDER BY success_rate DESC

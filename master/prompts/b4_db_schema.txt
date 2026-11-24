@@ -1,0 +1,111 @@
+CREATE TABLE IF NOT EXISTS schema_version (
+    version INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS agents (
+    agent_id         TEXT PRIMARY KEY,
+    member_name      TEXT NOT NULL,
+    model            TEXT NOT NULL,
+    mode             TEXT NOT NULL,          -- 'node' (member's own computer) or 'staging'
+    runtime          TEXT,                   -- 'native' or 'docker' (host values then describe the Docker VM)
+    hostname         TEXT,
+    os               TEXT,
+    cpu_count        INTEGER,
+    ram_gb           REAL,
+    model_family     TEXT,
+    parameter_size   TEXT,
+    quantization     TEXT,
+    context_length   INTEGER,
+    capabilities     TEXT NOT NULL,          -- JSON array reported by Ollama, e.g. ["completion","vision"]
+    agent_version    TEXT,
+    heartbeat_status TEXT NOT NULL DEFAULT 'idle',
+    agent_key_hash   TEXT,
+    agent_key_revoked INTEGER NOT NULL DEFAULT 0,
+    approved         INTEGER NOT NULL DEFAULT 1,
+    registered_at    TEXT NOT NULL,          -- first registration (UTC, ISO 8601)
+    last_seen_at     TEXT NOT NULL           -- latest heartbeat/registration timestamp
+);
+
+CREATE TABLE IF NOT EXISTS eval_sessions (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    started_at  TEXT NOT NULL,
+    finished_at TEXT,
+    status      TEXT NOT NULL DEFAULT 'running'
+);
+
+CREATE TABLE IF NOT EXISTS agent_scores (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    agent_id        TEXT NOT NULL REFERENCES agents(agent_id),
+    eval_session_id INTEGER REFERENCES eval_sessions(id),
+    dimension       TEXT NOT NULL,
+    score           REAL NOT NULL,
+    evaluated_at    TEXT NOT NULL,
+    details         TEXT
+);
+
+CREATE TABLE IF NOT EXISTS projects (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    name             TEXT NOT NULL,
+    source_filename  TEXT,
+    document         TEXT NOT NULL,
+    status           TEXT NOT NULL,         -- analyzing | decomposed | failed
+    error            TEXT,
+    spec             TEXT,                  -- JSON RequirementsSpec
+    analysis_model   TEXT,
+    analysis_seconds REAL,
+    chunk_count      INTEGER,
+    created_at       TEXT NOT NULL,
+    updated_at       TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS tasks (
+    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id        INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    key               TEXT NOT NULL,            -- T1, T2, ... (stable within a project)
+    stage             INTEGER NOT NULL,          -- longest-path layer in the DAG, starting at 1
+    type              TEXT NOT NULL,
+    title             TEXT NOT NULL,
+    description       TEXT NOT NULL,
+    details           TEXT NOT NULL,             -- JSON slice of the spec this task covers
+    status            TEXT NOT NULL,             -- done | planned | blocked
+    performed_by      TEXT,                      -- 'master' for the analysis task; agent id from Sprint 3
+    assigned_to       TEXT REFERENCES agents(agent_id),
+    assigned_at       TEXT,
+    lease_expires_at  TEXT,                      -- ISO 8601; 5 minutes from assignment
+    assignment_reason TEXT,                      -- JSON score breakdown
+    result            TEXT,                      -- agent's output (plain text)
+    result_at         TEXT,
+    tokens_per_second REAL,
+    files             TEXT,                      -- JSON array of {path, content}
+    validation_status TEXT DEFAULT 'pending',    -- pending | ok | failed
+    validation_message TEXT,
+    attempt           INTEGER DEFAULT 0,         -- how many times this task has been attempted
+    perf_ms           INTEGER,                   -- wall-clock ms from assignment to result (PB-52)
+    UNIQUE (project_id, key)
+);
+
+CREATE TABLE IF NOT EXISTS task_dependencies (
+    task_id            INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    depends_on_task_id INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    PRIMARY KEY (task_id, depends_on_task_id)
+);
+
+CREATE TABLE IF NOT EXISTS conflicts (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id   INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    task_id_a    INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    task_id_b    INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    file_path    TEXT NOT NULL,
+    detected_at  TEXT NOT NULL,
+    resolved_at  TEXT,
+    resolution   TEXT
+);
+
+CREATE TABLE IF NOT EXISTS events (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id  INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+    agent_id    TEXT REFERENCES agents(agent_id) ON DELETE SET NULL,
+    event_type  TEXT NOT NULL,
+    payload     TEXT,
+    created_at  TEXT NOT NULL
+);

@@ -267,6 +267,30 @@ def evaluate_cnc_ballooning_accuracy(predicted: list[dict[str, Any]], ground_tru
     }
 
 
+_ALLOWED_GCODES = frozenset({0, 1, 2, 3, 17, 18, 19, 20, 21, 28, 40, 41, 42, 43, 49, 54, 80, 81, 83, 90, 91, 94, 95})
+
+
+def _check_gcode_line(lineno: int, line: str, spindle_on: bool, has_feed: bool) -> tuple[bool, bool, list[str]]:
+    line_errors: list[str] = []
+    if any(m in line for m in ("M03", "M3", "M04", "M4")):
+        spindle_on = True
+    if "F" in line and re.search(r"F\d+", line):
+        has_feed = True
+    if re.search(r"\bG0?0\b", line):
+        zm = re.search(r"Z(-?\d+(?:\.\d+)?)", line)
+        if zm and float(zm.group(1)) < 0.0:
+            line_errors.append(f"Satır {lineno}: Hızlı konumlamada (G00) negatif Z ({zm.group(1)}) çarpışma riski!")
+    if re.search(r"\bG0?1\b", line):
+        if not has_feed:
+            line_errors.append(f"Satır {lineno}: G01 kesme hareketinde ilerleme hızı (F) tanımlanmamış.")
+        if not spindle_on:
+            line_errors.append(f"Satır {lineno}: İş mili (M03/M04) açılmadan G01 kesme komutu verilmiş.")
+    for code_num in re.findall(r"\bG(\d+)\b", line):
+        if int(code_num) not in _ALLOWED_GCODES:
+            line_errors.append(f"Satır {lineno}: Desteklenmeyen veya geçersiz G kodu: G{code_num}")
+    return spindle_on, has_feed, line_errors
+
+
 def validate_gcode_safety(gcode: str) -> dict[str, Any]:
     """DOM-08: Syntax & collision checker (rapid G00 into Z<0, missing feed on G01, invalid codes) + mandatory warning."""
     errors: list[str] = []
@@ -276,23 +300,8 @@ def validate_gcode_safety(gcode: str) -> dict[str, Any]:
         line = raw.split(";", 1)[0].split("(", 1)[0].strip().upper()
         if not line or line.startswith("%"):
             continue
-        if any(m in line for m in ("M03", "M3", "M04", "M4")):
-            spindle_on = True
-        if "F" in line and re.search(r"F\d+", line):
-            has_feed = True
-        if re.search(r"\bG0?0\b", line):
-            zm = re.search(r"Z(-?\d+(?:\.\d+)?)", line)
-            if zm and float(zm.group(1)) < 0.0:
-                errors.append(f"Satır {lineno}: Hızlı konumlamada (G00) negatif Z ({zm.group(1)}) çarpışma riski!")
-        if re.search(r"\bG0?1\b", line):
-            if not has_feed:
-                errors.append(f"Satır {lineno}: G01 kesme hareketinde ilerleme hızı (F) tanımlanmamış.")
-            if not spindle_on:
-                errors.append(f"Satır {lineno}: İş mili (M03/M04) açılmadan G01 kesme komutu verilmiş.")
-        bad_g = re.findall(r"\bG(\d+)\b", line)
-        for code_num in bad_g:
-            if int(code_num) not in {0, 1, 2, 3, 17, 18, 19, 20, 21, 28, 40, 41, 42, 43, 49, 54, 80, 81, 83, 90, 91, 94, 95}:
-                errors.append(f"Satır {lineno}: Desteklenmeyen veya geçersiz G kodu: G{code_num}")
+        spindle_on, has_feed, line_errors = _check_gcode_line(lineno, line, spindle_on, has_feed)
+        errors.extend(line_errors)
 
     return {
         "passed": len(errors) == 0,

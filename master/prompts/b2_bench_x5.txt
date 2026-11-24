@@ -1,0 +1,15 @@
+Read the following passage and answer the question.
+
+Database management systems have a rich history. Edgar Codd introduced the relational model
+in his 1970 paper 'A Relational Model of Data for Large Shared Data Banks'. Oracle was
+founded in 1977 by Larry Ellison, Bob Miner and Ed Oates. IBM released DB2 in 1983.
+MySQL was created by Michael Widenius and David Axmark in 1995 and released as open source.
+PostgreSQL evolved from POSTGRES, developed at the University of California, Berkeley.
+The embedded key number in this text: Edgar Codd proposed exactly 12 rules for relational
+databases (also known as Codd's 12 rules, published in 1985). NoSQL databases gained
+popularity around 2009 with systems like MongoDB, CouchDB and Cassandra. Redis, an
+in-memory data structure store, was created by Salvatore Sanfilippo in 2009. The CAP
+theorem, formulated by Eric Brewer in 2000, states that a distributed system cannot
+simultaneously provide consistency, availability and partition tolerance.
+
+Question: How many rules did Edgar Codd propose for relational databases? Answer with only the number.

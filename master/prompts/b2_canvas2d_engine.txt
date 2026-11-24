@@ -1,0 +1,38 @@
+export function aabbOverlap(a, b) {
+  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+}
+export function circleOverlap(a, b) {
+  const dx = a.x - b.x, dy = a.y - b.y, r = a.r + b.r;
+  return dx * dx + dy * dy <= r * r;
+}
+export class FixedLoopEngine {
+  constructor(canvas, balance) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d');
+    this.balance = balance;
+    this.paused = false;
+    this.muted = false;
+    this.score = 0;
+    this.lives = balance.lives || 3;
+    this.state = 'playing'; // playing | won | lost
+    this.keys = new Set();
+    this.fixedDt = 1 / 60;
+    this.highScoreKey = 'game_hs_' + (balance.genre || 'default');
+  }
+  saveHighScore() {
+    try {
+      const prev = Number(localStorage.getItem(this.highScoreKey) || 0);
+      if (this.score > prev) localStorage.setItem(this.highScoreKey, String(this.score));
+    } catch (_) {}
+  }
+  togglePause() { this.paused = !this.paused; }
+  toggleMute() { this.muted = !this.muted; }
+  stepScore(delta) {
+    this.score += delta;
+    if (this.score >= (this.balance.win_score || 100)) { this.state = 'won'; this.saveHighScore(); }
+  }
+  applyDamage(dmg = 1) {
+    this.lives = Math.max(0, this.lives - dmg);
+    if (this.lives <= 0) { this.state = 'lost'; this.saveHighScore(); }
+  }
+}

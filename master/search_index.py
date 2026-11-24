@@ -48,8 +48,11 @@ def normalise(text: str) -> str:
     return " ".join(tokens(text))
 
 
-def index(conn: sqlite3.Connection, kind: str, owner: str, ref: str, title: str, body: str) -> None:
-    """Add or replace the entry for (kind, ref)."""
+def index(conn: sqlite3.Connection, kind: str, owner: str, *args: str, **kwargs: str) -> None:
+    """Add or replace the entry for (kind, ref). Accepts ``(conn, kind, owner, ref, title, body)``."""
+    ref = args[0] if len(args) > 0 else kwargs["ref"]
+    title = args[1] if len(args) > 1 else kwargs["title"]
+    body = args[2] if len(args) > 2 else kwargs["body"]
     remove(conn, kind, owner, ref)
     conn.execute(
         "INSERT INTO search_index (title, body, kind, owner_id, ref) VALUES (?, ?, ?, ?, ?)",
@@ -72,11 +75,20 @@ def search(
     conn: sqlite3.Connection,
     owner: str,
     query: str,
-    kinds: tuple[str, ...] | None = None,
-    limit: int = 20,
-    offset: int = 0,
+    *args: object,
+    **kwargs: object,
 ) -> list[dict]:
-    """Best matches first; only ever returns the owner's own entries."""
+    """Best matches first; only ever returns the owner's own entries.
+
+    Accepts optional ``kinds: tuple[str, ...] | None = None``, ``limit: int = 20``, ``offset: int = 0``.
+    """
+    kinds_val = args[0] if len(args) > 0 else kwargs.get("kinds")
+    limit_val = args[1] if len(args) > 1 else kwargs.get("limit", 20)
+    offset_val = args[2] if len(args) > 2 else kwargs.get("offset", 0)
+    kinds = tuple(kinds_val) if isinstance(kinds_val, (tuple, list)) else None
+    limit = int(limit_val) if isinstance(limit_val, (int, str, float)) else 20
+    offset = int(offset_val) if isinstance(offset_val, (int, str, float)) else 0
+
     expression = _match_expression(query)
     if expression is None:
         return []
@@ -90,7 +102,7 @@ def search(
         sql += f" AND kind IN ({','.join('?' for _ in kinds)})"
         params += list(kinds)
     sql += " ORDER BY score LIMIT ? OFFSET ?"
-    params += [int(limit), int(offset)]
+    params += [limit, offset]
     return [dict(r) for r in conn.execute(sql, params).fetchall()]
 
 

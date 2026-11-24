@@ -17,6 +17,7 @@ import httpx
 import config
 import db
 import dbconn
+from prompt_loader import load_prompt
 
 _CTX_BUCKETS = (4096, 8192, 16384, 32768)
 
@@ -77,27 +78,7 @@ def _connect() -> sqlite3.Connection:
 
 def init_registry_db() -> None:
     with _connect() as conn:
-        conn.executescript(
-            """
-            CREATE TABLE IF NOT EXISTS model_registry (
-                name TEXT PRIMARY KEY,
-                provider TEXT NOT NULL DEFAULT 'ollama',
-                node_id TEXT NOT NULL DEFAULT 'master',
-                param_size TEXT NOT NULL DEFAULT '',
-                quantization TEXT NOT NULL DEFAULT '',
-                context_length INTEGER NOT NULL DEFAULT 8192,
-                capabilities_json TEXT NOT NULL DEFAULT '["completion"]',
-                est_vram_gb REAL NOT NULL DEFAULT 4.0,
-                scores_json TEXT NOT NULL DEFAULT '{}',
-                hallucination_penalty REAL NOT NULL DEFAULT 0.0,
-                status TEXT NOT NULL DEFAULT 'ready',
-                warm INTEGER NOT NULL DEFAULT 0,
-                override_json TEXT NOT NULL DEFAULT '{}',
-                license TEXT NOT NULL DEFAULT '',
-                updated_at TEXT NOT NULL
-            );
-            """
-        )
+        conn.executescript(load_prompt("b1_gateway_registry_schema.txt"))
         cols = {row[1] for row in conn.execute("PRAGMA table_info(model_registry)")}
         if "license" not in cols:
             conn.execute("ALTER TABLE model_registry ADD COLUMN license TEXT NOT NULL DEFAULT ''")
@@ -151,48 +132,26 @@ def _infer_model_metadata(name: str, show_info: dict[str, Any] | None = None) ->
     }
 
 
-def upsert_model(
-    name: str,
-    *,
-    provider: str = "ollama",
-    node_id: str = "master",
-    param_size: str = "",
-    quantization: str = "",
-    context_length: int = 8192,
-    capabilities: list[str] | None = None,
-    est_vram_gb: float = 4.0,
-    scores: dict[str, float] | None = None,
-    hallucination_penalty: float = 0.0,
-    status: str = "ready",
-    warm: bool = False,
-    license_name: str = "",
-) -> dict[str, Any]:
+def upsert_model(name: str, **opts: Any) -> dict[str, Any]:
+    provider = str(opts.get("provider", "ollama"))
+    node_id = str(opts.get("node_id", "master"))
+    param_size = str(opts.get("param_size", ""))
+    quantization = str(opts.get("quantization", ""))
+    context_length = int(opts.get("context_length", 8192))
+    capabilities: list[str] | None = opts.get("capabilities")
+    est_vram_gb = float(opts.get("est_vram_gb", 4.0))
+    scores: dict[str, float] | None = opts.get("scores")
+    hallucination_penalty = float(opts.get("hallucination_penalty", 0.0))
+    status = str(opts.get("status", "ready"))
+    warm = bool(opts.get("warm", False))
+    license_name = str(opts.get("license_name", ""))
     init_registry_db()
     inferred = _infer_model_metadata(name)
     resolved_license = license_name.strip() or infer_model_license(name)
     now = datetime.now(UTC).isoformat()
     with _connect() as conn:
         conn.execute(
-            """
-            INSERT INTO model_registry
-                (name, provider, node_id, param_size, quantization, context_length, capabilities_json,
-                 est_vram_gb, scores_json, hallucination_penalty, status, warm, license, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(name) DO UPDATE SET
-                provider = excluded.provider,
-                node_id = excluded.node_id,
-                param_size = CASE WHEN excluded.param_size != '' THEN excluded.param_size ELSE model_registry.param_size END,
-                quantization = CASE WHEN excluded.quantization != '' THEN excluded.quantization ELSE model_registry.quantization END,
-                context_length = excluded.context_length,
-                capabilities_json = excluded.capabilities_json,
-                est_vram_gb = excluded.est_vram_gb,
-                scores_json = excluded.scores_json,
-                hallucination_penalty = excluded.hallucination_penalty,
-                status = excluded.status,
-                warm = excluded.warm,
-                license = CASE WHEN excluded.license != '' THEN excluded.license ELSE model_registry.license END,
-                updated_at = excluded.updated_at
-            """,
+            load_prompt("b1_gateway_registry_upsert.txt"),
             (
                 name,
                 provider,
@@ -304,16 +263,13 @@ async def sync_from_ollama(ollama_provider: Any) -> list[dict[str, Any]]:
     return synced
 
 
-def select_model(
-    task_type: str = "genel",
-    *,
-    required_ctx: int = 2048,
-    require_vision: bool = False,
-    require_tools: bool = False,
-    prefer_warm: bool = True,
-    fallback_model: str | None = None,
-) -> ModelSelection:
+def select_model(task_type: str = "genel", **opts: Any) -> ModelSelection:
     """GW-04 & GW-10: Explainable capability-based model selection with warm-model & context scoring."""
+    required_ctx = int(opts.get("required_ctx", 2048))
+    require_vision = bool(opts.get("require_vision", False))
+    require_tools = bool(opts.get("require_tools", False))
+    prefer_warm = bool(opts.get("prefer_warm", True))
+    fallback_model: str | None = opts.get("fallback_model")
     models = [m for m in list_models() if m["status"] == "ready" and "embedding" not in m["capabilities"]]
     if not models:
         fb = fallback_model or config.MASTER_MODEL

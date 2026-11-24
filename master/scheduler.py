@@ -8,11 +8,12 @@ a restart).
 import asyncio
 import logging
 import sqlite3
+from typing import Any
 
 import db
 
 log = logging.getLogger("scheduler")
-_running = False
+_STATE: dict[str, Any] = {"running": False, "dag_task": None}
 
 
 def release_after_completion(completed_task_id: int) -> int:
@@ -24,10 +25,9 @@ def release_after_completion(completed_task_id: int) -> int:
 
 
 async def _dag_loop() -> None:
-    global _running
-    if _running:
+    if _STATE["running"]:
         return
-    _running = True
+    _STATE["running"] = True
     while True:
         try:
             released = db.release_all_ready_tasks()
@@ -38,9 +38,5 @@ async def _dag_loop() -> None:
         await asyncio.sleep(60)
 
 
-_dag_task: asyncio.Task | None = None
-
-
 def start_dag_scheduler() -> None:
-    global _dag_task
-    _dag_task = asyncio.create_task(_dag_loop())
+    _STATE["dag_task"] = asyncio.create_task(_dag_loop())

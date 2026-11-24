@@ -175,6 +175,48 @@ class StepOutcome:
 class DAGExecutor:
     """ORC-06: Executes independent DAG steps in parallel while enforcing dependency order."""
 
+    async def _run_step(
+        self,
+        step: PlanStep,
+        results: dict[str, StepOutcome],
+        runner: Callable[[PlanStep, dict[str, StepOutcome]], Awaitable[Any]],
+        on_event: Callable[[str, dict[str, Any]], Awaitable[None]] | None,
+    ) -> StepOutcome:
+        failed_deps = [d for d in step.depends_on if results[d].status != "ok"]
+        if failed_deps:
+            return StepOutcome(
+                step_id=step.step_id,
+                status="skipped",
+                error=f"Bağımlılık başarısız: {', '.join(failed_deps)}",
+            )
+        if on_event:
+            await on_event("step_start", {"step_id": step.step_id, "description": step.description})
+        t0 = time.perf_counter()
+        last_err = ""
+        for _attempt in range(max(1, step.retries)):
+            try:
+                out = await runner(step, results)
+                ms = int((time.perf_counter() - t0) * 1000)
+                if on_event:
+                    await on_event("step_end", {"step_id": step.step_id, "status": "ok", "latency_ms": ms})
+                return StepOutcome(step_id=step.step_id, status="ok", output=out, latency_ms=ms)
+            except (
+                OSError,
+                RuntimeError,
+                ValueError,
+                TypeError,
+                LookupError,
+                ArithmeticError,
+                AttributeError,
+                sqlite3.Error,
+                httpx.HTTPError,
+            ) as exc:
+                last_err = str(exc)
+        ms = int((time.perf_counter() - t0) * 1000)
+        if on_event:
+            await on_event("step_end", {"step_id": step.step_id, "status": "failed", "error": last_err})
+        return StepOutcome(step_id=step.step_id, status="failed", error=last_err, latency_ms=ms)
+
     async def execute(
         self,
         plan: ExecutionPlan,
@@ -196,46 +238,7 @@ class DAGExecutor:
             ]
             if not ready:
                 break
-
-            async def _run_one(step: PlanStep) -> StepOutcome:
-                failed_deps = [d for d in step.depends_on if results[d].status != "ok"]
-                if failed_deps:
-                    return StepOutcome(
-                        step_id=step.step_id,
-                        status="skipped",
-                        error=f"Bağımlılık başarısız: {', '.join(failed_deps)}",
-                    )
-                if on_event:
-                    await on_event("step_start", {"step_id": step.step_id, "description": step.description})
-                t0 = time.perf_counter()
-                last_err = ""
-                for _attempt in range(max(1, step.retries)):
-                    try:
-                        out = await runner(step, results)
-                        ms = int((time.perf_counter() - t0) * 1000)
-                        outcome = StepOutcome(step_id=step.step_id, status="ok", output=out, latency_ms=ms)
-                        if on_event:
-                            await on_event("step_end", {"step_id": step.step_id, "status": "ok", "latency_ms": ms})
-                        return outcome
-                    except (
-                        OSError,
-                        RuntimeError,
-                        ValueError,
-                        TypeError,
-                        LookupError,
-                        ArithmeticError,
-                        AttributeError,
-                        sqlite3.Error,
-                        httpx.HTTPError,
-                    ) as exc:
-                        last_err = str(exc)
-                ms = int((time.perf_counter() - t0) * 1000)
-                outcome = StepOutcome(step_id=step.step_id, status="failed", error=last_err, latency_ms=ms)
-                if on_event:
-                    await on_event("step_end", {"step_id": step.step_id, "status": "failed", "error": last_err})
-                return outcome
-
-            wave = await asyncio.gather(*(_run_one(s) for s in ready))
+            wave = await asyncio.gather(*(self._run_step(s, results, runner, on_event) for s in ready))
             for out in wave:
                 results[out.step_id] = out
                 pending.discard(out.step_id)

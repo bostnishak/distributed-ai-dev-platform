@@ -8,22 +8,31 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 MAX_PAGE = 500
 
 
+@dataclass(frozen=True)
+class EventQuery:
+    event_type: str | None = None
+    agent_id: str | None = None
+    project_id: int | None = None
+    since: str | None = None
+    until: str | None = None
+    limit: int = 50
+    offset: int = 0
+
+
 def query(
     conn: sqlite3.Connection,
-    event_type: str | None = None,
-    agent_id: str | None = None,
-    project_id: int | None = None,
-    since: str | None = None,
-    until: str | None = None,
-    limit: int = 50,
-    offset: int = 0,
+    filters: EventQuery | None = None,
+    **kwargs: Any,
 ) -> list[dict]:
+    q = filters if filters is not None else EventQuery(**kwargs)
     rows = conn.execute(
         "SELECT id, project_id, agent_id, event_type, payload, created_at FROM events "
         "WHERE (? IS NULL OR event_type = ?) "
@@ -33,13 +42,13 @@ def query(
         "AND (? IS NULL OR created_at < ?) "
         "ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?",
         (
-            event_type, event_type,
-            agent_id, agent_id,
-            project_id, project_id,
-            since, since,
-            until, until,
-            max(1, min(int(limit), MAX_PAGE)),
-            max(0, int(offset)),
+            q.event_type, q.event_type,
+            q.agent_id, q.agent_id,
+            q.project_id, q.project_id,
+            q.since, q.since,
+            q.until, q.until,
+            max(1, min(int(q.limit), MAX_PAGE)),
+            max(0, int(q.offset)),
         ),
     ).fetchall()
     result = []

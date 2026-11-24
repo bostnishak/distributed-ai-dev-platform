@@ -23,6 +23,7 @@ async def chat_structured(system: str, user: str, schema: dict, num_ctx: int) ->
             profile="extract",
             format_schema=schema,
             num_predict=config.NUM_PREDICT,
+            num_ctx=num_ctx,
             timeout_s=config.LLM_TIMEOUT_SECONDS,
             feature="requirements_analysis",
             max_retries=0,

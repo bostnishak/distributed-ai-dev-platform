@@ -96,33 +96,29 @@ def _safe_stem(name: str) -> str:
     return (clean or "dosya")[:48]
 
 
+def _find_target_format(low: str, ext: str) -> str | None:
+    if not any(v in low for v in CONVERT_VERBS):
+        return None
+    for fmt, cues in TARGET_FMT_PATTERNS:
+        if fmt != ext and any(c in low for c in cues):
+            return fmt
+    return None
+
+
 def detect_conversion_or_archive_action(prompt: str, filename: str | None) -> dict[str, Any] | None:
     """Detect whether the user wants file conversion, folder+ZIP packing, ZIP extraction, or project zipping."""
     low = (prompt or "").lower()
-    ext = Path(filename).suffix.lower().lstrip(".") if filename else ""
-
     if not filename:
-        # Check if user wants to zip an existing generated Studio project
-        if any(k in low for k in ("proje", "çalışma alanı", "calisma alani", "workspace")) and any(
-            z in low for z in ("ziple", "zip yap", "sıkıştır", "sikistir", "zip olarak", "zip indir")
-        ):
-            return {"action": "zip_project"}
-        return None
+        has_proj = any(k in low for k in ("proje", "çalışma alanı", "calisma alani", "workspace"))
+        has_zip = any(z in low for z in ("ziple", "zip yap", "sıkıştır", "sikistir", "zip olarak", "zip indir"))
+        return {"action": "zip_project"} if (has_proj and has_zip) else None
 
-    # 1. ZIP extraction request
+    ext = Path(filename).suffix.lower().lstrip(".")
     if ext == "zip" and any(k in low for k in ZIP_EXTRACT_CUES):
         return {"action": "extract_zip"}
 
-    # 2. Target format conversion (optionally chained with zip packing)
     wants_zip = any(k in low for k in ZIP_PACK_CUES)
-    target_fmt: str | None = None
-    if any(v in low for v in CONVERT_VERBS):
-        for fmt, cues in TARGET_FMT_PATTERNS:
-            if fmt == ext:
-                continue
-            if any(c in low for c in cues):
-                target_fmt = fmt
-                break
+    target_fmt = _find_target_format(low, ext)
 
     if target_fmt and wants_zip:
         return {"action": "convert_and_zip", "target_fmt": target_fmt}
@@ -142,104 +138,129 @@ def _decode_text_bytes(raw: bytes) -> str:
     return raw.decode("utf-8", errors="replace")
 
 
+def _extract_pdf_structured(raw: bytes) -> tuple[list[dict[str, str]], list[str], list[list[Any]], str]:
+    doc: Any = fitz.open(stream=raw, filetype="pdf")
+    sections: list[dict[str, str]] = []
+    pages_text: list[str] = []
+    for idx, pg in enumerate(doc, start=1):
+        t = (pg.get_text("text") or "").strip()
+        pages_text.append(t)
+        if t:
+            lines = [ln.strip() for ln in t.splitlines() if ln.strip()]
+            heading = lines[0][:90] if lines else f"Sayfa {idx}"
+            body = "\n".join(lines[1:]) if len(lines) > 1 else t
+            sections.append({"heading": f"Sayfa {idx}: {heading}", "content": body})
+    doc.close()
+    return sections, [], [], "\n\n".join(pages_text)
+
+
+def _extract_docx_structured(raw: bytes, title: str) -> tuple[list[dict[str, str]], list[str], list[list[Any]], str]:
+    doc = Document(io.BytesIO(raw))
+    sections: list[dict[str, str]] = []
+    headers: list[str] = []
+    rows: list[list[Any]] = []
+    cur_heading = title
+    cur_paras: list[str] = []
+    all_lines: list[str] = []
+    for p in doc.paragraphs:
+        txt = p.text.strip()
+        if not txt:
+            continue
+        all_lines.append(txt)
+        style_name = (p.style.name or "").lower() if p.style else ""
+        if "heading" in style_name or "title" in style_name:
+            if cur_paras:
+                sections.append({"heading": cur_heading, "content": "\n".join(cur_paras)})
+                cur_paras = []
+            cur_heading = txt[:100]
+        else:
+            cur_paras.append(txt)
+    if cur_paras:
+        sections.append({"heading": cur_heading, "content": "\n".join(cur_paras)})
+    if doc.tables and doc.tables[0].rows:
+        t0 = doc.tables[0]
+        headers = [c.text.strip() for c in t0.rows[0].cells]
+        rows = [[c.text.strip() for c in r.cells] for r in t0.rows[1:]]
+    return sections, headers, rows, "\n".join(all_lines)
+
+
+def _extract_pptx_structured(raw: bytes) -> tuple[list[dict[str, str]], list[str], list[list[Any]], str]:
+    prs = Presentation(io.BytesIO(raw))
+    sections: list[dict[str, str]] = []
+    all_lines: list[str] = []
+    for idx, slide in enumerate(prs.slides, start=1):
+        slide_texts: list[str] = []
+        for shape in slide.shapes:
+            tf = getattr(shape, "text_frame", None)
+            if getattr(shape, "has_text_frame", False) and tf is not None:
+                st = str(getattr(tf, "text", "") or "").strip()
+                if st:
+                    slide_texts.append(st)
+        if slide_texts:
+            heading = slide_texts[0].splitlines()[0][:100]
+            body = "\n".join(slide_texts[1:]) if len(slide_texts) > 1 else slide_texts[0]
+            sections.append({"heading": f"Slayt {idx}: {heading}", "content": body})
+            all_lines.append(f"## Slayt {idx}: {heading}\n{body}")
+    return sections, [], [], "\n\n".join(all_lines)
+
+
+def _extract_xlsx_structured(raw: bytes) -> tuple[list[dict[str, str]], list[str], list[list[Any]], str]:
+    wb = load_workbook(io.BytesIO(raw), data_only=True)
+    ws: Any = wb.active
+    all_rows = [[c if c is not None else "" for c in r] for r in ws.iter_rows(values_only=True)] if ws is not None else []
+    non_empty = [r for r in all_rows if any(str(c).strip() for c in r)]
+    headers: list[str] = []
+    rows: list[list[Any]] = []
+    if non_empty:
+        headers = [str(c).strip() or f"Sütun {i + 1}" for i, c in enumerate(non_empty[0])]
+        rows = non_empty[1:200]
+    raw_text = "\n".join(" | ".join(str(c) for c in r) for r in non_empty[:200])
+    wb.close()
+    return [], headers, rows, raw_text
+
+
+def _extract_csv_structured(raw: bytes) -> tuple[list[dict[str, str]], list[str], list[list[Any]], str]:
+    txt = _decode_text_bytes(raw)
+    delim = ";" if txt.count(";") > txt.count(",") else ","
+    parsed = list(csv.reader(io.StringIO(txt), delimiter=delim))
+    non_empty = [r for r in parsed if any(c.strip() for c in r)]
+    headers: list[str] = []
+    rows: list[list[Any]] = []
+    if non_empty:
+        headers = [c.strip() or f"Sütun {i + 1}" for i, c in enumerate(non_empty[0])]
+        rows = non_empty[1:200]
+    return [], headers, rows, txt
+
+
+def _extract_plain_structured(raw: bytes) -> tuple[list[dict[str, str]], list[str], list[list[Any]], str]:
+    raw_text = _decode_text_bytes(raw)
+    sections: list[dict[str, str]] = []
+    blocks = [b.strip() for b in re.split(r"\n{2,}", raw_text) if b.strip()]
+    for idx, blk in enumerate(blocks[:30], start=1):
+        lines = blk.splitlines()
+        heading = lines[0].lstrip("# ").strip()[:90] if lines else f"Bölüm {idx}"
+        body = "\n".join(lines[1:]).strip() if len(lines) > 1 else blk
+        sections.append({"heading": heading, "content": body})
+    return sections, [], [], raw_text
+
+
 def extract_structured_content(filename: str, raw: bytes) -> dict[str, Any]:
     """Extract normalized title, sections, tables, and raw text from PDF/DOCX/PPTX/XLSX/CSV/TXT/MD/JSON."""
     ext = Path(filename).suffix.lower().lstrip(".")
     title = Path(filename).stem.replace("_", " ").replace("-", " ").strip() or "Dönüştürülen Belge"
-    sections: list[dict[str, str]] = []
-    headers: list[str] = []
-    rows: list[list[Any]] = []
-    raw_text = ""
 
     if ext == "pdf":
-        doc: Any = fitz.open(stream=raw, filetype="pdf")
-        pages_text: list[str] = []
-        for idx, pg in enumerate(doc, start=1):
-            t = (pg.get_text("text") or "").strip()
-            pages_text.append(t)
-            if t:
-                lines = [ln.strip() for ln in t.splitlines() if ln.strip()]
-                heading = lines[0][:90] if lines else f"Sayfa {idx}"
-                body = "\n".join(lines[1:]) if len(lines) > 1 else t
-                sections.append({"heading": f"Sayfa {idx}: {heading}", "content": body})
-        doc.close()
-        raw_text = "\n\n".join(pages_text)
-
+        sections, headers, rows, raw_text = _extract_pdf_structured(raw)
     elif ext == "docx":
-        doc = Document(io.BytesIO(raw))
-        cur_heading = title
-        cur_paras: list[str] = []
-        all_lines: list[str] = []
-        for p in doc.paragraphs:
-            txt = p.text.strip()
-            if not txt:
-                continue
-            all_lines.append(txt)
-            style_name = (p.style.name or "").lower() if p.style else ""
-            if "heading" in style_name or "title" in style_name:
-                if cur_paras:
-                    sections.append({"heading": cur_heading, "content": "\n".join(cur_paras)})
-                    cur_paras = []
-                cur_heading = txt[:100]
-            else:
-                cur_paras.append(txt)
-        if cur_paras:
-            sections.append({"heading": cur_heading, "content": "\n".join(cur_paras)})
-        if doc.tables:
-            t0 = doc.tables[0]
-            if t0.rows:
-                headers = [c.text.strip() for c in t0.rows[0].cells]
-                for r in t0.rows[1:]:
-                    rows.append([c.text.strip() for c in r.cells])
-        raw_text = "\n".join(all_lines)
-
+        sections, headers, rows, raw_text = _extract_docx_structured(raw, title)
     elif ext == "pptx":
-        prs = Presentation(io.BytesIO(raw))
-        all_lines = []
-        for idx, slide in enumerate(prs.slides, start=1):
-            slide_texts: list[str] = []
-            for shape in slide.shapes:
-                tf = getattr(shape, "text_frame", None)
-                if getattr(shape, "has_text_frame", False) and tf is not None:
-                    st = str(getattr(tf, "text", "") or "").strip()
-                    if st:
-                        slide_texts.append(st)
-            if slide_texts:
-                heading = slide_texts[0].splitlines()[0][:100]
-                body = "\n".join(slide_texts[1:]) if len(slide_texts) > 1 else slide_texts[0]
-                sections.append({"heading": f"Slayt {idx}: {heading}", "content": body})
-                all_lines.append(f"## Slayt {idx}: {heading}\n{body}")
-        raw_text = "\n\n".join(all_lines)
-
+        sections, headers, rows, raw_text = _extract_pptx_structured(raw)
     elif ext in ("xlsx", "xlsm"):
-        wb = load_workbook(io.BytesIO(raw), data_only=True)
-        ws: Any = wb.active
-        all_rows = [[c if c is not None else "" for c in r] for r in ws.iter_rows(values_only=True)] if ws is not None else []
-        non_empty = [r for r in all_rows if any(str(c).strip() for c in r)]
-        if non_empty:
-            headers = [str(c).strip() or f"Sütun {i + 1}" for i, c in enumerate(non_empty[0])]
-            rows = non_empty[1:200]
-        raw_text = "\n".join(" | ".join(str(c) for c in r) for r in non_empty[:200])
-        wb.close()
-
+        sections, headers, rows, raw_text = _extract_xlsx_structured(raw)
     elif ext == "csv":
-        txt = _decode_text_bytes(raw)
-        delim = ";" if txt.count(";") > txt.count(",") else ","
-        parsed = list(csv.reader(io.StringIO(txt), delimiter=delim))
-        non_empty = [r for r in parsed if any(c.strip() for c in r)]
-        if non_empty:
-            headers = [c.strip() or f"Sütun {i + 1}" for i, c in enumerate(non_empty[0])]
-            rows = non_empty[1:200]
-        raw_text = txt
-
+        sections, headers, rows, raw_text = _extract_csv_structured(raw)
     else:
-        raw_text = _decode_text_bytes(raw)
-        blocks = [b.strip() for b in re.split(r"\n{2,}", raw_text) if b.strip()]
-        for idx, blk in enumerate(blocks[:30], start=1):
-            lines = blk.splitlines()
-            heading = lines[0].lstrip("# ").strip()[:90] if lines else f"Bölüm {idx}"
-            body = "\n".join(lines[1:]).strip() if len(lines) > 1 else blk
-            sections.append({"heading": heading, "content": body})
+        sections, headers, rows, raw_text = _extract_plain_structured(raw)
 
     if not sections and raw_text:
         sections.append({"heading": "İçerik Özeti", "content": raw_text[:4000]})
@@ -253,6 +274,50 @@ def extract_structured_content(filename: str, raw: bytes) -> dict[str, Any]:
         "rows": rows,
         "raw_text": raw_text,
     }
+
+
+def _write_pptx_output(out_path: Path, filename: str, data: dict[str, Any]) -> None:
+    slides = []
+    for idx, s in enumerate(data["sections"][:14], start=1):
+        raw_lines = [ln.strip("•-* \t") for ln in re.split(r"[\n]+|(?<=\.)\s+", s["content"]) if ln.strip()]
+        slides.append({
+            "kicker": f"BÖLÜM {idx}",
+            "title": s["heading"][:80],
+            "bullets": raw_lines[:5] or [s["content"][:220]],
+            "key_fact": raw_lines[0][:140] if raw_lines else "",
+        })
+    if data["headers"] and data["rows"]:
+        slides.append({
+            "kicker": "TABLO ÖZETİ",
+            "title": "Veri Tablosu Özeti",
+            "bullets": [" | ".join(str(c) for c in r[: len(data["headers"])]) for r in data["rows"][:6]],
+        })
+    dr.build_pptx_presentation(
+        title=data["title"],
+        subtitle=data["summary"][:160] or f"{filename} dosyasından dönüştürüldü",
+        slides=slides,
+        out_path=out_path,
+    )
+
+
+def _write_csv_output(out_path: Path, data: dict[str, Any]) -> None:
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    if data["headers"]:
+        writer.writerow(data["headers"])
+        writer.writerows(data["rows"])
+    else:
+        writer.writerow(["Bölüm", "İçerik"])
+        for s in data["sections"]:
+            writer.writerow([s["heading"], s["content"]])
+    out_path.write_text(buf.getvalue(), encoding="utf-8-sig")
+
+
+def _write_md_output(out_path: Path, data: dict[str, Any]) -> None:
+    md_lines = [f"# {data['title']}", ""]
+    for s in data["sections"]:
+        md_lines.extend([f"## {s['heading']}", "", s["content"], ""])
+    out_path.write_text("\n".join(md_lines), encoding="utf-8")
 
 
 def convert_uploaded_file(filename: str, raw: bytes, target_fmt: str) -> dict[str, Any]:
@@ -273,45 +338,13 @@ def convert_uploaded_file(filename: str, raw: bytes, target_fmt: str) -> dict[st
         rws = data["rows"] or [[s["heading"], s["content"][:500]] for s in data["sections"]]
         df._build_xlsx(out_path, data["title"], data["summary"], data["sections"], hdrs, rws)
     elif target_fmt == "pptx":
-        slides = []
-        for idx, s in enumerate(data["sections"][:14], start=1):
-            raw_lines = [ln.strip("•-* \t") for ln in re.split(r"[\n]+|(?<=\.)\s+", s["content"]) if ln.strip()]
-            slides.append({
-                "kicker": f"BÖLÜM {idx}",
-                "title": s["heading"][:80],
-                "bullets": raw_lines[:5] or [s["content"][:220]],
-                "key_fact": raw_lines[0][:140] if raw_lines else "",
-            })
-        if data["headers"] and data["rows"]:
-            slides.append({
-                "kicker": "TABLO ÖZETİ",
-                "title": "Veri Tablosu Özeti",
-                "bullets": [" | ".join(str(c) for c in r[: len(data["headers"])]) for r in data["rows"][:6]],
-            })
-        dr.build_pptx_presentation(
-            title=data["title"],
-            subtitle=data["summary"][:160] or f"{filename} dosyasından dönüştürüldü",
-            slides=slides,
-            out_path=out_path,
-        )
+        _write_pptx_output(out_path, filename, data)
     elif target_fmt == "csv":
-        buf = io.StringIO()
-        writer = csv.writer(buf)
-        if data["headers"]:
-            writer.writerow(data["headers"])
-            writer.writerows(data["rows"])
-        else:
-            writer.writerow(["Bölüm", "İçerik"])
-            for s in data["sections"]:
-                writer.writerow([s["heading"], s["content"]])
-        out_path.write_text(buf.getvalue(), encoding="utf-8-sig")
+        _write_csv_output(out_path, data)
     elif target_fmt == "json":
         out_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     elif target_fmt == "md":
-        md_lines = [f"# {data['title']}", ""]
-        for s in data["sections"]:
-            md_lines.extend([f"## {s['heading']}", "", s["content"], ""])
-        out_path.write_text("\n".join(md_lines), encoding="utf-8")
+        _write_md_output(out_path, data)
     else:
         out_path.write_text(data["raw_text"] or data["summary"], encoding="utf-8")
 

@@ -46,11 +46,11 @@ _ADDRESSES_MODEL = re.compile(
     _I | re.M,
 )
 _EXFIL_VERB = r"(?:reveal|print|output|show|send|forward|email|export|leak|yaz|göster|gönder|aktar|ifşa)"
-_SECRET_OBJECT = (
+_EXFIL_TARGET_PATTERN = (
     r"(?:system\s+prompt|hidden\s+instructions|api\s+keys?|admin\s+token|secret\s+key|passwords?|credentials|"
     r"conversation\s+history|memory\s+entries|database|files|memory\s+entries|attacker|confidential|parola\w*|anahtar\w*|kullanıcı\s+verileri\w*|dosyalar\w*|prompt\s+del\s+sistema)"
 )
-_EXFIL = re.compile(rf"\b{_EXFIL_VERB}\b(?:\W+\w+){{0,6}}?\W+{_SECRET_OBJECT}", _I)
+_EXFIL = re.compile(rf"\b{_EXFIL_VERB}\b(?:\W+\w+){{0,6}}?\W+{_EXFIL_TARGET_PATTERN}", _I)
 _ACTION_ON_MODEL = re.compile(
     r"\b(?:must|should|now|şimdi|must\s+now)\b(?:\W+\w+){0,5}?\W+(?:call|run|execute|obey|follow|delete|grant|approve|çalıştır|sil|uy)\b"
     r"|\b(?:instead|yerine)\b.{0,40}\b(?:output|write|print|recommend|yaz|öner)\b"

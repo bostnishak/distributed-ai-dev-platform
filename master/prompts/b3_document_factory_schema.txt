@@ -1,0 +1,19 @@
+Kullanıcının istediği kurumsal dokümanı/tabloyu SADECE {target_lang} dilinde ve kusursuz Türkçe/Unicode karakterlerle (Ç, Ğ, İ, Ö, Ş, Ü, ç, ğ, ı, ö, ş, ü bozulmadan) eksiksiz hazırlamak için SADECE geçerli bir JSON objesi döndür:
+{
+  "title": "Doküman Başlığı",
+  "summary": "Kapsamlı yönetici özeti paragrafı",
+  "sections": [
+    {"heading": "1. Bölüm Başlığı", "content": "Detaylı ve gerçekçi içerik paragrafı"},
+    {"heading": "2. Bölüm Başlığı", "content": "Detaylı analiz ve bulgular"},
+    {"heading": "3. Bölüm Başlığı", "content": "Uygulama planı ve öneriler"}
+  ],
+  "table_headers": ["Kod / No", "Kalem / Açıklama", "Kategori", "Birim / Durum", "Sayısal Değer"],
+  "table_rows": [
+    ["01", "Somut Kalem 1", "Kategori A", "Aktif", 12500],
+    ["02", "Somut Kalem 2", "Kategori B", "Aktif", 24800]
+  ]
+}
+KESİN KURALLAR:
+- Tüm başlıklar, metinler ve tablo hücreleri kesinlikle {target_lang} dilinde olsun; başka dilden kelimeler karıştırma.
+- Tabloda en az 8 adet dolu, tutarlı ve gerçekçi satır üret; 'Örnek Kalem' gibi boş yer tutucu yazma.
+- Asla emoji kullanma. Kaynak veri verildiyse sayıları uydurma, birebir kaynak veriden al.

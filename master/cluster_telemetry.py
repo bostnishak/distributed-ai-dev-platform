@@ -7,7 +7,9 @@ so test suites can monkeypatch storage paths cleanly.
 
 from __future__ import annotations
 
+import hashlib
 import json
+import math
 import os
 import random
 import time
@@ -25,6 +27,45 @@ def _data_dir() -> Path:
     base = Path(getattr(config, "DATA_DIR", Path(config.DB_PATH).parent))
     base.mkdir(parents=True, exist_ok=True)
     return base
+
+
+class _SeededBetaSampler:
+    """Deterministic Beta(alpha, beta) sampler backed by SHA-256 counter mode."""
+
+    def __init__(self, seed: int) -> None:
+        self._seed = str(seed).encode("utf-8")
+        self._counter = 0
+
+    def _uniform(self) -> float:
+        self._counter += 1
+        digest = hashlib.sha256(self._seed + self._counter.to_bytes(8, "big")).digest()
+        val = int.from_bytes(digest[:8], "big") / float(1 << 64)
+        return min(max(val, 1e-12), 1.0 - 1e-12)
+
+    def _normal(self) -> float:
+        u1 = self._uniform()
+        u2 = self._uniform()
+        return math.sqrt(-2.0 * math.log(u1)) * math.cos(2.0 * math.pi * u2)
+
+    def _gamma(self, shape: float) -> float:
+        if shape < 1.0:
+            return self._gamma(shape + 1.0) * (self._uniform() ** (1.0 / shape))
+        d = shape - 1.0 / 3.0
+        c = 1.0 / math.sqrt(9.0 * d)
+        while True:
+            x = self._normal()
+            v = 1.0 + c * x
+            if v <= 0.0:
+                continue
+            v3 = v * v * v
+            u = self._uniform()
+            if u < 1.0 - 0.0331 * (x**4) or math.log(u) < 0.5 * x * x + d * (1.0 - v3 + math.log(v3)):
+                return d * v3
+
+    def betavariate(self, alpha: float, beta: float) -> float:
+        x = self._gamma(max(1e-4, float(alpha)))
+        y = self._gamma(max(1e-4, float(beta)))
+        return x / (x + y) if (x + y) > 0.0 else 0.5
 
 
 class ThompsonBanditRouter:
@@ -45,7 +86,9 @@ class ThompsonBanditRouter:
         self._explicit_path = state_path
         self.warm_affinity_bonus = float(warm_affinity_bonus)
         self.latency_penalty_weight = float(latency_penalty_weight)
-        self._rng = random.Random(seed)
+        self._rng: _SeededBetaSampler | random.SystemRandom = (
+            _SeededBetaSampler(seed) if seed is not None else random.SystemRandom()
+        )
         self._state: dict[str, dict[str, dict[str, float]]] = {}
         self._load()
 

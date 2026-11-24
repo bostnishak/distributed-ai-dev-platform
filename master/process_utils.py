@@ -14,6 +14,8 @@ from typing import Any
 log = logging.getLogger(__name__)
 
 _SUPERVISORS: dict[str, SupervisedLoop] = {}
+_EXEC_RUN = subprocess.run
+_EXEC_POPEN = subprocess.Popen
 
 
 @dataclass(frozen=True)
@@ -24,25 +26,37 @@ class ProcessResult:
     timed_out: bool
 
 
+def _validate_argv(cmd: list[str]) -> list[str]:
+    if not isinstance(cmd, list) or not cmd or not all(isinstance(part, str) and part for part in cmd):
+        raise ValueError("cmd must be a non-empty list of non-empty strings.")
+    return list(cmd)
+
+
 def run_process(
-    cmd: list[str] | str,
+    cmd: list[str],
     *,
     cwd: str | os.PathLike[str] | None = None,
     timeout_s: float = 30.0,
     max_output_chars: int = 32_000,
-    env: dict[str, str] | None = None,
-    shell: bool = False,
+    **options: Any,
 ) -> ProcessResult:
     """DEF-24: Run a subprocess with guaranteed UTF-8 decoding (never cp1254) and bounded output."""
+    unknown = set(options) - {"env", "shell"}
+    if unknown:
+        raise TypeError(f"Unexpected keyword argument(s): {', '.join(sorted(unknown))}")
+    if options.get("shell", False):
+        raise ValueError("shell=True is forbidden; pass an explicit argument list.")
+    argv = _validate_argv(cmd)
+    env: dict[str, str] | None = options.get("env")
     merged_env = dict(os.environ if env is None else env)
     merged_env["PYTHONUTF8"] = "1"
     merged_env["PYTHONIOENCODING"] = "utf-8"
     try:
-        proc = subprocess.run(
-            cmd,
+        proc = _EXEC_RUN(
+            argv,
             cwd=str(cwd) if cwd is not None else None,
             env=merged_env,
-            shell=shell,
+            shell=False,
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -65,6 +79,22 @@ def run_process(
             stderr=(err or f"Process timed out after {timeout_s}s")[-max_output_chars:],
             timed_out=True,
         )
+
+
+def spawn_process(
+    cmd: list[str],
+    *,
+    cwd: str | os.PathLike[str] | None = None,
+) -> subprocess.Popen:
+    """Spawn a detached non-shell child process from a strictly validated argv list."""
+    argv = _validate_argv(cmd)
+    return _EXEC_POPEN(
+        argv,
+        cwd=str(cwd) if cwd is not None else None,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        shell=False,
+    )
 
 
 class SupervisedLoop:

@@ -81,55 +81,65 @@ def extract_xlsx_text(raw: bytes) -> str:
     return "\n".join(parts)
 
 
+_ZIP_SKIP_EXTS = (
+    ".pyc", ".pyo", ".class", ".exe", ".dll", ".so", ".png",
+    ".jpg", ".jpeg", ".gif", ".ico", ".svg", ".woff", ".ttf",
+)
+
+_ZIP_RECOVERABLE_ERRORS = (
+    zipfile.BadZipFile,
+    csv.Error,
+    PyPdfError,
+    OpcError,
+    InvalidFileException,
+    OSError,
+    RuntimeError,
+    ValueError,
+    TypeError,
+    KeyError,
+    AttributeError,
+)
+
+
+def _extract_zip_member(zf: zipfile.ZipFile, info: zipfile.ZipInfo) -> str | None:
+    if info.is_dir():
+        return None
+    name = info.filename.lower()
+    if any(name.endswith(ext) for ext in _ZIP_SKIP_EXTS):
+        return None
+    try:
+        file_raw = zf.read(info.filename)
+        if name.endswith(".pdf"):
+            content = extract_pdf_text(file_raw)
+        elif name.endswith(".docx"):
+            content = extract_docx_text(file_raw)
+        elif name.endswith((".xlsx", ".xlsm")):
+            content = extract_xlsx_text(file_raw)
+        elif name.endswith((".csv", ".tsv")):
+            content = extract_csv_text(file_raw)
+        else:
+            content = _decode_bytes(file_raw)
+        return f"=== {info.filename} ===\n{content.strip()}" if content.strip() else None
+    except _ZIP_RECOVERABLE_ERRORS as exc:
+        import logging
+
+        logging.getLogger(__name__).debug("Recoverable error skipped in loop: %s", exc)
+        return None
+
+
 def extract_zip_text(raw: bytes) -> str:
     """Extract and concatenate text from all readable files inside a ZIP archive."""
-    parts = []
     try:
         inspect_zip(raw)  # SEC-07: bombs, zip-slip, links and deep nesting stop here
     except UnsafeArchive as exc:
         raise UnsupportedFileError(f"Güvensiz arşiv reddedildi: {exc}") from exc
+    parts: list[str] = []
     try:
         with zipfile.ZipFile(io.BytesIO(raw)) as zf:
             for info in zf.infolist():
-                if info.is_dir():
-                    continue
-                name = info.filename.lower()
-                if any(name.endswith(ext) for ext in (
-                    ".pyc", ".pyo", ".class", ".exe", ".dll", ".so", ".png",
-                    ".jpg", ".jpeg", ".gif", ".ico", ".svg", ".woff", ".ttf",
-                )):
-                    continue
-                try:
-                    file_raw = zf.read(info.filename)
-                    if name.endswith(".pdf"):
-                        content = extract_pdf_text(file_raw)
-                    elif name.endswith(".docx"):
-                        content = extract_docx_text(file_raw)
-                    elif name.endswith((".xlsx", ".xlsm")):
-                        content = extract_xlsx_text(file_raw)
-                    elif name.endswith((".csv", ".tsv")):
-                        content = extract_csv_text(file_raw)
-                    else:
-                        content = _decode_bytes(file_raw)
-                    if content.strip():
-                        parts.append(f"=== {info.filename} ===\n{content.strip()}")
-                except (
-                    zipfile.BadZipFile,
-                    csv.Error,
-                    PyPdfError,
-                    OpcError,
-                    InvalidFileException,
-                    OSError,
-                    RuntimeError,
-                    ValueError,
-                    TypeError,
-                    KeyError,
-                    AttributeError,
-                ) as _exc:
-                    import logging
-
-                    logging.getLogger(__name__).debug("Recoverable error skipped in loop: %s", _exc)
-                    continue
+                entry = _extract_zip_member(zf, info)
+                if entry:
+                    parts.append(entry)
     except zipfile.BadZipFile as exc:
         raise UnsupportedFileError(f"Geçersiz ZIP dosyası: {exc}") from exc
     if not parts:

@@ -10,48 +10,10 @@ from pathlib import Path
 from typing import Any
 
 from orchestrator.state import save_artifact
+from prompt_loader import load_prompt
 
 # GAME-01 & GAME-07: Shared offline ES-module Canvas2D engine + shell (pause, high-score, audio toggle, touch)
-CANVAS2D_ENGINE_JS = """\
-export function aabbOverlap(a, b) {
-  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
-}
-export function circleOverlap(a, b) {
-  const dx = a.x - b.x, dy = a.y - b.y, r = a.r + b.r;
-  return dx * dx + dy * dy <= r * r;
-}
-export class FixedLoopEngine {
-  constructor(canvas, balance) {
-    this.canvas = canvas;
-    this.ctx = canvas.getContext('2d');
-    this.balance = balance;
-    this.paused = false;
-    this.muted = false;
-    this.score = 0;
-    this.lives = balance.lives || 3;
-    this.state = 'playing'; // playing | won | lost
-    this.keys = new Set();
-    this.fixedDt = 1 / 60;
-    this.highScoreKey = 'game_hs_' + (balance.genre || 'default');
-  }
-  saveHighScore() {
-    try {
-      const prev = Number(localStorage.getItem(this.highScoreKey) || 0);
-      if (this.score > prev) localStorage.setItem(this.highScoreKey, String(this.score));
-    } catch (_) {}
-  }
-  togglePause() { this.paused = !this.paused; }
-  toggleMute() { this.muted = !this.muted; }
-  stepScore(delta) {
-    this.score += delta;
-    if (this.score >= (this.balance.win_score || 100)) { this.state = 'won'; this.saveHighScore(); }
-  }
-  applyDamage(dmg = 1) {
-    this.lives = Math.max(0, this.lives - dmg);
-    if (this.lives <= 0) { this.state = 'lost'; this.saveHighScore(); }
-  }
-}
-"""
+CANVAS2D_ENGINE_JS = load_prompt("b2_canvas2d_engine.txt")
 
 # GAME-02 & GAME-06: 10 distinct working genre templates with separated balance.json
 GAME_GENRE_TEMPLATES: dict[str, dict[str, Any]] = {
@@ -188,14 +150,7 @@ def build_game_bundle(prompt: str, *, genre: str = "snake_classic") -> dict[str,
     }
 
 
-def run_automated_bot_playtest(bundle: dict[str, Any], *, sim_seconds: int = 30) -> dict[str, Any]:
-    """GAME-05: Deterministic bot playtest verifying controls, score progression, win/lose reachability, zero NaN/crash & FPS >= 55."""
-    html = str(bundle.get("html") or "")
-    balance = dict(bundle.get("balance") or {})
-    win_score = float(balance.get("win_score") or 100)
-    lives = int(balance.get("lives") or 3)
-
-    # Detect deliberate defects (infinite while(true), missing canvas, NaN balance)
+def _detect_bundle_defects(html: str, win_score: float, lives: int) -> list[str]:
     errors: list[str] = []
     if "while (true)" in html or "while(true)" in html:
         errors.append("Sonsuz döngü (while(true)) tespit edildi.")
@@ -205,12 +160,13 @@ def run_automated_bot_playtest(bundle: dict[str, Any], *, sim_seconds: int = 30)
         errors.append("Duraklatma veya yüksek skor kabuğu eksik.")
     if win_score <= 0 or lives <= 0:
         errors.append("Geçersiz denge parametresi (win_score/lives <= 0).")
+    return errors
 
-    # Simulate 60 FPS ticks for win path & lose path
-    ticks = sim_seconds * 60
+
+def _simulate_bot_outcomes(sim_seconds: int, win_score: float, lives: int) -> tuple[bool, bool]:
     score = 0.0
     won_reached = False
-    for t in range(1, ticks + 1):
+    for t in range(1, sim_seconds * 60 + 1):
         if t % 18 == 0:
             score += 5.0
         if score >= win_score:
@@ -224,7 +180,18 @@ def run_automated_bot_playtest(bundle: dict[str, Any], *, sim_seconds: int = 30)
         if rem_lives == 0:
             lost_reached = True
             break
+    return won_reached, lost_reached
 
+
+def run_automated_bot_playtest(bundle: dict[str, Any], *, sim_seconds: int = 30) -> dict[str, Any]:
+    """GAME-05: Deterministic bot playtest verifying controls, score progression, win/lose reachability, zero NaN/crash & FPS >= 55."""
+    html = str(bundle.get("html") or "")
+    balance = dict(bundle.get("balance") or {})
+    win_score = float(balance.get("win_score") or 100)
+    lives = int(balance.get("lives") or 3)
+
+    errors = _detect_bundle_defects(html, win_score, lives)
+    won_reached, lost_reached = _simulate_bot_outcomes(sim_seconds, win_score, lives)
     if not won_reached:
         errors.append("Bot simülasyonunda kazanma koşuluna ulaşılamadı.")
     if not lost_reached:

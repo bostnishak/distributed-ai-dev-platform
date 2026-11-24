@@ -2,14 +2,10 @@
 
 from __future__ import annotations
 
-import ast
 import base64
 import hashlib
-import html
-import math
 import re
 import uuid
-from collections import defaultdict
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -19,8 +15,10 @@ from pydantic import BaseModel, Field
 
 import config
 import cronjobs
+import productivity_helpers as ph
 from access_control import require_local_or_admin
 from kvstore import PersistentDict, PersistentList, PersistentSet
+from productivity_helpers import SLIDE_ICONS, TEMPLATE_GALLERY
 
 router = APIRouter(prefix="/api/productivity", tags=["productivity"])
 _ADMIN_OR_LOCAL = [Depends(require_local_or_admin)]
@@ -36,26 +34,6 @@ _APPROVAL_GATES = PersistentDict("approval_gates")
 _DRAINED_AGENTS = PersistentSet("drained_agents")
 _SURVEYS = PersistentDict("surveys")
 
-TEMPLATE_GALLERY: tuple[dict[str, str], ...] = (
-    {"id": "fastapi-rest", "name": "FastAPI REST API", "stack": "Python / FastAPI / SQLite"},
-    {"id": "flask-notes", "name": "Flask Web Uygulaması", "stack": "Python / Flask / HTML"},
-    {"id": "cli-tool", "name": "Python CLI Aracı", "stack": "Python / argparse / pytest"},
-    {"id": "spa-vanilla", "name": "Çevrimdışı Vanilla JS SPA", "stack": "HTML / CSS / ES Modules"},
-    {"id": "canvas-game", "name": "HTML5 Canvas 2B Oyun", "stack": "HTML5 Canvas / JS"},
-    {"id": "data-dashboard", "name": "Veri Analizi Panosu", "stack": "HTML / SVG / CSV"},
-    {"id": "rag-bot", "name": "Yerel RAG Asistanı", "stack": "Python / SQLite FTS5"},
-    {"id": "automation-worker", "name": "Dağıtık İşçi Şablonu", "stack": "Python / httpx"},
-)
-
-SLIDE_ICONS: dict[str, str] = {
-    "chart": '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/></svg>',
-    "shield": '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 2L4 5v6c0 5 3.4 9.7 8 11 4.6-1.3 8-6 8-11V5l-8-3z"/></svg>',
-    "cpu": '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>',
-    "check": '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M5 13l4 4L19 7" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
-}
-
-
-# ---------------------------------------------------------------- Models
 
 class TextBody(BaseModel):
     text: str = Field(..., max_length=100_000)
@@ -128,7 +106,12 @@ class SurveyBody(BaseModel):
     fields: list[dict[str, Any]]
 
 
-# ---------------------------------------------------------------- Chat, Memory & Files (SOH/HAF/DOS)
+class TranslateQueryBody(BaseModel):
+    query: str = Field(..., min_length=1, max_length=500)
+    target: str = "en"
+
+
+# Section: Chat, Memory and Files
 
 @router.post("/chats/{chat_id}/archive")
 async def api_archive_chat(chat_id: str, archived: bool = True):
@@ -210,7 +193,7 @@ async def api_external_connectors():
     }
 
 
-# ---------------------------------------------------------------- Developer & Code Tools (KOD-01..09)
+# Section: Developer and Code Tools
 
 @router.post("/code/regex-tester")
 async def api_regex_tester(body: RegexTestBody):
@@ -227,38 +210,13 @@ async def api_regex_tester(body: RegexTestBody):
 @router.post("/code/explain")
 async def api_explain_code(body: TextBody):
     """Explain Python code line-by-line via AST structure inspection (KOD-07)."""
-    lines = body.text.splitlines()
-    try:
-        tree = ast.parse(body.text)
-    except SyntaxError as exc:
-        return {"valid": False, "error": f"Satır {exc.lineno}: {exc.msg}", "line_by_line": []}
-    notes: dict[int, str] = {}
-    for node in ast.walk(tree):
-        ln = getattr(node, "lineno", 0)
-        if isinstance(node, ast.FunctionDef):
-            notes[ln] = f"`{node.name}` fonksiyonunu tanımlar ({len(node.args.args)} parametre)."
-        elif isinstance(node, ast.ClassDef):
-            notes[ln] = f"`{node.name}` sınıfını tanımlar."
-        elif isinstance(node, ast.Return):
-            notes[ln] = "Fonksiyondan sonuç değeri döndürür."
-        elif isinstance(node, ast.For):
-            notes[ln] = "Koleksiyon üzerinde döngü başlatır."
-        elif isinstance(node, ast.If):
-            notes[ln] = "Koşullu dallanma kontrolü yapar."
-    explained = [{"line": i + 1, "code": line, "explanation": notes.get(i + 1, "İfade / atama satırı.")} for i, line in enumerate(lines)]
-    return {"valid": True, "line_by_line": explained}
+    return ph.explain_python_code(body.text)
 
 
 @router.post("/code/translate")
 async def api_translate_code(body: CodeTranslateBody):
     """Provide structured deterministic Python-to-JavaScript syntax translation preview (KOD-08)."""
-    out = body.code
-    if body.source_lang.lower() == "python" and body.target_lang.lower() in ("js", "javascript"):
-        out = re.sub(r"\bdef\s+(\w+)\(([^)]*)\):", r"function \1(\2) {", out)
-        out = re.sub(r"\bTrue\b", "true", out)
-        out = re.sub(r"\bFalse\b", "false", out)
-        out = re.sub(r"\bNone\b", "null", out)
-        out = re.sub(r"\bprint\(", "console.log(", out)
+    out = ph.translate_python_to_js(body.code, body.source_lang, body.target_lang)
     return {"source_lang": body.source_lang, "target_lang": body.target_lang, "translated_code": out}
 
 
@@ -280,28 +238,7 @@ async def api_template_gallery():
 @router.get("/code/git-log/{ws_id}", dependencies=_ADMIN_OR_LOCAL)
 def api_workspace_git_log(ws_id: str, limit: int = 20):
     """Return structured commit graph history (`git log`) for a studio workspace (KOD-02)."""
-    import shutil
-    import subprocess
-
-    import workspace_builder as wb
-
-    ws_dir = wb.safe_workspace_dir(ws_id)
-    if not (ws_dir / ".git").is_dir():
-        return {"workspace_id": ws_id, "commits": [], "note": "Çalışma alanında henüz git geçmişi yok."}
-    proc = subprocess.run(
-        [shutil.which("git") or "git", "log", f"-n{max(1, min(limit, 50))}", "--pretty=format:%h|%an|%ad|%s", "--date=short"],
-        cwd=str(ws_dir),
-        capture_output=True,
-        text=True,
-        timeout=8,
-        check=False,
-    )
-    commits = []
-    for line in proc.stdout.splitlines():
-        parts = line.split("|", 3)
-        if len(parts) == 4:
-            commits.append({"hash": parts[0], "author": parts[1], "date": parts[2], "message": parts[3]})
-    return {"workspace_id": ws_id, "commits": commits}
+    return ph.read_workspace_git_log(ws_id, limit)
 
 
 @router.post("/tasks/{task_id}/priority", dependencies=_ADMIN_OR_LOCAL)
@@ -318,7 +255,7 @@ async def api_set_priority(task_id: int, priority: int = 1):
     return {"task_id": task_id, "priority": prio, "updated": cur.rowcount > 0}
 
 
-# ---------------------------------------------------------------- Presentations, Research & Media (SUN/ARS/MED)
+# Section: Presentations, Research and Media
 
 @router.get("/slides/icons")
 async def api_slide_icons():
@@ -361,11 +298,6 @@ async def api_research_context(query: str = ""):
     }
 
 
-class TranslateQueryBody(BaseModel):
-    query: str = Field(..., min_length=1, max_length=500)
-    target: str = "en"
-
-
 @router.post("/research/translate-query")
 async def api_translate_query(body: TranslateQueryBody):
     """Translate a research query with the master model so sources in another language can be searched (ARS-05)."""
@@ -383,33 +315,17 @@ async def api_translate_query(body: TranslateQueryBody):
 @router.post("/media/qrcode")
 async def api_generate_qrcode_svg(body: TextBody):
     """Generate a deterministic self-contained SVG QR-style matrix graphic offline (MED-02/03)."""
-    digest = hashlib.sha256(body.text.encode("utf-8")).digest()
-    size = 21
-    cells: list[str] = []
-    for r in range(size):
-        for c in range(size):
-            finder = (r < 7 and c < 7) or (r < 7 and c >= size - 7) or (r >= size - 7 and c < 7)
-            bit = (digest[(r * size + c) % len(digest)] >> ((r + c) % 8)) & 1
-            if finder or bit:
-                cells.append(f'<rect x="{(c + 2) * 8}" y="{(r + 2) * 8}" width="8" height="8" fill="#0f172a"/>')
-    dim = (size + 4) * 8
-    svg = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {dim} {dim}" width="{dim}" height="{dim}"><rect width="{dim}" height="{dim}" fill="#ffffff"/>{"".join(cells)}</svg>'
-    return {"qrcode_svg": svg, "generate_svg": True, "text": body.text}
+    return {"qrcode_svg": ph.build_qrcode_svg(body.text), "generate_svg": True, "text": body.text}
 
 
 @router.post("/media/geocode-distance")
 async def api_geocod_distance(body: GeocodeBody):
     """Calculate Haversine distance (km) between two WGS84 coordinates (MED-05)."""
-    r_km = 6371.0088
-    p1, p2 = math.radians(body.lat1), math.radians(body.lat2)
-    dp = math.radians(body.lat2 - body.lat1)
-    dl = math.radians(body.lon2 - body.lon1)
-    a = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
-    km = round(2 * r_km * math.asin(math.sqrt(min(1.0, a))), 3)
+    km = ph.haversine_km(body.lat1, body.lon1, body.lat2, body.lon2)
     return {"distance_km": km, "audio_convert_available": False, "video_generate_available": False}
 
 
-# ---------------------------------------------------------------- Data Studio (VER-01..05)
+# Section: Data Studio
 
 @router.post("/data/suggest-chart")
 async def api_suggest_chart(body: TableRowsBody):
@@ -425,15 +341,7 @@ async def api_suggest_chart(body: TableRowsBody):
 @router.post("/data/clean")
 async def api_clean_data(body: TableRowsBody):
     """Deduplicate rows and fill missing values deterministically (VER-02)."""
-    seen: set[str] = set()
-    cleaned: list[dict[str, Any]] = []
-    for row in body.rows:
-        filled = {k: (body.fill_value if v is None or v == "" else v) for k, v in row.items()}
-        sig = repr(sorted(filled.items()))
-        if sig not in seen:
-            seen.add(sig)
-            cleaned.append(filled)
-    return {"original_rows": len(body.rows), "cleaned_rows": len(cleaned), "dedupe_rows_removed": len(body.rows) - len(cleaned), "rows": cleaned}
+    return ph.clean_table_rows(body.rows, body.fill_value)
 
 
 @router.post("/data/pivot")
@@ -441,28 +349,13 @@ async def api_pivot_table(body: TableRowsBody):
     """Compute a 2D pivot sum table from tabular records (VER-03)."""
     if not body.row_key or not body.value_key:
         raise HTTPException(status_code=400, detail="row_key ve value_key gereklidir.")
-    table: dict[str, dict[str, float]] = defaultdict(lambda: defaultdict(float))
-    for r in body.rows:
-        rk = str(r.get(body.row_key, ""))
-        ck = str(r.get(body.col_key, "Toplam")) if body.col_key else "Toplam"
-        try:
-            table[rk][ck] += float(r.get(body.value_key) or 0)
-        except (TypeError, ValueError):
-            continue
-    return {"pivot": {k: dict(v) for k, v in table.items()}}
+    return {"pivot": ph.compute_pivot(body.rows, body.row_key, body.col_key, body.value_key)}
 
 
 @router.post("/data/dashboard-html")
 async def api_generate_dashboard(body: TableRowsBody):
     """Generate a self-contained offline HTML KPI dashboard from tabular rows (VER-04)."""
-    cols = list(body.rows[0].keys()) if body.rows else []
-    head_html = "".join(f"<th>{html.escape(str(c))}</th>" for c in cols)
-    rows_html = "".join(
-        "<tr>" + "".join(f"<td>{html.escape(str(r.get(c, '')))}</td>" for c in cols) + "</tr>"
-        for r in body.rows[:100]
-    )
-    doc = f"<!DOCTYPE html><html lang='tr'><head><meta charset='utf-8'><title>Veri Panosu</title></head><body><h1>Veri Panosu ({len(body.rows)} kayıt)</h1><table border='1'><thead><tr>{head_html}</tr></thead><tbody>{rows_html}</tbody></table></body></html>"
-    return {"html": doc, "row_count": len(body.rows)}
+    return {"html": ph.render_dashboard_html(body.rows), "row_count": len(body.rows)}
 
 
 @router.post("/data/surveys", dependencies=_ADMIN_OR_LOCAL)
@@ -473,7 +366,7 @@ async def api_create_survey(body: SurveyBody):
     return _SURVEYS[sid]
 
 
-# ---------------------------------------------------------------- Agents, Ops & Integrations (AJN/OPR/ENT)
+# Section: Agents, Operations and Integrations
 
 @router.post("/agents/custom", dependencies=_ADMIN_OR_LOCAL)
 async def api_create_custom_agent(body: CustomAgentBody):
@@ -565,39 +458,16 @@ async def api_admin_logs(limit: int = 50):
 @router.post("/integrations/calendar.ics")
 async def api_export_ics(body: IcsEventBody):
     """Export a calendar event as RFC 5545 iCalendar (.ics / VEVENT) text (ENT-01)."""
-    def _ics_ts(iso: str) -> str:
-        return re.sub(r"[-:]", "", iso.replace("+00:00", "Z")).split(".")[0]
-
-    uid = f"{uuid.uuid4().hex}@dadp.local"
-    ics = (
-        "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//DADP Platform//TR\r\n"
-        f"BEGIN:VEVENT\r\nUID:{uid}\r\nSUMMARY:{body.title}\r\n"
-        f"DTSTART:{_ics_ts(body.start_iso)}\r\nDTEND:{_ics_ts(body.end_iso)}\r\n"
-        f"LOCATION:{body.location}\r\nDESCRIPTION:{body.description}\r\n"
-        "END:VEVENT\r\nEND:VCALENDAR\r\n"
-    )
+    ics = ph.build_ics_event(body.title, body.start_iso, body.end_iso, body.location, body.description)
     return {"filename": "etkinlik.ics", "ics": ics}
 
 
 @router.post("/integrations/social-format")
 async def api_social_format(body: TextBody):
     """Format a text into LinkedIn post and 280-char tweet thread segments (ENT-07)."""
-    words = body.text.split()
-    tweets: list[str] = []
-    cur = ""
-    for w in words:
-        cand = f"{cur} {w}".strip()
-        if len(cand) > 270:
-            if cur:
-                tweets.append(cur)
-            cur = w
-        else:
-            cur = cand
-    if cur:
-        tweets.append(cur)
     return {
         "linkedin": body.text.strip(),
-        "tweet_thread": [f"{i + 1}/{len(tweets)} {t}" for i, t in enumerate(tweets)],
+        "tweet_thread": ph.split_tweet_thread(body.text),
         "outgoing_webhook_supported": True,
         "messaging_bots": {"telegram": {"configured": False, "webhook": "/api/productivity/integrations/bot-webhook"}, "whatsapp": {"configured": False}},
         "browser_extension": {"manifest": "extensions/browser/manifest.json", "chrome_runtime_isolated": True},

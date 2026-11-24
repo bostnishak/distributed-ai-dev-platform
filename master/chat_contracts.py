@@ -314,43 +314,57 @@ def inspect_prompt_constraints(prompt: str) -> OutputConstraints:
     return c
 
 
+def _enforce_absent_phrasing(out: str) -> str:
+    if not re.search(r"yer almamaktadır|bulunmamaktadır|geçmemektedir|mevcut değildir", out, re.IGNORECASE):
+        return out
+    if re.search(r"\byok\b|bulunmuyor|mevcut değil", out, re.IGNORECASE):
+        return out
+    for pat, repl in (
+        (r"yer almamaktadır", "bulunmuyor (yok)"),
+        (r"bulunmamaktadır", "bulunmuyor (yok)"),
+        (r"geçmemektedir", "bulunmuyor (yok)"),
+        (r"mevcut değildir", "mevcut değil (yok)"),
+    ):
+        out = re.sub(pat, repl, out, flags=re.IGNORECASE)
+    return out
+
+
+def _strip_forbidden_words(out: str, forbidden_words: list[str]) -> str:
+    for fw in forbidden_words:
+        pat = re.compile(re.escape(fw) + r"\w*", re.IGNORECASE)
+        if not pat.search(out):
+            continue
+        lines = [ln for ln in out.splitlines() if not pat.search(ln)]
+        if lines and len(" ".join(lines).split()) >= 4:
+            out = "\n".join(lines).strip()
+        else:
+            out = re.sub(r"\s{2,}", " ", pat.sub("ufuk", out)).strip()
+    return out
+
+
+def _trim_max_words(out: str, max_words: int) -> str:
+    words = out.split()
+    if len(words) <= max_words:
+        return out
+    trimmed = " ".join(words[:max_words]).rstrip(",;:-")
+    return trimmed if trimmed.endswith((".", "!", "?")) else f"{trimmed}."
+
+
 def enforce_output_constraints(text: str, c: OutputConstraints) -> str:
     """DAV-01..06: Deterministically repair small-model contract slips (code-only, max_words, forbidden words, AST syntax)."""
     out = (text or "").strip()
     if not out:
         return out
-
-    if c.prefer_explicit_absent and re.search(r"yer almamaktadır|bulunmamaktadır|geçmemektedir|mevcut değildir", out, re.IGNORECASE):
-        if not re.search(r"\byok\b|bulunmuyor|mevcut değil", out, re.IGNORECASE):
-            out = re.sub(r"yer almamaktadır", "bulunmuyor (yok)", out, flags=re.IGNORECASE)
-            out = re.sub(r"bulunmamaktadır", "bulunmuyor (yok)", out, flags=re.IGNORECASE)
-            out = re.sub(r"geçmemektedir", "bulunmuyor (yok)", out, flags=re.IGNORECASE)
-            out = re.sub(r"mevcut değildir", "mevcut değil (yok)", out, flags=re.IGNORECASE)
-
+    if c.prefer_explicit_absent:
+        out = _enforce_absent_phrasing(out)
     if c.syntax_hint and not re.search(r"sözdizimi|syntax|operand|eksik|tamamlanmamış", out, re.IGNORECASE):
         out = f"{c.syntax_hint}\n\n{out}"
-
     if c.code_only:
         blocks = re.findall(r"```[\s\S]*?```", out)
         if blocks:
             out = "\n\n".join(blocks).strip()
-
     if c.forbidden_words:
-        for fw in c.forbidden_words:
-            pat = re.compile(re.escape(fw) + r"\w*", re.IGNORECASE)
-            if pat.search(out):
-                lines = [ln for ln in out.splitlines() if not pat.search(ln)]
-                if lines and len(" ".join(lines).split()) >= 4:
-                    out = "\n".join(lines).strip()
-                else:
-                    out = re.sub(r"\s{2,}", " ", pat.sub("ufuk", out)).strip()
-
+        out = _strip_forbidden_words(out, c.forbidden_words)
     if c.max_words:
-        words = out.split()
-        if len(words) > c.max_words:
-            trimmed = " ".join(words[: c.max_words]).rstrip(",;:-")
-            if not trimmed.endswith((".", "!", "?")):
-                trimmed += "."
-            out = trimmed
-
+        out = _trim_max_words(out, c.max_words)
     return out

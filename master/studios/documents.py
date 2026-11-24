@@ -163,7 +163,8 @@ def build_verified_xlsx(spec: dict[str, Any], *, output_path: Path) -> dict[str,
     """DOC-02: Build XLSX with live formulas (SUM/AVERAGE/IF), validation, conditional formatting, chart & zero-error check."""
     wb = openpyxl.Workbook()
     ws: Any = wb.active
-    assert ws is not None
+    if ws is None:
+        raise RuntimeError("Excel aktif çalışma sayfası oluşturulamadı.")
     ws.title = str(spec.get("sheet_name") or "Analiz")[:31]
 
     headers = list(spec.get("headers") or ["Kalem", "Adet", "Birim Fiyat", "Toplam", "Durum"])

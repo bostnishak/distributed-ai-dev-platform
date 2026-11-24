@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS signed_media (
+    media_id TEXT PRIMARY KEY,
+    owner_id TEXT NOT NULL,
+    filename TEXT NOT NULL,
+    content_type TEXT NOT NULL,
+    file_path TEXT NOT NULL,
+    expires_at REAL NOT NULL,
+    created_at TEXT NOT NULL
+)

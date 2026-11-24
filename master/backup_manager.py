@@ -92,6 +92,43 @@ def create_enterprise_backup_zip(
     return buf.getvalue()
 
 
+def _read_backup_manifest(zf: pyzipper.AESZipFile) -> dict[str, Any]:
+    try:
+        manifest_bytes = zf.read("backup/BACKUP_MANIFEST.json")
+    except KeyError as exc:
+        raise ValueError("Yedek arşivinde bütünlük manifesti (BACKUP_MANIFEST.json) eksik.") from exc
+    except RuntimeError as exc:
+        raise ValueError("Yanlış yedek parolası veya bozuk şifreli arşiv.") from exc
+    return json.loads(manifest_bytes.decode("utf-8"))
+
+
+def _stage_verified_files(
+    zf: pyzipper.AESZipFile,
+    expected_files: dict[str, dict[str, Any]],
+    dest_root: Path,
+) -> list[tuple[Path, bytes, str]]:
+    staged: list[tuple[Path, bytes, str]] = []
+    for rel, meta in expected_files.items():
+        clean_rel = rel.replace("\\", "/").lstrip("/")
+        if Path(clean_rel).name.lower() in _EXCLUDED_SECRET_FILES:
+            continue
+        target = (dest_root / clean_rel).resolve()
+        if dest_root != target and dest_root not in target.parents:
+            raise ValueError(f"Güvenlik ihlali: geçersiz arşiv yolu ({rel}).")
+        try:
+            content = zf.read(f"backup/{clean_rel}")
+        except RuntimeError as exc:
+            raise ValueError("Yanlış yedek parolası veya şifre çözme hatası.") from exc
+        except KeyError as exc:
+            raise ValueError(f"Manifestte kayıtlı dosya arşivde eksik: {rel}") from exc
+
+        actual_sha = hashlib.sha256(content).hexdigest()
+        if actual_sha != meta.get("sha256"):
+            raise ValueError(f"Bütünlük doğrulaması başarısız (SHA-256 uyuşmuyor): {rel}")
+        staged.append((target, content, clean_rel))
+    return staged
+
+
 def restore_enterprise_backup_zip(
     raw_zip: bytes,
     password: str,
@@ -113,38 +150,9 @@ def restore_enterprise_backup_zip(
     restored_files: list[str] = []
     with zf:
         zf.setpassword(pwd.encode("utf-8"))
-        try:
-            manifest_bytes = zf.read("backup/BACKUP_MANIFEST.json")
-        except KeyError as exc:
-            raise ValueError("Yedek arşivinde bütünlük manifesti (BACKUP_MANIFEST.json) eksik.") from exc
-        except RuntimeError as exc:
-            raise ValueError("Yanlış yedek parolası veya bozuk şifreli arşiv.") from exc
-
-        manifest = json.loads(manifest_bytes.decode("utf-8"))
+        manifest = _read_backup_manifest(zf)
         expected_files: dict[str, dict[str, Any]] = manifest.get("files") or {}
-
-        # 1. Verify all checksums in memory before touching disk
-        staged: list[tuple[Path, bytes, str]] = []
-        for rel, meta in expected_files.items():
-            clean_rel = rel.replace("\\", "/").lstrip("/")
-            if Path(clean_rel).name.lower() in _EXCLUDED_SECRET_FILES:
-                continue
-            target = (dest_root / clean_rel).resolve()
-            if dest_root != target and dest_root not in target.parents:
-                raise ValueError(f"Güvenlik ihlali: geçersiz arşiv yolu ({rel}).")
-            try:
-                content = zf.read(f"backup/{clean_rel}")
-            except RuntimeError as exc:
-                raise ValueError("Yanlış yedek parolası veya şifre çözme hatası.") from exc
-            except KeyError as exc:
-                raise ValueError(f"Manifestte kayıtlı dosya arşivde eksik: {rel}") from exc
-
-            actual_sha = hashlib.sha256(content).hexdigest()
-            if actual_sha != meta.get("sha256"):
-                raise ValueError(f"Bütünlük doğrulaması başarısız (SHA-256 uyuşmuyor): {rel}")
-            staged.append((target, content, clean_rel))
-
-        # 2. Write verified files to disk
+        staged = _stage_verified_files(zf, expected_files, dest_root)
         for target, content, clean_rel in staged:
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(content)

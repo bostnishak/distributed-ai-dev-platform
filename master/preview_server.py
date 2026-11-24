@@ -53,7 +53,7 @@ async def serve_isolated_preview(ws_id: str, filepath: str):
     )
 
 
-_preview_started = False
+_STATE: dict[str, bool] = {"preview_started": False}
 
 
 def get_preview_origin() -> str:
@@ -62,17 +62,16 @@ def get_preview_origin() -> str:
 
 def start_preview_server_background() -> None:
     """Start the isolated second-origin preview server in a daemon thread (idempotent & port-safe)."""
-    global _preview_started
-    if _preview_started:
+    if _STATE["preview_started"]:
         return
     import socket
 
     # If port is already listening (e.g. another worker or existing preview server), skip cleanly
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         if sock.connect_ex(("127.0.0.1", int(config.PREVIEW_PORT))) == 0:
-            _preview_started = True
+            _STATE["preview_started"] = True
             return
-    _preview_started = True
+    _STATE["preview_started"] = True
 
     def _run() -> None:
         try:

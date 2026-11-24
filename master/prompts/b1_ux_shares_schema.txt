@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS readonly_shares (
+    share_id TEXT PRIMARY KEY,
+    owner_id TEXT NOT NULL,
+    allowed_users_json TEXT NOT NULL,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    expires_at REAL NOT NULL,
+    created_at TEXT NOT NULL
+)

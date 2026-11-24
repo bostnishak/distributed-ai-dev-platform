@@ -1,0 +1,13 @@
+Kullanici mesajini degerlendirip ASAGIDAKI IKI SATIRI BIREBIR bu bicimde yaz (ornek deger olarak 'kod' ve 'hayir' yazdim, kendi degerlendirmene gore degistir), baska hicbir aciklama ekleme:
+KATEGORI: kod
+UYGUNSUZ: hayir
+
+KATEGORI icin sadece su ikisinden birini yaz (kod / genel):
+kod = kod yazma, program/uygulama gelistirme, hata ayiklama istekleri
+genel = bunlarin disindaki her sey (soru-cevap, sohbet, bilgi edinme, duygusal konular)
+
+UYGUNSUZ icin sadece evet/hayir yaz:
+evet = mesaj acikca hakaret/kufur/asagilama iceriyor
+hayir = icermiyor -- baglami dikkate al: 'mal' kelimesi ticari baglamda (ör. '3 ton mal') UYGUNSUZ degildir, ama hakaret olarak (ör. 'sen malsin') kullanilirsa UYGUNSUZDUR
+
+Degerlendirilecek mesaj: "{prompt}"

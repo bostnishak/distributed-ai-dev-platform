@@ -160,92 +160,88 @@ def _count_sentences(text: str) -> int:
     return max(1, len(parts))
 
 
+def _validate_code_only(body: str, violations: list[str], metrics: dict[str, Any]) -> None:
+    blocks = _FENCE_RE.findall(body)
+    outside = _strip_code_fences(body)
+    metrics["code_blocks"] = len(blocks)
+    metrics["outside_chars"] = len(outside)
+    if not blocks:
+        violations.append("code_only_missing_code_block")
+    if outside:
+        violations.append("code_only_prose_outside_fences")
+    for lang, code in blocks:
+        if lang.lower() in ("py", "python"):
+            try:
+                ast.parse(code)
+            except SyntaxError as exc:
+                violations.append(f"python_syntax_error:{exc.msg}")
+
+
+def _validate_lesson(body: str, violations: list[str], metrics: dict[str, Any]) -> None:
+    low = body.lower()
+    missing = [sec_name for sec_name, needles in LESSON_SECTIONS if not any(n in low for n in needles)]
+    metrics["missing_sections"] = missing
+    if missing:
+        violations.append(f"lesson_missing_sections:{','.join(missing)}")
+
+
+def _validate_project(body: str, contract: ResponseContract, violations: list[str], metrics: dict[str, Any]) -> None:
+    words = body.split()
+    metrics["word_count"] = len(words)
+    if len(words) > (contract.max_words or 120):
+        violations.append(f"project_summary_too_long:{len(words)}")
+    if len(_FENCE_RE.findall(body)) > 0 and len(body) > 600:
+        violations.append("project_contains_raw_code_dump")
+
+
+def _validate_short(body: str, contract: ResponseContract, violations: list[str], metrics: dict[str, Any]) -> None:
+    words = body.split()
+    sents = _count_sentences(body)
+    metrics["word_count"] = len(words)
+    metrics["sentence_count"] = sents
+    if contract.max_words and len(words) > contract.max_words:
+        violations.append(f"short_word_limit_exceeded:{len(words)}")
+    if contract.max_sentences and sents > contract.max_sentences:
+        violations.append(f"short_sentence_limit_exceeded:{sents}")
+    if _PREAMBLE_RE.match(body):
+        violations.append("short_contains_preamble")
+
+
+def _validate_directives(body: str, contract: ResponseContract, violations: list[str]) -> None:
+    if "bullet_list" in contract.format_directives and not re.search(r"(?m)^\s*(?:[-*]|\d+\.)\s+", body):
+        violations.append("directive_missing_bullet_list")
+    if "table" in contract.format_directives and ("|" not in body or "---" not in body):
+        violations.append("directive_missing_markdown_table")
+
+
 def validate_contract(text: str, contract: ResponseContract) -> ContractValidation:
     """Programmatically verify an LLM response against its ResponseContract."""
     body = (text or "").strip()
+    if not body:
+        return ContractValidation(passed=False, mode=contract.mode, violations=["empty_response"])
     violations: list[str] = []
     metrics: dict[str, Any] = {}
 
-    if not body:
-        return ContractValidation(passed=False, mode=contract.mode, violations=["empty_response"])
-
-    # MODE-02: code_only
     if contract.mode == "code_only":
-        blocks = _FENCE_RE.findall(body)
-        outside = _strip_code_fences(body)
-        metrics["code_blocks"] = len(blocks)
-        metrics["outside_chars"] = len(outside)
-        if not blocks:
-            violations.append("code_only_missing_code_block")
-        if outside:
-            violations.append("code_only_prose_outside_fences")
-        for lang, code in blocks:
-            if lang.lower() in ("py", "python"):
-                try:
-                    ast.parse(code)
-                except SyntaxError as exc:
-                    violations.append(f"python_syntax_error:{exc.msg}")
+        _validate_code_only(body, violations, metrics)
+    elif contract.mode == "lesson":
+        _validate_lesson(body, violations, metrics)
+    elif contract.mode == "presentation" and contract.outline_first:
+        if not any(k in body.lower() for k in ("slayt", "slide", "taslak", "outline")):
+            violations.append("presentation_missing_outline")
+    elif contract.mode == "project":
+        _validate_project(body, contract, violations, metrics)
+    elif contract.mode == "short":
+        _validate_short(body, contract, violations, metrics)
 
-    # MODE-03: lesson (6 sections)
-    if contract.mode == "lesson":
-        low = body.lower()
-        missing = []
-        for sec_name, needles in LESSON_SECTIONS:
-            if not any(n in low for n in needles):
-                missing.append(sec_name)
-        metrics["missing_sections"] = missing
-        if missing:
-            violations.append(f"lesson_missing_sections:{','.join(missing)}")
-
-    # MODE-04: research (citations required)
     if contract.citation_policy == "required":
         cites = _CITATION_RE.findall(body)
         metrics["citation_count"] = len(cites)
         if not cites:
             violations.append("research_missing_citations")
 
-    # MODE-05: presentation outline_first
-    if contract.mode == "presentation" and contract.outline_first:
-        low = body.lower()
-        if not any(k in low for k in ("slayt", "slide", "taslak", "outline")):
-            violations.append("presentation_missing_outline")
-
-    # MODE-06: project summary <= 120 words, no raw file dump
-    if contract.mode == "project":
-        words = body.split()
-        metrics["word_count"] = len(words)
-        if len(words) > (contract.max_words or 120):
-            violations.append(f"project_summary_too_long:{len(words)}")
-        if len(_FENCE_RE.findall(body)) > 0 and len(body) > 600:
-            violations.append("project_contains_raw_code_dump")
-
-    # MODE-07: short (<= 3 sentences, <= 45 words, no preamble)
-    if contract.mode == "short":
-        words = body.split()
-        sents = _count_sentences(body)
-        metrics["word_count"] = len(words)
-        metrics["sentence_count"] = sents
-        if contract.max_words and len(words) > contract.max_words:
-            violations.append(f"short_word_limit_exceeded:{len(words)}")
-        if contract.max_sentences and sents > contract.max_sentences:
-            violations.append(f"short_sentence_limit_exceeded:{sents}")
-        if _PREAMBLE_RE.match(body):
-            violations.append("short_contains_preamble")
-
-    # MODE-08: explicit format directives
-    if "bullet_list" in contract.format_directives:
-        if not re.search(r"(?m)^\s*(?:[-*]|\d+\.)\s+", body):
-            violations.append("directive_missing_bullet_list")
-    if "table" in contract.format_directives:
-        if "|" not in body or "---" not in body:
-            violations.append("directive_missing_markdown_table")
-
-    return ContractValidation(
-        passed=len(violations) == 0,
-        mode=contract.mode,
-        violations=violations,
-        metrics=metrics,
-    )
+    _validate_directives(body, contract, violations)
+    return ContractValidation(passed=len(violations) == 0, mode=contract.mode, violations=violations, metrics=metrics)
 
 
 def deterministic_repair(text: str, contract: ResponseContract, validation: ContractValidation) -> str:

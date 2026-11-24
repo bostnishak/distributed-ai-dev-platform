@@ -7,7 +7,6 @@ import json
 import mimetypes
 import re
 import shutil
-import subprocess
 import zipfile
 from datetime import UTC, datetime
 from typing import Literal
@@ -18,6 +17,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 import preview_server
+import process_utils
 import sandbox
 import workspace_builder as wb
 from access_control import require_local_or_admin
@@ -463,8 +463,12 @@ async def workspace_git_control(id: str, body: WorkspaceGitRequest):
     if not ws_dir.is_dir():
         raise HTTPException(status_code=404, detail="Çalışma alanı bulunamadı.")
 
-    def _git(*args: str) -> subprocess.CompletedProcess[str]:
-        return subprocess.run([shutil.which("git") or "git", *args], cwd=str(ws_dir), capture_output=True, text=True, timeout=8, check=False)
+    git_bin = shutil.which("git")
+    if not git_bin:
+        raise HTTPException(status_code=503, detail="Git kurulu değil.")
+
+    def _git(*args: str) -> process_utils.ProcessResult:
+        return process_utils.run_process([git_bin, *args], cwd=ws_dir, timeout_s=8.0)
 
     if not (ws_dir / ".git").is_dir():
         _git("init")

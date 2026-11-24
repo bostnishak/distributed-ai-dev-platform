@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 import config
+from prompt_loader import load_prompt
 
 SSE_EVENT_TYPES = frozenset({
     "meta",
@@ -71,81 +72,7 @@ def _conn() -> sqlite3.Connection:
 
 def init_orchestrator_db() -> None:
     with _conn() as conn:
-        conn.executescript(
-            """
-            CREATE TABLE IF NOT EXISTS orchestrator_jobs (
-                job_id TEXT PRIMARY KEY,
-                user_id TEXT NOT NULL DEFAULT 'default',
-                kind TEXT NOT NULL,
-                status TEXT NOT NULL,
-                progress INTEGER NOT NULL DEFAULT 0,
-                message TEXT NOT NULL DEFAULT '',
-                result_json TEXT NOT NULL DEFAULT '{}',
-                created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS orchestrator_artifacts (
-                artifact_id TEXT PRIMARY KEY,
-                chat_id TEXT NOT NULL DEFAULT '',
-                user_id TEXT NOT NULL DEFAULT 'default',
-                kind TEXT NOT NULL,
-                title TEXT NOT NULL,
-                version INTEGER NOT NULL DEFAULT 1,
-                sections_json TEXT NOT NULL DEFAULT '[]',
-                content TEXT NOT NULL DEFAULT '',
-                metadata_json TEXT NOT NULL DEFAULT '{}',
-                created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS orchestrator_artifact_versions (
-                artifact_id TEXT NOT NULL,
-                version INTEGER NOT NULL,
-                sections_json TEXT NOT NULL DEFAULT '[]',
-                content TEXT NOT NULL DEFAULT '',
-                saved_at TEXT NOT NULL,
-                PRIMARY KEY (artifact_id, version)
-            );
-            CREATE TABLE IF NOT EXISTS orchestrator_runs (
-                run_id TEXT PRIMARY KEY,
-                chat_id TEXT NOT NULL DEFAULT '',
-                user_id TEXT NOT NULL DEFAULT 'default',
-                prompt TEXT NOT NULL,
-                intent TEXT NOT NULL,
-                mode TEXT NOT NULL,
-                tier TEXT NOT NULL,
-                model TEXT NOT NULL,
-                provider TEXT NOT NULL,
-                seed INTEGER,
-                plan_json TEXT NOT NULL DEFAULT '{}',
-                tools_json TEXT NOT NULL DEFAULT '[]',
-                citations_json TEXT NOT NULL DEFAULT '[]',
-                verification_json TEXT NOT NULL DEFAULT '{}',
-                response_text TEXT NOT NULL DEFAULT '',
-                latency_ms INTEGER NOT NULL DEFAULT 0,
-                created_at TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS orchestrator_feedback (
-                feedback_id TEXT PRIMARY KEY,
-                run_id TEXT NOT NULL,
-                user_id TEXT NOT NULL DEFAULT 'default',
-                rating INTEGER NOT NULL,
-                reason_tags_json TEXT NOT NULL DEFAULT '[]',
-                note TEXT NOT NULL DEFAULT '',
-                created_at TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS conversation_states (
-                chat_id TEXT PRIMARY KEY,
-                user_id TEXT NOT NULL DEFAULT 'default',
-                goals_json TEXT NOT NULL DEFAULT '[]',
-                decisions_json TEXT NOT NULL DEFAULT '[]',
-                open_questions_json TEXT NOT NULL DEFAULT '[]',
-                artifact_ids_json TEXT NOT NULL DEFAULT '[]',
-                active_mode TEXT NOT NULL DEFAULT 'general',
-                turn_count INTEGER NOT NULL DEFAULT 0,
-                updated_at TEXT NOT NULL
-            );
-            """
-        )
+        conn.executescript(load_prompt("b1_orchestrator_schema.txt"))
 
 
 # ---------------------------------------------------------------- ORC-12 Jobs
@@ -210,16 +137,12 @@ def get_job(job_id: str) -> dict[str, Any] | None:
 
 # ---------------------------------------------------------------- ORC-13 & ORC-16 Artifacts & Targeted Edit
 
-def save_artifact(
-    *,
-    kind: str,
-    title: str,
-    sections: list[str] | None = None,
-    content: str = "",
-    chat_id: str = "",
-    user_id: str = "default",
-    metadata: dict[str, Any] | None = None,
-) -> dict[str, Any]:
+def save_artifact(*, kind: str, title: str, **opts: Any) -> dict[str, Any]:
+    sections: list[str] | None = opts.get("sections")
+    content = str(opts.get("content", ""))
+    chat_id = str(opts.get("chat_id", ""))
+    user_id = str(opts.get("user_id", "default"))
+    metadata: dict[str, Any] | None = opts.get("metadata")
     init_orchestrator_db()
     aid = f"art-{uuid.uuid4().hex[:10]}"
     now = datetime.now(UTC).isoformat()
@@ -361,19 +284,7 @@ def save_conversation_state(state: ConversationState) -> None:
     now = datetime.now(UTC).isoformat()
     with _conn() as conn:
         conn.execute(
-            """
-            INSERT INTO conversation_states
-                (chat_id, user_id, goals_json, decisions_json, open_questions_json, artifact_ids_json, active_mode, turn_count, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(chat_id) DO UPDATE SET
-                goals_json = excluded.goals_json,
-                decisions_json = excluded.decisions_json,
-                open_questions_json = excluded.open_questions_json,
-                artifact_ids_json = excluded.artifact_ids_json,
-                active_mode = excluded.active_mode,
-                turn_count = excluded.turn_count,
-                updated_at = excluded.updated_at
-            """,
+            load_prompt("b1_orchestrator_conv_upsert.txt"),
             (
                 state.chat_id,
                 state.user_id,

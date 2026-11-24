@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from PIL import Image
 from pydantic import BaseModel
@@ -89,17 +89,46 @@ async def get_cnc_job(id: str):
     return _load_job(id)
 
 
-@router.post("/balloon")
+class BalloonPartForm:
+    """Multipart form metadata for part identification."""
+
+    def __init__(
+        self,
+        part_number: str = Form(""),
+        part_name: str = Form(""),
+        material: str = Form(""),
+    ) -> None:
+        self.part_number = part_number
+        self.part_name = part_name
+        self.material = material
+
+
+class BalloonSpecForm:
+    """Multipart form metadata for drawing standard and model override."""
+
+    def __init__(
+        self,
+        revision: str = Form("A"),
+        standard: str = Form("ISO 2768-mK"),
+        model: str = Form(""),
+    ) -> None:
+        self.revision = revision
+        self.standard = standard
+        self.model = model
+
+
 async def create_balloon_job(
-    file: UploadFile = File(...),  # noqa: B008
-    part_number: str = Form(""),
-    part_name: str = Form(""),
-    material: str = Form(""),
-    revision: str = Form("A"),
-    standard: str = Form("ISO 2768-mK"),
-    model: str = Form(""),
-):
-    """Upload a CNC technical drawing (PDF, Image, DOCX, XLSX) and run automated ballooning."""
+    file: UploadFile,
+    **overrides: Any,
+) -> dict[str, Any]:
+    """Process an uploaded CNC technical drawing (PDF, Image, DOCX, XLSX, DXF) and persist outputs."""
+    part_number = str(overrides.get("part_number", ""))
+    part_name = str(overrides.get("part_name", ""))
+    material = str(overrides.get("material", ""))
+    revision = str(overrides.get("revision", "A"))
+    standard = str(overrides.get("standard", "ISO 2768-mK"))
+    model = str(overrides.get("model", ""))
+
     if not file.filename:
         raise HTTPException(status_code=400, detail="Dosya adı boş.")
     lower = file.filename.lower()
@@ -145,6 +174,24 @@ async def create_balloon_job(
     }
     _save_job(job_id, job_data)
     return job_data
+
+
+@router.post("/balloon", name="create_balloon_job")
+async def create_balloon_job_endpoint(
+    file: UploadFile = File(...),  # noqa: B008
+    part: BalloonPartForm = Depends(),  # noqa: B008
+    spec: BalloonSpecForm = Depends(),  # noqa: B008
+):
+    """Upload a CNC technical drawing (PDF, Image, DOCX, XLSX) and run automated ballooning."""
+    return await create_balloon_job(
+        file=file,
+        part_number=part.part_number,
+        part_name=part.part_name,
+        material=part.material,
+        revision=spec.revision,
+        standard=spec.standard,
+        model=spec.model,
+    )
 
 
 class UpdateBalloonsRequest(BaseModel):

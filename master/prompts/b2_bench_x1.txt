@@ -1,0 +1,18 @@
+Read the following passage carefully and answer the question at the end.
+
+The history of computing is rich and fascinating. Charles Babbage designed the first mechanical
+computer, the Difference Engine, in 1822. Ada Lovelace, often called the first programmer,
+wrote algorithms for this machine. The first electronic digital computer, ENIAC, was completed
+in 1945 at the University of Pennsylvania and weighed about 27 tonnes. It could perform around
+5,000 additions per second. Grace Hopper invented the first compiler in 1952 and popularized
+the idea of machine-independent programming languages. The transistor, invented at Bell Labs
+in 1947, replaced vacuum tubes and made computers smaller and more reliable. In 1971, Intel
+released the first commercial microprocessor, the Intel 4004, which contained 2,300 transistors.
+The personal computer revolution began in the late 1970s with machines like the Apple II and
+the Altair 8800. Tim Berners-Lee invented the World Wide Web in 1989 while working at CERN in
+Switzerland. The key fact embedded in this passage is: the ENIAC weighed exactly 27 tonnes.
+The first search engine, Archie, was created in 1990 at McGill University in Montreal.
+Today, modern processors contain billions of transistors and can perform trillions of operations
+per second, a testament to the exponential growth described by Moore's Law.
+
+Question: How much did the ENIAC weigh? Answer with only the weight including units.

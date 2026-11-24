@@ -143,96 +143,18 @@ class RAGStore:
         return dbconn.open_db(self.db_path)
 
     def _init_db(self) -> None:
+        from prompt_loader import load_prompt
+
         with self._conn() as conn:
-            conn.executescript(
-                """
-                CREATE TABLE IF NOT EXISTS rag_collections (
-                    collection_id TEXT PRIMARY KEY,
-                    name TEXT NOT NULL,
-                    scope TEXT NOT NULL DEFAULT 'personal',
-                    owner_id TEXT NOT NULL DEFAULT 'default',
-                    is_sample INTEGER NOT NULL DEFAULT 0,
-                    quota_docs INTEGER NOT NULL DEFAULT 500,
-                    created_at TEXT NOT NULL
-                );
-                CREATE TABLE IF NOT EXISTS rag_documents (
-                    doc_id TEXT PRIMARY KEY,
-                    collection_id TEXT NOT NULL,
-                    title TEXT NOT NULL,
-                    source_type TEXT NOT NULL,
-                    version INTEGER NOT NULL DEFAULT 1,
-                    page_count INTEGER NOT NULL DEFAULT 1,
-                    is_sample INTEGER NOT NULL DEFAULT 0,
-                    metadata_json TEXT NOT NULL DEFAULT '{}',
-                    created_at TEXT NOT NULL
-                );
-                CREATE TABLE IF NOT EXISTS rag_chunks (
-                    chunk_id TEXT PRIMARY KEY,
-                    doc_id TEXT NOT NULL,
-                    collection_id TEXT NOT NULL,
-                    page INTEGER NOT NULL DEFAULT 1,
-                    section TEXT NOT NULL DEFAULT '',
-                    chunk_index INTEGER NOT NULL DEFAULT 0,
-                    offset INTEGER NOT NULL DEFAULT 0,
-                    content_hash TEXT NOT NULL,
-                    content TEXT NOT NULL,
-                    norm_content TEXT NOT NULL,
-                    embedding_blob BLOB,
-                    embedding_model TEXT NOT NULL DEFAULT '',
-                    embedding_dim INTEGER NOT NULL DEFAULT 0,
-                    embedding_version TEXT NOT NULL DEFAULT '1.0',
-                    is_ocr INTEGER NOT NULL DEFAULT 0,
-                    quarantine INTEGER NOT NULL DEFAULT 0,
-                    pii_tags_json TEXT NOT NULL DEFAULT '[]',
-                    created_at TEXT NOT NULL
-                );
-                CREATE VIRTUAL TABLE IF NOT EXISTS rag_chunks_fts USING fts5(
-                    chunk_id UNINDEXED,
-                    collection_id UNINDEXED,
-                    title,
-                    norm_content,
-                    tokenize='unicode61'
-                );
-                CREATE TABLE IF NOT EXISTS ingest_jobs (
-                    job_id TEXT PRIMARY KEY,
-                    collection_id TEXT NOT NULL,
-                    filename TEXT NOT NULL,
-                    status TEXT NOT NULL,
-                    progress INTEGER NOT NULL DEFAULT 0,
-                    chunks_done INTEGER NOT NULL DEFAULT 0,
-                    chunks_total INTEGER NOT NULL DEFAULT 0,
-                    retries INTEGER NOT NULL DEFAULT 0,
-                    error TEXT NOT NULL DEFAULT '',
-                    checkpoint_json TEXT NOT NULL DEFAULT '{}',
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL
-                );
-                CREATE TABLE IF NOT EXISTS rag_triples (
-                    triple_id TEXT PRIMARY KEY,
-                    collection_id TEXT NOT NULL,
-                    subject TEXT NOT NULL,
-                    predicate TEXT NOT NULL,
-                    object TEXT NOT NULL,
-                    confidence REAL NOT NULL DEFAULT 0.8,
-                    source_chunk_id TEXT NOT NULL
-                );
-                CREATE INDEX IF NOT EXISTS idx_rag_chunks_col ON rag_chunks(collection_id);
-                CREATE INDEX IF NOT EXISTS idx_rag_chunks_doc ON rag_chunks(doc_id);
-                """
-            )
+            conn.executescript(load_prompt("b3_rag_schema.sql"))
 
     # ---------------------------------------------------------------- RAG-12 Collections & Permissions
 
-    def ensure_collection(
-        self,
-        collection_id: str,
-        name: str = "",
-        *,
-        scope: str = "personal",
-        owner_id: str = "default",
-        is_sample: bool = False,
-        quota_docs: int = 500,
-    ) -> dict[str, Any]:
+    def ensure_collection(self, collection_id: str, name: str = "", **opts: Any) -> dict[str, Any]:
+        scope = str(opts.get("scope", "personal"))
+        owner_id = str(opts.get("owner_id", "default"))
+        is_sample = bool(opts.get("is_sample", False))
+        quota_docs = int(opts.get("quota_docs", 500))
         now = datetime.now(UTC).isoformat()
         with self._conn() as conn:
             conn.execute(
@@ -241,7 +163,7 @@ class RAGStore:
                     (collection_id, name, scope, owner_id, is_sample, quota_docs, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
-                (collection_id, name or collection_id, scope, owner_id, int(is_sample), int(quota_docs), now),
+                (collection_id, name or collection_id, scope, owner_id, int(is_sample), quota_docs, now),
             )
             row = conn.execute("SELECT * FROM rag_collections WHERE collection_id = ?", (collection_id,)).fetchone()
         return dict(row) if row else {}
@@ -323,19 +245,15 @@ class RAGStore:
 
     # ---------------------------------------------------------------- RAG-01 Resumable Ingestion Pipeline
 
-    async def ingest_document(
-        self,
-        *,
-        collection_id: str,
-        file_path: Path | None = None,
-        raw_text: str | None = None,
-        title: str = "",
-        user_id: str = "default",
-        is_sample: bool = False,
-        embed_fn=None,
-        resume_job_id: str | None = None,
-    ) -> dict[str, Any]:
+    async def ingest_document(self, *, collection_id: str, **opts: Any) -> dict[str, Any]:
         """RAG-01: Full pipeline (detect -> parse -> scan -> chunk -> embed -> index) with resumable jobs."""
+        file_path: Path | None = opts.get("file_path")
+        raw_text: str | None = opts.get("raw_text")
+        title = str(opts.get("title", ""))
+        user_id = str(opts.get("user_id", "default"))
+        is_sample = bool(opts.get("is_sample", False))
+        embed_fn = opts.get("embed_fn")
+        resume_job_id: str | None = opts.get("resume_job_id")
         self.ensure_collection(collection_id, owner_id=user_id, is_sample=is_sample)
         now = datetime.now(UTC).isoformat()
         parsed: ParsedDocument = parse_document(file_path=file_path, raw_text=raw_text, title=title)
@@ -447,20 +365,16 @@ class RAGStore:
 
     # ---------------------------------------------------------------- RAG-06, 07, 08, 09, 11, 30 Hybrid Search
 
-    async def search(
-        self,
-        query: str,
-        *,
-        collection_ids: list[str] | None = None,
-        user_id: str = "default",
-        top_k: int = 5,
-        risk: str = "low",
-        recent_turns: list[str] | None = None,
-        min_combined_threshold: float = 0.22,
-        rerank: bool = True,
-        embed_fn=None,
-    ) -> RetrievalResult:
+    async def search(self, query: str, **opts: Any) -> RetrievalResult:
         """Hybrid FTS5 BM25 + vectorized ANN cosine search + absolute relevance gate + citations."""
+        from rag.store_search import fetch_bm25_and_chunks, rank_hybrid_candidates
+
+        collection_ids: list[str] | None = opts.get("collection_ids")
+        user_id = str(opts.get("user_id", "default"))
+        top_k = int(opts.get("top_k", 5))
+        risk = str(opts.get("risk", "low"))
+        recent_turns: list[str] | None = opts.get("recent_turns")
+        embed_fn = opts.get("embed_fn")
         rewritten = self.rewrite_query(query, recent_turns)
         try:
             q_vec, _m, q_dim = await self._embed_vector(rewritten, embed_fn=embed_fn)
@@ -472,82 +386,14 @@ class RAGStore:
         if not target_cols:
             return self._no_source_result(risk=risk, rewritten=rewritten)
 
-        norm_q = normalize_turkish_text(rewritten, expand_synonyms=True)
-        fts_terms = [t for t in norm_q.split() if len(t) >= 2][:12]
-        bm25_scores: dict[str, float] = {}
-
-        import sql_safe
-
-        placeholders = sql_safe.placeholders_for(len(target_cols))
+        fts_terms = [t for t in normalize_turkish_text(rewritten, expand_synonyms=True).split() if len(t) >= 2][:12]
         with self._conn() as conn:
-            if fts_terms:
-                fts_query = " OR ".join(f'"{t}"' for t in fts_terms)
-                try:
-                    fts_sql = sql_safe.build_select(
-                        "rag_chunks_fts",
-                        "chunk_id, bm25(rag_chunks_fts) AS rank",
-                        where=f"rag_chunks_fts MATCH ? AND collection_id IN ({placeholders})",
-                        order_by="rank",
-                        limit=30,
-                    )
-                    rows = conn.execute(fts_sql, (fts_query, *target_cols)).fetchall()
-                    for r in rows:
-                        # FTS5 bm25() is negative (more negative = better match)
-                        bm25_scores[r["chunk_id"]] = min(1.0, max(0.0, -float(r["rank"]) / 8.0))
-                except sqlite3.OperationalError:
-                    pass
-
-            join_sql = (
-                "SELECT c.*, d.title AS doc_title, d.is_sample AS doc_is_sample "
-                "FROM rag_chunks c JOIN rag_documents d ON c.doc_id = d.doc_id "
-                "WHERE c.collection_id IN (" + placeholders + ") AND c.embedding_dim = ?"
-            )
-            chunk_rows = conn.execute(join_sql, (*target_cols, q_dim)).fetchall()
-
+            bm25_scores, chunk_rows = fetch_bm25_and_chunks(conn, target_cols, fts_terms, q_dim)
         if not chunk_rows:
             return self._no_source_result(risk=risk, rewritten=rewritten)
 
-        # RAG-06: Vectorized NumPy ANN similarity matrix
-        mat = np.vstack([np.frombuffer(r["embedding_blob"], dtype=np.float32) for r in chunk_rows])
-        cos_scores = mat @ q_vec
-
-        # RAG-08: RRF ranking + absolute relevance threshold (prevents irrelevant chunks entering context!)
-        bm25_rank = {cid: i + 1 for i, (cid, _) in enumerate(sorted(bm25_scores.items(), key=lambda x: x[1], reverse=True))}
-        vec_order = np.argsort(-cos_scores)
-        vec_rank = {chunk_rows[int(idx)]["chunk_id"]: i + 1 for i, idx in enumerate(vec_order[:30])}
-
-        q_set = set(fts_terms)
-        candidates: list[RetrievalHit] = []
-        for idx, row in enumerate(chunk_rows):
-            cid = row["chunk_id"]
-            b_sc = bm25_scores.get(cid, 0.0)
-            c_sc = float(cos_scores[idx])
-            if cid not in bm25_rank and cid not in vec_rank:
-                continue
-            rrf = (1.0 / (60 + bm25_rank.get(cid, 1000))) + (1.0 / (60 + vec_rank.get(cid, 1000)))
-            # RAG-09 lightweight cross-signal overlap reranker
-            doc_tokens = set(str(row["norm_content"]).split())
-            overlap = len(q_set & doc_tokens) / max(1, len(q_set))
-            combined = 0.45 * max(0.0, c_sc) + 0.35 * b_sc + 0.20 * overlap + (0.05 * rrf if rerank else 0.0)
-            if combined < min_combined_threshold:
-                continue
-            candidates.append(
-                RetrievalHit(
-                    chunk_id=cid,
-                    doc_id=row["doc_id"],
-                    doc_title=row["doc_title"],
-                    collection_id=row["collection_id"],
-                    page=int(row["page"]),
-                    section=str(row["section"]),
-                    content=str(row["content"]),
-                    bm25_score=round(b_sc, 4),
-                    cosine_score=round(c_sc, 4),
-                    combined_score=round(combined, 4),
-                    is_ocr=bool(row["is_ocr"]),
-                    is_sample=bool(row["doc_is_sample"]),
-                    quarantine=bool(row["quarantine"]),
-                )
-            )
+        raw_cands = rank_hybrid_candidates(chunk_rows, q_vec, bm25_scores, fts_terms, opts)
+        candidates = [RetrievalHit(**item) for item in raw_cands]
 
         candidates.sort(key=lambda h: h.combined_score, reverse=True)
         hits = candidates[:top_k]
@@ -687,12 +533,15 @@ class RAGStore:
 
     # ---------------------------------------------------------------- RAG-17 Gated GraphRAG Triples
 
-    def add_triple(self, collection_id: str, subject: str, predicate: str, obj: str, source_chunk_id: str, confidence: float = 0.85) -> str:
+    def add_triple(self, collection_id: str, subject: str, predicate: str, *rest: Any, **opts: Any) -> str:
+        obj = str(rest[0] if len(rest) > 0 else opts.get("obj", ""))
+        source_chunk_id = str(rest[1] if len(rest) > 1 else opts.get("source_chunk_id", ""))
+        confidence = float(rest[2] if len(rest) > 2 else opts.get("confidence", 0.85))
         tid = f"trp-{uuid.uuid4().hex[:10]}"
         with self._conn() as conn:
             conn.execute(
                 "INSERT INTO rag_triples (triple_id, collection_id, subject, predicate, object, confidence, source_chunk_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                (tid, collection_id, subject.strip(), predicate.strip(), obj.strip(), float(confidence), source_chunk_id),
+                (tid, collection_id, subject.strip(), predicate.strip(), obj.strip(), confidence, source_chunk_id),
             )
         return tid
 

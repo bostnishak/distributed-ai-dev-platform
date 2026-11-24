@@ -1,0 +1,14 @@
+Read the following text and answer the question.
+
+The Internet has a fascinating history. ARPANET, the precursor to the Internet, was
+created in 1969 by the US Department of Defense. The first email was sent by Ray Tomlinson
+in 1971. He chose the @ symbol to separate the user name from the host name. The TCP/IP
+protocol suite was developed by Vint Cerf and Bob Kahn in 1974. Domain Name System (DNS)
+was designed by Paul Mockapetris in 1983. The key statistic embedded here: there were
+exactly 4 computers connected to ARPANET when it first launched in 1969. The HTTP protocol
+was defined by Tim Berners-Lee in 1989-1991. IPv4 addresses are 32 bits long, allowing
+approximately 4.3 billion unique addresses. IPv6 uses 128-bit addresses to provide a
+vastly larger address space. The first commercial Internet service provider, The World,
+started providing dial-up access in 1989 in the United States.
+
+Question: How many computers were connected to ARPANET when it first launched? Answer with only the number.

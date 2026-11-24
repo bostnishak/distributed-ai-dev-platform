@@ -139,17 +139,45 @@ def _is_unset_response_model(val: Any) -> bool:
     return val is None or isinstance(val, DefaultPlaceholder)
 
 
+def _ensure_route_contract(route: APIRoute) -> None:
+    model_cls, default_desc = _match_contract(route.path)
+    if not (route.description or (route.endpoint.__doc__ or "").strip()):
+        methods = "/".join(sorted(m for m in (route.methods or set()) if m != "HEAD"))
+        route.description = f"{methods} {route.path}: {default_desc}"
+    if _is_unset_response_model(route.response_model) and route.path != "/":
+        route.response_model = model_cls
+
+
+def _register_openapi_components(schema: dict[str, Any]) -> None:
+    components = schema.setdefault("components", {}).setdefault("schemas", {})
+    models: list[type[ApiEnvelope]] = [*(m for _, m, _ in _PREFIX_MODEL_MAP), ApiEnvelope]
+    for model_cls in models:
+        name = model_cls.__name__
+        if name not in components:
+            components[name] = model_cls.model_json_schema(ref_template="#/components/schemas/{model}")
+
+
+def _enrich_openapi_paths(schema: dict[str, Any]) -> None:
+    http_methods = {"GET", "POST", "PUT", "PATCH", "DELETE"}
+    for path, methods in (schema.get("paths") or {}).items():
+        model_cls, default_desc = _match_contract(path)
+        ref = {"$ref": f"#/components/schemas/{model_cls.__name__}"}
+        for method, op in methods.items():
+            if method.upper() not in http_methods:
+                continue
+            if not (op.get("description") or "").strip():
+                op["description"] = f"{method.upper()} {path}: {default_desc}"
+            resp_200 = op.setdefault("responses", {}).setdefault("200", {"description": "Successful Response"})
+            app_json = resp_200.setdefault("content", {}).setdefault("application/json", {})
+            if not app_json.get("schema"):
+                app_json["schema"] = ref
+
+
 def attach_openapi_contracts(app: FastAPI) -> None:
     """Ensure every registered APIRoute has a concrete description and OpenAPI 200 JSON schema."""
     for route in app.routes:
-        if not isinstance(route, APIRoute):
-            continue
-        model_cls, default_desc = _match_contract(route.path)
-        if not (route.description or (route.endpoint.__doc__ or "").strip()):
-            methods = "/".join(sorted(m for m in (route.methods or set()) if m != "HEAD"))
-            route.description = f"{methods} {route.path}: {default_desc}"
-        if _is_unset_response_model(route.response_model) and route.path != "/":
-            route.response_model = model_cls
+        if isinstance(route, APIRoute):
+            _ensure_route_contract(route)
 
     def custom_openapi() -> dict[str, Any]:
         if app.openapi_schema:
@@ -160,26 +188,8 @@ def attach_openapi_contracts(app: FastAPI) -> None:
             description=app.description,
             routes=app.routes,
         )
-        components = schema.setdefault("components", {}).setdefault("schemas", {})
-        for _, model_cls, _ in _PREFIX_MODEL_MAP:
-            name = model_cls.__name__
-            if name not in components:
-                components[name] = model_cls.model_json_schema(ref_template="#/components/schemas/{model}")
-        if ApiEnvelope.__name__ not in components:
-            components[ApiEnvelope.__name__] = ApiEnvelope.model_json_schema(ref_template="#/components/schemas/{model}")
-
-        for path, methods in (schema.get("paths") or {}).items():
-            model_cls, default_desc = _match_contract(path)
-            ref = {"$ref": f"#/components/schemas/{model_cls.__name__}"}
-            for method, op in methods.items():
-                if method.upper() not in ("GET", "POST", "PUT", "PATCH", "DELETE"):
-                    continue
-                if not (op.get("description") or "").strip():
-                    op["description"] = f"{method.upper()} {path}: {default_desc}"
-                resp_200 = op.setdefault("responses", {}).setdefault("200", {"description": "Successful Response"})
-                app_json = resp_200.setdefault("content", {}).setdefault("application/json", {})
-                if not app_json.get("schema"):
-                    app_json["schema"] = ref
+        _register_openapi_components(schema)
+        _enrich_openapi_paths(schema)
         app.openapi_schema = schema
         return app.openapi_schema
 

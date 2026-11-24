@@ -119,10 +119,11 @@ def recommend_and_render_chart(
     x_col: str,
     y_col: str,
     title: str = "",
-    y_unit: str = "",
-    truncate_y: bool = False,
+    **options: Any,
 ) -> dict[str, Any]:
     """DS-03 & MM-11: Recommend chart type, flag misleading axes, and render editable vector SVG + reproducible code."""
+    y_unit = str(options.get("y_unit", ""))
+    truncate_y = bool(options.get("truncate_y", False))
     x_vals = [str(r.get(x_col, "")) for r in rows]
     y_vals = [float(r.get(y_col, 0.0)) for r in rows]
     is_time = bool(x_vals) and all(bool(_DATE_STR_RE.match(x) or re.match(r"^\d{4}$", x)) for x in x_vals)

@@ -7,7 +7,8 @@ Dimensions: coding, reasoning, context, structured_output, speed.
 from __future__ import annotations
 
 import json
-import textwrap
+
+from prompt_loader import load_prompt
 
 # ---------------------------------------------------------------------------
 # Benchmark definitions
@@ -137,120 +138,35 @@ BENCHMARKS: list[dict] = [
     {
         "id": "x1",
         "dimension": "context",
-        "question": textwrap.dedent("""\
-            Read the following passage carefully and answer the question at the end.
-
-            The history of computing is rich and fascinating. Charles Babbage designed the first mechanical
-            computer, the Difference Engine, in 1822. Ada Lovelace, often called the first programmer,
-            wrote algorithms for this machine. The first electronic digital computer, ENIAC, was completed
-            in 1945 at the University of Pennsylvania and weighed about 27 tonnes. It could perform around
-            5,000 additions per second. Grace Hopper invented the first compiler in 1952 and popularized
-            the idea of machine-independent programming languages. The transistor, invented at Bell Labs
-            in 1947, replaced vacuum tubes and made computers smaller and more reliable. In 1971, Intel
-            released the first commercial microprocessor, the Intel 4004, which contained 2,300 transistors.
-            The personal computer revolution began in the late 1970s with machines like the Apple II and
-            the Altair 8800. Tim Berners-Lee invented the World Wide Web in 1989 while working at CERN in
-            Switzerland. The key fact embedded in this passage is: the ENIAC weighed exactly 27 tonnes.
-            The first search engine, Archie, was created in 1990 at McGill University in Montreal.
-            Today, modern processors contain billions of transistors and can perform trillions of operations
-            per second, a testament to the exponential growth described by Moore's Law.
-
-            Question: How much did the ENIAC weigh? Answer with only the weight including units.\
-        """),
+        "question": load_prompt("b2_bench_x1.txt"),
         "expected_fact": "27 tonnes",
         "max_score": 20,
     },
     {
         "id": "x2",
         "dimension": "context",
-        "question": textwrap.dedent("""\
-            Read the following text and answer the question.
-
-            Software engineering practices have evolved significantly since the 1960s. Waterfall
-            methodology was formalized by Winston Royce in 1970, though he actually argued against
-            its pure application. The Agile Manifesto was published in February 2001 by seventeen
-            software developers meeting in Snowbird, Utah. It emphasized individuals and interactions,
-            working software, customer collaboration, and responding to change. Extreme Programming (XP)
-            was developed by Kent Beck in the late 1990s. Scrum, developed by Ken Schwaber and Jeff
-            Sutherland, uses fixed-length iterations called sprints typically lasting two to four weeks.
-            The specific embedded fact in this text: the Agile Manifesto was signed by exactly seventeen
-            developers. DevOps emerged as a practice around 2008-2009, combining development and
-            operations teams. Continuous Integration was pioneered by Grady Booch and later formalized
-            as a practice by Kent Beck. Infrastructure as Code became popular with tools like Chef,
-            released in 2009, and Puppet, which appeared in 2005. Kubernetes, an open-source container
-            orchestration system, was released by Google in 2014.
-
-            Question: How many developers signed the Agile Manifesto? Answer with only the number.\
-        """),
+        "question": load_prompt("b2_bench_x2.txt"),
         "expected_fact": "17",
         "max_score": 20,
     },
     {
         "id": "x3",
         "dimension": "context",
-        "question": textwrap.dedent("""\
-            Read the following passage and answer the question at the end.
-
-            Machine learning has transformed many fields over the past decade. The term 'artificial
-            intelligence' was coined by John McCarthy in 1956 at the Dartmouth Conference. Early AI
-            systems used rule-based approaches and expert systems. The backpropagation algorithm,
-            crucial for training neural networks, was popularized by Rumelhart, Hinton and Williams
-            in 1986. Support Vector Machines were introduced by Vapnik and Cortes in 1995. Deep learning
-            gained prominence when AlexNet won the ImageNet competition in 2012 with a top-5 error rate
-            of 15.3 percent. The specific fact hidden in this document: AlexNet achieved a top-5 error
-            rate of exactly 15.3 percent. The transformer architecture, introduced in the paper
-            'Attention Is All You Need' in 2017 by Vaswani et al., revolutionized natural language
-            processing. GPT-3, released by OpenAI in 2020, has 175 billion parameters. Large language
-            models have since become central to modern AI applications in code generation, summarization,
-            and dialogue systems.
-
-            Question: What was AlexNet's top-5 error rate at ImageNet? Answer with only the percentage value (e.g. '15.3 percent').\
-        """),
+        "question": load_prompt("b2_bench_x3.txt"),
         "expected_fact": "15.3",
         "max_score": 20,
     },
     {
         "id": "x4",
         "dimension": "context",
-        "question": textwrap.dedent("""\
-            Read the following text and answer the question.
-
-            The Internet has a fascinating history. ARPANET, the precursor to the Internet, was
-            created in 1969 by the US Department of Defense. The first email was sent by Ray Tomlinson
-            in 1971. He chose the @ symbol to separate the user name from the host name. The TCP/IP
-            protocol suite was developed by Vint Cerf and Bob Kahn in 1974. Domain Name System (DNS)
-            was designed by Paul Mockapetris in 1983. The key statistic embedded here: there were
-            exactly 4 computers connected to ARPANET when it first launched in 1969. The HTTP protocol
-            was defined by Tim Berners-Lee in 1989-1991. IPv4 addresses are 32 bits long, allowing
-            approximately 4.3 billion unique addresses. IPv6 uses 128-bit addresses to provide a
-            vastly larger address space. The first commercial Internet service provider, The World,
-            started providing dial-up access in 1989 in the United States.
-
-            Question: How many computers were connected to ARPANET when it first launched? Answer with only the number.\
-        """),
+        "question": load_prompt("b2_bench_x4.txt"),
         "expected_fact": "4",
         "max_score": 20,
     },
     {
         "id": "x5",
         "dimension": "context",
-        "question": textwrap.dedent("""\
-            Read the following passage and answer the question.
-
-            Database management systems have a rich history. Edgar Codd introduced the relational model
-            in his 1970 paper 'A Relational Model of Data for Large Shared Data Banks'. Oracle was
-            founded in 1977 by Larry Ellison, Bob Miner and Ed Oates. IBM released DB2 in 1983.
-            MySQL was created by Michael Widenius and David Axmark in 1995 and released as open source.
-            PostgreSQL evolved from POSTGRES, developed at the University of California, Berkeley.
-            The embedded key number in this text: Edgar Codd proposed exactly 12 rules for relational
-            databases (also known as Codd's 12 rules, published in 1985). NoSQL databases gained
-            popularity around 2009 with systems like MongoDB, CouchDB and Cassandra. Redis, an
-            in-memory data structure store, was created by Salvatore Sanfilippo in 2009. The CAP
-            theorem, formulated by Eric Brewer in 2000, states that a distributed system cannot
-            simultaneously provide consistency, availability and partition tolerance.
-
-            Question: How many rules did Edgar Codd propose for relational databases? Answer with only the number.\
-        """),
+        "question": load_prompt("b2_bench_x5.txt"),
         "expected_fact": "12",
         "max_score": 20,
     },

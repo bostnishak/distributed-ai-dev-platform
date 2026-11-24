@@ -52,6 +52,7 @@ def list_conflicts(project_id: int):
 @router.post("/api/projects/{project_id}/conflicts/{conflict_id}/resolve")
 def resolve_conflict(project_id: int, conflict_id: int, resolution: str = "manual"):
     """Mark a conflict as resolved."""
+    _ = project_id
     ok = db.resolve_conflict(conflict_id, resolution)
     return {"ok": ok}
 

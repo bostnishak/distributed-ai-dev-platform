@@ -1,0 +1,24 @@
+CREATE TABLE IF NOT EXISTS cnc_inspection_lots (
+    id TEXT PRIMARY KEY,
+    cnc_job_id TEXT NOT NULL,
+    part_number TEXT NOT NULL,
+    lot_number TEXT NOT NULL,
+    machine_id TEXT DEFAULT '',
+    operator_name TEXT DEFAULT '',
+    sample_count INTEGER DEFAULT 0,
+    fpy_percent REAL DEFAULT 100.0,
+    min_cpk REAL,
+    status TEXT DEFAULT 'IN_PROGRESS',
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS cnc_cmm_measurements (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    lot_id TEXT NOT NULL REFERENCES cnc_inspection_lots(id) ON DELETE CASCADE,
+    balloon_no INTEGER NOT NULL,
+    serial_no INTEGER NOT NULL,
+    measured_value REAL NOT NULL,
+    deviation REAL NOT NULL,
+    is_ok INTEGER NOT NULL,
+    measured_at TEXT NOT NULL
+);

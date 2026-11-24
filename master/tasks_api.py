@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import sqlite3
+from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.responses import Response
@@ -28,15 +29,13 @@ from selection import select_agent
 router = APIRouter(tags=["tasks"])
 log = logging.getLogger("tasks_api")
 
-_lease_task_running = False
-_lease_task: asyncio.Task | None = None
+_STATE: dict[str, Any] = {"running": False, "lease_task": None}
 
 
 async def _expire_leases_loop() -> None:
-    global _lease_task_running
-    if _lease_task_running:
+    if _STATE["running"]:
         return
-    _lease_task_running = True
+    _STATE["running"] = True
     while True:
         try:
             expired = db.expire_stale_leases()
@@ -48,13 +47,10 @@ async def _expire_leases_loop() -> None:
 
 
 def start_lease_expiry() -> None:
-    global _lease_task
-    _lease_task = asyncio.create_task(_expire_leases_loop())
+    _STATE["lease_task"] = asyncio.create_task(_expire_leases_loop())
 
 
-# ---------------------------------------------------------------------------
-# GET /api/agents/{id}/tasks/next
-# ---------------------------------------------------------------------------
+# Endpoint: next task polling for agents
 
 @router.get("/api/agents/{agent_id}/tasks/next")
 def next_task(
@@ -63,6 +59,7 @@ def next_task(
     caller_agent_id: str | None = Depends(require_agent_auth),
 ):
     """Return the next planned task assigned to this agent, or auto-assign one (SEC-18 ownership)."""
+    _ = background_tasks
     if caller_agent_id and caller_agent_id != agent_id:
         AuditTrail().append_event(
             actor=caller_agent_id,
@@ -118,9 +115,7 @@ def next_task(
     return Response(status_code=204)
 
 
-# ---------------------------------------------------------------------------
-# POST /api/tasks/{id}/result
-# ---------------------------------------------------------------------------
+# Endpoint: task result submission
 
 class FileResult(BaseModel):
     path: str
@@ -134,16 +129,7 @@ class TaskResultRequest(BaseModel):
     tokens_per_second: float | None = None
 
 
-@router.post("/api/tasks/{task_id}/result")
-def submit_result(
-    task_id: int,
-    request: TaskResultRequest,
-    caller_agent_id: str | None = Depends(require_agent_auth),
-):
-    """Agent submits the result for a task it completed (SEC-18: strictly verifies assigned_to ownership)."""
-    task = db.get_task(task_id)
-    if not task:
-        raise HTTPException(status_code=404, detail="Görev bulunamadı.")
+def _verify_task_ownership(task_id: int, task: dict, caller_agent_id: str | None) -> None:
     assigned_to = task.get("assigned_to")
     if caller_agent_id and assigned_to and caller_agent_id != assigned_to:
         AuditTrail().append_event(
@@ -156,9 +142,55 @@ def submit_result(
             detail="Bu görev başka bir ajana atanmış; yalnız atanan ajan sonuç gönderebilir.",
         )
 
-    files = [f.model_dump() for f in request.files] if request.files else None
 
-    # If no explicit files, try to extract them from the output text (PB-33)
+def _postprocess_completed_task(
+    task_id: int,
+    task: dict,
+    task_type: str,
+    output: str,
+    files: list[dict] | None,
+) -> dict:
+    ok, msg = val_module.validate_result(task_type, output, files)
+    db.update_task_validation(task_id, "ok" if ok else "failed", msg)
+    if not ok:
+        log.warning("Task %d validation failed (%s): %s — requeuing.", task_id, task_type, msg)
+        outcome = db.requeue_task(task_id)
+        db.log_event("task_validation_failed", project_id=task.get("project_id"),
+                     agent_id=task.get("assigned_to"),
+                     payload={"task_id": task_id, "outcome": outcome, "message": msg})
+        return {"ok": True, "validation": "failed", "message": msg, "requeue_outcome": outcome}
+
+    project_id = task.get("project_id")
+    if files and project_id:
+        conflicts = conflict_detector.detect_and_save(project_id, task_id, files)
+        if conflicts:
+            db.log_event("conflict_detected", project_id=project_id,
+                         agent_id=task.get("assigned_to"),
+                         payload={"task_id": task_id, "conflicts": conflicts})
+
+    scheduler.release_after_completion(task_id)
+    db.log_event("task_done", project_id=project_id,
+                 agent_id=task.get("assigned_to"),
+                 payload={"task_id": task_id, "task_type": task_type})
+    full_task = db.get_task(task_id)
+    if full_task:
+        review_scheduler.schedule_review(full_task)
+    return {"ok": True, "validation": "ok"}
+
+
+@router.post("/api/tasks/{task_id}/result")
+def submit_result(
+    task_id: int,
+    request: TaskResultRequest,
+    caller_agent_id: str | None = Depends(require_agent_auth),
+):
+    """Agent submits the result for a task it completed (SEC-18: strictly verifies assigned_to ownership)."""
+    task = db.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Görev bulunamadı.")
+    _verify_task_ownership(task_id, task, caller_agent_id)
+
+    files = [f.model_dump() for f in request.files] if request.files else None
     task_type = task.get("type", "")
     if not files and request.status == "done" and task_type != "benchmark":
         files = val_module.extract_files_from_output(task_type, request.output) or None
@@ -172,45 +204,12 @@ def submit_result(
         performed_by=task.get("assigned_to"),
     )
 
-    # Benchmark scoring
     if task_type == "benchmark":
         _score_benchmark_task(task, request.output, request.tokens_per_second)
         return {"ok": True}
-
-    # Validation for non-benchmark tasks (PB-33)
     if request.status == "done":
-        ok, msg = val_module.validate_result(task_type, request.output, files)
-        db.update_task_validation(task_id, "ok" if ok else "failed", msg)
-        if not ok:
-            log.warning("Task %d validation failed (%s): %s — requeuing.", task_id, task_type, msg)
-            outcome = db.requeue_task(task_id)
-            db.log_event("task_validation_failed", project_id=task.get("project_id"),
-                         agent_id=task.get("assigned_to"),
-                         payload={"task_id": task_id, "outcome": outcome, "message": msg})
-            return {"ok": True, "validation": "failed", "message": msg, "requeue_outcome": outcome}
-
-        # Conflict detection (PB-45)
-        if files:
-            project_id = task.get("project_id")
-            if project_id:
-                conflicts = conflict_detector.detect_and_save(project_id, task_id, files)
-                if conflicts:
-                    db.log_event("conflict_detected", project_id=project_id,
-                                 agent_id=task.get("assigned_to"),
-                                 payload={"task_id": task_id, "conflicts": conflicts})
-
-        # Release any newly unblocked tasks (PB-34)
-        scheduler.release_after_completion(task_id)
-        db.log_event("task_done", project_id=task.get("project_id"),
-                     agent_id=task.get("assigned_to"),
-                     payload={"task_id": task_id, "task_type": task_type})
-
-        # Auto-create sibling review task for code tasks (PB-43)
-        full_task = db.get_task(task_id)
-        if full_task:
-            review_scheduler.schedule_review(full_task)
-
-    return {"ok": True, "validation": "ok" if request.status == "done" else "skipped"}
+        return _postprocess_completed_task(task_id, task, task_type, request.output, files)
+    return {"ok": True, "validation": "skipped"}
 
 
 class FixTaskRequest(BaseModel):

@@ -1,0 +1,17 @@
+Read the following text and answer the question.
+
+Software engineering practices have evolved significantly since the 1960s. Waterfall
+methodology was formalized by Winston Royce in 1970, though he actually argued against
+its pure application. The Agile Manifesto was published in February 2001 by seventeen
+software developers meeting in Snowbird, Utah. It emphasized individuals and interactions,
+working software, customer collaboration, and responding to change. Extreme Programming (XP)
+was developed by Kent Beck in the late 1990s. Scrum, developed by Ken Schwaber and Jeff
+Sutherland, uses fixed-length iterations called sprints typically lasting two to four weeks.
+The specific embedded fact in this text: the Agile Manifesto was signed by exactly seventeen
+developers. DevOps emerged as a practice around 2008-2009, combining development and
+operations teams. Continuous Integration was pioneered by Grady Booch and later formalized
+as a practice by Kent Beck. Infrastructure as Code became popular with tools like Chef,
+released in 2009, and Puppet, which appeared in 2005. Kubernetes, an open-source container
+orchestration system, was released by Google in 2014.
+
+Question: How many developers signed the Agile Manifesto? Answer with only the number.

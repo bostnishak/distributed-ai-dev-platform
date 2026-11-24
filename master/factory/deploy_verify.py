@@ -51,23 +51,32 @@ def generate_docker_bundle(ws_dir: Path, port: int = 8080) -> dict[str, Any]:
     return {"dockerfile_path": str(dockerfile_path), "docker_compose_path": str(compose_path), "port": safe_port}
 
 
-def verify_web_workspace_ui(ws_dir: Path) -> dict[str, Any]:
-    ws_dir = Path(ws_dir).resolve()
-    html_files, css_files, js_files = [], [], []
-    if ws_dir.exists():
-        for p in sorted(ws_dir.rglob("*")):
-            if any(part in IGNORED_DIRS for part in p.parts) or not p.is_file():
-                continue
-            ext = p.suffix.lower()
-            if ext == ".html":
-                html_files.append(p)
-            elif ext == ".css":
-                css_files.append(p)
-            elif ext in {".js", ".ts"}:
-                js_files.append(p)
+def _collect_web_files(ws_dir: Path) -> tuple[list[Path], list[Path], list[Path]]:
+    html_files: list[Path] = []
+    css_files: list[Path] = []
+    js_files: list[Path] = []
+    if not ws_dir.exists():
+        return html_files, css_files, js_files
+    for p in sorted(ws_dir.rglob("*")):
+        if any(part in IGNORED_DIRS for part in p.parts) or not p.is_file():
+            continue
+        ext = p.suffix.lower()
+        if ext == ".html":
+            html_files.append(p)
+        elif ext == ".css":
+            css_files.append(p)
+        elif ext in {".js", ".ts"}:
+            js_files.append(p)
+    return html_files, css_files, js_files
 
+
+def _inspect_html_files(
+    ws_dir: Path,
+    html_files: list[Path],
+) -> tuple[set[str], list[str], list[dict[str, str]]]:
     all_ids: set[str] = set()
-    missing_viewport, broken_links, missing_dom, hazards = [], [], [], []
+    missing_viewport: list[str] = []
+    broken_links: list[dict[str, str]] = []
     for hp in html_files:
         rel = hp.relative_to(ws_dir).as_posix()
         src = hp.read_text(encoding="utf-8", errors="replace")
@@ -82,18 +91,35 @@ def verify_web_workspace_ui(ws_dir: Path) -> dict[str, Any]:
             target = (ws_dir / cleaned.lstrip("/")) if cleaned.startswith("/") else (hp.parent / cleaned)
             if not target.is_file():
                 broken_links.append({"file": rel, "asset": cleaned})
+    return all_ids, missing_viewport, broken_links
 
+
+def _inspect_js_files(
+    ws_dir: Path,
+    js_files: list[Path],
+    all_ids: set[str],
+    has_html: bool,
+) -> tuple[list[dict[str, str]], list[dict[str, str]]]:
+    missing_dom: list[dict[str, str]] = []
+    hazards: list[dict[str, str]] = []
     for jp in js_files:
         rel = jp.relative_to(ws_dir).as_posix()
         src = jp.read_text(encoding="utf-8", errors="replace")
         for ref_id in sorted(set(_GET_BY_ID_RE.findall(src)) | set(_QUERY_ID_RE.findall(src))):
-            if html_files and ref_id not in all_ids:
+            if has_html and ref_id not in all_ids:
                 missing_dom.append({"js_file": rel, "id": ref_id})
         if src.count("{") != src.count("}"):
             hazards.append({"file": rel, "type": "unbalanced_braces"})
         for m in _JS_HAZARD_RE.finditer(src):
             hazards.append({"file": rel, "type": "runtime_hazard", "token": m.group(0)})
+    return missing_dom, hazards
 
+
+def verify_web_workspace_ui(ws_dir: Path) -> dict[str, Any]:
+    ws_dir = Path(ws_dir).resolve()
+    html_files, css_files, js_files = _collect_web_files(ws_dir)
+    all_ids, missing_viewport, broken_links = _inspect_html_files(ws_dir, html_files)
+    missing_dom, hazards = _inspect_js_files(ws_dir, js_files, all_ids, bool(html_files))
     total = len(missing_viewport) + len(broken_links) + len(missing_dom) + len(hazards)
     return {
         "workspace": str(ws_dir),

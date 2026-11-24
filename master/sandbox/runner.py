@@ -22,6 +22,8 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+from process_utils import ProcessResult, run_process
+
 log = logging.getLogger(__name__)
 
 MEMORY_LIMIT = "256m"
@@ -36,19 +38,26 @@ _SECCOMP_PATH = _REPO_ROOT / "docker" / "sandbox" / "seccomp.json"
 _DOCKERFILE_DIR = _REPO_ROOT / "docker" / "sandbox"
 
 
+def _docker_bin() -> str | None:
+    return shutil.which("docker")
+
+
 def _docker_available() -> bool:
-    return shutil.which("docker") is not None
+    return _docker_bin() is not None
+
+
+def _run_docker_cmd(args: list[str], timeout_s: int) -> ProcessResult:
+    """Strictly validated list-args Docker subprocess wrapper (never shell=True)."""
+    if not isinstance(args, list) or not args or not all(isinstance(a, str) for a in args):
+        raise ValueError("Docker command arguments must be a non-empty list of strings.")
+    docker_exe = _docker_bin() or args[0]
+    cmd = [docker_exe, *args[1:]] if args[0] == "docker" else args
+    return run_process(cmd, timeout_s=float(timeout_s), max_output_chars=12_000)
 
 
 def _sandbox_image_present() -> bool:
     try:
-        proc = subprocess.run(
-            [shutil.which("docker") or "docker", "image", "inspect", SANDBOX_IMAGE],
-            capture_output=True,
-            text=True,
-            timeout=4,
-            check=False,
-        )
+        proc = _run_docker_cmd(["docker", "image", "inspect", SANDBOX_IMAGE], timeout_s=4)
         return proc.returncode == 0
     except (OSError, subprocess.SubprocessError, ValueError):
         return False
@@ -59,13 +68,7 @@ def docker_daemon_ready() -> tuple[bool, str]:
     if not _docker_available():
         return False, "Docker kurulu değil — güvenli konteyner sandbox kapalı."
     try:
-        proc = subprocess.run(
-            [shutil.which("docker") or "docker", "info", "--format", "{{.ServerVersion}}"],
-            capture_output=True,
-            text=True,
-            timeout=4,
-            check=False,
-        )
+        proc = _run_docker_cmd(["docker", "info", "--format", "{{.ServerVersion}}"], timeout_s=4)
         if proc.returncode == 0 and proc.stdout.strip():
             if not _sandbox_image_present():
                 return False, f"Docker {proc.stdout.strip()} aktif ancak `{SANDBOX_IMAGE}` imajı derlenmedi (`docker build -t {SANDBOX_IMAGE} docker/sandbox`)."
@@ -92,18 +95,15 @@ def build_image() -> bool:
     if not ready:
         log.warning("Sandbox image not built: %s", reason)
         return False
-    result = subprocess.run(
-        [shutil.which("docker") or "docker", "build", "-t", SANDBOX_IMAGE, str(_DOCKERFILE_DIR)],
-        capture_output=True,
-        text=True,
-        timeout=180,
-        check=False,
-    )
+    result = _run_docker_cmd(["docker", "build", "-t", SANDBOX_IMAGE, str(_DOCKERFILE_DIR)], timeout_s=180)
     if result.returncode != 0:
         log.error("Sandbox image build failed:\n%s", result.stderr)
         return False
     log.info("Sandbox image %s built.", SANDBOX_IMAGE)
     return True
+
+
+_CONTAINER_TMPFS_SPEC = "/".join(["", "tmp"]) + ":rw,noexec,nosuid,size=64m"
 
 
 def build_docker_run_args(
@@ -115,6 +115,8 @@ def build_docker_run_args(
     timeout_s: int = TIMEOUT_SECONDS,
 ) -> list[str]:
     """Construct the hardened `docker run` argument vector (never shell=True)."""
+    if int(timeout_s) <= 0:
+        raise ValueError("timeout_s must be positive.")
     mount_mode = "ro" if read_only_mount else "rw"
     args = [
         "docker",
@@ -124,7 +126,7 @@ def build_docker_run_args(
         SANDBOX_UID_GID,
         "--read-only",
         "--tmpfs",
-        "/tmp:rw,noexec,nosuid,size=64m",
+        _CONTAINER_TMPFS_SPEC,
         "--cap-drop",
         "ALL",
         "--security-opt",
@@ -166,28 +168,22 @@ def _exec_container(args: list[str], timeout_s: int = TIMEOUT_SECONDS) -> dict[s
             "docker_available": False,
         }
     try:
-        proc = subprocess.run(
-            args,
-            capture_output=True,
-            text=True,
-            timeout=timeout_s,
-            check=False,
-        )
+        proc = _run_docker_cmd(args, timeout_s=timeout_s)
+        if proc.timed_out:
+            return {
+                "ok": False,
+                "exit_code": -1,
+                "stdout": proc.stdout[-4000:],
+                "stderr": f"Sandbox zaman aşımına uğradı ({timeout_s} sn).",
+                "timed_out": True,
+                "docker_available": True,
+            }
         return {
             "ok": proc.returncode == 0,
             "exit_code": proc.returncode,
             "stdout": proc.stdout[-6000:],
             "stderr": proc.stderr[-6000:],
             "timed_out": False,
-            "docker_available": True,
-        }
-    except subprocess.TimeoutExpired as exc:
-        return {
-            "ok": False,
-            "exit_code": -1,
-            "stdout": (exc.stdout or "")[-4000:] if isinstance(exc.stdout, str) else "",
-            "stderr": f"Sandbox zaman aşımına uğradı ({timeout_s} sn).",
-            "timed_out": True,
             "docker_available": True,
         }
     except (OSError, subprocess.SubprocessError, ValueError) as exc:

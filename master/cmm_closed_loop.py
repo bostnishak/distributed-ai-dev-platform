@@ -13,6 +13,7 @@ from typing import Any
 
 import dbconn
 from cad_cam_physics import generate_cmm_wear_offset_gcode
+from prompt_loader import load_prompt
 
 
 def _cmm_db_path() -> Path:
@@ -26,55 +27,46 @@ def init_cmm_quality_db(db_path: Path | None = None) -> Path:
     target = db_path or _cmm_db_path()
     target.parent.mkdir(parents=True, exist_ok=True)
     with sqlite3.connect(str(target)) as conn:
-        conn.executescript(
-            """
-            CREATE TABLE IF NOT EXISTS cnc_inspection_lots (
-                id TEXT PRIMARY KEY,
-                cnc_job_id TEXT NOT NULL,
-                part_number TEXT NOT NULL,
-                lot_number TEXT NOT NULL,
-                machine_id TEXT DEFAULT '',
-                operator_name TEXT DEFAULT '',
-                sample_count INTEGER DEFAULT 0,
-                fpy_percent REAL DEFAULT 100.0,
-                min_cpk REAL,
-                status TEXT DEFAULT 'IN_PROGRESS',
-                created_at TEXT NOT NULL
-            );
-
-            CREATE TABLE IF NOT EXISTS cnc_cmm_measurements (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                lot_id TEXT NOT NULL REFERENCES cnc_inspection_lots(id) ON DELETE CASCADE,
-                balloon_no INTEGER NOT NULL,
-                serial_no INTEGER NOT NULL,
-                measured_value REAL NOT NULL,
-                deviation REAL NOT NULL,
-                is_ok INTEGER NOT NULL,
-                measured_at TEXT NOT NULL
-            );
-            """
-        )
+        conn.executescript(load_prompt("b2_cmm_schema.txt"))
     return target
+
+
+_CMM_LOT_POS_NAMES = (
+    "nominal",
+    "tol_plus",
+    "tol_minus",
+    "measurements",
+    "controller",
+    "tool_no",
+    "balloon_no",
+    "machine_id",
+    "operator_name",
+)
 
 
 def record_cmm_lot_measurements(
     cnc_job_id: str,
     part_number: str,
     lot_number: str,
-    nominal: float,
-    tol_plus: float,
-    tol_minus: float,
-    measurements: list[float],
-    controller: str = "fanuc",
-    tool_no: int = 1,
-    balloon_no: int = 1,
-    machine_id: str = "CNC-TURN-01",
-    operator_name: str = "CMM-AUTO",
+    *args: Any,
+    **kwargs: Any,
 ) -> dict[str, Any]:
     """Persist CMM inspection lot & serial measurements into ``cmm_quality.db``, compute
     X-bar/R SPC control limits (UCL, LCL, center_line), Cp, Cpk, First Pass Yield (fpy_percent),
     and closed-loop G10 tool wear offset G-code.
     """
+    params = dict(zip(_CMM_LOT_POS_NAMES, args, strict=False))
+    params.update(kwargs)
+    nominal = float(params["nominal"])
+    tol_plus = float(params["tol_plus"])
+    tol_minus = float(params["tol_minus"])
+    measurements: list[float] = params["measurements"]
+    controller = str(params.get("controller", "fanuc"))
+    tool_no = int(params.get("tool_no", 1))
+    balloon_no = int(params.get("balloon_no", 1))
+    machine_id = str(params.get("machine_id", "CNC-TURN-01"))
+    operator_name = str(params.get("operator_name", "CMM-AUTO"))
+
     if not measurements:
         raise ValueError("measurements list must contain at least one CMM reading")
 

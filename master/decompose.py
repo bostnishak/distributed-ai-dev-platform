@@ -15,6 +15,7 @@ from typing import Literal
 from pydantic import BaseModel, ValidationError
 
 import config
+from prompt_loader import load_prompt
 
 # --- Specification schema (also sent to Ollama as the structured-output format) -----------
 
@@ -55,29 +56,7 @@ class RequirementsSpec(BaseModel):
     open_questions: list[str]
 
 
-SYSTEM_PROMPT = """You are the master agent of a distributed AI software development platform.
-Read the software requirements document and extract a structured specification of the web
-application it describes. The application will be built with an HTML/CSS/JavaScript frontend,
-a Python FastAPI backend and a SQLite database.
-
-Rules:
-- Use only what the document states or clearly implies. Never invent features, fields or pages.
-- If something needed to build the application is ambiguous or missing (for example user roles,
-  validation rules, limits or business rules), add a short question to "open_questions" instead
-  of guessing. Never ask about something the document already answers.
-- Write every name, description and question in the same language as the document, with the
-  document's spelling.
-- Keep descriptions short (at most 15 words).
-- entities: the data the application stores, with their fields. Field types: string, text,
-  integer, number, boolean, date, datetime. If the document lists the data the system stores,
-  create one entity for every item in that list.
-- api_endpoints: REST endpoints such as "GET /api/books" or "PUT /api/books/{id}". "entity" is
-  the name of the entity the endpoint works on, or an empty string.
-- pages: the screens of the web interface. "entities" lists the entity names each page shows.
-- actors: only the names of the user roles or external systems (one to three words each,
-  no descriptions).
-- non_functional: performance, security, usability and similar requirements.
-"""
+SYSTEM_PROMPT = load_prompt("b4_decompose_system.txt")
 
 CHUNK_NOTE = """
 This is part {index} of {total} of a longer document. Extract only what this part contains;
@@ -211,8 +190,7 @@ def _dedupe(values: Iterable[str], limit: int = MAX_LIST_ITEMS) -> list[str]:
     return result[:limit]
 
 
-def merge_specs(specs: list[RequirementsSpec]) -> RequirementsSpec:
-    """Combine partial specs (one per chunk) and clean a single spec the same way."""
+def _merge_entities(specs: list[RequirementsSpec]) -> list[Entity]:
     entities: dict[str, Entity] = {}
     for spec in specs:
         for entity in spec.entities:
@@ -232,7 +210,10 @@ def merge_specs(specs: list[RequirementsSpec]) -> RequirementsSpec:
                     target.fields.append(EntityField(
                         name=field_name, type=field.type.strip() or "string", required=field.required
                     ))
+    return list(entities.values())[:MAX_ENTITIES]
 
+
+def _merge_endpoints(specs: list[RequirementsSpec]) -> list[Endpoint]:
     endpoints: dict[tuple[str, str], Endpoint] = {}
     for spec in specs:
         for endpoint in spec.api_endpoints:
@@ -248,7 +229,10 @@ def merge_specs(specs: list[RequirementsSpec]) -> RequirementsSpec:
                     description=endpoint.description.strip(), entity=endpoint.entity.strip(),
                 ),
             )
+    return list(endpoints.values())[:MAX_ENDPOINTS]
 
+
+def _merge_pages(specs: list[RequirementsSpec]) -> list[Page]:
     pages: dict[str, Page] = {}
     for spec in specs:
         for page in spec.pages:
@@ -259,14 +243,18 @@ def merge_specs(specs: list[RequirementsSpec]) -> RequirementsSpec:
             if not target.description:
                 target.description = page.description.strip()
             target.entities = _dedupe([*target.entities, *page.entities])
+    return list(pages.values())[:MAX_PAGES]
 
+
+def merge_specs(specs: list[RequirementsSpec]) -> RequirementsSpec:
+    """Combine partial specs (one per chunk) and clean a single spec the same way."""
     return RequirementsSpec(
         project_name=next((s.project_name.strip() for s in specs if s.project_name.strip()), ""),
         summary=next((s.summary.strip() for s in specs if s.summary.strip()), ""),
         actors=_dedupe(a for s in specs for a in s.actors),
-        entities=list(entities.values())[:MAX_ENTITIES],
-        api_endpoints=list(endpoints.values())[:MAX_ENDPOINTS],
-        pages=list(pages.values())[:MAX_PAGES],
+        entities=_merge_entities(specs),
+        api_endpoints=_merge_endpoints(specs),
+        pages=_merge_pages(specs),
         non_functional=_dedupe(n for s in specs for n in s.non_functional),
         open_questions=_dedupe(q for s in specs for q in s.open_questions),
     )
@@ -343,42 +331,36 @@ def _join_names(names: list[str], limit: int = 70) -> str:
     return joined if len(joined) <= limit else joined[: limit - 1].rstrip(", ") + "…"
 
 
-def build_task_plan(spec: RequirementsSpec) -> list[dict]:
-    """Turn a spec into tasks with dependencies. Tasks are appended after their dependencies."""
-    tasks: list[dict] = []
-    done_keys: set[str] = set()
+class _TaskPlanBuilder:
+    def __init__(self) -> None:
+        self.tasks: list[dict] = []
+        self.done_keys: set[str] = set()
 
-    def add(task_type: str, title: str, description: str, details: dict, depends_on: list[str],
-            status: str | None = None, performed_by: str | None = None) -> str:
-        key = f"T{len(tasks) + 1}"
+    def add(
+        self,
+        task_type: str,
+        title: str,
+        description: str,
+        details: dict,
+        **opts,
+    ) -> str:
+        depends_on: list[str] = opts.get("depends_on", [])
+        status: str | None = opts.get("status")
+        performed_by: str | None = opts.get("performed_by")
+        key = f"T{len(self.tasks) + 1}"
         if status is None:
-            # Sprint 3: tasks whose dependencies are not yet done start as blocked.
-            status = "planned" if all(d in done_keys for d in depends_on) else "blocked"
-        tasks.append({
+            status = "planned" if all(d in self.done_keys for d in depends_on) else "blocked"
+        self.tasks.append({
             "key": key, "type": task_type, "title": title, "description": description,
             "details": details, "depends_on": depends_on, "status": status,
             "performed_by": performed_by,
         })
         if status == "done":
-            done_keys.add(key)
+            self.done_keys.add(key)
         return key
 
-    analysis = add(
-        "requirements", "Gereksinim analizi",
-        f"Doküman analiz edildi: {len(spec.entities)} varlık, {len(spec.api_endpoints)} API ucu, "
-        f"{len(spec.pages)} sayfa ve {len(spec.open_questions)} açık soru çıkarıldı.",
-        {"actors": spec.actors, "non_functional": spec.non_functional,
-         "open_questions": spec.open_questions},
-        [], status="done", performed_by="master",
-    )
 
-    database = add(
-        "database", "Veritabanı şeması (SQLite)",
-        "Varlıklar için SQLite tabloları, alanları ve ilişkileri tasarlanır." if spec.entities
-        else "Dokümanda veri varlığı bulunamadı; tablolar gereksinimlere göre belirlenir.",
-        {"entities": [e.model_dump() for e in spec.entities]}, [analysis],
-    )
-
+def _group_endpoints(spec: RequirementsSpec) -> tuple[dict[str, list[Endpoint]], list[Endpoint]]:
     by_entity: dict[str, list[Endpoint]] = {}
     unmatched: list[Endpoint] = []
     for endpoint in spec.api_endpoints:
@@ -387,59 +369,93 @@ def build_task_plan(spec: RequirementsSpec) -> list[dict]:
             unmatched.append(endpoint)
         else:
             by_entity.setdefault(slug(entity.name), []).append(endpoint)
+    return by_entity, unmatched
 
+
+def _add_backend_tasks(builder: _TaskPlanBuilder, spec: RequirementsSpec, database: str) -> list[str]:
+    by_entity, unmatched = _group_endpoints(spec)
     backend: list[str] = []
     for group in _groups(spec.entities, BACKEND_ENTITIES_PER_TASK):
         names = [e.name for e in group]
         endpoints = [ep for e in group for ep in by_entity.get(slug(e.name), [])]
-        backend.append(add(
+        backend.append(builder.add(
             "backend", f"Backend API: {_join_names(names)}",
             f"{', '.join(names)} için FastAPI uç noktaları ve iş kuralları ({len(endpoints)} uç nokta).",
-            {"entities": names, "endpoints": [ep.model_dump() for ep in endpoints]}, [database],
+            {"entities": names, "endpoints": [ep.model_dump() for ep in endpoints]},
+            depends_on=[database],
         ))
     if unmatched or not backend:
-        backend.append(add(
+        backend.append(builder.add(
             "backend", "Backend API: diğer uç noktalar" if backend else "Backend API",
             f"Belirli bir varlığa bağlanmayan {len(unmatched)} uç nokta." if unmatched
             else "Dokümanda uç nokta tanımı bulunamadı; API gereksinimlere göre tasarlanır.",
-            {"entities": [], "endpoints": [ep.model_dump() for ep in unmatched]}, [database],
+            {"entities": [], "endpoints": [ep.model_dump() for ep in unmatched]},
+            depends_on=[database],
         ))
+    return backend
 
+
+def _add_frontend_tasks(builder: _TaskPlanBuilder, spec: RequirementsSpec, analysis: str) -> list[str]:
     frontend: list[str] = []
     for group in _groups(spec.pages, FRONTEND_PAGES_PER_TASK):
         names = [p.name for p in group]
-        frontend.append(add(
+        frontend.append(builder.add(
             "frontend", f"Frontend: {_join_names(names)}",
             f"HTML/CSS/JS arayüz sayfaları: {', '.join(names)}.",
-            {"pages": [p.model_dump() for p in group]}, [analysis],
+            {"pages": [p.model_dump() for p in group]},
+            depends_on=[analysis],
         ))
     if not frontend:
-        frontend.append(add(
+        frontend.append(builder.add(
             "frontend", "Frontend arayüzü",
             "Dokümanda sayfa tanımı bulunamadı; arayüz gereksinimlere göre tasarlanır.",
-            {"pages": []}, [analysis],
+            {"pages": []},
+            depends_on=[analysis],
         ))
+    return frontend
 
-    build = backend + frontend
-    testing = add(
+
+def build_task_plan(spec: RequirementsSpec) -> list[dict]:
+    """Turn a spec into tasks with dependencies. Tasks are appended after their dependencies."""
+    builder = _TaskPlanBuilder()
+    analysis = builder.add(
+        "requirements", "Gereksinim analizi",
+        f"Doküman analiz edildi: {len(spec.entities)} varlık, {len(spec.api_endpoints)} API ucu, "
+        f"{len(spec.pages)} sayfa ve {len(spec.open_questions)} açık soru çıkarıldı.",
+        {"actors": spec.actors, "non_functional": spec.non_functional,
+         "open_questions": spec.open_questions},
+        depends_on=[], status="done", performed_by="master",
+    )
+    database = builder.add(
+        "database", "Veritabanı şeması (SQLite)",
+        "Varlıklar için SQLite tabloları, alanları ve ilişkileri tasarlanır." if spec.entities
+        else "Dokümanda veri varlığı bulunamadı; tablolar gereksinimlere göre belirlenir.",
+        {"entities": [e.model_dump() for e in spec.entities]},
+        depends_on=[analysis],
+    )
+    build = _add_backend_tasks(builder, spec, database) + _add_frontend_tasks(builder, spec, analysis)
+    testing = builder.add(
         "testing", "Otomatik testler",
         "Backend uç noktaları ve arayüz akışları için otomatik testler yazılır ve çalıştırılır.",
-        {}, build,
+        {}, depends_on=build,
     )
-    review = add(
+    review = builder.add(
         "review", "Kod incelemesi",
-        "Üretilen kod, onu yazan ajandan farklı bir ajan tarafından incelenir.", {}, build,
+        "Üretilen kod, onu yazan ajandan farklı bir ajan tarafından incelenir.",
+        {}, depends_on=build,
     )
-    integration = add(
+    integration = builder.add(
         "integration", "Entegrasyon",
         "Frontend, backend ve veritabanı birleştirilir; API sözleşmesi kontrol edilir.",
-        {}, [testing, review],
+        {}, depends_on=[testing, review],
     )
-    add("documentation", "Dokümantasyon",
-        "Kurulum, kullanım ve API dokümantasyonu hazırlanır.", {}, [integration])
-
+    builder.add(
+        "documentation", "Dokümantasyon",
+        "Kurulum, kullanım ve API dokümantasyonu hazırlanır.",
+        {}, depends_on=[integration],
+    )
     stages: dict[str, int] = {}
-    for task in tasks:
+    for task in builder.tasks:
         stages[task["key"]] = 1 + max((stages[d] for d in task["depends_on"]), default=0)
         task["stage"] = stages[task["key"]]
-    return tasks
+    return builder.tasks

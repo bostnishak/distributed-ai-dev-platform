@@ -135,8 +135,8 @@ def select_agent(
     top_score = candidates[0][0]
     tied = [c for c in candidates if abs(c[0] - top_score) < 0.001]
     if len(tied) > 1:
-        type_hash = int(hashlib.md5(task_type.encode()).hexdigest(), 16)
-        tied.sort(key=lambda c: (int(hashlib.md5((task_type + c[1]).encode()).hexdigest(), 16) + type_hash) % (2 ** 128))
+        type_hash = int(hashlib.md5(task_type.encode(), usedforsecurity=False).hexdigest(), 16)
+        tied.sort(key=lambda c: (int(hashlib.md5((task_type + c[1]).encode(), usedforsecurity=False).hexdigest(), 16) + type_hash) % (2 ** 128))
         candidates = tied + [c for c in candidates if c not in tied]
 
     best_score, best_agent_id, best_breakdown = candidates[0]

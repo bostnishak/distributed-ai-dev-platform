@@ -1,0 +1,11 @@
+INSERT INTO conversation_states
+    (chat_id, user_id, goals_json, decisions_json, open_questions_json, artifact_ids_json, active_mode, turn_count, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(chat_id) DO UPDATE SET
+    goals_json = excluded.goals_json,
+    decisions_json = excluded.decisions_json,
+    open_questions_json = excluded.open_questions_json,
+    artifact_ids_json = excluded.artifact_ids_json,
+    active_mode = excluded.active_mode,
+    turn_count = excluded.turn_count,
+    updated_at = excluded.updated_at

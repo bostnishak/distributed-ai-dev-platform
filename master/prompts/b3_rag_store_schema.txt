@@ -1,0 +1,72 @@
+CREATE TABLE IF NOT EXISTS rag_collections (
+    collection_id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    scope TEXT NOT NULL DEFAULT 'personal',
+    owner_id TEXT NOT NULL DEFAULT 'default',
+    is_sample INTEGER NOT NULL DEFAULT 0,
+    quota_docs INTEGER NOT NULL DEFAULT 500,
+    created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS rag_documents (
+    doc_id TEXT PRIMARY KEY,
+    collection_id TEXT NOT NULL,
+    title TEXT NOT NULL,
+    source_type TEXT NOT NULL,
+    version INTEGER NOT NULL DEFAULT 1,
+    page_count INTEGER NOT NULL DEFAULT 1,
+    is_sample INTEGER NOT NULL DEFAULT 0,
+    metadata_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS rag_chunks (
+    chunk_id TEXT PRIMARY KEY,
+    doc_id TEXT NOT NULL,
+    collection_id TEXT NOT NULL,
+    page INTEGER NOT NULL DEFAULT 1,
+    section TEXT NOT NULL DEFAULT '',
+    chunk_index INTEGER NOT NULL DEFAULT 0,
+    offset INTEGER NOT NULL DEFAULT 0,
+    content_hash TEXT NOT NULL,
+    content TEXT NOT NULL,
+    norm_content TEXT NOT NULL,
+    embedding_blob BLOB,
+    embedding_model TEXT NOT NULL DEFAULT '',
+    embedding_dim INTEGER NOT NULL DEFAULT 0,
+    embedding_version TEXT NOT NULL DEFAULT '1.0',
+    is_ocr INTEGER NOT NULL DEFAULT 0,
+    quarantine INTEGER NOT NULL DEFAULT 0,
+    pii_tags_json TEXT NOT NULL DEFAULT '[]',
+    created_at TEXT NOT NULL
+);
+CREATE VIRTUAL TABLE IF NOT EXISTS rag_chunks_fts USING fts5(
+    chunk_id UNINDEXED,
+    collection_id UNINDEXED,
+    title,
+    norm_content,
+    tokenize='unicode61'
+);
+CREATE TABLE IF NOT EXISTS ingest_jobs (
+    job_id TEXT PRIMARY KEY,
+    collection_id TEXT NOT NULL,
+    filename TEXT NOT NULL,
+    status TEXT NOT NULL,
+    progress INTEGER NOT NULL DEFAULT 0,
+    chunks_done INTEGER NOT NULL DEFAULT 0,
+    chunks_total INTEGER NOT NULL DEFAULT 0,
+    retries INTEGER NOT NULL DEFAULT 0,
+    error TEXT NOT NULL DEFAULT '',
+    checkpoint_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS rag_triples (
+    triple_id TEXT PRIMARY KEY,
+    collection_id TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    predicate TEXT NOT NULL,
+    object TEXT NOT NULL,
+    confidence REAL NOT NULL DEFAULT 0.8,
+    source_chunk_id TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_rag_chunks_col ON rag_chunks(collection_id);
+CREATE INDEX IF NOT EXISTS idx_rag_chunks_doc ON rag_chunks(doc_id);

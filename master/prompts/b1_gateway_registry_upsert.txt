@@ -1,0 +1,18 @@
+INSERT INTO model_registry
+    (name, provider, node_id, param_size, quantization, context_length, capabilities_json,
+     est_vram_gb, scores_json, hallucination_penalty, status, warm, license, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(name) DO UPDATE SET
+    provider = excluded.provider,
+    node_id = excluded.node_id,
+    param_size = CASE WHEN excluded.param_size != '' THEN excluded.param_size ELSE model_registry.param_size END,
+    quantization = CASE WHEN excluded.quantization != '' THEN excluded.quantization ELSE model_registry.quantization END,
+    context_length = excluded.context_length,
+    capabilities_json = excluded.capabilities_json,
+    est_vram_gb = excluded.est_vram_gb,
+    scores_json = excluded.scores_json,
+    hallucination_penalty = excluded.hallucination_penalty,
+    status = excluded.status,
+    warm = excluded.warm,
+    license = CASE WHEN excluded.license != '' THEN excluded.license ELSE model_registry.license END,
+    updated_at = excluded.updated_at

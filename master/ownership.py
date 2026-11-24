@@ -11,6 +11,7 @@ import ast
 import re
 import sqlite3
 from pathlib import Path
+from typing import Any
 
 OWNED: dict[str, str] = {
     "profiles": "user_id",
@@ -73,14 +74,15 @@ def scoped_select(
     conn: sqlite3.Connection,
     table: str,
     owner: str,
-    where: str = "1 = 1",
-    params: tuple = (),
-    columns: str = "*",
-    order_by: str = "",
-    limit: int | None = None,
-    offset: int = 0,
+    **opts: Any,
 ) -> list[sqlite3.Row]:
     """SELECT from an owned table; the owner filter is added here and cannot be left out."""
+    where = str(opts.get("where", "1 = 1"))
+    params = tuple(opts.get("params", ()))
+    columns = str(opts.get("columns", "*"))
+    order_by = str(opts.get("order_by", ""))
+    limit: int | None = opts.get("limit")
+    offset = int(opts.get("offset", 0))
     if table not in OWNED:
         raise UnscopedQuery(f"'{table}' kullanıcıya ait bir tablo olarak kayıtlı değil")
     if not _COLUMNS.match(columns) or (order_by and not _COLUMNS.match(order_by)):

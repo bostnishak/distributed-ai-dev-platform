@@ -20,6 +20,7 @@ from access_control import require_local_or_admin
 from distributed.core import build_performance_matrix
 from hallucination.verifier import telemetry_summary_7d
 from log_sanitizer import redact_sensitive_text
+from prompt_loader import load_prompt
 from rag.store import default_rag_store
 
 router = APIRouter(prefix="/api/ux", tags=["ux"])
@@ -137,19 +138,7 @@ def _share_db_path() -> Path:
 
 def _init_share_db() -> None:
     with sqlite3.connect(str(_share_db_path()), timeout=10.0) as conn:
-        conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS readonly_shares (
-                share_id TEXT PRIMARY KEY,
-                owner_id TEXT NOT NULL,
-                allowed_users_json TEXT NOT NULL,
-                title TEXT NOT NULL,
-                content TEXT NOT NULL,
-                expires_at REAL NOT NULL,
-                created_at TEXT NOT NULL
-            )
-            """
-        )
+        conn.execute(load_prompt("b1_ux_shares_schema.txt"))
 
 
 def create_readonly_share(

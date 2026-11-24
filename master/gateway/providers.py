@@ -46,10 +46,7 @@ class Provider(Protocol):
         model: str,
         messages: list[dict[str, Any]],
         options: dict[str, Any],
-        *,
-        format_schema: dict[str, Any] | None = None,
-        tools: list[dict[str, Any]] | None = None,
-        timeout_s: float = 120.0,
+        **opts: Any,
     ) -> ProviderResponse: ...
 
     def stream(
@@ -78,11 +75,11 @@ class OllamaProvider:
         model: str,
         messages: list[dict[str, Any]],
         options: dict[str, Any],
-        *,
-        format_schema: dict[str, Any] | None = None,
-        tools: list[dict[str, Any]] | None = None,
-        timeout_s: float = 120.0,
+        **opts: Any,
     ) -> ProviderResponse:
+        format_schema: dict[str, Any] | None = opts.get("format_schema")
+        tools: list[dict[str, Any]] | None = opts.get("tools")
+        timeout_s = float(opts.get("timeout_s", 120.0))
         t0 = time.perf_counter()
         payload: dict[str, Any] = {
             "model": model,
@@ -208,11 +205,9 @@ class AgentProvider:
         model: str,
         messages: list[dict[str, Any]],
         options: dict[str, Any],
-        *,
-        format_schema: dict[str, Any] | None = None,
-        tools: list[dict[str, Any]] | None = None,
-        timeout_s: float = 60.0,
+        **opts: Any,
     ) -> ProviderResponse:
+        timeout_s = float(opts.get("timeout_s", 60.0))
         t0 = time.perf_counter()
         prompt_blob = "\n\n".join(f"[{m.get('role', 'user')}] {m.get('content', '')}" for m in messages)
         pid = db.create_project("gateway-agent-dispatch", prompt_blob[:1000], None)
@@ -275,11 +270,10 @@ class OpenAICompatProvider:
         model: str,
         messages: list[dict[str, Any]],
         options: dict[str, Any],
-        *,
-        format_schema: dict[str, Any] | None = None,
-        tools: list[dict[str, Any]] | None = None,
-        timeout_s: float = 120.0,
+        **opts: Any,
     ) -> ProviderResponse:
+        tools: list[dict[str, Any]] | None = opts.get("tools")
+        timeout_s = float(opts.get("timeout_s", 120.0))
         t0 = time.perf_counter()
         payload: dict[str, Any] = {
             "model": model,

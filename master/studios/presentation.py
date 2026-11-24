@@ -176,6 +176,89 @@ def _apply_safe_transition(slide, transition_name: str) -> bool:
     return True
 
 
+def _render_content_slide(
+    prs: Any,
+    blank_layout: Any,
+    spec: SlideSpec,
+    style_ctx: dict[str, Any],
+    transition: str,
+) -> str:
+    sl: Any = prs.slides.add_slide(blank_layout)
+    if style_ctx["apply_bg"]:
+        fill: Any = sl.background.fill
+        fill.solid()
+        fill.fore_color.rgb = style_ctx["bg_rgb"]
+
+    tb = sl.shapes.add_textbox(Inches(0.7), Inches(0.45), Inches(11.9), Inches(1.1))
+    tf = tb.text_frame
+    tf.word_wrap = True
+    p = tf.paragraphs[0]
+    p.text = spec.claim_title
+    p.font.size = Pt(30 if spec.layout == "cover" else 26)
+    p.font.bold = True
+    p.font.name = style_ctx["font"]
+    p.font.color.rgb = style_ctx["accent_rgb"] if spec.layout == "cover" else style_ctx["fg_rgb"]
+
+    fitted = fit_slide_bullets(spec.bullets)
+    body_w = Inches(5.8) if spec.chart_data else Inches(11.8)
+    bb = sl.shapes.add_textbox(Inches(0.7), Inches(1.8), body_w, Inches(4.8))
+    btf = bb.text_frame
+    btf.word_wrap = True
+    for i, btxt in enumerate(fitted["bullets"]):
+        bp = btf.paragraphs[0] if i == 0 else btf.add_paragraph()
+        bp.text = f"- {btxt}"
+        bp.font.size = Pt(fitted["font_pt"])
+        bp.font.name = style_ctx["font"]
+        bp.font.color.rgb = style_ctx["fg_rgb"]
+
+    if spec.chart_data:
+        cd: Any = CategoryChartData()
+        cd.categories = list(spec.chart_data["categories"])
+        cd.add_series(str(spec.chart_data.get("series_name") or "Veri"), list(spec.chart_data["values"]))
+        chart_shape: Any = sl.shapes.add_chart(
+            XL_CHART_TYPE.COLUMN_CLUSTERED, Inches(6.8), Inches(1.8), Inches(5.8), Inches(4.6), cd
+        )
+        chart_shape.name = spec.alt_text or f"Grafik: {spec.claim_title[:40]}"
+
+    notes_frame = sl.notes_slide.notes_text_frame
+    src_tag = ", ".join(spec.source_ids)
+    if notes_frame is not None:
+        notes_frame.text = f"{spec.speaker_notes}\nSüre: {spec.duration_sec} sn | Kaynaklar: {src_tag}"
+
+    _apply_safe_transition(sl, transition)
+    return f"{spec.claim_title}\n" + "\n".join(fitted["bullets"])
+
+
+def _render_sources_slide(
+    prs: Any,
+    blank_layout: Any,
+    bullets: list[str],
+    style_ctx: dict[str, Any],
+) -> None:
+    ref_sl: Any = prs.slides.add_slide(blank_layout)
+    if style_ctx["apply_bg"]:
+        fill_ref: Any = ref_sl.background.fill
+        fill_ref.solid()
+        fill_ref.fore_color.rgb = style_ctx["bg_rgb"]
+    rtb = ref_sl.shapes.add_textbox(Inches(0.7), Inches(0.5), Inches(11.8), Inches(1.0))
+    rp = rtb.text_frame.paragraphs[0]
+    rp.text = "Kaynaklar"
+    rp.font.size = Pt(28)
+    rp.font.bold = True
+    rp.font.color.rgb = style_ctx["accent_rgb"]
+    rbb = ref_sl.shapes.add_textbox(Inches(0.7), Inches(1.7), Inches(11.8), Inches(5.0))
+    rtf = rbb.text_frame
+    rtf.word_wrap = True
+    for i, line in enumerate(bullets or ["Doğrulanmış kaynak listesi"]):
+        p = rtf.paragraphs[0] if i == 0 else rtf.add_paragraph()
+        p.text = line
+        p.font.size = Pt(18)
+        p.font.color.rgb = style_ctx["fg_rgb"]
+    ref_notes = ref_sl.notes_slide.notes_text_frame
+    if ref_notes is not None:
+        ref_notes.text = "Kaynakça slaytı: tüm olgusal maddelerin doğrulama referansları."
+
+
 def build_verified_pptx(
     outline: dict[str, Any],
     *,
@@ -191,91 +274,26 @@ def build_verified_pptx(
     prs.slide_height = Inches(7.5)
     blank_layout = prs.slide_layouts[min(6, len(prs.slide_layouts) - 1)]
 
-    bg_rgb = RGBColor(*_hex_to_rgb(theme["bg"]))
-    fg_rgb = RGBColor(*_hex_to_rgb(theme["fg"]))
-    accent_rgb = RGBColor(*_hex_to_rgb(theme["accent"]))
+    style_ctx = {
+        "apply_bg": not template_path,
+        "bg_rgb": RGBColor(*_hex_to_rgb(theme["bg"])),
+        "fg_rgb": RGBColor(*_hex_to_rgb(theme["fg"])),
+        "accent_rgb": RGBColor(*_hex_to_rgb(theme["accent"])),
+        "font": theme["font"],
+    }
 
     slides_spec: list[SlideSpec] = outline["slides"]
     sources: list[dict[str, Any]] = outline.get("sources") or []
-    sections_for_artifact: list[str] = []
+    sections_for_artifact = [
+        _render_content_slide(prs, blank_layout, spec, style_ctx, transition)
+        for spec in slides_spec
+    ]
 
-    for spec in slides_spec:
-        sl: Any = prs.slides.add_slide(blank_layout)
-        if not template_path:
-            fill: Any = sl.background.fill
-            fill.solid()
-            fill.fore_color.rgb = bg_rgb
-
-        # Title box
-        tb = sl.shapes.add_textbox(Inches(0.7), Inches(0.45), Inches(11.9), Inches(1.1))
-        tf = tb.text_frame
-        tf.word_wrap = True
-        p = tf.paragraphs[0]
-        p.text = spec.claim_title
-        p.font.size = Pt(30 if spec.layout == "cover" else 26)
-        p.font.bold = True
-        p.font.name = theme["font"]
-        p.font.color.rgb = accent_rgb if spec.layout == "cover" else fg_rgb
-
-        # Body bullets fitted to PPT-03 limits
-        fitted = fit_slide_bullets(spec.bullets)
-        body_w = Inches(5.8) if spec.chart_data else Inches(11.8)
-        bb = sl.shapes.add_textbox(Inches(0.7), Inches(1.8), body_w, Inches(4.8))
-        btf = bb.text_frame
-        btf.word_wrap = True
-        for i, btxt in enumerate(fitted["bullets"]):
-            bp = btf.paragraphs[0] if i == 0 else btf.add_paragraph()
-            bp.text = f"- {btxt}"
-            bp.font.size = Pt(fitted["font_pt"])
-            bp.font.name = theme["font"]
-            bp.font.color.rgb = fg_rgb
-
-        # PPT-04: Native python-pptx chart when numeric data is present
-        if spec.chart_data:
-            cd: Any = CategoryChartData()
-            cd.categories = list(spec.chart_data["categories"])
-            cd.add_series(str(spec.chart_data.get("series_name") or "Veri"), list(spec.chart_data["values"]))
-            chart_shape: Any = sl.shapes.add_chart(
-                XL_CHART_TYPE.COLUMN_CLUSTERED, Inches(6.8), Inches(1.8), Inches(5.8), Inches(4.6), cd
-            )
-            chart_shape.name = spec.alt_text or f"Grafik: {spec.claim_title[:40]}"
-
-        # PPT-06: Speaker notes with source IDs and duration
-        notes_frame = sl.notes_slide.notes_text_frame
-        src_tag = ", ".join(spec.source_ids)
-        if notes_frame is not None:
-            notes_frame.text = f"{spec.speaker_notes}\nSüre: {spec.duration_sec} sn | Kaynaklar: {src_tag}"
-
-        _apply_safe_transition(sl, transition)
-        sections_for_artifact.append(f"{spec.claim_title}\n" + "\n".join(fitted["bullets"]))
-
-    # PPT-06 + HAL-23: Mandatory verified Kaynaklar slide
     src_check = verify_presentation_sources(
         [{"title": s.claim_title, "bullets": s.bullets} for s in slides_spec],
         sources,
     )
-    ref_sl: Any = prs.slides.add_slide(blank_layout)
-    if not template_path:
-        fill_ref: Any = ref_sl.background.fill
-        fill_ref.solid()
-        fill_ref.fore_color.rgb = bg_rgb
-    rtb = ref_sl.shapes.add_textbox(Inches(0.7), Inches(0.5), Inches(11.8), Inches(1.0))
-    rp = rtb.text_frame.paragraphs[0]
-    rp.text = "Kaynaklar"
-    rp.font.size = Pt(28)
-    rp.font.bold = True
-    rp.font.color.rgb = accent_rgb
-    rbb = ref_sl.shapes.add_textbox(Inches(0.7), Inches(1.7), Inches(11.8), Inches(5.0))
-    rtf = rbb.text_frame
-    rtf.word_wrap = True
-    for i, line in enumerate(src_check["sources_slide"]["bullets"] or ["Doğrulanmış kaynak listesi"]):
-        p = rtf.paragraphs[0] if i == 0 else rtf.add_paragraph()
-        p.text = line
-        p.font.size = Pt(18)
-        p.font.color.rgb = fg_rgb
-    ref_notes = ref_sl.notes_slide.notes_text_frame
-    if ref_notes is not None:
-        ref_notes.text = "Kaynakça slaytı: tüm olgusal maddelerin doğrulama referansları."
+    _render_sources_slide(prs, blank_layout, src_check["sources_slide"]["bullets"], style_ctx)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     prs.save(str(output_path))

@@ -99,3 +99,28 @@ def test_ble001_zero_across_master():
         text=True,
     )
     assert res.returncode == 0, f"Ruff BLE001/S110/S608/S607 failed:\n{res.stdout}\n{res.stderr}"
+
+
+def test_scan_py_and_ruff_static_zero():
+    """PYD-01..49, KMP/DAL/UZN/PRM/STA: scan_py.py == 0 and strict ruff static quality == 0."""
+    out_file = REPO_ROOT / ".pytest_scan_py_tmp.json"
+    try:
+        subprocess.run(
+            [sys.executable, str(REPO_ROOT / "scripts" / "audit" / "scan_py.py"), str(out_file)],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        rows = json.loads(out_file.read_text(encoding="utf-8"))
+    finally:
+        out_file.unlink(missing_ok=True)
+    assert rows == [], f"Expected 0 scan_py findings, got: {rows[:10]}"
+
+    strict_rules = "C901,PLR0912,PLR0915,PLR0913,ARG001,S603,PLW0603,S110,S607,S101,ERA001,S311,S324,T201,S105,S108,BLE001,S608"
+    res = subprocess.run(
+        [sys.executable, "-m", "ruff", "check", "master", "--isolated", "--exclude", "master/tests", "--select", strict_rules],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+    )
+    assert res.returncode == 0, f"Strict ruff static check failed:\n{res.stdout}\n{res.stderr}"

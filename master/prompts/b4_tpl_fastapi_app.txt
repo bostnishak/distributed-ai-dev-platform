@@ -1,0 +1,11 @@
+from fastapi import FastAPI
+
+app = FastAPI(title='{{PROJECT_NAME}}')
+
+@app.get('/health')
+def health():
+    return {'status': 'ok', 'app': '{{PROJECT_NAME}}'}
+
+@app.get('/items')
+def list_items():
+    return {'items': ['ornek-1', 'ornek-2']}

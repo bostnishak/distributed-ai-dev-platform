@@ -9,6 +9,27 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 
 
+def _resolve_fake_reply(state: dict[str, Any], body: dict[str, Any]) -> str:
+    msgs = body.get("messages") or []
+    last_user = str(msgs[-1].get("content") or "") if msgs else ""
+    for key, val in state["canned"].items():
+        if key.lower() in last_user.lower():
+            return str(val)
+    return "Sahte Ollama yanıtı."
+
+
+async def _stream_fake_reply(model: str, reply: str):
+    for word in reply.split(" "):
+        yield json.dumps({"model": model, "message": {"role": "assistant", "content": word + " "}, "done": False}) + "\n"
+    yield json.dumps({
+        "model": model,
+        "message": {"role": "assistant", "content": ""},
+        "done": True,
+        "prompt_eval_count": 20,
+        "eval_count": len(reply.split()),
+    }) + "\n"
+
+
 def create_fake_ollama_app(
     *,
     canned_responses: dict[str, str] | None = None,
@@ -35,7 +56,7 @@ def create_fake_ollama_app(
         return {"models": [{"name": state["models"][0]}]} if state["models"] else {"models": []}
 
     @app.post("/api/show")
-    async def show(body: dict[str, Any]):
+    async def show(_body: dict[str, Any]):
         return {"model_info": {"general.context_length": 32768}, "capabilities": ["completion", "tools"]}
 
     @app.post("/api/chat")
@@ -43,21 +64,10 @@ def create_fake_ollama_app(
         state["requests"].append(body)
         if state["inject_error"]:
             raise HTTPException(status_code=503, detail=f"Injected Ollama fault: {state['inject_error']}")
-        msgs = body.get("messages") or []
-        last_user = str(msgs[-1].get("content") or "") if msgs else ""
-        reply = "Sahte Ollama yanıtı."
-        for key, val in state["canned"].items():
-            if key.lower() in last_user.lower():
-                reply = val
-                break
+        reply = _resolve_fake_reply(state, body)
         model = str(body.get("model") or state["models"][0])
         if body.get("stream"):
-            async def _gen():
-                for word in reply.split(" "):
-                    yield json.dumps({"model": model, "message": {"role": "assistant", "content": word + " "}, "done": False}) + "\n"
-                yield json.dumps({"model": model, "message": {"role": "assistant", "content": ""}, "done": True, "prompt_eval_count": 20, "eval_count": len(reply.split())}) + "\n"
-
-            return StreamingResponse(_gen(), media_type="application/x-ndjson")
+            return StreamingResponse(_stream_fake_reply(model, reply), media_type="application/x-ndjson")
         return {
             "model": model,
             "message": {"role": "assistant", "content": reply},
@@ -67,7 +77,7 @@ def create_fake_ollama_app(
         }
 
     @app.post("/api/embed")
-    async def embed(body: dict[str, Any]):
+    async def embed(_body: dict[str, Any]):
         return {"embeddings": [[0.25, 0.25, 0.25, 0.25] * 16]}
 
     app.state.fake_state = state

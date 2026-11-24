@@ -68,6 +68,46 @@ def _table_columns(conn: sqlite3.Connection, table: str) -> set[str]:
     return {r[1] for r in conn.execute(f'PRAGMA table_info("{table}")')}
 
 
+def _restore_file_blob(zf: zipfile.ZipFile, conn: sqlite3.Connection, values: dict) -> None:
+    sha = values["sha256"]
+    sha_str = str(sha)
+    data = zf.read(f"blobs/{sha_str}") if f"blobs/{sha_str}" in zf.namelist() else None
+    if data is None or hashlib.sha256(data).hexdigest() != sha_str:
+        raise ValueError(f"dosya içeriği eksik veya bozuk: {sha_str}")
+    target = blobstore.blob_path(sha_str)
+    if not target.is_file():
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
+    conn.execute(
+        "INSERT OR IGNORE INTO blobs (sha256, size, created_at) VALUES (?,?,?)",
+        (sha, len(data), values["created_at"]),
+    )
+
+
+def _import_table_rows(
+    zf: zipfile.ZipFile,
+    conn: sqlite3.Connection,
+    table: str,
+    rows: list[dict],
+    options: tuple[str, str],
+) -> int:
+    owner, verb = options
+    allowed = _table_columns(conn, table)
+    owner_col = ownership.OWNED.get(table)
+    count = 0
+    for row in rows:
+        values = {k: _decode(v) for k, v in row.items() if k in allowed}
+        if owner_col:
+            values[owner_col] = owner
+        if table == "files":
+            _restore_file_blob(zf, conn, values)
+        cols = ", ".join(values)
+        marks = ", ".join("?" for _ in values)
+        cur = conn.execute(f"{verb} INTO {table} ({cols}) VALUES ({marks})", tuple(values.values()))
+        count += max(cur.rowcount, 0)
+    return count
+
+
 def import_user(source: Path, new_owner: str | None = None, *, replace: bool = False) -> dict[str, int]:
     """Re-create the exported rows (default: keep rows that already exist); returns rows written per table."""
     with zipfile.ZipFile(source) as zf:
@@ -83,28 +123,7 @@ def import_user(source: Path, new_owner: str | None = None, *, replace: bool = F
                 for table, rows in payload["tables"].items():
                     if table not in present:
                         continue
-                    allowed = _table_columns(conn, table)
-                    owner_col = ownership.OWNED.get(table)
-                    for row in rows:
-                        values = {k: _decode(v) for k, v in row.items() if k in allowed}
-                        if owner_col:
-                            values[owner_col] = owner
-                        if table == "files":
-                            sha = values["sha256"]
-                            sha_str = str(sha)
-                            data = zf.read(f"blobs/{sha_str}") if f"blobs/{sha_str}" in zf.namelist() else None
-                            if data is None or hashlib.sha256(data).hexdigest() != sha_str:
-                                raise ValueError(f"dosya içeriği eksik veya bozuk: {sha_str}")
-                            target = blobstore.blob_path(sha_str)
-                            if not target.is_file():
-                                target.parent.mkdir(parents=True, exist_ok=True)
-                                target.write_bytes(data)
-                            conn.execute("INSERT OR IGNORE INTO blobs (sha256, size, created_at) VALUES (?,?,?)",
-                                         (sha, len(data), values["created_at"]))
-                        cols = ", ".join(values)
-                        marks = ", ".join("?" for _ in values)
-                        cur = conn.execute(f"{verb} INTO {table} ({cols}) VALUES ({marks})", tuple(values.values()))
-                        written[table] = written.get(table, 0) + max(cur.rowcount, 0)
+                    written[table] = written.get(table, 0) + _import_table_rows(zf, conn, table, rows, (owner, verb))
                 if "search_index" in present and "conversations" in present:
                     search_index.reindex_chats(conn)
     return written

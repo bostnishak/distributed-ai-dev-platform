@@ -12,6 +12,7 @@ import re
 import time
 import uuid
 from contextlib import suppress
+from dataclasses import dataclass
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -49,18 +50,13 @@ class ObservabilityMiddleware:
         self.app = app
         self.max_body_bytes = max_body_bytes
 
-    async def __call__(self, scope, receive, send):
-        if scope["type"] != "http":
-            await self.app(scope, receive, send)
-            return
-        headers = dict(scope.get("headers", []))
+    @staticmethod
+    def _resolve_request_id(headers: dict[bytes, bytes]) -> str:
         offered = headers.get(b"x-request-id", b"").decode("latin-1")
-        request_id = offered if _VALID_ID.match(offered) else uuid.uuid4().hex[:16]
-        token = logging_setup.request_id_var.set(request_id)
-        started = time.perf_counter()
-        state = {"status": 500, "started": False}
+        return offered if _VALID_ID.match(offered) else uuid.uuid4().hex[:16]
+
+    def _make_wrappers(self, receive, send, request_id: str, state: dict):
         received = {"bytes": 0}
-        declared = headers.get(b"content-length", b"")
 
         async def limited_receive():
             message = await receive()
@@ -76,6 +72,20 @@ class ObservabilityMiddleware:
                 state["status"] = message["status"]
                 message = {**message, "headers": [*message.get("headers", []), (b"x-request-id", request_id.encode())]}
             await send(message)
+
+        return limited_receive, tracking_send
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        headers = dict(scope.get("headers", []))
+        request_id = self._resolve_request_id(headers)
+        token = logging_setup.request_id_var.set(request_id)
+        started = time.perf_counter()
+        state = {"status": 500, "started": False}
+        declared = headers.get(b"content-length", b"")
+        limited_receive, tracking_send = self._make_wrappers(receive, send, request_id, state)
 
         try:
             if declared.isdigit() and int(declared) > self.max_body_bytes:
@@ -149,14 +159,32 @@ async def change_feature(name: str, body: FlagBody):
     return {"name": name, "enabled": features.is_enabled(name, body.owner)}
 
 
+@dataclass
+class _EventFilterParams:
+    event_type: str | None = None
+    agent_id: str | None = None
+    project_id: int | None = None
+    since: str | None = None
+    until: str | None = None
+
+
 @router.get("/api/admin/events", dependencies=[Depends(require_local_or_admin)])
 async def operational_events(
-    event_type: str | None = None, agent_id: str | None = None, project_id: int | None = None,
-    since: str | None = None, until: str | None = None,
-    limit: int = Query(50, ge=1, le=events_log.MAX_PAGE), offset: int = Query(0, ge=0),
+    filters: _EventFilterParams = Depends(),  # noqa: B008
+    limit: int = Query(50, ge=1, le=events_log.MAX_PAGE),
+    offset: int = Query(0, ge=0),
 ):
+    q = events_log.EventQuery(
+        event_type=filters.event_type,
+        agent_id=filters.agent_id,
+        project_id=filters.project_id,
+        since=filters.since,
+        until=filters.until,
+        limit=limit,
+        offset=offset,
+    )
     with dbconn.connection(config.DB_PATH) as conn:
-        return {"events": events_log.query(conn, event_type, agent_id, project_id, since, until, limit, offset)}
+        return {"events": events_log.query(conn, q)}
 
 
 @router.get("/api/admin/maintenance", dependencies=[Depends(require_local_or_admin)])

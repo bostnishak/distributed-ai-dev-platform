@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 _PROMPTS_DIR = Path(__file__).resolve().parents[1] / "prompts"
 
@@ -54,17 +55,15 @@ def is_simple_greeting(prompt: str) -> bool:
     return bool(_GREETING_RE.match(prompt or ""))
 
 
-def build_layered_system_prompt(
-    *,
-    mode_name: str = "general",
-    mode_rules: str = "",
-    user_prefs_block: str = "",
-    memory_block: str = "",
-    rag_context: str = "",
-    tools_hint: str = "",
-    user_prompt: str = "",
-) -> tuple[str, list[str]]:
+def build_layered_system_prompt(**opts: Any) -> tuple[str, list[str]]:
     """GW-17: Assemble strictly ordered, budgeted system prompt layers and return (text, layer_names)."""
+    mode_name = str(opts.get("mode_name", "general"))
+    mode_rules = str(opts.get("mode_rules", ""))
+    user_prefs_block = str(opts.get("user_prefs_block", ""))
+    memory_block = str(opts.get("memory_block", ""))
+    rag_context = str(opts.get("rag_context", ""))
+    tools_hint = str(opts.get("tools_hint", ""))
+    user_prompt = str(opts.get("user_prompt", ""))
     layers: list[tuple[str, str]] = []
 
     base_tpl = load_template("base_identity")

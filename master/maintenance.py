@@ -24,7 +24,7 @@ log = logging.getLogger(__name__)
 
 _state: dict = {"last_run": None, "last_error": None, "rounds": 0, "failures": 0}
 _stop = threading.Event()
-_thread: threading.Thread | None = None
+_RUNTIME: dict[str, threading.Thread | None] = {"thread": None}
 _lock = threading.Lock()
 
 
@@ -54,7 +54,8 @@ def run_once() -> dict:
 
 def status() -> dict:
     with _lock:
-        return {**_state, "running": bool(_thread and _thread.is_alive())}
+        thread = _RUNTIME["thread"]
+        return {**_state, "running": bool(thread and thread.is_alive())}
 
 
 def _loop(interval: float) -> None:
@@ -73,16 +74,18 @@ def _loop(interval: float) -> None:
 
 
 def start_background(interval_seconds: float = 3600) -> None:
-    global _thread
-    if _thread and _thread.is_alive():
+    thread = _RUNTIME["thread"]
+    if thread and thread.is_alive():
         return
     _stop.clear()
-    _thread = threading.Thread(target=_loop, args=(interval_seconds,), name="maintenance", daemon=True)
-    _thread.start()
+    new_thread = threading.Thread(target=_loop, args=(interval_seconds,), name="maintenance", daemon=True)
+    _RUNTIME["thread"] = new_thread
+    new_thread.start()
 
 
 def stop_background(timeout: float = 5.0) -> None:
     _stop.set()
-    if _thread:
-        _thread.join(timeout)
+    thread = _RUNTIME["thread"]
+    if thread:
+        thread.join(timeout)
 

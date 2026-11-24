@@ -14,10 +14,35 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-import config
 import dbconn
 import dbindexes
 import memory_engine
+from prompt_loader import load_prompt
+from user_profile_helpers import (
+    compact_sqlite_physical as _compact_sqlite_physical,
+)
+from user_profile_helpers import (
+    compute_usage_buckets,
+    format_selected_chats_lines,
+    has_cross_chat_cue,
+    is_trivial_query,
+    sanitize_bounded_int,
+    search_fts_snippets,
+    search_saved_chats_snippets,
+    select_relevant_chats,
+)
+from user_profile_helpers import (
+    extract_media_filenames as _extract_media_filenames,
+)
+from user_profile_helpers import (
+    fold_tr as _fold_tr,
+)
+from user_profile_helpers import (
+    token_root_match as _token_root_match,
+)
+from user_profile_helpers import (
+    tr_tokens as _tr_tokens,
+)
 
 DEFAULT_USER_ID = "default"
 _UID_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,39}$")
@@ -53,6 +78,7 @@ _ENUMS: dict[str, set[str]] = {
 }
 _BOOLS = {"reduce_motion", "send_with_enter", "show_token_counter", "show_model_badge", "cross_chat_memory", "auto_learn_facts"}
 _TEXT_LIMITS = {"interests": 400, "custom_instructions": 1500}
+_INT_BOUNDS = {"monthly_token_budget": 1_000_000_000, "retention_days": 3650}
 
 AVATAR_COLORS = ("#4f46e5", "#0d9488", "#059669", "#e11d48", "#d97706", "#475569")
 
@@ -85,42 +111,7 @@ def _connect() -> sqlite3.Connection:
 
 def init_db() -> None:
     with _connect() as conn:
-        conn.executescript(
-            """
-            CREATE TABLE IF NOT EXISTS profiles (
-                user_id TEXT PRIMARY KEY,
-                display_name TEXT NOT NULL,
-                role_title TEXT NOT NULL DEFAULT '',
-                bio TEXT NOT NULL DEFAULT '',
-                avatar_color TEXT NOT NULL DEFAULT '#4f46e5',
-                settings_json TEXT NOT NULL DEFAULT '{}',
-                created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS usage_events (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id TEXT NOT NULL,
-                ts TEXT NOT NULL,
-                conversation_id TEXT NOT NULL DEFAULT '',
-                model TEXT NOT NULL DEFAULT '',
-                task_type TEXT NOT NULL DEFAULT '',
-                prompt_tokens INTEGER NOT NULL DEFAULT 0,
-                completion_tokens INTEGER NOT NULL DEFAULT 0,
-                latency_ms INTEGER NOT NULL DEFAULT 0,
-                estimated INTEGER NOT NULL DEFAULT 0
-            );
-            CREATE INDEX IF NOT EXISTS idx_usage_user_ts ON usage_events(user_id, ts);
-            CREATE TABLE IF NOT EXISTS saved_chats (
-                chat_id TEXT NOT NULL,
-                user_id TEXT NOT NULL,
-                title TEXT NOT NULL DEFAULT 'Yeni sohbet',
-                updated_at INTEGER NOT NULL DEFAULT 0,
-                messages_json TEXT NOT NULL DEFAULT '[]',
-                PRIMARY KEY (user_id, chat_id)
-            );
-            CREATE INDEX IF NOT EXISTS idx_saved_chats_user_updated ON saved_chats(user_id, updated_at DESC);
-            """
-        )
+        conn.executescript(load_prompt("b1_user_profile_schema.txt"))
     with _connect() as conn:
         dbindexes.ensure_indexes(conn)
 
@@ -132,29 +123,26 @@ def valid_user_id(user_id: str) -> str:
     return uid
 
 
+def _sanitize_setting_value(key: str, value: Any) -> tuple[bool, Any]:
+    if key in _ENUMS:
+        return (isinstance(value, str) and value in _ENUMS[key]), value
+    if key in _BOOLS:
+        return isinstance(value, bool), value
+    if key in _TEXT_LIMITS:
+        return isinstance(value, str), (value.strip()[: _TEXT_LIMITS[key]] if isinstance(value, str) else None)
+    if key in _INT_BOUNDS:
+        parsed = sanitize_bounded_int(value, _INT_BOUNDS[key])
+        return (parsed is not None), parsed
+    return False, None
+
+
 def sanitize_settings(patch: dict[str, Any]) -> dict[str, Any]:
     """Keep only known keys with valid values; unknown or invalid entries are dropped."""
     clean: dict[str, Any] = {}
     for key, value in (patch or {}).items():
-        if key in _ENUMS:
-            if isinstance(value, str) and value in _ENUMS[key]:
-                clean[key] = value
-        elif key in _BOOLS:
-            if isinstance(value, bool):
-                clean[key] = value
-        elif key in _TEXT_LIMITS:
-            if isinstance(value, str):
-                clean[key] = value.strip()[: _TEXT_LIMITS[key]]
-        elif key == "monthly_token_budget":
-            try:
-                clean[key] = max(0, min(int(value), 1_000_000_000))
-            except (TypeError, ValueError):
-                continue
-        elif key == "retention_days":
-            try:
-                clean[key] = max(0, min(int(value), 3650))
-            except (TypeError, ValueError):
-                continue
+        ok, cleaned = _sanitize_setting_value(key, value)
+        if ok:
+            clean[key] = cleaned
     return clean
 
 
@@ -230,14 +218,18 @@ def create_profile(display_name: str) -> dict[str, Any]:
     return get_profile(uid)
 
 
-def update_profile(
-    user_id: str,
-    display_name: str | None = None,
-    role_title: str | None = None,
-    bio: str | None = None,
-    avatar_color: str | None = None,
-    settings: dict[str, Any] | None = None,
-) -> dict[str, Any]:
+_PROFILE_UPDATE_FIELDS = ("display_name", "role_title", "bio", "avatar_color", "settings")
+
+
+def update_profile(user_id: str, *args: Any, **opts: Any) -> dict[str, Any]:
+    params = dict(zip(_PROFILE_UPDATE_FIELDS, args, strict=False))
+    params.update(opts)
+    display_name: str | None = params.get("display_name")
+    role_title: str | None = params.get("role_title")
+    bio: str | None = params.get("bio")
+    avatar_color: str | None = params.get("avatar_color")
+    settings: dict[str, Any] | None = params.get("settings")
+
     current = get_profile(user_id)
     uid = current["user_id"]
     merged = {**current["settings"], **sanitize_settings(settings or {})}
@@ -278,16 +270,12 @@ def estimate_tokens(text: str) -> int:
     return max(0, round(len(text or "") / 3.5))
 
 
-def record_usage(
-    user_id: str,
-    conversation_id: str,
-    model: str,
-    task_type: str,
-    prompt_tokens: int,
-    completion_tokens: int,
-    latency_ms: int,
-    estimated: bool = False,
-) -> None:
+_USAGE_FIELDS = ("model", "task_type", "prompt_tokens", "completion_tokens", "latency_ms", "estimated")
+
+
+def record_usage(user_id: str, conversation_id: str, *args: Any, **opts: Any) -> None:
+    params = dict(zip(_USAGE_FIELDS, args, strict=False))
+    params.update(opts)
     init_db()
     uid = valid_user_id(user_id)
     with _connect() as conn:
@@ -301,12 +289,12 @@ def record_usage(
                 uid,
                 datetime.now(UTC).isoformat(),
                 conversation_id or "",
-                model or "",
-                task_type or "",
-                max(0, int(prompt_tokens)),
-                max(0, int(completion_tokens)),
-                max(0, int(latency_ms)),
-                1 if estimated else 0,
+                str(params.get("model") or ""),
+                str(params.get("task_type") or ""),
+                max(0, int(params.get("prompt_tokens") or 0)),
+                max(0, int(params.get("completion_tokens") or 0)),
+                max(0, int(params.get("latency_ms") or 0)),
+                1 if params.get("estimated") else 0,
             ),
         )
 
@@ -335,74 +323,35 @@ def usage_summary(user_id: str, days: int = 30) -> dict[str, Any]:
             (uid, _month_start().isoformat()),
         ).fetchone()["t"]
 
-    daily = {(start + timedelta(days=i)).isoformat(): {"tokens": 0, "messages": 0} for i in range(days)}
-    by_model: dict[str, dict[str, int]] = {}
-    by_task: dict[str, dict[str, int]] = {}
-    by_hour = [0] * 24
-    prompt_total = completion_total = latency_total = 0
-    conversations: set[str] = set()
-    for r in rows:
-        tokens = r["prompt_tokens"] + r["completion_tokens"]
-        day = r["ts"][:10]
-        if day in daily:
-            daily[day]["tokens"] += tokens
-            daily[day]["messages"] += 1
-        for bucket, key in ((by_model, r["model"] or "bilinmiyor"), (by_task, r["task_type"] or "genel")):
-            slot = bucket.setdefault(key, {"messages": 0, "tokens": 0})
-            slot["messages"] += 1
-            slot["tokens"] += tokens
-        try:
-            by_hour[datetime.fromisoformat(r["ts"]).astimezone().hour] += 1
-        except ValueError:
-            pass
-        prompt_total += r["prompt_tokens"]
-        completion_total += r["completion_tokens"]
-        latency_total += r["latency_ms"]
-        if r["conversation_id"]:
-            conversations.add(r["conversation_id"])
-
+    agg = compute_usage_buckets(rows, start, days, all_days, today)
     messages = len(rows)
+    prompt_total = int(agg["prompt_total"])
+    completion_total = int(agg["completion_total"])
     total_tokens = prompt_total + completion_total
-
-    used_days = {x["d"] for x in all_days}
-    streak = 0
-    cursor = today
-    if cursor.isoformat() not in used_days:
-        cursor -= timedelta(days=1)
-    while cursor.isoformat() in used_days:
-        streak += 1
-        cursor -= timedelta(days=1)
-
     budget = int(get_settings(uid).get("monthly_token_budget") or 0)
     return {
         "user_id": uid,
         "days": days,
         "totals": {
             "messages": messages,
-            "conversations": len(conversations),
+            "conversations": len(agg["conversations"]),
             "prompt_tokens": prompt_total,
             "completion_tokens": completion_total,
             "total_tokens": total_tokens,
             "avg_tokens_per_message": round(total_tokens / messages) if messages else 0,
-            "avg_latency_ms": round(latency_total / messages) if messages else 0,
-            "streak_days": streak,
-            "active_days": len(used_days),
+            "avg_latency_ms": round(int(agg["latency_total"]) / messages) if messages else 0,
+            "streak_days": agg["streak"],
+            "active_days": agg["active_days"],
         },
-        "daily": [{"date": d, **v} for d, v in daily.items()],
-        "by_model": sorted(
-            ({"model": k, **v} for k, v in by_model.items()), key=lambda x: x["tokens"], reverse=True
-        ),
-        "by_task": sorted(
-            ({"task_type": k, **v} for k, v in by_task.items()), key=lambda x: x["messages"], reverse=True
-        ),
-        "by_hour": by_hour,
+        "daily": [{"date": d, **v} for d, v in agg["daily"].items()],
+        "by_model": sorted(({"model": k, **v} for k, v in agg["by_model"].items()), key=lambda x: x["tokens"], reverse=True),
+        "by_task": sorted(({"task_type": k, **v} for k, v in agg["by_task"].items()), key=lambda x: x["messages"], reverse=True),
+        "by_hour": agg["by_hour"],
         "budget": {
             "monthly_token_budget": budget,
             "month_tokens": int(month_tokens),
             "percent": round(month_tokens / budget * 100, 1) if budget else 0.0,
         },
-        # Hypothetical reference only: what the same volume would cost on a paid cloud API
-        # (assumed 1 USD per 1M input and 4 USD per 1M output tokens). Local use costs nothing.
         "cloud_equivalent_usd": round(prompt_total / 1_000_000 * 1.0 + completion_total / 1_000_000 * 4.0, 4),
     }
 
@@ -438,155 +387,19 @@ def cross_chat_snippets(
     raw_q = (query or "").strip()
     if not raw_q:
         return []
-
-    results: list[dict[str, str]] = []
-    seen: set[tuple[str, str]] = set()
-
-    # 1. Search saved_chats directly (covers every UI chat with Turkish-tolerant folding)
-    q_folded = _fold_tr(raw_q)
-    q_tokens = _tr_tokens(raw_q)
-    saved = list_saved_chats(uid)
-    for cid, rec in saved.items():
-        if cid == (exclude_conversation or ""):
-            continue
-        title = (rec.get("title") or "Sohbet").strip()
-        for m in rec.get("messages") or []:
-            body = str(m.get("text") or "").strip()
-            if not body:
-                continue
-            body_folded = _fold_tr(body)
-            matched = q_folded in body_folded or (
-                q_tokens and any(_token_root_match(qt, bt) for qt in q_tokens for bt in _tr_tokens(body[:1200]))
-            )
-            if matched:
-                idx = body_folded.find(q_folded) if q_folded in body_folded else 0
-                start = max(0, idx - 45)
-                snip = ("..." if start > 0 else "") + body[start : start + 140].replace("\n", " ") + ("..." if start + 140 < len(body) else "")
-                key = (cid, snip[:48])
-                if key not in seen:
-                    seen.add(key)
-                    results.append({
-                        "conversation_id": cid,
-                        "title": title,
-                        "role": str(m.get("role") or "user"),
-                        "snippet": snip,
-                    })
-                    if len(results) >= cap:
-                        return results
-
-    # 2. Merge any FTS5 hits not already found
-    tokens = [t for t in re.findall(r"[A-Za-z0-9ÇĞİÖŞÜçğıöşü]+", raw_q) if len(t) > 2]
-    if tokens:
-        fts_q = " OR ".join(f'"{t}"' for t in tokens[:6])
-        conn = memory_engine._connect()
-        try:
-            rows = conn.execute(
-                """
-                SELECT f.conversation_id AS conversation_id, c.title AS title, f.role AS role,
-                       snippet(messages_fts, 2, '[', ']', '...', 28) AS snippet
-                FROM messages_fts f
-                JOIN conversations c ON c.id = f.conversation_id
-                WHERE messages_fts MATCH ? AND c.user_id = ? AND f.conversation_id != ?
-                ORDER BY rank
-                LIMIT ?
-                """,
-                (fts_q, uid, exclude_conversation or "", cap),
-            ).fetchall()
-            for r in rows:
-                d = dict(r)
-                key = (d["conversation_id"], str(d["snippet"])[:48])
-                if key not in seen:
-                    seen.add(key)
-                    results.append(d)
-                    if len(results) >= cap:
-                        break
-        except (sqlite3.Error, OSError, ValueError, KeyError, TypeError) as _exc:
-            import logging
-
-            logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
-        finally:
-            conn.close()
-    return results
-
-
-_TR_FOLD = str.maketrans("ÇĞİÖŞÜçğıöşüİ", "cgiosucgiosui")
-
-_CROSS_CHAT_CUES = (
-    "sohbet",
-    "chat",
-    "gecmis",
-    "diger",
-    "onceki",
-    "adli",
-    "baslikli",
-    "karsilastir",
-    "birlestir",
-    "aktar",
-    "prompt",
-    "analiz",
-    "oku",
-)
-
-_GENERIC_RECENT_CUES = (
-    "diger sohbet",
-    "diger chat",
-    "onceki sohbet",
-    "onceki chat",
-    "son sohbet",
-    "son chat",
-    "tum sohbet",
-    "butun sohbet",
-    "iki sohbet",
-    "2 sohbet",
-    "2 chat",
-    "iki chat",
-)
-
-
-def _fold_tr(text: str) -> str:
-    return (text or "").translate(_TR_FOLD).lower()
-
-
-def _tr_tokens(text: str) -> list[str]:
-    return [t for t in re.findall(r"[a-z0-9]+", _fold_tr(text)) if len(t) > 2]
-
-
-def _token_root_match(q_tok: str, t_tok: str) -> bool:
-    if q_tok == t_tok:
-        return True
-    if len(q_tok) >= 4 and len(t_tok) >= 4:
-        root_len = min(5, len(q_tok), len(t_tok))
-        if q_tok[:root_len] == t_tok[:root_len]:
-            return True
-    return False
-
-
-_TRIVIAL_GREETINGS = {
-    "selam",
-    "merhaba",
-    "hey",
-    "hi",
-    "hello",
-    "nasilsin",
-    "naber",
-    "gunaydin",
-    "iyi aksamlar",
-    "iyi geceler",
-    "test",
-    "deneme",
-    "tesekkurler",
-    "sag ol",
-    "tamam",
-    "ok",
-}
+    results, seen = search_saved_chats_snippets(list_saved_chats(uid), raw_q, exclude_conversation, cap)
+    if len(results) >= cap:
+        return results
+    fts_hits = search_fts_snippets(uid, raw_q, exclude_conversation, cap - len(results), seen)
+    results.extend(fts_hits)
+    return results[:cap]
 
 
 def cross_chat_context_block(user_id: str, query: str, exclude_conversation: str = "") -> str:
     """Provide a directory of saved chats and inject full transcripts of referenced/matched chats."""
     q_folded = _fold_tr(query or "").strip(" ?!.,")
-    if not q_folded or q_folded in _TRIVIAL_GREETINGS:
+    if is_trivial_query(q_folded):
         return ""
-
     uid = valid_user_id(user_id)
     saved = list_saved_chats(uid)
     other_chats = [
@@ -594,82 +407,21 @@ def cross_chat_context_block(user_id: str, query: str, exclude_conversation: str
         for cid, rec in saved.items()
         if cid != (exclude_conversation or "") and (rec.get("messages") or [])
     ]
-
-    q_tokens = _tr_tokens(query or "")
-    explicit_ref = any(cue in q_folded for cue in _CROSS_CHAT_CUES)
-    generic_recent = any(cue in q_folded for cue in _GENERIC_RECENT_CUES)
-
     lines: list[str] = []
-
     if other_chats:
-        # Always expose a compact directory of the user's saved chats so the AI can reason across them
         lines.append("--- Kullanicinin Kayitli Diger Sohbetleri ---")
         for _cid, rec in other_chats[:15]:
             title = (rec.get("title") or "Sohbet").strip()
-            msg_count = len(rec.get("messages") or [])
-            lines.append(f"- \"{title}\" ({msg_count} mesaj)")
-
-        # Score chats against the query (title match + content overlap)
-        scored: list[tuple[int, str, dict[str, Any]]] = []
-        for cid, rec in other_chats:
-            title = (rec.get("title") or "").strip()
-            title_folded = _fold_tr(title)
-            title_tokens = _tr_tokens(title)
-            score = 0
-            if title_folded and len(title_folded) >= 4 and title_folded in q_folded:
-                score += 30
-            for qt in q_tokens:
-                if any(_token_root_match(qt, tt) for tt in title_tokens):
-                    score += 8
-            if explicit_ref or score > 0:
-                msg_blob = " ".join(str(m.get("text") or "")[:400] for m in (rec.get("messages") or [])[:12])
-                msg_tokens = set(_tr_tokens(msg_blob))
-                overlap = sum(1 for qt in q_tokens if any(_token_root_match(qt, mt) for mt in msg_tokens))
-                score += min(overlap * 2, 14)
-            if score > 0:
-                scored.append((score, cid, rec))
-
-        scored.sort(key=lambda x: x[0], reverse=True)
-        selected: list[tuple[str, dict[str, Any]]] = [(cid, rec) for _sc, cid, rec in scored[:3]]
-
-        if not selected and (generic_recent or explicit_ref):
-            # User asked about "previous/other chat" without quoting exact title: load 2 most recent
-            selected = other_chats[:2]
-
-        if selected:
-            lines.append("")
-            lines.append(
-                "--- Eslesen Diger Sohbet Gecmisleri (Kullanici bu sohbetleri okumani, analiz etmeni, "
-                "karsilastirmani veya buna gore istemini degistirmeni istediginde dogrudan kullan) ---"
-            )
-            char_budget = 6000
-            used_chars = 0
-            for _cid, rec in selected:
-                title = (rec.get("title") or "Sohbet").strip()
-                msgs = rec.get("messages") or []
-                header = f"\n### Sohbet: \"{title}\" ({len(msgs)} mesaj)"
-                lines.append(header)
-                used_chars += len(header)
-                for m in msgs[-16:]:
-                    role_lbl = "Kullanici" if m.get("role") == "user" else "Asistan"
-                    body = str(m.get("text") or "").strip()
-                    if len(body) > 750:
-                        body = body[:750] + "..."
-                    entry = f"{role_lbl}: {body}"
-                    if used_chars + len(entry) > char_budget:
-                        lines.append("[... kalan kisim ozetlendi ...]")
-                        break
-                    lines.append(entry)
-                    used_chars += len(entry)
-                if used_chars >= char_budget:
-                    break
+            lines.append(f"- \"{title}\" ({len(rec.get('messages') or [])} mesaj)")
+        explicit_ref, generic_recent = has_cross_chat_cue(q_folded)
+        selected = select_relevant_chats(other_chats, q_folded, _tr_tokens(query or ""), explicit_ref, generic_recent)
+        lines.extend(format_selected_chats_lines(selected))
 
     hits = cross_chat_snippets(uid, query, exclude_conversation, limit=3)
     if hits:
         lines.append("\n--- FTS5 Sohbet Arasi Ek Eslesmeler ---")
         for h in hits:
             lines.append(f"- ({h['title']}) {h['role']}: {h['snippet']}")
-
     return "\n".join(lines)
 
 
@@ -689,7 +441,6 @@ def list_conversations(user_id: str, limit: int = 50) -> list[dict[str, Any]]:
     finally:
         conn.close()
     by_id: dict[str, dict[str, Any]] = {r["id"]: dict(r) for r in rows}
-    # Merge full UI saved_chats so Personal Space -> Hafiza always displays every saved chat
     for cid, rec in list_saved_chats(uid).items():
         ts_ms = int(rec.get("updatedAt") or 0)
         iso_ts = datetime.fromtimestamp(ts_ms / 1000.0, tz=UTC).isoformat() if ts_ms else datetime.now(UTC).isoformat()
@@ -789,45 +540,17 @@ def add_fact(user_id: str, category: str, fact_value: str) -> dict[str, Any]:
 
 
 def export_all(user_id: str) -> dict[str, Any]:
+    from user_profile_helpers import export_conversations_with_messages
+
     uid = valid_user_id(user_id)
-    conv_conn = memory_engine._connect()
-    try:
-        memory_engine.init_memory_db()
-        convs = []
-        for c in list_conversations(uid, limit=200):
-            msgs = conv_conn.execute(
-                "SELECT role, content, model_used, task_type, created_at FROM conversation_messages "
-                "WHERE conversation_id = ? ORDER BY id",
-                (c["id"],),
-            ).fetchall()
-            convs.append({**c, "messages": [dict(m) for m in msgs]})
-    finally:
-        conv_conn.close()
     return {
         "exported_at": datetime.now(UTC).isoformat(),
         "profile": get_profile(uid),
         "memories": memory_engine.list_semantic_facts(user_id=uid),
         "usage": usage_summary(uid, days=365),
-        "conversations": convs,
+        "conversations": export_conversations_with_messages(list_conversations(uid, limit=200)),
         "saved_chats": list_saved_chats(uid),
     }
-
-
-def _compact_sqlite_physical(db_path: Path) -> None:
-    """Force WAL truncation and VACUUM so erased user data leaves zero residual bytes on disk (SEC-21)."""
-    if not db_path.is_file():
-        return
-    conn = sqlite3.connect(str(db_path))
-    try:
-        conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
-        conn.execute("VACUUM")
-        conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
-    finally:
-        conn.close()
-
-
-def _extract_media_filenames(text: str) -> set[str]:
-    return set(re.findall(r"/api/assistant/media/([A-Za-z0-9._\-]+)", text or ""))
 
 
 def purge_expired_data(user_id: str) -> dict[str, int]:
@@ -837,12 +560,10 @@ def purge_expired_data(user_id: str) -> dict[str, int]:
     if ret_days <= 0:
         return {"usage": 0, "chats": 0}
     cutoff_dt = datetime.now(UTC) - timedelta(days=ret_days)
-    cutoff_iso = cutoff_dt.isoformat()
-    cutoff_ms = int(cutoff_dt.timestamp() * 1000)
     init_db()
     with _connect() as conn:
-        u_cnt = conn.execute("DELETE FROM usage_events WHERE user_id = ? AND created_at < ?", (uid, cutoff_iso)).rowcount
-        c_cnt = conn.execute("DELETE FROM saved_chats WHERE user_id = ? AND updated_at < ?", (uid, cutoff_ms)).rowcount
+        u_cnt = conn.execute("DELETE FROM usage_events WHERE user_id = ? AND created_at < ?", (uid, cutoff_dt.isoformat())).rowcount
+        c_cnt = conn.execute("DELETE FROM saved_chats WHERE user_id = ? AND updated_at < ?", (uid, int(cutoff_dt.timestamp() * 1000))).rowcount
     if u_cnt or c_cnt:
         _compact_sqlite_physical(_db_path())
     return {"usage": u_cnt, "chats": c_cnt}
@@ -850,68 +571,22 @@ def purge_expired_data(user_id: str) -> dict[str, int]:
 
 def wipe_data(user_id: str, scope: str) -> dict[str, int]:
     """SEC-21 Right to Erasure: remove DB rows, FTS index, linked media blobs, and VACUUM/WAL-truncate."""
+    from user_profile_helpers import execute_user_wipe
+
     uid = valid_user_id(user_id)
     if scope not in {"usage", "memories", "conversations", "all"}:
         raise ValueError("Gecersiz kapsam.")
     init_db()
-    memory_engine.init_memory_db()
-    removed = {"usage": 0, "memories": 0, "conversations": 0, "media_files": 0}
-    media_to_delete: set[str] = set()
+    return execute_user_wipe(uid, scope, _connect, _db_path)
 
-    if scope in {"usage", "all"}:
-        with _connect() as conn:
-            removed["usage"] = conn.execute("DELETE FROM usage_events WHERE user_id = ?", (uid,)).rowcount
-    if scope in {"conversations", "all"}:
-        with _connect() as conn:
-            rows = conn.execute("SELECT messages_json FROM saved_chats WHERE user_id = ?", (uid,)).fetchall()
-            for r in rows:
-                media_to_delete.update(_extract_media_filenames(str(r["messages_json"] or "")))
-            conn.execute("DELETE FROM saved_chats WHERE user_id = ?", (uid,))
 
-    mconn = memory_engine._connect()
-    try:
-        with mconn:
-            if scope in {"memories", "all"}:
-                removed["memories"] = mconn.execute(
-                    "DELETE FROM semantic_memories WHERE user_id = ?", (uid,)
-                ).rowcount
-            if scope in {"conversations", "all"}:
-                ids = [r["id"] for r in mconn.execute("SELECT id FROM conversations WHERE user_id = ?", (uid,))]
-                for cid in ids:
-                    for mr in mconn.execute("SELECT content FROM conversation_messages WHERE conversation_id = ?", (cid,)):
-                        media_to_delete.update(_extract_media_filenames(str(mr["content"] or "")))
-                    mconn.execute("DELETE FROM messages_fts WHERE conversation_id = ?", (cid,))
-                    mconn.execute("DELETE FROM conversation_messages WHERE conversation_id = ?", (cid,))
-                    mconn.execute("DELETE FROM conversations WHERE id = ?", (cid,))
-                removed["conversations"] = len(ids)
-    finally:
-        mconn.close()
-
-    # Delete referenced user media files on disk
-    media_root = Path(config.DATA_DIR) / "media"
-    for fname in media_to_delete:
-        target = (media_root / Path(fname).name).resolve()
-        if media_root.resolve() in target.parents and target.is_file():
-            try:
-                target.unlink()
-                removed["media_files"] += 1
-            except OSError:
-                pass
-
-    # Physical WAL truncation + VACUUM so deleted user strings cannot be recovered from DB/WAL files
-    _compact_sqlite_physical(_db_path())
-    _compact_sqlite_physical(dbconn.database_file("cognitive_memory.db"))
-
-    try:
-        from audit_log import AuditTrail
-
-        AuditTrail().append_event(
-            actor=uid,
-            action="USER_DATA_WIPED",
-            payload={"user_id": uid, "scope": scope, "removed": removed},
-        )
-    except (ImportError, OSError, ValueError, TypeError, RuntimeError) as _exc:
-        import logging
-
-        logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
-    return removed
+__all__ = [
+    "AVATAR_COLORS", "DEFAULT_SETTINGS", "DEFAULT_USER_ID",
+    "_compact_sqlite_physical", "_extract_media_filenames", "_fold_tr", "_token_root_match", "_tr_tokens",
+    "add_fact", "create_profile", "cross_chat_context_block", "cross_chat_snippets",
+    "delete_fact", "delete_profile", "delete_saved_chat", "estimate_tokens", "export_all",
+    "get_profile", "get_settings", "init_db", "list_conversations", "list_profiles",
+    "list_saved_chats", "personalization_block", "purge_expired_data", "record_usage",
+    "sanitize_settings", "update_profile", "upsert_saved_chat", "usage_summary",
+    "valid_user_id", "wipe_data",
+]

@@ -25,6 +25,7 @@ import dbconn
 import secret_store
 from access_control import require_local_or_admin
 from audit_log import AuditTrail
+from prompt_loader import load_prompt
 
 router = APIRouter(prefix="/api/mcp", tags=["mcp"])
 
@@ -39,25 +40,7 @@ def _secret_name(connector_id: str) -> str:
 
 def init_mcp_db() -> None:
     with _connect() as conn:
-        conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS mcp_connectors (
-                id TEXT PRIMARY KEY,
-                name TEXT NOT NULL,
-                url TEXT NOT NULL,
-                api_key TEXT NOT NULL DEFAULT '',
-                api_key_masked TEXT NOT NULL DEFAULT '',
-                auth_header TEXT NOT NULL DEFAULT 'Authorization',
-                auth_prefix TEXT NOT NULL DEFAULT 'Bearer ',
-                description TEXT NOT NULL DEFAULT '',
-                enabled INTEGER NOT NULL DEFAULT 1,
-                tools_json TEXT NOT NULL DEFAULT '[]',
-                last_status TEXT NOT NULL DEFAULT 'Henüz test edilmedi',
-                last_checked_at TEXT NOT NULL DEFAULT '',
-                created_at TEXT NOT NULL
-            )
-            """
-        )
+        conn.execute(load_prompt("b4_mcp_schema.txt"))
         cols = {r["name"] for r in conn.execute("PRAGMA table_info(mcp_connectors)").fetchall()}
         if "api_key_masked" not in cols:
             conn.execute("ALTER TABLE mcp_connectors ADD COLUMN api_key_masked TEXT NOT NULL DEFAULT ''")
@@ -113,10 +96,11 @@ def create_connector(
     name: str,
     url: str,
     api_key: str = "",
-    auth_header: str = "Authorization",
-    auth_prefix: str = "Bearer ",
-    description: str = "",
+    **options: Any,
 ) -> dict[str, Any]:
+    auth_header: str = options.get("auth_header", "Authorization")
+    auth_prefix: str | None = options.get("auth_prefix", "Bearer ")
+    description: str = options.get("description", "")
     init_mcp_db()
     clean_name = (name or "").strip()[:60]
     clean_url = (url or "").strip()[:300]
@@ -227,12 +211,12 @@ def _parse_mcp_response(resp: httpx.Response) -> dict[str, Any]:
 
 async def _rpc_request(
     client: httpx.AsyncClient,
-    url: str,
-    headers: dict[str, str],
+    endpoint: tuple[str, dict[str, str]],
     method: str,
     params: dict[str, Any] | None = None,
     session_id: str | None = None,
 ) -> tuple[dict[str, Any], str | None]:
+    url, headers = endpoint
     req_headers = dict(headers)
     if session_id:
         req_headers["Mcp-Session-Id"] = session_id
@@ -254,13 +238,13 @@ async def discover_connector_tools(connector_id: str) -> dict[str, Any]:
     if not row:
         raise KeyError("MCP bağlayıcı bulunamadı.")
     headers = _build_headers(row)
+    endpoint = (row["url"], headers)
     now = datetime.now(UTC).isoformat()
     try:
         async with httpx.AsyncClient(timeout=20.0) as client:
             _, sid = await _rpc_request(
                 client,
-                row["url"],
-                headers,
+                endpoint,
                 "initialize",
                 {
                     "protocolVersion": "2024-11-05",
@@ -268,7 +252,7 @@ async def discover_connector_tools(connector_id: str) -> dict[str, Any]:
                     "clientInfo": {"name": "cm6453-local-ai", "version": "2.0"},
                 },
             )
-            tools_resp, _ = await _rpc_request(client, row["url"], headers, "tools/list", {}, session_id=sid)
+            tools_resp, _ = await _rpc_request(client, endpoint, "tools/list", {}, session_id=sid)
             raw_tools = (tools_resp.get("result") or {}).get("tools") or []
             tools = [
                 {
@@ -305,11 +289,11 @@ async def call_connector_tool(connector_id: str, tool_name: str, arguments: dict
     if not row["enabled"]:
         raise ValueError("Bu MCP bağlayıcısı pasif durumda.")
     headers = _build_headers(row)
+    endpoint = (row["url"], headers)
     async with httpx.AsyncClient(timeout=30.0) as client:
         _, sid = await _rpc_request(
             client,
-            row["url"],
-            headers,
+            endpoint,
             "initialize",
             {
                 "protocolVersion": "2024-11-05",
@@ -319,8 +303,7 @@ async def call_connector_tool(connector_id: str, tool_name: str, arguments: dict
         )
         res, _ = await _rpc_request(
             client,
-            row["url"],
-            headers,
+            endpoint,
             "tools/call",
             {"name": tool_name, "arguments": arguments or {}},
             session_id=sid,
@@ -380,7 +363,14 @@ async def api_list_connectors():
 @router.post("/connectors", dependencies=[Depends(require_local_or_admin)])
 async def api_create_connector(req: MCPCreateReq):
     try:
-        conn = create_connector(req.name, req.url, req.api_key, req.auth_header, req.auth_prefix, req.description)
+        conn = create_connector(
+            req.name,
+            req.url,
+            req.api_key,
+            auth_header=req.auth_header,
+            auth_prefix=req.auth_prefix,
+            description=req.description,
+        )
         return {"connector": conn}
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

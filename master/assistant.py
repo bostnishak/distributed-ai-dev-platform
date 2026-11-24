@@ -7,327 +7,61 @@ none is available the master's own model is used instead (qwen3.5:4b supports vi
 
 import ast
 import asyncio
-import base64
 import json
 import logging
 import operator
 import os
 import re
 import sqlite3
-import subprocess
 import sys
-import zipfile
+import time
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
-from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 
 import config
 import db
 from access_control import require_local_or_admin
-from extract import (
-    extract_csv_text,
-    extract_docx_text,
-    extract_pdf_text,
-    extract_xlsx_text,
-    extract_zip_text,
+from assistant_cad_cnc import (  # noqa: F401
+    CNC_BALLOON_KEYWORDS,
+    CODE_ONLY_RE,
+    PROJECT_ACTION_RE,
+    PROJECT_NOUN_RE,
 )
+from assistant_cad_cnc import detect_project_type as _detect_project_type  # noqa: F401
+from assistant_cad_cnc import is_3d_cad_request as _is_3d_cad_request  # noqa: F401
+from assistant_cad_cnc import is_cnc_balloon_request as _is_cnc_balloon_request  # noqa: F401
+from assistant_cad_cnc import is_project_build_request as _is_project_build_request  # noqa: F401
+from assistant_cad_cnc import is_zip_workspace_request as _is_zip_workspace_request  # noqa: F401
+from assistant_cad_cnc import run_3d_cad_cam_from_chat as _run_3d_cad_cam_from_chat  # noqa: F401
+from assistant_cad_cnc import run_cnc_balloon_from_chat as _run_cnc_balloon_from_chat  # noqa: F401
+from assistant_cad_cnc import try_extended_calculation as _try_extended_calculation
+from assistant_prep import (
+    build_domain_enrichment_notes,
+    build_llm_stream_inputs,
+    build_media_file_response,
+    create_llm_stream_response,
+    enrich_done_event_with_verification,
+    enrich_prompt_with_kb,
+    process_uploaded_attachment,
+)
+from assistant_stream_fastpaths import (
+    _history_has_messages,
+    dispatch_chat_fastpath,
+    single_token_stream,
+)
+from prompt_loader import load_prompt
 
 log = logging.getLogger(__name__)
-
-CNC_BALLOON_KEYWORDS = (
-    "balonla", "balonlama", "teknik çizim", "teknik cizim", "as9102", "fai",
-    "tolerans tablosu", "cnc parça", "cnc parca", "cnc çizim", "cnc cizim",
-    "ölçüleri çıkar", "olculeri cikar", "kalite kontrol formu",
-)
-
-CODE_ONLY_RE = re.compile(
-    r"(kodunu\s*(ver|yaz|göster|goster|at)|kod\s*halini|sadece\s*kod|kodu\s*(ver|yaz))",
-    re.IGNORECASE,
-)
-
-PROJECT_NOUN_RE = re.compile(
-    r"(web\s*site\w*|e-?ticaret|oyun\w*|masaüstü|masaustu|bilgisayarda\s*çalış\w*|bilgisayarda\s*calis\w*|"
-    r"\.exe|\bexe\b|uygulama\w*|program\w*|proje\w*|site\w*|dosyalar\w*)",
-    re.IGNORECASE,
-)
-
-PROJECT_ACTION_RE = re.compile(
-    r"(yap\w*|oluştur\w*|olustur\w*|hazırla\w*|hazirla\w*|geliştir\w*|gelistir\w*|tasarla\w*|kur\w*|üret\w*|uret\w*)",
-    re.IGNORECASE,
-)
-
-
-def _is_cnc_balloon_request(prompt: str, file: UploadFile | None) -> bool:
-    if file is None or not file.filename:
-        return False
-    if file.filename.lower().endswith(".dxf"):
-        return True
-    lower = prompt.lower()
-    return any(kw in lower for kw in CNC_BALLOON_KEYWORDS)
-
-
-def _is_3d_cad_request(file: UploadFile | None) -> bool:
-    if file is None or not file.filename:
-        return False
-    return file.filename.lower().endswith((".step", ".stp", ".iges", ".igs", ".stl"))
-
-
-async def _run_3d_cad_cam_from_chat(file: UploadFile, prompt: str) -> str:
-    """Execute 3D STEP/IGES/STL Feature Recognition, Kienzle Cutting Physics, FEA & 4-Controller G-Code Engine."""
-    import cad_cam_physics as ccp
-    import enterprise_security_mcp as esm
-
-    raw = await file.read()
-    fname = file.filename or "part.step"
-    cad = ccp.analyze_3d_cad_file(fname, raw)
-    bbox = cad.get("bounding_box_mm", {})
-    dx = float(bbox.get("x", 60.0))
-    dy = float(bbox.get("y", 60.0))
-    dz = float(bbox.get("z", 40.0))
-
-    lower = prompt.lower()
-    material = "AISI 4140"
-    for mat in ("AL 7075", "AL 6061", "AISI 316L", "AISI 304", "TI-6AL-4V", "AISI 1045", "AISI 4140"):
-        if mat.lower() in lower or mat.split()[-1].lower() in lower:
-            material = mat
-            break
-
-    phys = ccp.simulate_cutting_physics_and_fea(
-        material=material,
-        vc_m_min=185.0 if "4140" in material else 240.0,
-        ap_mm=2.5,
-        feed_mm_rev=0.22,
-        cutter_diameter_mm=max(dx, dy, 25.0),
-        tool_stickout_mm=min(max(dz * 0.9, 35.0), 75.0),
-        tool_shank_diameter_mm=16.0,
-        ring_mean_radius_mm=max(dx, dy) / 2.0,
-        wall_thickness_mm=3.0,
-    )
-
-    spec = {
-        "part_number": cad.get("product_name") or fname,
-        "material": material,
-        "outer_diameter_mm": round(max(dx, dy), 2),
-        "finish_od_mm": round(max(dx, dy) - 2.0, 2),
-        "length_mm": round(dz, 2),
-        "hole_diameter_mm": 12.0,
-        "hole_depth_mm": round(min(dz * 0.8, 35.0), 2),
-        "thread_pitch_mm": 1.5,
-        "thread_depth_mm": round(min(dz * 0.5, 20.0), 2),
-        "vc_m_min": 185,
-    }
-    gcode_fanuc = ccp.generate_multi_controller_gcode("fanuc", spec)
-    gcode_siemens = ccp.generate_multi_controller_gcode("siemens", spec)
-    gcode_heidenhain = ccp.generate_multi_controller_gcode("heidenhain", spec)
-    gcode_haas = ccp.generate_multi_controller_gcode("haas", spec)
-    cmm_offset = ccp.generate_cmm_wear_offset_gcode(
-        controller="fanuc",
-        tool_no=2,
-        nominal=spec["finish_od_mm"],
-        measured_mean=round(spec["finish_od_mm"] + 0.014, 4),
-    )
-
-    esm.AuditTrail().append_event(
-        actor="assistant_3d_cad",
-        action="3D_CAD_CAM_ANALYSIS",
-        payload={"filename": fname, "format": cad.get("format"), "features": len(cad.get("features", []))},
-    )
-
-    lines = [
-        f"## 3B CAD B-Rep Unsur Tanima, Kesme Fizigi ve Coklu Kontrolcu CAM Raporu ({fname})",
-        f"- **Format:** `{cad.get('format')}` | **Urun:** `{cad.get('product_name')}` | **Malzeme:** `{material}`",
-        f"- **Sinirlayici Kutu (Bounding Box):** `{dx} x {dy} x {dz} mm` | **Hacim:** `{cad.get('volume_cm3')} cm3` | **Yuzey Alani:** `{cad.get('surface_area_cm2')} cm2`",
-        "",
-        "### 1. Taninan 3B Geometrik Unsurlar ve 2B-3B MBD Balon Eslestirmesi",
-        "| Balon No | Unsur Kimligi | Unsur Tipi | B-Rep Yuzey | Gorunus | Nominal Olcu (mm) | Tolerans Sinifi |",
-        "|---|---|---|---|---|---|---|",
-    ]
-    for m in cad.get("mbd_2d_3d_matches", []):
-        lines.append(
-            f"| **#{m['balloon_no']}** | `{m['feature_id']}` | **{m['feature_type']}** | `{m['face_id']}` | "
-            f"{m['view']} | `{m['nominal_mm']}` | `{m['tolerance']}` |"
-        )
-
-    lines.extend([
-        "",
-        "### 2. Kienzle Kesme Kuvveti, Takim Sehimi ve 3 Ayakli Ayna FEA Ovalizasyon Analizi",
-        "| Tegetsel Kuvvet (Fc) | Radyal Kuvvet (Fr) | Is Mili Gucu (Pc) | Tork | Taylor Takim Omru | Takim Sehimi (delta) | Ayna Ovalizasyonu | Yuzey Puruzlulugu (Ra) |",
-        "|---|---|---|---|---|---|---|---|",
-        f"| **{phys['cutting_force_fc_n']} N** | {phys['radial_force_fr_n']} N | **{phys['spindle_power_kw']} kW** | "
-        f"{phys['spindle_torque_nm']} Nm | **{phys['taylor_tool_life_min']} dk** | `{phys['tool_deflection_mm']} mm` | "
-        f"`{phys['chuck_ovalization_mm']} mm` | **Ra {phys['surface_roughness_ra_um']} um** |",
-    ])
-    if phys.get("dfm_warnings"):
-        lines.append("")
-        lines.append("#### Fiziksel DFM ve Titresim (Chatter) Uyarilari")
-        for w in phys["dfm_warnings"]:
-            lines.append(f"- {w}")
-
-    lines.extend([
-        "",
-        "### 3. Kapali Cevrim CMM Asinma Ofset Telafisi (Closed-Loop G10)",
-        f"- **Olculen Ortalama Sapma:** `{cmm_offset['deviation_mm']:+.4f} mm` -> **Otomatik Ofset Komutu:** `{cmm_offset['offset_gcode']}` (Cp: `{cmm_offset['spc']['cp']}`, Cpk: `{cmm_offset['spc']['cpk']}`)",
-        "",
-        "### 4. Coklu Tezgah Kontrolcu Post-Processor Ciktisi (4 Diyalekt)",
-        "#### A) Fanuc 0i / 31i ISO G-Kodu",
-        f"```gcode\n{gcode_fanuc}\n```",
-        "#### B) Siemens Sinumerik 840D / ONE (CYCLE95 / CYCLE83 / CYCLE84)",
-        f"```gcode\n{gcode_siemens}\n```",
-        "#### C) Heidenhain TNC 640 Diyalog Programi (BLK FORM / CYCL DEF 200 & 207)",
-        f"```gcode\n{gcode_heidenhain}\n```",
-        "#### D) Haas NGC G-Kodu",
-        f"```gcode\n{gcode_haas}\n```",
-    ])
-    return "\n".join(lines)
-
-
-def _is_zip_workspace_request(prompt: str, file: UploadFile | None) -> bool:
-    if file is None or not file.filename or not file.filename.lower().endswith(".zip"):
-        return False
-    lower = prompt.lower()
-    return any(
-        k in lower
-        for k in ("proje", "aç", "ac", "geliştir", "gelistir", "düzenle", "duzenle", "exe", "çalıştır", "calistir", "kod", "ekle")
-    )
-
-
-def _is_project_build_request(prompt: str, file: UploadFile | None) -> bool:
-    if file is not None and file.filename:
-        return False
-    lower = prompt.lower().strip()
-    if CODE_ONLY_RE.search(lower):
-        return False
-    if any(q in lower for q in ("nedir", "ne demek", "açıkla", "acikla", "farkı ne", "farki ne")):
-        return False
-    return bool(PROJECT_NOUN_RE.search(lower) and PROJECT_ACTION_RE.search(lower))
-
-
-def _detect_project_type(prompt: str) -> tuple[str, bool]:
-    """Return (project_type, wants_exe) for a project build prompt."""
-    lower = prompt.lower()
-    is_web = any(k in lower for k in ("web", "site", "e-ticaret", "eticaret", "html", "tarayıcı", "tarayici"))
-    is_game = any(k in lower for k in ("oyun", "game", "arcade", "snake", "yılan", "tetris"))
-    is_desktop = any(k in lower for k in ("bilgisayarda", "masaüstü", "masaustu", "exe", "uygulama", "program"))
-    if is_web and not any(k in lower for k in ("exe", "bilgisayarda", "masaüstü")):
-        return "web", False
-    if is_game:
-        return "game", True
-    if is_desktop:
-        return "desktop", True
-    return "auto", False
-
-
-async def _run_cnc_balloon_from_chat(file: UploadFile) -> str:
-    """Execute the full Senior Mechanical Engineer CNC ballooning pipeline directly from Chat."""
-    import cnc_api
-
-    job: dict[str, Any] = await cnc_api.create_balloon_job(
-        file=file,
-        part_number="",
-        part_name="",
-        material="",
-        revision="",
-        standard="",
-        model="",
-    )
-    jid = job["id"]
-    meta: dict[str, Any] = job.get("metadata") or {}
-    balloons: list[dict[str, Any]] = job.get("balloons") or []
-    plan: dict[str, Any] = job.get("manufacturing_plan") or {}
-    summary: dict[str, Any] = plan.get("summary") or {}
-    cp: dict[str, Any] = plan.get("cutting_parameters") or {}
-
-    lines = [
-        f"## CNC Teknik Çizim Balonlama ve İmalat Raporu ({meta.get('part_number') or job['filename']})",
-        f"- **Parça:** {meta.get('part_name') or job['filename']} · **Malzeme:** {meta.get('material') or '-'} · **Standart:** {meta.get('standard') or 'ISO 2768-mK'}",
-        f"- **Tespit Edilen Karakteristik:** {len(balloons)} adet (**Kritik:** {summary.get('critical', 0)} · **Majör:** {summary.get('major', 0)} · **Minör:** {summary.get('minor', 0)}) · **Motor:** `{job.get('engine_used', '')}`",
-        "",
-        f"![Balonlanmış Teknik Çizim](/api/cnc/jobs/{jid}/file/ballooned.png)",
-        "",
-        "### Raporları İndir (AS9102 / FAI Paketi)",
-        f"- [AS9102 Excel Raporu (3 Sekmeli · Form 1-2-3 + Proses Planı .xlsx)](/api/cnc/jobs/{jid}/file/report.xlsx)",
-        f"- [Mühendislik Word Raporu (Gömülü Çizim + OP10-OP50 .docx)](/api/cnc/jobs/{jid}/file/report.docx)",
-        f"- [Balonlu PDF Çizim + Tablo (.pdf)](/api/cnc/jobs/{jid}/file/ballooned.pdf)",
-        f"- [Yüksek Çözünürlüklü Balonlu PNG](/api/cnc/jobs/{jid}/file/ballooned.png)",
-        "",
-        "### AS9102 Form 3 - Karakteristik, Operasyon ve Ölçüm Tablosu",
-        "| No | Bölge | Ölçü | Kategori | Min / Max | Operasyon | Kesici Takım | Ölçüm Ekipmanı | Sıklık | Kritiklik |",
-        "|---|---|---|---|---|---|---|---|---|---|",
-    ]
-    for b in balloons:
-        mm = f"{b['min_limit']} / {b['max_limit']}" if (b.get("min_limit") is not None and b.get("max_limit") is not None) else "-"
-        lines.append(
-            f"| **{b['balloon_no']}** | {b.get('zone', '-')} | `{b['raw_text']}` | {b['category']} | {mm} | "
-            f"{b.get('operation', '-')} | {b.get('tooling', '-')} | {b.get('gage', '-')} | "
-            f"{b.get('inspection_freq', '-')} | {b.get('criticality', 'Majör')} |"
-        )
-
-    ops = plan.get("operations") or []
-    if ops:
-        lines.append("")
-        lines.append("### CNC İmalat Proses Rotası (OP10-OP50) ve Kesme Parametreleri")
-        if cp:
-            lines.append(
-                f"- **Malzeme Grubu:** {cp.get('group', '-')} · **Torna Vc:** {cp.get('vc_turn', '-')} · "
-                f"**Freze Vc:** {cp.get('vc_mill', '-')} · **İlerleme:** {cp.get('feed', '-')} · **Soğutma:** {cp.get('coolant', '-')}"
-            )
-            lines.append("")
-        lines.append("| OP | Operasyon | Tezgâh | Bağlama / Fikstür | Balonlar |")
-        lines.append("|---|---|---|---|---|")
-        for op in ops:
-            blist = ", ".join(f"#{n}" for n in (op.get("balloons") or [])) or "Genel"
-            lines.append(f"| **{op['op']}** | {op['name']} | {op['machine']} | {op['fixture']} | {blist} |")
-
-    risks = plan.get("dfm_risks") or []
-    if risks:
-        lines.append("")
-        lines.append("### DFM ve Kritik Kalite Risk Uyarıları")
-        for r in risks:
-            lines.append(f"- {r}")
-
-    ce = plan.get("cost_estimate") or {}
-    if ce:
-        bd = ce.get("breakdown_min") or {}
-        lines.extend([
-            "",
-            "### Otomatik Maliyet, İşleme Süresi ve Teklif Özeti",
-            "| Kütük Boyutu | Ham / Net Ağırlık | Parça Başı Süre (Cycle) | 1 Adet (Prototip) | 10 Adet Birim | 100 Adet (Seri) |",
-            "|---|---|---|---|---|---|",
-            f"| `{ce.get('stock_dimensions', '-')}` | {ce.get('raw_weight_kg', 0)} kg / {ce.get('net_weight_kg', 0)} kg | "
-            f"**{ce.get('cycle_time_min', 0)} dk** (Torna/Freze: {bd.get('turn_mill', 0)} dk, Delik/Diş: {bd.get('drill_tap', 0)} dk, Kalite: {bd.get('quality_cmm', 0)} dk) | "
-            f"**{ce.get('unit_quote_1_tl', 0)} TL** | **{ce.get('unit_quote_10_tl', 0)} TL** | **{ce.get('unit_quote_100_tl', 0)} TL** |",
-        ])
-
-    gcode = plan.get("gcode_template") or ""
-    if gcode:
-        lines.extend([
-            "",
-            "### Başlangıç Fanuc ISO G-Kodu Taslağı",
-            f"```gcode\n{gcode}\n```",
-        ])
-
-    return "\n".join(lines)
-
 router = APIRouter(prefix="/api/assistant", tags=["assistant"])
-
-# All assistant requests go to the master's local Ollama (PB-37). The classifier still decides
-# the task category, but model selection now maps to master's own model.
 DEFAULT_TASK = "genel"
 
-# The UI can render Markdown tables and ```svg blocks; the model only uses them if told so.
-# Kept out of the classifier call so it cannot disturb the classifier's strict output format.
 _EMOJI_STRIP_RE = re.compile(
-    "["
-    "\U0001F300-\U0001FAFF"
-    "\U0001F1E0-\U0001F1FF"
-    "\U00002600-\U000026FF"
-    "\U00002700-\U00002712"
-    "\U00002728\U0000274C\U00002753-\U00002755\U00002764"
-    "\u200d\ufe0f"
-    "]+",
+    "[\U0001F300-\U0001FAFF\U0001F1E0-\U0001F1FF\U00002600-\U000026FF\U00002700-\U00002712"
+    "\U00002728\U0000274C\U00002753-\U00002755\U00002764\u200d\ufe0f]+",
     flags=re.UNICODE,
 )
 _FENCED_CODE_SPLIT_RE = re.compile(r"(```[\s\S]*?```)")
@@ -360,13 +94,11 @@ ANSWER_SYSTEM_PROMPT = (
     "veriyorsan her birini uygun dil etiketiyle ayri kod blogu (```python, ```js vb.) icinde yaz."
 )
 
-_OLLAMA_TAGS_CACHE: dict = {"ts": 0.0, "models": set()}
+_OLLAMA_TAGS_CACHE: dict[str, Any] = {"ts": 0.0, "models": set()}
 
 
 async def _select_grounded_model(task_type: str, has_image: bool = False) -> str:
     """Pick the strongest installed local Ollama model for the task to minimize hallucinations."""
-    import time
-
     now = time.monotonic()
     if now - _OLLAMA_TAGS_CACHE["ts"] > 30.0 or not _OLLAMA_TAGS_CACHE["models"]:
         try:
@@ -375,8 +107,8 @@ async def _select_grounded_model(task_type: str, has_image: bool = False) -> str
                 if r.status_code == 200:
                     _OLLAMA_TAGS_CACHE["models"] = {m.get("name", "") for m in r.json().get("models", [])}
                     _OLLAMA_TAGS_CACHE["ts"] = now
-        except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError) as _exc:
-            log.debug("Recoverable error suppressed: %s", _exc)
+        except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError) as exc:
+            log.debug("Recoverable error suppressed: %s", exc)
     installed = _OLLAMA_TAGS_CACHE["models"]
     if has_image:
         prefs = ("qwen3.5:9b", "gemma4:e4b", "qwen3.5:4b", config.MASTER_MODEL)
@@ -384,14 +116,12 @@ async def _select_grounded_model(task_type: str, has_image: bool = False) -> str
         prefs = ("qwen2.5-coder:7b", "qwen3.5:9b", "qwen3.5:4b", config.MASTER_MODEL)
     else:
         prefs = ("qwen3.5:9b", "qwen2.5-coder:7b", "qwen3.5:4b", config.MASTER_MODEL)
-
     for cand in prefs:
         if cand in installed:
             return cand
     return config.MASTER_MODEL
 
-# The LLM classifier occasionally routed explicit code requests to "genel". These keywords
-# act as a safety net that overrides the classifier for obvious cases only.
+
 CODE_KEYWORDS = (
     "python", "javascript", "typescript", "java ", "c++", "c#", " sql",
     "kod yaz", "kodu yaz", "fonksiyon yaz", "script yaz", "program yaz",
@@ -400,13 +130,10 @@ CODE_KEYWORDS = (
 )
 
 
-def _find_vision_agent() -> dict | None:
+def _find_vision_agent() -> dict[str, Any] | None:
     """Return an online agent that has vision capability, or None (PB-36)."""
-    from datetime import UTC, datetime
-    agents = db.list_agents()
-    for agent in agents:
-        caps = agent.get("capabilities") or []
-        if "vision" not in caps:
+    for agent in db.list_agents():
+        if "vision" not in (agent.get("capabilities") or []):
             continue
         last_seen = agent.get("last_seen_at")
         if not last_seen:
@@ -424,27 +151,16 @@ async def call_ollama_chat(
     system_prompt: str | None = None,
     image_b64: str | None = None,
 ) -> tuple[str, str]:
-    """Call master's local Ollama. Returns (content, model_used).
-
-    Vision routing (PB-36): when an image is provided, prefer an online agent with vision
-    capability. If none is available, the master's own model handles it directly.
-    """
+    """Call master's local Ollama. Returns (content, model_used)."""
     ollama_url = config.OLLAMA_URL
     model = config.MASTER_MODEL
-
     if image_b64:
-        vision_agent = _find_vision_agent()
-        if vision_agent:
-            # Route to that agent's Ollama via its registered ollama_url, if exposed.
-            # In the pull model agents don't expose their Ollama to the master; we fall through
-            # to master's own model which also has vision (qwen3.5:4b).
-            pass
+        _find_vision_agent()
 
-    messages = []
+    messages: list[dict[str, Any]] = []
     if system_prompt:
         messages.append({"role": "system", "content": system_prompt})
-
-    user_msg: dict = {"role": "user", "content": prompt}
+    user_msg: dict[str, Any] = {"role": "user", "content": prompt}
     if image_b64:
         user_msg["images"] = [image_b64]
     messages.append(user_msg)
@@ -466,25 +182,17 @@ async def call_ollama_chat(
             feature="assistant_chat",
             max_retries=0,
         )
-    except Exception as exc:
+    except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError, RuntimeError) as exc:
         raise HTTPException(status_code=502, detail=f"Ollama hatası: {exc}") from exc
     return res.content, model
 
 
 def keyword_category_override(prompt: str) -> str | None:
     lowered = prompt.lower()
-    if any(kw in lowered for kw in CODE_KEYWORDS):
-        return "kod"
-    return None
+    return "kod" if any(kw in lowered for kw in CODE_KEYWORDS) else None
 
 
-# Tool use: a pure arithmetic request is answered without calling any model at all, via an
-# AST-based evaluator (never eval()). Small local models are unreliable at arithmetic; this
-# gives an instant, 100%-correct answer at zero model cost.
 def _safe_pow(base: float, exp: float) -> float:
-    # An unbounded power can build an enormous integer and stall the process (this call runs
-    # in-process, not sandboxed) -- e.g. "2^2^2^2^2^2^2^2^2^2" looks harmless but tries to
-    # produce a number with thousands of digits.
     if abs(exp) > 1000 or abs(base) > 10**6:
         raise ValueError("expression too large")
     return operator.pow(base, exp)
@@ -499,18 +207,10 @@ _SAFE_BIN_OPS: dict[type[ast.operator], Any] = {
     ast.Mod: operator.mod,
     ast.Pow: _safe_pow,
 }
-_SAFE_UNARY_OPS: dict[type[ast.unaryop], Any] = {
-    ast.USub: operator.neg,
-    ast.UAdd: operator.pos,
-}
+_SAFE_UNARY_OPS: dict[type[ast.unaryop], Any] = {ast.USub: operator.neg, ast.UAdd: operator.pos}
 _ARITHMETIC_ONLY = re.compile(r"^[\d\s()+\-*/.%^]+$")
-# A bare number ("100") or a single signed number ("-5") must not trigger the calculator --
-# it needs an actual operation (two numbers with an operator between them).
 _HAS_OPERATOR = re.compile(r"\d\s*[+\-*/%^]\s*[\d(]")
-_CALC_TRAILING_WORDS = re.compile(
-    r"(kaç\s*eder|kaç\s*yapar|nedir|hesapla|sonucu\s*ne|eşittir)\s*\??\s*$",
-    re.IGNORECASE,
-)
+_CALC_TRAILING_WORDS = re.compile(r"(kaç\s*eder|kaç\s*yapar|nedir|hesapla|sonucu\s*ne|eşittir)\s*\??\s*$", re.IGNORECASE)
 
 
 def _safe_eval_node(node: ast.AST) -> float:
@@ -523,105 +223,17 @@ def _safe_eval_node(node: ast.AST) -> float:
     raise ValueError("unsupported expression")
 
 
-def _try_extended_calculation(prompt: str) -> str | None:
-    """DEF-22: Deterministic percentages, KDV, unit conversions, date diffs, and compound interest."""
-    from datetime import date
-    from decimal import Decimal
-
-    raw = prompt.strip()
-    if not raw or len(raw) > 200:
-        return None
-    low = raw.lower()
-
-    # 1. Compound interest: "10000 TL %20 2 yıl bileşik faiz"
-    m_ci = re.search(
-        r"(\d+(?:[.,]\d+)?)\s*(?:tl|usd|eur|\$|€)?\s*%(\d+(?:[.,]\d+)?)\s*(\d+)\s*(?:yıl|yil|year).*bileşik\s*faiz",
-        low,
-    )
-    if m_ci:
-        p = Decimal(m_ci.group(1).replace(",", "."))
-        r = Decimal(m_ci.group(2).replace(",", ".")) / Decimal("100")
-        n = int(m_ci.group(3))
-        total = (p * ((Decimal("1") + r) ** n)).quantize(Decimal("0.01"))
-        return f"Bileşik faiz ({p} x (1 + {r})^{n}) = {total}"
-
-    # 2. KDV / VAT: "1000 TL %20 KDV dahil/hariç"
-    m_kdv = re.search(r"(\d+(?:[.,]\d+)?)\s*(?:tl|₺)?\s*%(\d+(?:[.,]\d+)?)\s*kdv", low)
-    if m_kdv:
-        base = Decimal(m_kdv.group(1).replace(",", "."))
-        rate = Decimal(m_kdv.group(2).replace(",", ".")) / Decimal("100")
-        kdv = (base * rate).quantize(Decimal("0.01"))
-        total = (base + kdv).quantize(Decimal("0.01"))
-        return f"KDV (%{m_kdv.group(2)}): {kdv}, Toplam = {total}"
-
-    # 3. Percentage: "200'ün %15'i" or "%15 of 200"
-    m_pct = re.search(r"(\d+(?:[.,]\d+)?)\s*(?:'?[ıiuü]n)?\s*%(\d+(?:[.,]\d+)?)", low)
-    if m_pct:
-        val = Decimal(m_pct.group(1).replace(",", "."))
-        pct = Decimal(m_pct.group(2).replace(",", "."))
-        res = val * pct / Decimal("100")
-        res_s = format(res, "f").rstrip("0").rstrip(".") if "." in format(res, "f") else format(res, "f")
-        return f"{val} x %{pct} = {res_s}"
-
-    # 4. Date diff: "2026-01-01 ile 2026-01-31 kaç gün"
-    m_date = re.search(r"(\d{4}-\d{2}-\d{2}).*?(\d{4}-\d{2}-\d{2})", low)
-    if m_date and any(k in low for k in ("gün", "gun", "days", "fark")):
-        try:
-            d1 = date.fromisoformat(m_date.group(1))
-            d2 = date.fromisoformat(m_date.group(2))
-            return f"{d1.isoformat()} .. {d2.isoformat()} = {abs((d2 - d1).days)} gün"
-        except ValueError:
-            return None
-
-    # 5. Common unit conversions: "5 km kaç m", "25 C kaç F", "2 gb kaç mb"
-    m_unit = re.search(
-        r"(-?\d+(?:[.,]\d+)?)\s*(km|m|cm|mm|kg|g|gb|mb|c|f)\s*(?:kaç|kac|to|->)\s*(km|m|cm|mm|kg|g|gb|mb|c|f)\b",
-        low,
-    )
-    if m_unit:
-        val = float(m_unit.group(1).replace(",", "."))
-        u_from, u_to = m_unit.group(2), m_unit.group(3)
-        factors: dict[tuple[str, str], float] = {
-            ("km", "m"): 1000.0, ("m", "km"): 0.001,
-            ("m", "cm"): 100.0, ("cm", "m"): 0.01,
-            ("cm", "mm"): 10.0, ("mm", "cm"): 0.1,
-            ("m", "mm"): 1000.0, ("mm", "m"): 0.001,
-            ("kg", "g"): 1000.0, ("g", "kg"): 0.001,
-            ("gb", "mb"): 1024.0, ("mb", "gb"): 1.0 / 1024.0,
-        }
-        if (u_from, u_to) in factors:
-            out = round(val * factors[(u_from, u_to)], 6)
-            out_s = int(out) if float(out).is_integer() else out
-            return f"{val:g} {u_from} = {out_s} {u_to}"
-        if (u_from, u_to) == ("c", "f"):
-            out = round(val * 9.0 / 5.0 + 32.0, 2)
-            return f"{val:g} C = {out} F"
-        if (u_from, u_to) == ("f", "c"):
-            out = round((val - 32.0) * 5.0 / 9.0, 2)
-            return f"{val:g} F = {out} C"
-    return None
-
-
 def try_calculate(prompt: str) -> str | None:
-    """Return "expression = result" if the prompt is a deterministic arithmetic, percentage, unit,
-    date-diff, or compound-interest expression; otherwise None. No eval()."""
+    """Return 'expression = result' for deterministic math/unit/finance expressions; otherwise None."""
     import chat_contracts
 
-    extended = _try_extended_calculation(prompt)
-    if extended is not None:
+    if (extended := _try_extended_calculation(prompt)) is not None:
         return extended
     text = _CALC_TRAILING_WORDS.sub("", prompt.strip()).strip().rstrip("?").strip()
-    if (
-        not text
-        or len(text) > 200
-        or not _ARITHMETIC_ONLY.match(text)
-        or not _HAS_OPERATOR.search(text)
-    ):
+    if not text or len(text) > 200 or not _ARITHMETIC_ONLY.match(text) or not _HAS_OPERATOR.search(text):
         return chat_contracts.extract_deterministic_calculation(prompt)
-    expr = text.replace("^", "**")
     try:
-        tree = ast.parse(expr, mode="eval")
-        result = _safe_eval_node(tree.body)
+        result: float | int = _safe_eval_node(ast.parse(text.replace("^", "**"), mode="eval").body)
     except (SyntaxError, ValueError, ZeroDivisionError, TypeError, OverflowError, RecursionError):
         return chat_contracts.extract_deterministic_calculation(prompt)
     if isinstance(result, float) and result.is_integer():
@@ -630,30 +242,8 @@ def try_calculate(prompt: str) -> str | None:
 
 
 async def classify_and_moderate(prompt: str) -> tuple[str, bool]:
-    """One classifier call decides both the task category and whether the message is insulting.
-
-    Small models do not always follow the format and can answer differently for the same
-    message, so parsing is strict and fails open: an unrecognised answer counts as not
-    inappropriate. Wrongly blocking a harmless request was the worse outcome in testing.
-    "analiz" is not offered to the classifier: attachments already force it, and offering it
-    pulled plain questions into "analiz".
-    """
-    classifier_prompt = (
-        "Kullanici mesajini degerlendirip ASAGIDAKI IKI SATIRI BIREBIR bu bicimde yaz "
-        "(ornek deger olarak 'kod' ve 'hayir' yazdim, kendi degerlendirmene gore degistir), "
-        "baska hicbir aciklama ekleme:\n"
-        "KATEGORI: kod\n"
-        "UYGUNSUZ: hayir\n\n"
-        "KATEGORI icin sadece su ikisinden birini yaz (kod / genel):\n"
-        "kod = kod yazma, program/uygulama gelistirme, hata ayiklama istekleri\n"
-        "genel = bunlarin disindaki her sey (soru-cevap, sohbet, bilgi edinme, duygusal konular)\n\n"
-        "UYGUNSUZ icin sadece evet/hayir yaz:\n"
-        "evet = mesaj acikca hakaret/kufur/asagilama iceriyor\n"
-        "hayir = icermiyor -- baglami dikkate al: 'mal' kelimesi ticari baglamda (ör. "
-        "'3 ton mal') UYGUNSUZ degildir, ama hakaret olarak (ör. 'sen malsin') kullanilirsa "
-        "UYGUNSUZDUR\n\n"
-        f'Degerlendirilecek mesaj: "{prompt}"'
-    )
+    """One classifier call decides both the task category and whether the message is insulting."""
+    classifier_prompt = load_prompt("b1_classifier_prompt.txt").replace("{prompt}", prompt)
     try:
         result, _ = await call_ollama_chat(classifier_prompt)
     except HTTPException:
@@ -663,15 +253,11 @@ async def classify_and_moderate(prompt: str) -> tuple[str, bool]:
 
 def parse_classifier_response(result: str) -> tuple[str, bool]:
     """Parse the classifier's raw answer; a pure function so it is testable without a model."""
-    # Models sometimes add bold markers (**) or template brackets (<>).
-    result_clean = result.replace("*", "").replace("<", "").replace(">", "")
-
-    category_match = re.search(r"KATEGORI:\s*(kod|genel)\b", result_clean, re.IGNORECASE)
+    cleaned = result.replace("*", "").replace("<", "").replace(">", "")
+    category_match = re.search(r"KATEGORI:\s*(kod|genel)\b", cleaned, re.IGNORECASE)
     category = category_match.group(1).lower() if category_match else DEFAULT_TASK
-
-    inappropriate_match = re.search(r"UYGUNSUZ:\s*(evet|hayir)\b", result_clean, re.IGNORECASE)
+    inappropriate_match = re.search(r"UYGUNSUZ:\s*(evet|hayir)\b", cleaned, re.IGNORECASE)
     inappropriate = bool(inappropriate_match and inappropriate_match.group(1).lower() == "evet")
-
     return category, inappropriate
 
 
@@ -684,224 +270,25 @@ class ChatResponse(BaseModel):
 async def _prepare_chat_request(
     prompt: str, file: UploadFile | None
 ) -> tuple[str, str | None, str | None, str, bool]:
-    """Shared pre-processing for both /chat and /chat/stream.
-
-    Returns (full_prompt, image_b64, forced_task_type, keyword_task, inappropriate).
-    When keyword_task is non-None, the classifier call can be skipped.
-    """
-    file_note = ""
-    extracted_text = ""
-    forced_task_type = None
-    image_b64: str | None = None
-
+    """Shared pre-processing for both /chat and /chat/stream."""
+    extracted_text, image_b64, forced_task_type, file_note = "", None, None, ""
     if file is not None and file.filename:
-        name = file.filename.lower()
-        content_type = file.content_type or ""
-        raw = await file.read()
-
-        if content_type.startswith("image/") or name.endswith((".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif", ".tiff")):
-            import media_lab_arena as mla
-            import multimodal_studio as mms
-
-            lower_p = prompt.lower()
-            if any(k in lower_p for k in ("tara", "tarayıcı", "tarayici", "gölge", "golge", "belge temizle", "scan")):
-                scan_info = mla.scan_and_clean_document_image(raw)
-                file_note += (
-                    f"\n\n### İşlenmiş Görsel Çıktısı\n"
-                    f"- **Belge Tarayıcı ve Gölge Giderme:** `{scan_info['width']}x{scan_info['height']}` | "
-                    f"**Aydınlatma Sapması:** `{scan_info['original_illumination_std']} -> {scan_info['cleaned_illumination_std']}`\n"
-                    f"- [Taranmış Belgeyi İndir (PNG)]({scan_info['url']})\n\n"
-                    f"![Taranmış Belge]({scan_info['url']})\n"
-                )
-            elif mms.is_image_edit_request(prompt):
-                edit_info = mms.process_and_edit_image(raw, prompt)
-                filters_str = ", ".join(edit_info["applied_filters"])
-                file_note += (
-                    f"\n\n### İşlenmiş Görsel Çıktısı\n"
-                    f"- **Uygulanan İşlemler:** {filters_str}\n"
-                    f"- **Boyut:** {edit_info['original_size']} -> {edit_info['output_size']} · "
-                    f"**Ortalama Parlaklık:** {edit_info['mean_brightness']} · **Kontrast (Std):** {edit_info['std_contrast']}\n"
-                    f"- [İşlenmiş Görseli İndir (PNG)]({edit_info['url']})\n\n"
-                    f"![İşlenmiş Görsel]({edit_info['url']})\n"
-                )
-            image_b64 = base64.b64encode(raw).decode()
-            forced_task_type = "analiz"
-        elif content_type.startswith("audio/") or name.endswith((".wav", ".mp3", ".m4a", ".ogg", ".webm", ".flac")):
-            import multimodal_studio as mms
-
-            stt = mms.transcribe_audio_bytes(file.filename, raw)
-            if stt["transcript"]:
-                extracted_text = f"[Ses Kaydı Metin Dökümü ({stt['engine']}, {stt['duration_sec']} sn)]:\n{stt['transcript']}"
-            else:
-                extracted_text = (
-                    f"[Ses Dosyası Yüklendi: {file.filename} ({stt['size_kb']} KB, {stt['duration_sec']} sn). "
-                    "Lütfen kullanıcının sesli mesaj isteğine göre yanıt ver.]"
-                )
-            forced_task_type = "analiz"
-        elif name.endswith(".pdf"):
-            extracted_text = extract_pdf_text(raw)
-            forced_task_type = "analiz"
-        elif name.endswith(".docx"):
-            extracted_text = extract_docx_text(raw)
-            forced_task_type = "analiz"
-        elif name.endswith((".xlsx", ".xlsm")):
-            extracted_text = extract_xlsx_text(raw)
-            forced_task_type = "analiz"
-        elif name.endswith((".csv", ".tsv")):
-            import csv
-            import io
-
-            import automl_studio as aml
-
-            extracted_text = extract_csv_text(raw)
-            try:
-                text_csv = raw.decode("utf-8", errors="ignore")
-                delim = "\t" if name.endswith(".tsv") else ","
-                rows = list(csv.DictReader(io.StringIO(text_csv), delimiter=delim))
-                if rows:
-                    prof = aml.profile_dataset(rows)
-                    num_cols = prof.get("numeric_columns", [])
-                    aml_lines = [
-                        f"\n\n### AutoML Veri Bilimi ve Anomali Özeti ({prof['row_count']} satır, {prof['column_count']} sütun)",
-                        f"- **Sayısal Sütunlar:** `{', '.join(num_cols) or '-'}` | **Tespit Edilen Anomali:** `{len(prof.get('anomalies', []))}` satır",
-                    ]
-                    if num_cols and len(rows) >= 4:
-                        fc = aml.train_and_forecast(rows, target_col=num_cols[-1], horizon=3)
-                        preds = ", ".join(f"T+{p['step']}: {p['prediction']:.2f}" for p in fc.get("forecasts", []))
-                        aml_lines.append(
-                            f"- **L2 Ridge Tahmin ({num_cols[-1]}):** R2=`{fc['metrics']['r2']:.3f}`, RMSE=`{fc['metrics']['rmse']:.2f}` -> `{preds}`"
-                        )
-                    extracted_text += "\n" + "\n".join(aml_lines)
-            except (OSError, ValueError, TypeError, KeyError, ArithmeticError, IndexError, RuntimeError, ImportError) as _exc:
-                log.debug("Recoverable error suppressed: %s", _exc)
-            forced_task_type = "analiz"
-        elif name.endswith((".db", ".sqlite", ".sqlite3")):
-            import domain_experts as de
-
-            tmp_db = config.DATA_DIR / f"upload_{os.getpid()}.sqlite"
-            tmp_db.parent.mkdir(parents=True, exist_ok=True)
-            tmp_db.write_bytes(raw)
-            try:
-                sql_res = de.introspect_sqlite_and_query(tmp_db, prompt)
-                extracted_text = (
-                    f"[SQLite Veritabanı Şema ve Sorgu Sonucu]\n"
-                    f"Çalıştırılan SQL: `{sql_res['executed_sql']}` ({sql_res['row_count']} satır)\n"
-                    f"İlk Satırlar: {json.dumps(sql_res['rows'][:10], ensure_ascii=False)}\n"
-                    f"ER Diyagramı:\n```mermaid\n{sql_res['er_diagram']}\n```"
-                )
-            except (sqlite3.Error, OSError, ValueError, TypeError, KeyError, RuntimeError, ImportError) as exc:
-                extracted_text = f"[SQLite Veritabanı: {file.filename} ({exc})]"
-            finally:
-                tmp_db.unlink(missing_ok=True)
-            forced_task_type = "analiz"
-        elif name.endswith(".zip"):
-            try:
-                extracted_text = extract_zip_text(raw)
-            except (zipfile.BadZipFile, OSError, ValueError, TypeError, KeyError, RuntimeError):
-                extracted_text = f"[ZIP Arşivi: {file.filename}]"
-            forced_task_type = "analiz"
-        elif (
-            name.endswith((".txt", ".md", ".json", ".xml", ".yaml", ".yml", ".html", ".css", ".js", ".ts", ".py", ".sql", ".log", ".ini"))
-            or content_type.startswith("text/")
-        ):
-            import file_inspector as fi
-
-            extracted_text, _enc = fi.decode_text_turkish_safe(raw)
-            forced_task_type = "analiz"
-        else:
-            file_note = f"\n\n[Not: '{file.filename}' desteklenmeyen bir dosya türü.]"
-
-        # Deterministic zero-hallucination error/syntax/formula/encoding inspection for uploaded files (DAV-06)
-        if not (content_type.startswith("image/") or content_type.startswith("audio/")):
-            import chat_contracts
-            import file_inspector as fi
-
-            try:
-                insp = fi.inspect_uploaded_file(file.filename, raw)
-                if chat_contracts.should_attach_file_audit(prompt, insp):
-                    insp_md = fi.format_inspection_markdown(insp)
-                    file_note += f"\n\n{insp_md}"
-            except (OSError, ValueError, TypeError, KeyError, RuntimeError, SyntaxError, ImportError, AttributeError) as _exc:
-                log.debug("Recoverable error suppressed: %s", _exc)
-    # Domain Experts & KVKK PII auto-enrichment
-    lower_prompt = prompt.lower()
-    combined_source = f"{prompt}\n{extracted_text}".strip()
-    if any(k in lower_prompt for k in ("kvkk", "pii", "maskele", "anonimleştir", "anonimlestir", "kişisel veri gizle")):
-        import media_lab_arena as mla
-
-        pii = mla.redact_sensitive_pii(combined_source)
-        if pii["has_pii"]:
-            file_note += (
-                f"\n\n### KVKK / PII Hassas Veri Maskeleme Özeti ({pii['total_redacted']} öğe maskelendi)\n"
-                f"- **Sayım:** `{json.dumps(pii['counts'], ensure_ascii=False)}`\n"
-                f"- **Maskelenmiş Metin:**\n```\n{pii['cleaned_text'][:2000]}\n```\n"
-            )
-    if extracted_text and any(
-        k in lower_prompt for k in ("sözleşme risk", "sozlesme risk", "redline", "cezai şart", "cezai sart", "hukuki inceleme")
-    ):
-        import domain_experts as de
-
-        leg = de.analyze_legal_contract(combined_source)
-        file_note += (
-            f"\n\n--- Hukuki Sözleşme Risk Motoru Çıktısı ---\n"
-            f"Genel Risk: {leg['overall_risk']} (Skor: {leg['risk_score']}/100, Yüksek Risk: {leg['high_risk_count']})\n"
-            f"Eksik Maddeler: {', '.join(leg['missing_clauses']) or 'Yok'}\n"
-            f"Revizyon (Redline) Önerileri: {json.dumps(leg['redline_recommendations'], ensure_ascii=False)}"
-        )
-    if any(k in lower_prompt for k in ("dcf", "monte carlo", "şirket değerleme", "sirket degerleme", "cfo analiz", "npv simülasyon")):
-        # The valuation engine only has built-in sample figures; presenting them as the user's
-        # numbers would be fabrication, so the model is told to ask for real inputs instead.
-        file_note += (
-            "\n\n--- Finansal Değerleme (DCF / Monte Carlo) ---\n"
-            "Kullanıcı gerçek finansal veri vermedi. Gelir, FAVÖK, büyüme oranı, WACC ve borç gibi "
-            "girdileri kullanıcıdan iste; bu değerleri tahmin etme veya uydurma, sonuç sayısı üretme."
-        )
-
-    full_prompt = prompt
-    if extracted_text:
-        limit = 16000
-        trunc_note = f"\n[Not: Dosya uzunluğu {len(extracted_text)} karakter; ilk {limit} karakter gösteriliyor.]" if len(extracted_text) > limit else ""
-        full_prompt = (
-            f"{prompt}\n\n--- Eklenen dosya içeriği (GERÇEK VERİ - uydurma yapma, olmayan hata ekleme) ---\n"
-            f"{extracted_text[:limit]}{trunc_note}"
-        )
-    else:
-        import company_rag
-        import hybrid_graph_rag
-
-        kb_docs = company_rag.search_company_kb_sync(prompt, top_k=2)
-        graph_lines: list[str] = []
-        try:
-            grag = hybrid_graph_rag.HybridGraphRAG()
-            # RRF always ranks something first, so only documents with a real lexical match count.
-            g_hits = [h for h in grag.search(prompt, top_k=2) if h["bm25_score"] > 0]
-            for gh in g_hits:
-                graph_lines.append(f"- [GraphRAG] {gh['title']}: {gh['content'][:300]}")
-        except Exception:
-            log.warning("GraphRAG araması başarısız", exc_info=True)
-        if kb_docs or graph_lines:
-            kb_text = "\n".join([*(f"- {d['title']}: {d['content']}" for d in kb_docs), *graph_lines])
-            full_prompt = f"{prompt}\n\n--- Şirket Mühendislik Bilgi Bankası (Hybrid GraphRAG) ---\n{kb_text}"
-    full_prompt += file_note
-
-    # Skip the classifier call when a keyword match already determines the category.
+        extracted_text, image_b64, forced_task_type, file_note = await process_uploaded_attachment(file, prompt)
+    file_note += build_domain_enrichment_notes(prompt, extracted_text)
+    full_prompt = enrich_prompt_with_kb(prompt, extracted_text) + file_note
     keyword_task = forced_task_type or keyword_category_override(prompt)
     inappropriate = False
     if not keyword_task:
         _, inappropriate = await classify_and_moderate(prompt)
-
     return full_prompt, image_b64, forced_task_type, keyword_task or "", inappropriate
 
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat(prompt: str = Form(...), file: UploadFile | None = File(None)):  # noqa: B008
     if file is None or not file.filename:
-        calc_result = try_calculate(prompt)
-        if calc_result is not None:
+        if (calc_result := try_calculate(prompt)) is not None:
             return ChatResponse(content=calc_result, used_model="hesaplama", task_type="hesaplama")
-
-    full_prompt, image_b64, _forced_task_type, keyword_task, inappropriate = await _prepare_chat_request(prompt, file)
-
+    full_prompt, image_b64, _forced, keyword_task, inappropriate = await _prepare_chat_request(prompt, file)
     if inappropriate:
         return ChatResponse(
             content=(
@@ -911,62 +298,42 @@ async def chat(prompt: str = Form(...), file: UploadFile | None = File(None)):  
             used_model="moderation",
             task_type="engellendi",
         )
-
-    task_type = keyword_task or DEFAULT_TASK
     content, used_model = await call_ollama_chat(full_prompt, system_prompt=ANSWER_SYSTEM_PROMPT, image_b64=image_b64)
-    return ChatResponse(content=content, used_model=used_model, task_type=task_type)
+    return ChatResponse(content=content, used_model=used_model, task_type=keyword_task or DEFAULT_TASK)
 
 
 @router.get("/media/{filename}")
 async def get_assistant_media(filename: str):
     """Serve generated or edited images (.png, .svg) and documents (.xlsx, .docx, .pdf)."""
-    import multimodal_studio as mms
+    return build_media_file_response(filename)
 
-    safe = "".join(c for c in filename if c.isalnum() or c in ("-", "_", "."))
-    if not safe or safe != filename:
-        raise HTTPException(status_code=400, detail="Geçersiz medya dosya adı.")
-    target = mms.media_dir() / safe
-    if not target.is_file():
-        raise HTTPException(status_code=404, detail="Dosya bulunamadı.")
-    headers = {"Cache-Control": "no-cache"}
-    media_type = None
-    if safe.endswith(".svg"):
-        media_type = "image/svg+xml"
-    elif safe.endswith(".png"):
-        media_type = "image/png"
-    elif safe.endswith(".pptx"):
-        media_type = "application/vnd.openxmlformats-officedocument.presentationml.presentation"
-        headers["Content-Disposition"] = f'attachment; filename="{safe}"'
-    elif safe.endswith(".docx"):
-        media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        headers["Content-Disposition"] = f'attachment; filename="{safe}"'
-    elif safe.endswith(".xlsx"):
-        media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        headers["Content-Disposition"] = f'attachment; filename="{safe}"'
-    elif safe.endswith(".pdf"):
-        media_type = "application/pdf"
-        headers["Content-Disposition"] = f'attachment; filename="{safe}"'
-    elif safe.endswith(".zip"):
-        media_type = "application/zip"
-        headers["Content-Disposition"] = f'attachment; filename="{safe}"'
-    elif safe.endswith((".csv", ".txt", ".md", ".json")):
-        headers["Content-Disposition"] = f'attachment; filename="{safe}"'
-    return FileResponse(target, headers=headers, media_type=media_type)
+
+def _persist_stream_usage(
+    meta: tuple[str, str, str, str],
+    prompt: str,
+    answer: str,
+    metrics: tuple[int, int, int, bool],
+) -> None:
+    import memory_engine as mem
+    import user_profile as up
+
+    user_id, conversation_id, model_used, task_type = meta
+    p_tok, c_tok, latency_ms, estimated = metrics
+    try:
+        up.record_usage(user_id, conversation_id, model_used, task_type, p_tok, c_tok, latency_ms, estimated)
+        if conversation_id and answer.strip():
+            learn = bool(up.get_settings(user_id).get("auto_learn_facts"))
+            mem.record_conversation_turn(conversation_id, prompt, answer, model_used, task_type, user_id=user_id, learn=learn)
+    except (sqlite3.Error, OSError, ValueError, TypeError, KeyError, RuntimeError) as exc:
+        log.warning("Failed to record usage/memory turn: %s", exc, exc_info=True)
 
 
 async def _tracked_stream(source, prompt: str, user_id: str, conversation_id: str):
-    """Wrap an SSE generator: measure latency, fill in token usage on the final event, and persist
-    usage statistics plus the conversation turn (episodic memory) for the personal space."""
-    import time
-
-    import memory_engine as mem
+    """Wrap an SSE generator: measure latency, enrich verification, and persist usage & memory."""
     import user_profile as up
 
     started = time.monotonic()
     collected: list[str] = []
-    model_used = ""
-    task_type = ""
-    failed = False
     async for chunk in source:
         text = chunk.decode("utf-8", errors="ignore") if isinstance(chunk, (bytes, bytearray)) else chunk
         if not text.startswith("data: "):
@@ -977,92 +344,23 @@ async def _tracked_stream(source, prompt: str, user_id: str, conversation_id: st
         except json.JSONDecodeError:
             yield chunk
             continue
-        etype = evt.get("type")
-        if etype == "token":
+        if evt.get("type") == "token":
             collected.append(evt.get("content", ""))
-        elif etype == "error":
-            failed = True
-        elif etype == "done":
-            model_used = evt.get("model", "")
-            task_type = evt.get("task_type", "")
+            yield chunk
+        elif evt.get("type") == "done":
+            model_used, task_type = evt.get("model", ""), evt.get("task_type", "")
             answer = "".join(collected)
             usage = evt.get("usage") or {}
-            estimated = not usage
             p_tok = int(usage.get("prompt_tokens") or up.estimate_tokens(prompt))
             c_tok = int(usage.get("completion_tokens") or up.estimate_tokens(answer))
             latency_ms = round((time.monotonic() - started) * 1000)
-            evt["usage"] = {"prompt_tokens": p_tok, "completion_tokens": c_tok, "estimated": estimated}
+            evt["usage"] = {"prompt_tokens": p_tok, "completion_tokens": c_tok, "estimated": not usage}
             evt["latency_ms"] = latency_ms
-            try:
-                from hallucination.verifier import (
-                    compute_confidence,
-                    extract_claims,
-                    log_verification_telemetry,
-                    verify_claims_nli,
-                )
-                from orchestrator.classifier import classify_intent
-                from orchestrator.contracts import build_contract
-                from rag.store import default_rag_store
-
-                intent_dec = classify_intent(prompt)
-                contract = build_contract(intent_dec.mode)
-                sources: list[dict[str, Any]] = []
-                try:
-                    rag_res = await default_rag_store.search(prompt, top_k=3)
-                    sources = [
-                        {"id": f"S{i + 1}", "content": h.get("content", ""), "doc": h.get("doc_title", "")}
-                        for i, h in enumerate((rag_res.hits if rag_res else []) or [])
-                    ]
-                except (sqlite3.Error, httpx.HTTPError, OSError, ValueError, TypeError, KeyError, RuntimeError, AttributeError) as rag_exc:
-                    log.debug("Live chat RAG lookup skipped: %s", rag_exc)
-
-                claims = extract_claims(answer)
-                verdicts = verify_claims_nli(claims, sources) if claims and sources else []
-                supported = sum(1 for v in verdicts if v.status == "supported")
-                support_ratio = round(supported / max(1, len(verdicts)), 3) if verdicts else (1.0 if not claims else 0.75)
-                conf = compute_confidence(
-                    support_ratio=support_ratio,
-                    rag_score=0.85 if sources else 0.5,
-                    has_sources=bool(sources),
-                )
-                run_id = f"chat-{conversation_id or 'ephemeral'}-{int(time.time())}"
-                log_verification_telemetry(
-                    run_id=run_id,
-                    model=model_used or config.MASTER_MODEL,
-                    task_type=intent_dec.intent,
-                    support_ratio=support_ratio,
-                    citation_coverage=1.0 if sources else 0.0,
-                    confidence=float(conf.get("score", 0.75)),
-                    abstained=False,
-                    verify_ms=1,
-                )
-                evt["orchestrator"] = {
-                    "intent": intent_dec.intent,
-                    "mode": contract.mode,
-                    "risk": intent_dec.risk,
-                    "grounded_sources": len(sources),
-                }
-                evt["verification"] = {
-                    "confidence_score": float(conf.get("score", 0.75)),
-                    "confidence_label": str(conf.get("label", "orta")),
-                    "support_ratio": support_ratio,
-                    "claims_checked": len(claims),
-                }
-            except Exception as orch_exc:
-                log.warning("Orchestrator/verifier hook failed on chat stream: %s", orch_exc, exc_info=True)
-            try:
-                up.record_usage(user_id, conversation_id, model_used, task_type, p_tok, c_tok, latency_ms, estimated)
-                if conversation_id and answer.strip():
-                    learn = bool(up.get_settings(user_id).get("auto_learn_facts"))
-                    mem.record_conversation_turn(
-                        conversation_id, prompt, answer, model_used, task_type, user_id=user_id, learn=learn
-                    )
-            except Exception as mem_exc:
-                log.warning("Failed to record usage/memory turn: %s", mem_exc, exc_info=True)
+            await enrich_done_event_with_verification(evt, prompt, answer, (model_used, conversation_id))
+            _persist_stream_usage((user_id, conversation_id, model_used, task_type), prompt, answer, (p_tok, c_tok, latency_ms, not usage))
             yield f"data: {json.dumps(evt, ensure_ascii=False)}\n\n"
-            continue
-        yield chunk
-    _ = failed
+        else:
+            yield chunk
 
 
 @router.post("/chat/stream")
@@ -1088,49 +386,18 @@ async def chat_stream(
 def _is_prompt_conversion_request(prompt: str) -> bool:
     """Detect when the user wants to convert the current (or another) chat into a reusable master prompt."""
     low = (prompt or "").lower()
-    has_prompt_word = any(k in low for k in ("prompt", "istem"))
-    if not has_prompt_word:
+    if not any(k in low for k in ("prompt", "istem")):
         return False
     conv_verbs = (
-        "haline çevir",
-        "haline cevir",
-        "haline getir",
-        "prompt yap",
-        "prompta çevir",
-        "prompta cevir",
-        "prompta dönüştür",
-        "prompta donustur",
-        "prompt olarak",
-        "prompt oluştur",
-        "prompt olustur",
-        "master prompt",
-        "tek prompt",
-        "başka yerde kullan",
-        "baska yerde kullan",
-        "turn this chat",
-        "convert this chat",
-        "convert conversation",
+        "haline çevir", "haline cevir", "haline getir", "prompt yap", "prompta çevir", "prompta cevir",
+        "prompta dönüştür", "prompta donustur", "prompt olarak", "prompt oluştur", "prompt olustur",
+        "master prompt", "tek prompt", "başka yerde kullan", "baska yerde kullan",
+        "turn this chat", "convert this chat", "convert conversation",
     )
     chat_refs = (
-        "sohbet",
-        "chat",
-        "geçmiş",
-        "gecmis",
-        "konuşma",
-        "konusma",
-        "baştan sona",
-        "bastan sona",
-        "başka yerde",
-        "baska yerde",
-        "master prompt",
-        "tek prompt",
-        "prompt haline",
-        "prompta çevir",
-        "prompta cevir",
-        "prompta dönüştür",
-        "prompta donustur",
-        "this chat",
-        "conversation",
+        "sohbet", "chat", "geçmiş", "gecmis", "konuşma", "konusma", "baştan sona", "bastan sona",
+        "başka yerde", "baska yerde", "master prompt", "tek prompt", "prompt haline", "prompta çevir",
+        "prompta cevir", "prompta dönüştür", "prompta donustur", "this chat", "conversation",
     )
     return any(v in low for v in conv_verbs) and any(r in low for r in chat_refs)
 
@@ -1151,666 +418,40 @@ PROMPT_CONVERSION_SYSTEM_INSTRUCTION = (
 )
 
 
-def _history_has_messages(history: str) -> bool:
-    try:
-        items = json.loads(history) if history else []
-    except ValueError:
-        return False
-    return isinstance(items, list) and any(isinstance(i, dict) and i.get("text") for i in items)
-
-
 async def _chat_stream_impl(
-    prompt: str,
-    file: UploadFile | None,
-    history: str,
-    user_id: str,
-    conversation_id: str,
+    prompt: str, file: UploadFile | None, history: str, user_id: str, conversation_id: str
 ):
     has_file = bool(file is not None and file.filename)
     is_prompt_conv = (not has_file) and _is_prompt_conversion_request(prompt)
-
-    if not has_file:
-        # HAL-15: private data or an exact future value cannot be answered truthfully; say so before the model can invent one.
-        from hallucination.verifier import detect_unanswerable
-
-        gap = detect_unanswerable(prompt)
-        # A "private" question can be answerable from this very conversation ("Adım ne demiştim?"), so only
-        # refuse it up front when there is no history to look in.
-        if gap["unanswerable"] and gap["reason"] == "private_data" and _history_has_messages(history):
-            gap = {"unanswerable": False}
-        if gap["unanswerable"]:
-
-            async def _abstain_gen():
-                yield f"data: {json.dumps({'type': 'token', 'content': gap['message']}, ensure_ascii=False)}\n\n"
-                yield f"data: {json.dumps({'type': 'done', 'model': 'abstention-policy', 'task_type': 'abstain'})}\n\n"
-
-            return StreamingResponse(_abstain_gen(), media_type="text/event-stream")
-
-    if _is_3d_cad_request(file):
-        report_md = await _run_3d_cad_cam_from_chat(file, prompt)  # type: ignore[arg-type]
-
-        async def _cad3d_gen():
-            yield f"data: {json.dumps({'type': 'token', 'content': report_md}, ensure_ascii=False)}\n\n"
-            yield f"data: {json.dumps({'type': 'done', 'model': 'cnc-ballooner', 'task_type': 'cad3d'})}\n\n"
-
-        return StreamingResponse(_cad3d_gen(), media_type="text/event-stream")
-
-    lower_p = prompt.lower()
-
-    # Universal File Converter & ZIP Archive Manager (PDF/DOCX/PPTX/XLSX/CSV/TXT <-> ZIP pack/extract)
-    import file_converter as fc
-
-    conv_act = fc.detect_conversion_or_archive_action(prompt, file.filename if has_file and file else None)
-    if conv_act and not is_prompt_conv:
-        act = conv_act["action"]
-        if act == "zip_project":
-            import workspace_builder as wb
-
-            async def _zip_proj_gen():
-                ws_list = wb.list_workspaces()
-                if not ws_list:
-                    msg = "Henüz sıkıştırılacak bir proje çalışma alanı bulunamadı. Önce bir proje oluşturun."
-                else:
-                    target_ws = ws_list[0]
-                    for w in ws_list:
-                        if (w.get("name") or "").lower() in lower_p or (w.get("id") or "").lower() in lower_p:
-                            target_ws = w
-                            break
-                    msg = (
-                        f"## Proje ZIP Arşivi Hazır: {target_ws.get('name', target_ws['id'])}\n"
-                        f"- **Çalışma Alanı:** `{target_ws['id']}`\n"
-                        f"- **ZIP İndirme Bağlantısı:** [Projeyi İndir (.ZIP)](/api/studio/workspaces/{target_ws['id']}/download.zip)"
-                    )
-                yield f"data: {json.dumps({'type': 'token', 'content': msg}, ensure_ascii=False)}\n\n"
-                yield f"data: {json.dumps({'type': 'done', 'model': 'file-converter', 'task_type': 'dokuman'})}\n\n"
-
-            return StreamingResponse(_zip_proj_gen(), media_type="text/event-stream")
-
-        raw_upload = await file.read()  # type: ignore[union-attr]
-        up_name = (file.filename or "dosya") if file else "dosya"
-
-        async def _conv_gen():
-            try:
-                if act == "extract_zip":
-                    res = fc.extract_zip_to_media(up_name, raw_upload)
-                    lines = [
-                        f"## ZIP Arşivi Açıldı: `{res['zip_filename']}` ({res['file_count']} dosya)",
-                        "",
-                    ]
-                    if res["files"]:
-                        lines.append("| Dosya | Boyut | İndirme Bağlantısı |")
-                        lines.append("|---|---|---|")
-                        for fitem in res["files"]:
-                            lines.append(
-                                f"| `{fitem['original_path']}` | {fitem['size_kb']} KB | [İndir]({fitem['url']}) |"
-                            )
-                    else:
-                        lines.append("Arşiv içinde çıkarılacak dosya bulunamadı.")
-                    out_md = "\n".join(lines)
-                elif act == "pack_zip":
-                    res = fc.pack_files_to_folder_zip(up_name, [(up_name, raw_upload)])
-                    out_md = "\n".join([
-                        f"## Klasör ve ZIP Arşivi Hazır (`{res['folder_name']}/`)",
-                        f"- **Arşiv İçeriği:** `{', '.join(res['included_files'])}` ({res['size_kb']} KB)",
-                        f"- **İndirme Bağlantısı:** [{res['zip_filename']} (.ZIP İndir)]({res['url']})",
-                    ])
-                elif act == "convert_and_zip":
-                    tfmt = conv_act["target_fmt"]
-                    cres = fc.convert_uploaded_file(up_name, raw_upload, tfmt)
-                    conv_bytes = cres["output_path"].read_bytes()
-                    zres = fc.pack_files_to_folder_zip(
-                        up_name,
-                        [(up_name, raw_upload), (cres["output_filename"], conv_bytes)],
-                    )
-                    out_md = "\n".join([
-                        f"## Dosya `.{tfmt.upper()}` Formatına Dönüştürüldü ve Klasörlenip Ziplendi",
-                        f"- **Kaynak Dosya:** `{up_name}` · **Dönüştürülen:** [{cres['output_filename']} (.{tfmt.upper()} İndir)]({cres['url']})",
-                        f"- **ZIP Arşivi (`{zres['folder_name']}/`):** [{zres['zip_filename']} (.ZIP İndir)]({zres['url']}) ({zres['size_kb']} KB)",
-                    ])
-                else:
-                    tfmt = conv_act["target_fmt"]
-                    cres = fc.convert_uploaded_file(up_name, raw_upload, tfmt)
-                    out_md = "\n".join([
-                        f"## Dosya Dönüştürme Tamamlandı (`{up_name}` -> `.{tfmt.upper()}`)",
-                        f"- **Çıktı Boyutu:** `{cres['size_kb']} KB` · **Bölüm Sayısı:** `{cres['section_count']}`",
-                        f"- **İndirme Bağlantısı:** [{cres['output_filename']} (.{tfmt.upper()} İndir)]({cres['url']})",
-                    ])
-                yield f"data: {json.dumps({'type': 'token', 'content': out_md}, ensure_ascii=False)}\n\n"
-                yield f"data: {json.dumps({'type': 'done', 'model': 'file-converter', 'task_type': 'dokuman'})}\n\n"
-            except (zipfile.BadZipFile, OSError, ValueError, TypeError, KeyError, RuntimeError, ImportError) as exc:
-                yield f"data: {json.dumps({'type': 'error', 'content': f'Dosya dönüştürme hatası: {exc}'}, ensure_ascii=False)}\n\n"
-
-        return StreamingResponse(_conv_gen(), media_type="text/event-stream")
-
-    # External MCP Connector Live Tool Discovery & Execution from Chat
-    if not has_file and not is_prompt_conv and "mcp" in lower_p and any(
-        k in lower_p for k in ("araç", "arac", "listele", "bağlı", "bagli", "çalıştır", "calistir", "kullan", "çağır", "cagir", "bağlan", "baglan")
-    ):
-        import mcp_connector as mcpc
-
-        async def _mcp_chat_gen():
-            try:
-                conns = mcpc.list_connectors()
-                enabled_tools = mcpc.list_enabled_tools_summary()
-                matched = next(
-                    (
-                        t
-                        for t in enabled_tools
-                        if t["tool_name"].lower() in lower_p
-                    ),
-                    None,
-                )
-                if matched:
-                    m_args = re.search(r"\{[\s\S]*\}", prompt)
-                    args = {}
-                    if m_args:
-                        try:
-                            args = json.loads(m_args.group(0))
-                        except json.JSONDecodeError:
-                            args = {}
-                    call_res = await mcpc.call_connector_tool(matched["connector_id"], matched["tool_name"], args)
-                    md = (
-                        f"## MCP Araç Çağrısı: `{matched['connector_name']}` -> `{matched['tool_name']}`\n\n"
-                        f"```json\n{json.dumps(call_res, ensure_ascii=False, indent=2)}\n```"
-                    )
-                elif not conns:
-                    md = (
-                        "## Kayıtlı Harici MCP Bağlayıcısı Yok\n"
-                        "Sol alttaki **Kullanıcı Profili -> MCP Bağlantıları** sekmesinden harici bir MCP sunucu URL'si ve "
-                        "API anahtarı ekleyip **Araçları Keşfet** butonuna tıklayarak doğrudan sohbetten MCP araçlarını çalıştırabilirsiniz."
-                    )
-                else:
-                    lines = ["## Bağlı Harici MCP Sunucuları ve Araçları", ""]
-                    for c in conns:
-                        st = "Aktif" if c["enabled"] else "Pasif"
-                        lines.append(f"### {c['name']} ({st}) — `{c['url']}`")
-                        lines.append(f"- **Durum:** {c['last_status']} · **API Anahtarı:** {'Tanımlı (' + c['api_key_masked'] + ')' if c['has_api_key'] else 'Yok'}")
-                        if c["tools"]:
-                            for t in c["tools"][:15]:
-                                lines.append(f"  - `{t['name']}`: {t.get('description') or 'Açıklama yok'}")
-                        else:
-                            lines.append("  - Henüz keşfedilen araç yok (**Kişisel Alan -> MCP Bağlantıları -> Araçları Keşfet**).")
-                        lines.append("")
-                    md = "\n".join(lines)
-                yield f"data: {json.dumps({'type': 'token', 'content': md}, ensure_ascii=False)}\n\n"
-                yield f"data: {json.dumps({'type': 'done', 'model': 'mcp-connector', 'task_type': 'genel'})}\n\n"
-            except (httpx.HTTPError, sqlite3.Error, OSError, ValueError, TypeError, KeyError, RuntimeError) as exc:
-                yield f"data: {json.dumps({'type': 'error', 'content': f'MCP hatası: {exc}'}, ensure_ascii=False)}\n\n"
-
-        return StreamingResponse(_mcp_chat_gen(), media_type="text/event-stream")
-
-    # 50+ Drawing RFQ Batch ZIP Quoting Engine ([M53])
-    if (
-        has_file
-        and file is not None
-        and (file.filename or "").lower().endswith(".zip")
-        and any(k in lower_p for k in ("rfq", "ihale", "toplu teklif", "bom", "balon", "çizim", "cizim"))
-    ):
-        import rfq_batch
-
-        raw_rfq = await file.read()
-
-        async def _rfq_gen():
-            try:
-                res = rfq_batch.process_rfq_zip_package(raw_rfq, customer_name="Kurumsal Musteri")
-                lines = [
-                    f"## Toplu RFQ İhale ve Maliyet Teklif Paketi ({res.get('part_count', 0)} Parça)",
-                    f"- **Toplam İşleme Süresi:** `{res.get('total_cycle_hours', 0)} saat` | "
-                    f"**10 Adet Seri Toplamı:** `{res.get('grand_total_10_tl', 0):,.2f} TL`",
-                ]
-                if res.get("excel_url"):
-                    lines.append(f"- [Toplu RFQ Excel Teklifi İndir (.xlsx)]({res['excel_url']})")
-                if res.get("pdf_url"):
-                    lines.append(f"- [Kurumsal RFQ Teklif Mektubu İndir (.pdf)]({res['pdf_url']})")
-                lines.append("")
-                lines.append("| Parça | Malzeme | Çevrim (dk) | 1 Adet (TL) | 10 Adet Birim (TL) | 100 Adet Birim (TL) |")
-                lines.append("|---|---|---|---|---|---|")
-                for b in res.get("bom_items", [])[:30]:
-                    lines.append(
-                        f"| `{b.get('part_name', '-')}` | {b.get('material', '-')} | {b.get('cycle_time_min', 0)} | "
-                        f"{b.get('unit_price_1_tl', 0)} | {b.get('unit_price_10_tl', 0)} | {b.get('unit_price_100_tl', 0)} |"
-                    )
-                yield f"data: {json.dumps({'type': 'token', 'content': '\n'.join(lines)}, ensure_ascii=False)}\n\n"
-                yield f"data: {json.dumps({'type': 'done', 'model': 'cnc-ballooner', 'task_type': 'cnc'})}\n\n"
-            except (zipfile.BadZipFile, OSError, ValueError, TypeError, KeyError, RuntimeError, ImportError) as exc:
-                yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
-
-        return StreamingResponse(_rfq_gen(), media_type="text/event-stream")
-
-    # PowerPoint (.pptx) Presentation & Deep Research Synthesizer ([M10]/[M11])
-    if (
-        not has_file
-        and not is_prompt_conv
-        and any(k in lower_p for k in ("sunum", "slayt", "pptx", "powerpoint"))
-        and any(a in lower_p for a in ("yap", "oluştur", "olustur", "hazırla", "hazirla", "üret", "uret"))
-    ):
-        import deep_research as dr
-
-        async def _pptx_gen():
-            try:
-                res = await dr.generate_ai_pptx_presentation(prompt)
-                md = [
-                    f"## {res['title']} (PowerPoint Sunumu Hazır)",
-                    res["subtitle"],
-                    "",
-                    f"- **Tema & Arka Plan:** {res['theme_name']} · **Slayt Geçiş Animasyonu:** `{res['transition']}` · **Toplam:** `{res['slide_count']} slayt`",
-                    f"- **Sunumu İndir (.PPTX):** [{res['title']} ({res['filename']})]({res['url']})",
-                    "",
-                    "### Araştırılan Slayt İçeriği",
-                ]
-                for i, s in enumerate(res["slides"], start=2):
-                    md.append(f"#### Slayt {i}: {s.get('title', '')}")
-                    for b in (s.get("bullets") or [])[:5]:
-                        md.append(f"- {b}")
-                    if s.get("key_fact"):
-                        md.append(f"- **Vurgu Kartı:** {s['key_fact']}")
-                    md.append("")
-                yield f"data: {json.dumps({'type': 'token', 'content': '\n'.join(md)}, ensure_ascii=False)}\n\n"
-                yield f"data: {json.dumps({'type': 'done', 'model': res['model'], 'task_type': 'dokuman'})}\n\n"
-            except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError, RuntimeError, ImportError) as exc:
-                yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
-
-        return StreamingResponse(_pptx_gen(), media_type="text/event-stream")
-
-    # Multi-Agent Reasoning Council ([M08]/[M09])
-    if not has_file and any(k in lower_p for k in ("konseyde tartış", "konseyde tartis", "ajan konseyi", "çoklu ajan konsey")):
-        import tool_executor as rc
-
-        async def _council_gen():
-            try:
-                c_res = await rc.run_reasoning_council(prompt)
-                yield f"data: {json.dumps({'type': 'council', 'council': c_res}, ensure_ascii=False)}\n\n"
-                final_txt = c_res.get("final_answer") or c_res.get("judge_synthesis") or json.dumps(c_res, ensure_ascii=False)
-                yield f"data: {json.dumps({'type': 'token', 'content': final_txt}, ensure_ascii=False)}\n\n"
-                yield f"data: {json.dumps({'type': 'done', 'model': 'reasoning-council', 'task_type': 'genel'})}\n\n"
-            except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError, RuntimeError, ImportError) as exc:
-                yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
-
-        return StreamingResponse(_council_gen(), media_type="text/event-stream")
-
-    # 1D Bar Nesting & CNC Job-Shop Gantt Scheduler ([M54])
-    if not has_file and any(k in lower_p for k in ("nesting", "fire optimizasyon", "çubuk kesim", "tezgah çizelge", "job-shop gantt")):
-        import erp_mes_scheduler as ems
-
-        async def _erp_gen():
-            nest = ems.optimize_1d_bar_nesting(
-                3000.0,
-                3.0,
-                [
-                    {"part_id": "MIL-420", "length_mm": 420.0, "quantity": 6},
-                    {"part_id": "BURC-185", "length_mm": 185.0, "quantity": 10},
-                ],
-            )
-            sched = ems.schedule_cnc_job_shop(
-                [
-                    {
-                        "job_id": "IS-101",
-                        "due_date_min": 240,
-                        "operations": [
-                            {"op_code": "OP10", "machine": "CNC-TORNA-01", "setup_min": 15, "run_min": 35},
-                            {"op_code": "OP20", "machine": "CNC-FREZE-01", "setup_min": 20, "run_min": 40},
-                        ],
-                    },
-                    {
-                        "job_id": "IS-102",
-                        "due_date_min": 300,
-                        "operations": [
-                            {"op_code": "OP10", "machine": "CNC-TORNA-01", "setup_min": 10, "run_min": 25},
-                            {"op_code": "OP20", "machine": "CNC-FREZE-01", "setup_min": 15, "run_min": 30},
-                        ],
-                    },
-                ],
-                ["CNC-TORNA-01", "CNC-FREZE-01"],
-            )
-            gantt_tasks = [
-                {"label": f"{b['job_id']} {b['op_code']}", "start": b["start_min"], "end": b["end_min"]}
-                for b in sched.get("gantt_bars", [])
-            ]
-            gantt_json = json.dumps({"type": "gantt", "title": "CNC İş Atölyesi Gantt Çizelgesi (dk)", "tasks": gantt_tasks}, ensure_ascii=False)
-            md = [
-                "## ERP / MES 1B Çubuk Fire Optimizasyonu (Nesting) ve CNC Gantt Çizelgesi",
-                f"- **1B Çubuk Nesting:** `{nest['bar_count']}` boy çubuk · **Malzeme Verimliliği:** `%{nest['material_utilization_percent']}` · **Fire:** `%{nest['scrap_percent']}`",
-                f"- **İş Atölyesi Toplam Süre (Makespan):** `{sched['makespan_min']} dk`",
-                "",
-                f"```chart\n{gantt_json}\n```",
-            ]
-            yield f"data: {json.dumps({'type': 'token', 'content': '\n'.join(md)}, ensure_ascii=False)}\n\n"
-            yield f"data: {json.dumps({'type': 'done', 'model': 'erp-mes-scheduler', 'task_type': 'cnc'})}\n\n"
-
-        return StreamingResponse(_erp_gen(), media_type="text/event-stream")
-
-    if _is_cnc_balloon_request(prompt, file):
-        report_md = await _run_cnc_balloon_from_chat(file)  # type: ignore[arg-type]
-
-        async def _cnc_gen():
-            yield f"data: {json.dumps({'type': 'token', 'content': report_md}, ensure_ascii=False)}\n\n"
-            yield f"data: {json.dumps({'type': 'done', 'model': 'cnc-ballooner', 'task_type': 'cnc'})}\n\n"
-
-        return StreamingResponse(_cnc_gen(), media_type="text/event-stream")
-
-    if _is_zip_workspace_request(prompt, file):
-        import workspace_builder as wb
-
-        raw_zip = await file.read()  # type: ignore[union-attr]
-        zname = file.filename or "proje.zip"  # type: ignore[union-attr]
-        wants_exe = any(k in prompt.lower() for k in ("exe", "derle"))
-
-        async def _zip_gen():
-            try:
-                ws_meta, ws_tree = wb.import_zip_workspace(zname, raw_zip)
-                msg = f"### ZIP Projesi İçe Aktarıldı: **{ws_meta['name']}**\n- Çalışma alanı kimliği: `{ws_meta['id']}`\n"
-                yield f"data: {json.dumps({'type': 'token', 'content': msg}, ensure_ascii=False)}\n\n"
-                if wants_exe:
-                    yield f"data: {json.dumps({'type': 'token', 'content': '**PyInstaller ile Windows .EXE derleniyor...**\\n'}, ensure_ascii=False)}\n\n"
-                    res = await wb.build_workspace_exe(ws_meta["id"])
-                    if res.get("ok"):
-                        ws_dir = wb.safe_workspace_dir(ws_meta["id"])
-                        ws_meta = wb.load_workspace_meta(ws_dir)
-                        ws_meta["has_exe"] = True
-                        ws_meta["exe_name"] = res["exe_name"]
-                        ws_tree = wb.build_file_tree(ws_dir)
-                yield f"data: {json.dumps({'type': 'workspace', 'workspace': ws_meta, 'tree': ws_tree}, ensure_ascii=False)}\n\n"
-                yield f"data: {json.dumps({'type': 'done', 'model': 'workspace-importer', 'task_type': 'proje'})}\n\n"
-            except (zipfile.BadZipFile, subprocess.SubprocessError, OSError, ValueError, TypeError, KeyError, RuntimeError) as exc:
-                yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
-
-        return StreamingResponse(_zip_gen(), media_type="text/event-stream")
-
-    # Universal Chart / Image / Logo / Illustration Generation (DAV-10, DAV-11)
-    import chat_contracts
-    import document_factory as df
-    import multimodal_studio as mms
-
-    if not is_prompt_conv and chat_contracts.is_chart_generation_request(prompt, has_file):
-        async def _chart_gen():
-            try:
-                res = chat_contracts.build_svg_bar_chart(prompt)
-                md = (
-                    f"## Veri Grafiği Hazır\n"
-                    f"- [SVG Grafiği İndir]({res['svg_url']})\n\n"
-                    f"{res['svg']}"
-                )
-                yield f"data: {json.dumps({'type': 'artifact', 'kind': 'chart', 'format': 'svg', 'url': res['svg_url']}, ensure_ascii=False)}\n\n"
-                yield f"data: {json.dumps({'type': 'token', 'content': md}, ensure_ascii=False)}\n\n"
-                yield f"data: {json.dumps({'type': 'done', 'model': 'chart-svg', 'task_type': 'grafik'})}\n\n"
-            except (OSError, ValueError, TypeError, KeyError, ArithmeticError, RuntimeError) as exc:
-                yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
-
-        return StreamingResponse(_chart_gen(), media_type="text/event-stream")
-
-    if not is_prompt_conv and mms.is_image_generation_request(prompt, has_file):
-        try:
-            hist_for_img = json.loads(history) if history else []
-            if not isinstance(hist_for_img, list):
-                hist_for_img = []
-        except (json.JSONDecodeError, TypeError):
-            hist_for_img = []
-
-        async def _img_gen():
-            try:
-                res = await mms.generate_ai_image(prompt, history=hist_for_img)
-                preview_url = res.get("svg_url") or res["png_url"]
-                meta_parts = [f"**Motor:** `{res['engine']}`"]
-                if res.get("brand_name"):
-                    meta_parts.append(f"**Konsept:** {res['brand_name']}")
-                if res.get("palette_name"):
-                    meta_parts.append(f"**Palet:** {res['palette_name']}")
-                md_lines = [
-                    "## Üretilen Görsel Tasarım",
-                    "- " + " · ".join(meta_parts),
-                    f"- [Yüksek Çözünürlüklü PNG İndir]({res['png_url']})"
-                    + (f" · [Vektörel SVG İndir]({res['svg_url']})" if res.get("svg_url") else ""),
-                    "",
-                    f"![Üretilen Görsel]({preview_url})",
-                ]
-                yield f"data: {json.dumps({'type': 'artifact', 'kind': 'image', 'format': 'png', 'url': res['png_url'], 'svg_url': res.get('svg_url')}, ensure_ascii=False)}\n\n"
-                yield f"data: {json.dumps({'type': 'token', 'content': '\n'.join(md_lines)}, ensure_ascii=False)}\n\n"
-                yield f"data: {json.dumps({'type': 'done', 'model': res['engine'], 'task_type': 'gorsel'})}\n\n"
-            except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError, RuntimeError, ImportError) as exc:
-                yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
-
-        return StreamingResponse(_img_gen(), media_type="text/event-stream")
-
-    # Universal Office & PDF Document Deliverable Factory (.xlsx, .docx, .pdf)
-    doc_fmt = None if is_prompt_conv else df.detect_document_request(prompt, has_file)
-    if doc_fmt:
-        async def _doc_gen():
-            try:
-                res = await df.generate_document_deliverable(prompt, doc_fmt)
-                fmt_upper = doc_fmt.upper()
-                md = [
-                    f"## {res['title']} ({fmt_upper} Dosyası Hazır)",
-                    res.get("summary") or "",
-                    "",
-                    f"- **Dosya İndirme Bağlantısı:** [{res['title']} (.{doc_fmt} İndir)]({res['url']})",
-                    "",
-                ]
-                headers = res.get("table_headers") or []
-                rows = res.get("table_rows") or []
-                if headers and rows:
-                    md.append("| " + " | ".join(str(h) for h in headers) + " |")
-                    md.append("|" + "|".join("---" for _ in headers) + "|")
-                    for r in rows[:15]:
-                        md.append("| " + " | ".join(str(c) for c in r[:len(headers)]) + " |")
-                yield f"data: {json.dumps({'type': 'artifact', 'kind': 'document', 'format': doc_fmt, 'url': res['url']}, ensure_ascii=False)}\n\n"
-                yield f"data: {json.dumps({'type': 'token', 'content': '\n'.join(md)}, ensure_ascii=False)}\n\n"
-                yield f"data: {json.dumps({'type': 'done', 'model': res['model'], 'task_type': 'dokuman'})}\n\n"
-            except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError, RuntimeError, ImportError) as exc:
-                yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
-
-        return StreamingResponse(_doc_gen(), media_type="text/event-stream")
-
-    if not is_prompt_conv and _is_project_build_request(prompt, file):
-        import workspace_builder as wb
-
-        detected_type, wants_exe = _detect_project_type(prompt)
-
-        async def _project_gen():
-            ws_meta = None
-            ws_tree = None
-            used_model = config.STUDIO_CODER_MODEL
-            try:
-                async for evt in wb.stream_generate_project(prompt.strip(), project_type=detected_type):
-                    et = evt.get("type")
-                    if et == "status":
-                        status_msg = f"{evt['message']}\n\n"
-                        yield f"data: {json.dumps({'type': 'token', 'content': status_msg}, ensure_ascii=False)}\n\n"
-                    elif et == "plan":
-                        ws_meta = evt["workspace"]
-                        used_model = ws_meta.get("model") or used_model
-                        flist = "\n".join(f"- `{f['path']}` - {f['purpose']}" for f in evt["files"])
-                        chunk = f"### Proje Planı: **{ws_meta['name']}** ({len(evt['files'])} dosya)\n{flist}\n\n"
-                        yield f"data: {json.dumps({'type': 'token', 'content': chunk}, ensure_ascii=False)}\n\n"
-                    elif et == "file_done":
-                        kb = round(evt["size"] / 1024, 1)
-                        chunk = f"- `{evt['path']}` ({kb} KB)\n"
-                        yield f"data: {json.dumps({'type': 'token', 'content': chunk}, ensure_ascii=False)}\n\n"
-                    elif et == "done":
-                        ws_meta = evt["workspace"]
-                        ws_tree = evt["tree"]
-
-                if ws_meta and wants_exe and ws_meta.get("project_type") in ("game", "desktop", "cli"):
-                    exe_start_msg = "\n**PyInstaller ile Windows .EXE derleniyor...**\n"
-                    yield f"data: {json.dumps({'type': 'token', 'content': exe_start_msg}, ensure_ascii=False)}\n\n"
-                    build_res = await wb.build_workspace_exe(ws_meta["id"])
-                    if build_res.get("ok"):
-                        ws_dir = wb.safe_workspace_dir(ws_meta["id"])
-                        ws_meta = wb.load_workspace_meta(ws_dir)
-                        ws_meta["has_exe"] = True
-                        ws_tree = wb.build_file_tree(ws_dir)
-                        mb = round(build_res.get("exe_size", 0) / (1024 * 1024), 2)
-                        exe_ok_msg = f"**EXE hazır:** `dist/{build_res['exe_name']}` ({mb} MB)\n"
-                        yield f"data: {json.dumps({'type': 'token', 'content': exe_ok_msg}, ensure_ascii=False)}\n\n"
-                    else:
-                        exe_err_msg = f"EXE derleme notu: {build_res.get('error')}\n"
-                        yield f"data: {json.dumps({'type': 'token', 'content': exe_err_msg}, ensure_ascii=False)}\n\n"
-
-                if ws_meta:
-                    ws_dir = wb.safe_workspace_dir(ws_meta["id"])
-                    ws_meta["has_web_preview"] = (ws_dir / "index.html").is_file() or (ws_dir / "public" / "index.html").is_file()
-                    exe_files = list((ws_dir / "dist").glob("*.exe")) if (ws_dir / "dist").is_dir() else []
-                    ws_meta["has_exe"] = len(exe_files) > 0
-                    ws_meta["exe_name"] = exe_files[0].name if exe_files else ""
-                    yield f"data: {json.dumps({'type': 'workspace', 'workspace': ws_meta, 'tree': ws_tree or wb.build_file_tree(ws_dir)}, ensure_ascii=False)}\n\n"
-                yield f"data: {json.dumps({'type': 'done', 'model': used_model, 'task_type': 'proje'})}\n\n"
-            except (httpx.HTTPError, subprocess.SubprocessError, OSError, ValueError, TypeError, KeyError, RuntimeError, ImportError) as exc:
-                yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
-
-        return StreamingResponse(_project_gen(), media_type="text/event-stream")
-
-    if file is None or not file.filename:
-        calc_result = try_calculate(prompt)
-        if calc_result is not None:
-            async def _calc_gen():
-                yield f"data: {json.dumps({'type': 'token', 'content': calc_result})}\n\n"
-                yield f"data: {json.dumps({'type': 'done', 'model': 'hesaplama', 'task_type': 'hesaplama'})}\n\n"
-            return StreamingResponse(_calc_gen(), media_type="text/event-stream")
-
-    full_prompt, image_b64, _forced_task_type, keyword_task, inappropriate = await _prepare_chat_request(prompt, file)
-
+    if (fast := await dispatch_chat_fastpath(prompt, file, history, is_prompt_conv)) is not None:
+        return fast
+    if not has_file and (calc_result := try_calculate(prompt)) is not None:
+        return single_token_stream(calc_result, "hesaplama", "hesaplama")
+    full_prompt, image_b64, _forced, keyword_task, inappropriate = await _prepare_chat_request(prompt, file)
     if inappropriate:
         msg = (
             "Bu mesaj hakaret/uygunsuz ifade içerebilecek şekilde değerlendirildi, "
             "bu yüzden bir modele iletilmedi. Lütfen sorunu farklı bir şekilde ifade et."
         )
-        async def _mod_gen():
-            yield f"data: {json.dumps({'type': 'token', 'content': msg})}\n\n"
-            yield f"data: {json.dumps({'type': 'done', 'model': 'moderation', 'task_type': 'engellendi'})}\n\n"
-        return StreamingResponse(_mod_gen(), media_type="text/event-stream")
-
+        return single_token_stream(msg, "moderation", "engellendi")
     task_type = keyword_task or DEFAULT_TASK
     model = await _select_grounded_model(task_type, has_image=bool(image_b64))
-    ollama_url = config.OLLAMA_URL
-
-    messages = []
-    if ANSWER_SYSTEM_PROMPT:
-        messages.append({"role": "system", "content": ANSWER_SYSTEM_PROMPT})
-
-    # Multi-turn conversation history + 4-Layer Persistent Semantic Memory
-    import memory_engine as mem
-    import user_profile as up
-
-    user_settings = up.get_settings(user_id)
-    extra_blocks = [up.personalization_block(user_id)]
-    if user_settings.get("auto_learn_facts"):
-        mem.extract_and_upsert_memories(prompt, user_id=user_id)
-    extra_blocks.append(mem.build_memory_context_block(prompt, user_id=user_id))
-    if user_settings.get("cross_chat_memory", True):
-        extra_blocks.append(up.cross_chat_context_block(user_id, prompt, exclude_conversation=conversation_id))
-    if is_prompt_conv:
-        extra_blocks.append(PROMPT_CONVERSION_SYSTEM_INSTRUCTION)
-
-    # DAV-01..05, DAV-09: Prompt constraint guards and grounded research source injection
-    constraints = chat_contracts.inspect_prompt_constraints(prompt)
-    research_sources: list[dict[str, str]] = []
-    if not is_prompt_conv and chat_contracts.is_grounded_research_request(prompt, has_file):
-        research_sources = chat_contracts.gather_research_sources(prompt)
-        if research_sources:
-            src_lines = [f"[{s['id']}] {s['title']} ({s['url']}): {s['snippet']}" for s in research_sources]
-            extra_blocks.append(
-                "ARAŞTIRMA KAYNAKLARI (yalnızca bu kaynaklara dayanarak yanıtla ve her önemli olguda [S1], [S2] atıfı ekle):\n"
-                + "\n".join(src_lines)
-            )
-        else:
-            extra_blocks.append(
-                "ARAŞTIRMA NOTU: Canlı web araması (SearXNG) şu an yapılandırılmamış. "
-                "Temel akademik kavramları [S1] biçiminde standart referanslara (ör. Nielsen & Chuang, NIST) bağlayarak özetle "
-                "ve yanıtın sonunda 'Kaynaklar' listesi ile 'Not: Canlı web araması kapalı olduğu için güncel veriler doğrulanmadı.' uyarısını ekle."
-            )
-    if constraints.system_notes:
-        extra_blocks.append("\n".join(constraints.system_notes))
-
-    mem_ctx = "\n\n".join(b for b in extra_blocks if b)
-    if mem_ctx and messages and messages[0]["role"] == "system":
-        messages[0]["content"] = f"{messages[0]['content']}\n\n{mem_ctx}"
-
-    hist_window = 40 if is_prompt_conv else 16
-    try:
-        hist_items = json.loads(history) if history else []
-        if isinstance(hist_items, list):
-            for h_msg in hist_items[-hist_window:]:
-                if isinstance(h_msg, dict) and h_msg.get("role") in ("user", "assistant") and h_msg.get("text"):
-                    messages.append({"role": h_msg["role"], "content": str(h_msg["text"])[:3000]})
-    except (json.JSONDecodeError, TypeError) as _exc:
-        log.debug("Recoverable error suppressed: %s", _exc)
-    if not is_prompt_conv:
-        messages = mem.compact_conversation_context(messages)
-
-    # If an image was processed/edited or a deterministic file inspection ran, prepend it before LLM analysis
-    pre_note = ""
-    for marker in ("### İşlenmiş Görsel Çıktısı", "### Deterministik Dosya Denetim Raporu"):
-        if marker in full_prompt:
-            idx_n = full_prompt.index(marker)
-            pre_note += full_prompt[idx_n:] + "\n\n---\n\n"
-            full_prompt = full_prompt[:idx_n].strip()
-
-    user_msg: dict = {"role": "user", "content": full_prompt}
-    if image_b64:
-        user_msg["images"] = [image_b64]
-    messages.append(user_msg)
-
-    import gateway
-
-    is_strict_factual = has_file or is_prompt_conv or task_type in ("kod", "analiz")
-    gw_profile = "factual" if is_strict_factual else "analytic"
-    gw = (
-        gateway.default_client
-        if ollama_url.rstrip("/") == config.OLLAMA_URL.rstrip("/")
-        else gateway.LLMClient({"ollama": gateway.OllamaProvider(base_url=ollama_url)})
+    ctx = {
+        "prompt": prompt, "full_prompt": full_prompt, "image_b64": image_b64,
+        "history": history, "user_id": user_id, "conversation_id": conversation_id,
+        "has_file": has_file, "is_prompt_conv": is_prompt_conv,
+    }
+    messages, pre_note, constraints, research_sources = build_llm_stream_inputs(
+        ctx, ANSWER_SYSTEM_PROMPT, PROMPT_CONVERSION_SYSTEM_INSTRUCTION
     )
-
-    async def _stream_gen():
-        try:
-            if pre_note:
-                yield f"data: {json.dumps({'type': 'token', 'content': pre_note}, ensure_ascii=False)}\n\n"
-            buffered_chunks: list[str] = []
-            need_buffer = constraints.needs_buffering or bool(research_sources) or chat_contracts.is_grounded_research_request(prompt, has_file)
-            async for evt in gw.stream(
-                messages,
-                model=model,
-                task_type=task_type,
-                profile=gw_profile,
-                user_id=user_id,
-                timeout_s=180.0,
-            ):
-                if evt.get("type") == "token":
-                    content_piece = _strip_emojis(str(evt.get("content") or ""))
-                    if content_piece:
-                        if need_buffer:
-                            buffered_chunks.append(content_piece)
-                        else:
-                            yield f"data: {json.dumps({'type': 'token', 'content': content_piece})}\n\n"
-                elif evt.get("type") == "done":
-                    if need_buffer:
-                        final_text = chat_contracts.enforce_output_constraints("".join(buffered_chunks), constraints)
-                        if chat_contracts.is_grounded_research_request(prompt, has_file) and "[S1]" not in final_text:
-                            if research_sources:
-                                ref_lines = "\n".join(f"- [{s['id']}] {s['title']} — {s['url']}" for s in research_sources)
-                                final_text = f"{final_text}\n\n### Kaynaklar\n{ref_lines}"
-                            else:
-                                final_text = (
-                                    f"{final_text}\n\n### Kaynaklar\n"
-                                    "- [S1] Genel kavramsal özet (Not: Canlı web araması kapalı olduğu için güncel kaynak doğrulaması yapılmadı; SEARXNG_URL ile web aramasını açabilirsiniz.)"
-                                )
-                        if final_text:
-                            yield f"data: {json.dumps({'type': 'token', 'content': final_text}, ensure_ascii=False)}\n\n"
-                    done_evt: dict = {
-                        "type": "done",
-                        "model": model,
-                        "task_type": task_type,
-                        "run_id": evt.get("run_id"),
-                    }
-                    if evt.get("tokens_out") is not None:
-                        done_evt["usage"] = {
-                            "prompt_tokens": int(evt.get("tokens_in") or 0),
-                            "completion_tokens": int(evt.get("tokens_out") or 0),
-                            "estimated": False,
-                        }
-                    yield f"data: {json.dumps(done_evt)}\n\n"
-        except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError, RuntimeError, AttributeError, ImportError) as exc:
-            yield f"data: {json.dumps({'type': 'error', 'content': str(exc)})}\n\n"
-
-    return StreamingResponse(_stream_gen(), media_type="text/event-stream")
+    return create_llm_stream_response(
+        {
+            "messages": messages, "pre_note": pre_note, "constraints": constraints,
+            "research_sources": research_sources, "model": model, "task_type": task_type,
+            "user_id": user_id, "prompt": prompt, "has_file": has_file, "is_prompt_conv": is_prompt_conv,
+        },
+        _strip_emojis,
+    )
 
 
 class CodeRunRequest(BaseModel):
@@ -1830,8 +471,7 @@ NOBODY_ID = 65534
 
 
 def _limit_code_run_resources() -> None:
-    """Passed to subprocess.run as preexec_fn (POSIX only) -- caps the run's CPU time and
-    memory so a runaway loop or allocation cannot affect the master process."""
+    """Passed to subprocess.run as preexec_fn (POSIX only) to cap CPU time and memory."""
     import resource
 
     setrlimit = getattr(resource, "setrlimit", None)
@@ -1844,11 +484,9 @@ def _limit_code_run_resources() -> None:
 
 
 def _code_run_env() -> dict[str, str]:
-    """A minimal environment: the run must not see the master's secrets (AGENT_TOKEN, the
-    gateway key) through os.environ."""
+    """A minimal environment: the run must not see the master's secrets through os.environ."""
     env = {"PYTHONIOENCODING": "utf-8"}
     if sys.platform == "win32":
-        # Python cannot start on Windows without these.
         for key in ("SYSTEMROOT", "PATH"):
             if key in os.environ:
                 env[key] = os.environ[key]
@@ -1877,10 +515,7 @@ def _optional_pkg_capability(pkg_name: str, install_hint: str) -> dict[str, obje
     import importlib.util
 
     ok = importlib.util.find_spec(pkg_name) is not None
-    return {
-        "available": ok,
-        "reason": "Hazır" if ok else f"Kurulu değil ({install_hint})",
-    }
+    return {"available": ok, "reason": "Hazır" if ok else f"Kurulu değil ({install_hint})"}
 
 
 @router.get("/config")
@@ -1889,23 +524,20 @@ async def assistant_config():
     import sandbox
 
     sb = sandbox.status()
-    capabilities = {
-        "stt": _optional_pkg_capability("faster_whisper", "pip install faster-whisper"),
-        "tts": {"available": True, "reason": "Tarayıcı Web Speech API"},
-        "ocr": _optional_pkg_capability("pytesseract", "pip install pytesseract"),
-        "web_search": {
-            "available": bool(os.environ.get("SEARXNG_URL", "").strip()),
-            "reason": "SearXNG yapılandırıldı" if os.environ.get("SEARXNG_URL", "").strip() else "SEARXNG_URL tanımlı değil",
-        },
-        "image_gen": _optional_pkg_capability("PIL", "pip install pillow"),
-        "sandbox": {"available": sb["available"], "reason": sb["reason"]},
-        "vector_index": _optional_pkg_capability("numpy", "pip install numpy"),
-    }
+    searx_ok = bool(os.environ.get("SEARXNG_URL", "").strip())
     return {
         "code_run_enabled": bool(config.CODE_RUN_ENABLED and sb["available"]),
         "sandbox_available": sb["available"],
         "sandbox_reason": sb["reason"],
-        "capabilities": capabilities,
+        "capabilities": {
+            "stt": _optional_pkg_capability("faster_whisper", "pip install faster-whisper"),
+            "tts": {"available": True, "reason": "Tarayıcı Web Speech API"},
+            "ocr": _optional_pkg_capability("pytesseract", "pip install pytesseract"),
+            "web_search": {"available": searx_ok, "reason": "SearXNG yapılandırıldı" if searx_ok else "SEARXNG_URL tanımlı değil"},
+            "image_gen": _optional_pkg_capability("PIL", "pip install pillow"),
+            "sandbox": {"available": sb["available"], "reason": sb["reason"]},
+            "vector_index": _optional_pkg_capability("numpy", "pip install numpy"),
+        },
     }
 
 
@@ -1928,23 +560,28 @@ async def transcribe_voice_clip(file: UploadFile = File(...)):  # noqa: B008
     raw = await file.read()
     if not raw or len(raw) < 128:
         raise HTTPException(status_code=400, detail="Ses kaydı boş veya çok kısa.")
-    res = await asyncio.to_thread(mms.transcribe_audio_bytes, file.filename or "mic.wav", raw)
-    return res
+    return await asyncio.to_thread(mms.transcribe_audio_bytes, file.filename or "mic.wav", raw)
 
 
 @router.get("/enterprise-status")
 async def enterprise_status():
-    """Return live telemetry, Thompson Bandit Router state, LLMOps DPO status, and 12-discipline ELO Arena leaderboard."""
+    """Return live telemetry, Thompson Bandit Router state, LLMOps DPO status, and ELO Arena leaderboard."""
     import cluster_telemetry as ct
     import enterprise_security_mcp as esm
     import llmops_pipeline as lp
     import media_lab_arena as mla
 
-    arena = mla.CognitiveArena()
     return {
         "telemetry": ct.get_local_hardware_telemetry(query_ollama=False),
         "llmops": lp.get_llmops_stats(),
         "audit_chain_valid": esm.AuditTrail().verify_chain(),
-        "elo_leaderboard": arena.get_leaderboard()[:5],
+        "elo_leaderboard": mla.CognitiveArena().get_leaderboard()[:5],
     }
 
+
+__all__ = [
+    "ANSWER_SYSTEM_PROMPT", "CODE_KEYWORDS", "DEFAULT_TASK", "PROMPT_CONVERSION_SYSTEM_INSTRUCTION",
+    "ChatResponse", "CodeRunRequest", "CodeRunResponse", "_history_has_messages",
+    "_is_prompt_conversion_request", "_strip_emojis", "call_ollama_chat", "classify_and_moderate",
+    "keyword_category_override", "parse_classifier_response", "router", "try_calculate",
+]

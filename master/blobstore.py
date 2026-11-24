@@ -16,7 +16,7 @@ import time
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import BinaryIO
+from typing import Any, BinaryIO
 
 import config
 import dbconn
@@ -71,10 +71,14 @@ def store(
     owner: str,
     name: str,
     data: bytes | BinaryIO,
-    mime: str = "application/octet-stream",
-    expires_at: str | None = None,
-    limit: int | None = None,
+    **options: Any,
 ) -> dict:
+    unknown = set(options) - {"mime", "expires_at", "limit"}
+    if unknown:
+        raise TypeError(f"Unexpected keyword argument(s): {', '.join(sorted(unknown))}")
+    mime: str = options.get("mime", "application/octet-stream")
+    expires_at: str | None = options.get("expires_at")
+    limit: int | None = options.get("limit")
     sha, size, tmp = _write_stream(data, limit or config.MAX_UPLOAD_BYTES)
     target = blob_path(sha)
     if target.is_file():

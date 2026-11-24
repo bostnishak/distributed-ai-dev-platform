@@ -103,6 +103,26 @@ def declared_matches_content(filename: str, head: bytes) -> bool:
 _PDF_ACTIVE = (b"/JavaScript", b"/JS ", b"/JS(", b"/OpenAction", b"/Launch", b"/AA ", b"/EmbeddedFile")
 
 
+def _scan_zip_active(raw: bytes) -> list[str]:
+    findings: list[str] = []
+    try:
+        with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+            for info in archive.infolist():
+                lowered = info.filename.lower()
+                if lowered.endswith("vbaproject.bin"):
+                    findings.append("ooxml:vba-macro")
+                elif lowered.endswith(".rels") and info.file_size < 1_000_000:
+                    if b'TargetMode="External"' in archive.read(info):
+                        findings.append("ooxml:external-link")
+                elif lowered.endswith((".xml", ".xml.rels")) and info.file_size < 5_000_000:
+                    body = archive.read(info)
+                    if b"DDEAUTO" in body or b"ddeLink" in body:
+                        findings.append("ooxml:dde")
+    except zipfile.BadZipFile:
+        findings.append("zip:corrupt")
+    return findings
+
+
 def scan_active_content(raw: bytes, filename: str = "") -> list[str]:
     """Names of active-content findings (macros, scripts, auto-actions, DDE, external links); empty when clean (SEC-08).
 
@@ -111,23 +131,9 @@ def scan_active_content(raw: bytes, filename: str = "") -> list[str]:
     findings: list[str] = []
     kind = sniff_type(raw[:512])
     if kind == "pdf":
-        findings += [f"pdf:{marker.decode().strip(' (')}" for marker in _PDF_ACTIVE if marker in raw]
+        findings.extend(f"pdf:{marker.decode().strip(' (')}" for marker in _PDF_ACTIVE if marker in raw)
     elif kind == "zip":
-        try:
-            with zipfile.ZipFile(io.BytesIO(raw)) as archive:
-                for info in archive.infolist():
-                    lowered = info.filename.lower()
-                    if lowered.endswith("vbaproject.bin"):
-                        findings.append("ooxml:vba-macro")
-                    elif lowered.endswith(".rels") and info.file_size < 1_000_000:
-                        if b'TargetMode="External"' in archive.read(info):
-                            findings.append("ooxml:external-link")
-                    elif lowered.endswith((".xml", ".xml.rels")) and info.file_size < 5_000_000:
-                        body = archive.read(info)
-                        if b"DDEAUTO" in body or b"ddeLink" in body:
-                            findings.append("ooxml:dde")
-        except zipfile.BadZipFile:
-            findings.append("zip:corrupt")
+        findings.extend(_scan_zip_active(raw))
     elif filename.lower().endswith((".html", ".htm")) or raw[:512].lstrip().lower().startswith(b"<"):
         if b"<script" in raw.lower():
             findings.append("html:script")

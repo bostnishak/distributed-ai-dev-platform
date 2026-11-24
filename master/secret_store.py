@@ -199,8 +199,10 @@ def _cli() -> None:
     rot.add_argument("--old-key", default=None, help="Optional previous master key")
     args = parser.parse_args()
     if args.cmd == "rotate":
+        import logging
+
         count = rotate_master_key(args.new_key, old_secret_key=args.old_key)
-        print(f"Rotated {count} secret(s) successfully.")
+        logging.getLogger(__name__).info("Rotated %d secret(s) successfully.", count)
 
 
 if __name__ == "__main__":

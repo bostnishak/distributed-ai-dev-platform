@@ -102,7 +102,8 @@ def _generate_rfq_excel(
 ) -> None:
     wb = openpyxl.Workbook()
     ws: Any = wb.active
-    assert ws is not None
+    if ws is None:
+        raise RuntimeError("Excel aktif çalışma sayfası oluşturulamadı.")
     ws.title = "RFQ_BOM_Quote"
 
     header_fill = PatternFill(start_color="1E293B", end_color="1E293B", fill_type="solid")

@@ -136,17 +136,118 @@ def build_contradiction_matrix(notes: list[SourceNote]) -> list[dict[str, Any]]:
 
 # ---------------------------------------------------------------- RES-01, 04, 06, 09, 10 End-to-End Research Pipeline
 
+def _collect_dedup_notes(
+    gathered: list[tuple[str, list[WebSource], str]],
+    cfg: dict[str, Any],
+    t0: float,
+    accessed: str,
+    limitations: list[str],
+) -> list[SourceNote]:
+    seen_urls: set[str] = set()
+    notes: list[SourceNote] = []
+    for sq, srcs, producer in gathered:
+        if time.monotonic() - t0 > cfg["max_seconds"]:
+            limitations.append(f"Süre bütçesi ({cfg['max_seconds']} sn) dolduğu için kalan alt sorular sınırlandırıldı.")
+            break
+        for s in srcs:
+            if s.url in seen_urls or len(notes) >= cfg["max_sources"]:
+                continue
+            seen_urls.add(s.url)
+            dom = (urlparse(s.url).hostname or "unknown").lower()
+            notes.append(
+                SourceNote(
+                    source_id=f"S{len(notes) + 1}",
+                    url=s.url,
+                    title=s.title,
+                    domain=dom,
+                    credibility=classify_domain_credibility(s.url),
+                    published_date=s.published_date or accessed,
+                    accessed_date=accessed,
+                    summary=(s.snippet or s.title).strip(),
+                    short_quote=enforce_short_quote(s.snippet or s.title),
+                    subquestion=sq,
+                    producer=producer,
+                )
+            )
+    return notes
+
+
+def _verify_research_notes(notes: list[SourceNote]) -> dict[str, Any]:
+    verified_lines: list[str] = []
+    removed_claims: list[str] = []
+    total_claims = 0
+    for n in notes:
+        stmt = f"{n.summary.rstrip('.')} [{n.source_id}]."
+        res_n = enforce_citation_policy(stmt, [{"id": n.source_id, "content": n.summary, "url": n.url, "doc": n.title}], strict=True)
+        total_claims += max(1, res_n["total_claims"])
+        if res_n["supported"] > 0:
+            verified_lines.append(stmt)
+        else:
+            removed_claims.append(stmt)
+    return {
+        "repaired_text": " ".join(verified_lines) if verified_lines else "Doğrulanmış web kaynağı bulunamadı.",
+        "supported": len(verified_lines),
+        "total_claims": total_claims,
+        "removed_claims": removed_claims,
+        "support_ratio": round(len(verified_lines) / max(1, total_claims), 4) if notes else 0.0,
+    }
+
+
+def _build_diff_section(prior_artifact_id: str | None, notes: list[SourceNote]) -> str:
+    if not prior_artifact_id:
+        return ""
+    prev = get_artifact(prior_artifact_id)
+    if not prev:
+        return ""
+    prev_urls = set(re.findall(r"https?://\S+", prev.get("content") or ""))
+    new_notes = [n for n in notes if n.url not in prev_urls]
+    return f"\n\n## Güncelleme Farkı\n- Önceki araştırmaya göre {len(new_notes)} yeni kaynak eklendi.\n"
+
+
+def _render_research_markdown(
+    topic: str,
+    speed_mode: str,
+    notes: list[SourceNote],
+    report_ctx: dict[str, Any],
+) -> str:
+    contradictions = report_ctx["contradictions"]
+    limitations = report_ctx["limitations"]
+    bib_lines = [
+        f"- [{n.source_id}] {format_citation([n.domain], n.published_date[:4], n.title, n.url, style=report_ctx['citation_style'])} (Erişim: {n.accessed_date}, Güvenilirlik: {n.credibility})"
+        for n in notes
+    ]
+    md_parts = [
+        f"# Araştırma Raporu: {topic}",
+        f"**Mod:** {speed_mode} | **Kaynak Sayısı:** {len(notes)} | **Alan Çeşitliliği:** {report_ctx['diversity']:.2f}",
+        f"\n## Özet ve Bulgular\n{report_ctx['repaired_text']}",
+        "\n## Çelişki Matrisi\n"
+        + (
+            "\n".join(f"- {c['source_a']} vs {c['source_b']}: {c['resolution_hint']}" for c in contradictions)
+            if contradictions
+            else "Kaynaklar arasında kritik çelişki tespit edilmedi."
+        ),
+        "\n## Belirsizlikler ve Sınırlılıklar\n"
+        + ("\n".join(f"- {lim}" for lim in limitations) if limitations else "- Kritik kısıt saptanmadı."),
+        f"\n## Doğrulama\n{report_ctx['ver_line']}",
+        report_ctx["diff_section"],
+        "\n## Kaynakça\n" + ("\n".join(bib_lines) if bib_lines else "Kaynak yok."),
+    ]
+    return "\n".join(p for p in md_parts if p).strip()
+
+
 async def run_deep_research(
     topic: str,
     *,
     speed_mode: str = "standard",
     citation_style: str = "apa",
-    fetch_fn=None,
-    offline_mode: bool | None = None,
-    distribute_agents: bool = False,
-    prior_artifact_id: str | None = None,
+    **options: Any,
 ) -> ResearchReport:
     """RES-01..11: Multi-step grounded research with deduplication, contradiction matrix, verification & artifact storage."""
+    fetch_fn = options.get("fetch_fn")
+    offline_mode = options.get("offline_mode")
+    distribute_agents = bool(options.get("distribute_agents", False))
+    prior_artifact_id = options.get("prior_artifact_id")
+
     t0 = time.monotonic()
     plan = decompose_research_plan(topic, speed_mode=speed_mode)
     cfg = plan["budget"]
@@ -173,98 +274,32 @@ async def run_deep_research(
         return sq, res.sources, producer
 
     gathered = await asyncio.gather(*(_research_one(q) for q in plan["query_plan"]))
+    notes = _collect_dedup_notes(list(gathered), cfg, t0, accessed, limitations)
 
-    # RES-02: Deduplicate URLs and measure domain diversity
-    seen_urls: set[str] = set()
-    notes: list[SourceNote] = []
-    for sq, srcs, producer in gathered:
-        if time.monotonic() - t0 > cfg["max_seconds"]:
-            limitations.append(f"Süre bütçesi ({cfg['max_seconds']} sn) dolduğu için kalan alt sorular sınırlandırıldı.")
-            break
-        for s in srcs:
-            if s.url in seen_urls or len(notes) >= cfg["max_sources"]:
-                continue
-            seen_urls.add(s.url)
-            dom = (urlparse(s.url).hostname or "unknown").lower()
-            sid = f"S{len(notes) + 1}"
-            notes.append(
-                SourceNote(
-                    source_id=sid,
-                    url=s.url,
-                    title=s.title,
-                    domain=dom,
-                    credibility=classify_domain_credibility(s.url),
-                    published_date=s.published_date or accessed,
-                    accessed_date=accessed,
-                    summary=(s.snippet or s.title).strip(),
-                    short_quote=enforce_short_quote(s.snippet or s.title),
-                    subquestion=sq,
-                    producer=producer,
-                )
-            )
-
-    unique_domains = len({n.domain for n in notes})
-    diversity = round(unique_domains / max(1, len(notes)), 3) if notes else 0.0
+    diversity = round(len({n.domain for n in notes}) / max(1, len(notes)), 3) if notes else 0.0
     contradictions = build_contradiction_matrix(notes)
-
-    # RES-04 & RES-10: Synthesize structured cited report + per-source claim verification (preserving contradictions in matrix)
-    verified_lines: list[str] = []
-    removed_claims: list[str] = []
-    total_claims = 0
-    for n in notes:
-        stmt = f"{n.summary.rstrip('.')} [{n.source_id}]."
-        res_n = enforce_citation_policy(stmt, [{"id": n.source_id, "content": n.summary, "url": n.url, "doc": n.title}], strict=True)
-        total_claims += max(1, res_n["total_claims"])
-        if res_n["supported"] > 0:
-            verified_lines.append(stmt)
-        else:
-            removed_claims.append(stmt)
-    ver = {
-        "repaired_text": " ".join(verified_lines) if verified_lines else "Doğrulanmış web kaynağı bulunamadı.",
-        "supported": len(verified_lines),
-        "total_claims": total_claims,
-        "removed_claims": removed_claims,
-        "support_ratio": round(len(verified_lines) / max(1, total_claims), 4) if notes else 0.0,
-    }
+    ver = _verify_research_notes(notes)
     ver_line = (
         f"Doğrulama Özeti: {ver['total_claims']} iddia, {ver['supported']} doğrulandı, "
         f"{len(ver['removed_claims'])} çıkarıldı."
     )
-
     if speed_mode == "fast":
         limitations.append("Hızlı mod (<= 1 dk) kullanıldığı için kaynak kapsamı sınırlandırılmıştır.")
 
-    bib_lines = [
-        f"- [{n.source_id}] {format_citation([n.domain], n.published_date[:4], n.title, n.url, style=citation_style)} (Erişim: {n.accessed_date}, Güvenilirlik: {n.credibility})"
-        for n in notes
-    ]
-
-    # RES-06: Incremental diff if updating a previous research artifact
-    diff_section = ""
-    if prior_artifact_id:
-        prev = get_artifact(prior_artifact_id)
-        if prev:
-            prev_urls = set(re.findall(r"https?://\S+", prev.get("content") or ""))
-            new_notes = [n for n in notes if n.url not in prev_urls]
-            diff_section = f"\n\n## Güncelleme Farkı\n- Önceki araştırmaya göre {len(new_notes)} yeni kaynak eklendi.\n"
-
-    md_parts = [
-        f"# Araştırma Raporu: {topic}",
-        f"**Mod:** {speed_mode} | **Kaynak Sayısı:** {len(notes)} | **Alan Çeşitliliği:** {diversity:.2f}",
-        f"\n## Özet ve Bulgular\n{ver['repaired_text']}",
-        "\n## Çelişki Matrisi\n"
-        + (
-            "\n".join(f"- {c['source_a']} vs {c['source_b']}: {c['resolution_hint']}" for c in contradictions)
-            if contradictions
-            else "Kaynaklar arasında kritik çelişki tespit edilmedi."
-        ),
-        "\n## Belirsizlikler ve Sınırlılıklar\n"
-        + ("\n".join(f"- {lim}" for lim in limitations) if limitations else "- Kritik kısıt saptanmadı."),
-        f"\n## Doğrulama\n{ver_line}",
-        diff_section,
-        "\n## Kaynakça\n" + ("\n".join(bib_lines) if bib_lines else "Kaynak yok."),
-    ]
-    markdown = "\n".join(p for p in md_parts if p).strip()
+    markdown = _render_research_markdown(
+        topic,
+        speed_mode,
+        notes,
+        {
+            "diversity": diversity,
+            "repaired_text": ver["repaired_text"],
+            "contradictions": contradictions,
+            "limitations": limitations,
+            "ver_line": ver_line,
+            "diff_section": _build_diff_section(prior_artifact_id, notes),
+            "citation_style": citation_style,
+        },
+    )
 
     art = save_artifact(
         kind="research",

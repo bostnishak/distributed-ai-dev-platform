@@ -207,13 +207,13 @@ class ReActOutcome:
 async def run_react_loop(
     decide_next: Callable[[list[dict[str, Any]]], Awaitable[dict[str, Any]]],
     registry: ToolRegistry,
-    *,
-    max_steps: int = 8,
-    max_wall_s: float = 60.0,
-    approval_granted: bool = False,
-    actor: str = "user",
+    **opts: Any,
 ) -> ReActOutcome:
     """ORC-10: Bounded tool loop with wall-clock cap and repeated-call loop detector."""
+    max_steps = int(opts.get("max_steps", 8))
+    max_wall_s = float(opts.get("max_wall_s", 60.0))
+    approval_granted = bool(opts.get("approval_granted", False))
+    actor = str(opts.get("actor", "user"))
     t0 = time.monotonic()
     history: list[dict[str, Any]] = []
     seen_calls: dict[str, int] = {}
@@ -315,7 +315,7 @@ def _tool_file_convert_info(args: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _tool_sandbox_info(args: dict[str, Any]) -> dict[str, Any]:
+def _tool_sandbox_info(_args: dict[str, Any]) -> dict[str, Any]:
     import sandbox
 
     return sandbox.status()

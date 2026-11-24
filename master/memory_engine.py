@@ -17,6 +17,7 @@ from typing import Any
 
 import dbconn
 import dbindexes
+from prompt_loader import load_prompt
 
 
 def _memory_db_path() -> Path:
@@ -31,58 +32,7 @@ def _connect() -> sqlite3.Connection:
 
 def init_memory_db() -> None:
     with _connect() as conn:
-        conn.executescript(
-            """
-            CREATE TABLE IF NOT EXISTS conversations (
-                id TEXT PRIMARY KEY,
-                user_id TEXT NOT NULL DEFAULT 'default',
-                title TEXT NOT NULL,
-                summary TEXT DEFAULT '',
-                pinned_context TEXT DEFAULT '[]',
-                created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL
-            );
-
-            CREATE TABLE IF NOT EXISTS conversation_messages (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
-                role TEXT NOT NULL,
-                content TEXT NOT NULL,
-                model_used TEXT DEFAULT '',
-                task_type TEXT DEFAULT '',
-                workspace_id TEXT DEFAULT '',
-                cnc_job_id TEXT DEFAULT '',
-                feedback_score INTEGER DEFAULT 0,
-                created_at TEXT NOT NULL
-            );
-
-            CREATE VIRTUAL TABLE IF NOT EXISTS messages_fts USING fts5(
-                conversation_id UNINDEXED,
-                role UNINDEXED,
-                content
-            );
-
-            CREATE TABLE IF NOT EXISTS semantic_memories (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id TEXT NOT NULL DEFAULT 'default',
-                category TEXT NOT NULL,
-                fact_key TEXT NOT NULL,
-                fact_value TEXT NOT NULL,
-                confidence REAL NOT NULL DEFAULT 1.0,
-                updated_at TEXT NOT NULL,
-                UNIQUE(user_id, category, fact_key)
-            );
-
-            CREATE TABLE IF NOT EXISTS procedural_skills (
-                id TEXT PRIMARY KEY,
-                name TEXT NOT NULL,
-                trigger_pattern TEXT NOT NULL,
-                solution_template TEXT NOT NULL,
-                success_count INTEGER DEFAULT 1,
-                created_at TEXT NOT NULL
-            );
-            """
-        )
+        conn.executescript(load_prompt("b1_memory_schema.txt"))
     with _connect() as conn:
         dbindexes.ensure_indexes(conn)
 
@@ -93,10 +43,11 @@ def record_conversation_turn(
     assistant_text: str,
     model_used: str = "",
     task_type: str = "",
-    user_id: str = "default",
-    learn: bool = True,
+    **opts: Any,
 ) -> None:
     """Persist a user+assistant turn into Episodic Memory and index in FTS5."""
+    user_id = str(opts.get("user_id", "default"))
+    learn = bool(opts.get("learn", True))
     init_memory_db()
     now = datetime.now(UTC).isoformat()
     title = user_text.strip()[:60] or "Sohbet"
@@ -263,10 +214,17 @@ def register_procedural_skill(skill_id: str, name: str, trigger_pattern: str, so
 
 def build_memory_context_block(query: str, user_id: str = "default") -> str:
     """Build a compact memory block to inject into the Assistant's system prompt."""
-    facts = list_semantic_facts(user_id=user_id)[:8]
+    facts = list_semantic_facts(user_id=user_id)
     if not facts:
         return ""
+    q_tokens = {t.lower() for t in re.findall(r"[A-Za-z0-9ÇĞİÖŞÜçğıöşü]{3,}", query or "")}
+    if q_tokens:
+        facts = sorted(
+            facts,
+            key=lambda f: sum(1 for t in q_tokens if t in str(f.get("fact_value", "")).lower()),
+            reverse=True,
+        )
     lines = ["--- Öğrenilen Kullanıcı ve Proje Hafızası ---"]
-    for f in facts:
+    for f in facts[:8]:
         lines.append(f"- [{f['category']}] {f['fact_value']}")
     return "\n".join(lines)

@@ -5,12 +5,15 @@ from __future__ import annotations
 import hashlib
 import html
 import re
-import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 from injection import detect_injection
+from rag.parsing_ocr import (  # noqa: F401
+    recognize_handwriting_image_bytes,
+    run_ocr_on_image_bytes,
+)
 
 _INJECTION_PATTERNS: tuple[re.Pattern[str], ...] = (
     re.compile(r"ignore\s+(?:all\s+)?previous\s+instructions", re.IGNORECASE),
@@ -85,159 +88,6 @@ def scan_ingest_security(text: str) -> dict[str, Any]:
     }
 
 
-# ---------------------------------------------------------------- RAG-03 OCR Helper
-
-def run_ocr_on_image_bytes(image_bytes: bytes) -> tuple[str, float, list[str]]:
-    """RAG-03: Run Tesseract OCR (tur+eng) if installed; return clear DEF-15 message if unavailable."""
-    try:
-        import importlib
-        import io
-
-        pytesseract = importlib.import_module("pytesseract")
-        from PIL import Image
-
-        img = Image.open(io.BytesIO(image_bytes))
-        data = pytesseract.image_to_data(img, lang="tur+eng", output_type=pytesseract.Output.DICT)
-        words: list[str] = []
-        confs: list[float] = []
-        for txt, conf in zip(data.get("text", []), data.get("conf", []), strict=False):
-            cleaned = str(txt or "").strip()
-            if cleaned:
-                words.append(cleaned)
-                try:
-                    c = float(conf)
-                    if c >= 0:
-                        confs.append(c / 100.0)
-                except ValueError:
-                    pass
-        avg_conf = round(sum(confs) / len(confs), 3) if confs else 0.0
-        warnings = ["Düşük OCR güveni: taranmış sayfa bulanık olabilir."] if avg_conf < 0.75 else []
-        return " ".join(words), avg_conf, warnings
-    except (ImportError, OSError, RuntimeError, ValueError, TypeError, AttributeError, LookupError, subprocess.SubprocessError) as exc:
-        return (
-            "",
-            0.0,
-            [f"OCR motoru (Tesseract) kurulu değil veya çalıştırılamadı; taranmış sayfa okunamadı ({type(exc).__name__})."],
-        )
-
-
-def recognize_handwriting_image_bytes(
-    image_bytes: bytes,
-    *,
-    language: str = "tur+eng",
-) -> dict[str, Any]:
-    """DOS-08: Preprocess handwritten note images (grayscale, autocontrast, adaptive threshold) and run OCR/TrOCR."""
-    import importlib
-    import io
-
-    from PIL import Image, ImageFilter, ImageOps
-
-    if not image_bytes:
-        raise ValueError("Görsel içeriği boş.")
-    img = Image.open(io.BytesIO(image_bytes))
-    gray = ImageOps.grayscale(img)
-    enhanced = ImageOps.autocontrast(gray, cutoff=2).filter(ImageFilter.SHARPEN)
-    w, h = enhanced.size
-    hist = enhanced.histogram()
-    total_px = max(1, w * h)
-    # Otsu-like mean threshold for ink segmentation
-    mean_luma = sum(i * c for i, c in enumerate(hist[:256])) / total_px
-    thresh = max(60, min(200, int(mean_luma * 0.85)))
-    binary = enhanced.point(lambda p: 255 if p > thresh else 0)
-    dark_px = sum(1 for px in binary.tobytes() if px == 0)
-    ink_ratio = round(dark_px / total_px, 4)
-
-    # Estimate horizontal text bands (line count) from row ink projection
-    raw_bin = binary.tobytes()
-    row_has_ink = [
-        sum(1 for x in range(w) if raw_bin[y * w + x] == 0) > max(2, int(w * 0.015))
-        for y in range(h)
-    ]
-    line_bands = 0
-    in_band = False
-    for flag in row_has_ink:
-        if flag and not in_band:
-            line_bands += 1
-            in_band = True
-        elif not flag:
-            in_band = False
-
-    preprocessed_meta: dict[str, Any] = {
-        "width": w,
-        "height": h,
-        "threshold": thresh,
-        "ink_ratio": ink_ratio,
-        "estimated_lines": line_bands,
-    }
-
-    # 1. Try TrOCR if transformers + torch are installed locally
-    try:
-        if importlib.util.find_spec("transformers") and importlib.util.find_spec("torch"):
-            # Only use already-cached local TrOCR weights to preserve 100% offline guarantee
-            transformers = importlib.import_module("transformers")
-            proc = transformers.TrOCRProcessor.from_pretrained("microsoft/trocr-base-handwritten", local_files_only=True)
-            mdl = transformers.VisionEncoderDecoderModel.from_pretrained("microsoft/trocr-base-handwritten", local_files_only=True)
-            pixel_values = proc(images=enhanced.convert("RGB"), return_tensors="pt").pixel_values
-            generated_ids = mdl.generate(pixel_values)
-            text = str(proc.batch_decode(generated_ids, skip_special_tokens=True)[0] or "").strip()
-            return {
-                "engine": "trocr-local",
-                "text": text,
-                "confidence": 0.88 if text else 0.0,
-                "language": language,
-                "preprocessed": preprocessed_meta,
-                "warnings": [] if text else ["TrOCR çıktı üretmedi."],
-            }
-    except (ImportError, OSError, RuntimeError, ValueError) as trocr_exc:
-        preprocessed_meta["trocr_fallback_reason"] = type(trocr_exc).__name__
-
-    # 2. Try Tesseract with handwriting-tuned PSM 6 on binarized image
-    buf = io.BytesIO()
-    binary.save(buf, format="PNG")
-    try:
-        pytesseract = importlib.import_module("pytesseract")
-        data = pytesseract.image_to_data(
-            binary,
-            lang=language,
-            config="--oem 1 --psm 6",
-            output_type=pytesseract.Output.DICT,
-        )
-        words: list[str] = []
-        confs: list[float] = []
-        for txt, conf in zip(data.get("text", []), data.get("conf", []), strict=False):
-            cleaned = str(txt or "").strip()
-            if cleaned:
-                words.append(cleaned)
-                try:
-                    c = float(conf)
-                    if c >= 0:
-                        confs.append(c / 100.0)
-                except ValueError:
-                    pass
-        avg_conf = round(sum(confs) / len(confs), 3) if confs else 0.0
-        warnings = ["El yazısı güven skoru düşük; daha yüksek kontrastlı çekim önerilir."] if avg_conf < 0.7 else []
-        return {
-            "engine": "tesseract-handwriting",
-            "text": " ".join(words),
-            "confidence": avg_conf,
-            "language": language,
-            "preprocessed": preprocessed_meta,
-            "warnings": warnings,
-        }
-    except (ImportError, OSError, RuntimeError, ValueError, TypeError, AttributeError, LookupError, subprocess.SubprocessError) as exc:
-        return {
-            "engine": "preprocessed-offline",
-            "text": "",
-            "confidence": 0.0,
-            "language": language,
-            "preprocessed": preprocessed_meta,
-            "warnings": [
-                f"Görsel el yazısı için ön işlendi ({line_bands} satır bandı, mürekkep oranı {ink_ratio}), "
-                f"ancak yerel Tesseract/TrOCR motoru bulunamadı ({type(exc).__name__})."
-            ],
-        }
-
-
 # ---------------------------------------------------------------- RAG-02 Structure-Preserving Parsers
 
 def _extract_markdown_tables(md: str, page: int = 1, section: str = "") -> list[ParsedTable]:
@@ -271,7 +121,8 @@ def parse_document(file_path: Path | None = None, *, raw_text: str | None = None
         tabs = _extract_markdown_tables(raw_text, page=1)
         return ParsedDocument(title=title or "text_doc", source_type="markdown", pages=[ParsedPage(1, raw_text, tables=tabs)], tables=tabs)
 
-    assert file_path is not None
+    if file_path is None:
+        raise ValueError("file_path veya raw_text zorunludur.")
     p = Path(file_path)
     ext = p.suffix.lower()
     doc_title = title or p.name
@@ -439,175 +290,185 @@ def _approx_tokens(text: str) -> int:
     return max(1, int(len((text or "").split()) * 1.3))
 
 
+def _is_md_table_start(lines: list[str], idx: int) -> bool:
+    return "|" in lines[idx] and idx + 1 < len(lines) and bool(re.match(r"^\s*\|?[\s:\-|]+\|[\s:\-|]*$", lines[idx + 1]))
+
+
+def _consume_fenced_code(lines: list[str], idx: int) -> tuple[str, int]:
+    buf = [lines[idx]]
+    idx += 1
+    while idx < len(lines):
+        buf.append(lines[idx])
+        is_end = lines[idx].strip().startswith("```")
+        idx += 1
+        if is_end:
+            break
+    return "\n".join(buf), idx
+
+
+def _consume_table_block(lines: list[str], idx: int) -> tuple[str, int]:
+    buf = [lines[idx], lines[idx + 1]]
+    idx += 2
+    while idx < len(lines) and "|" in lines[idx] and lines[idx].strip():
+        buf.append(lines[idx])
+        idx += 1
+    return "\n".join(buf), idx
+
+
+def _consume_para_block(lines: list[str], idx: int) -> tuple[str, int]:
+    buf = [lines[idx]]
+    idx += 1
+    while idx < len(lines) and lines[idx].strip() and not lines[idx].strip().startswith(("#", "```")):
+        if _is_md_table_start(lines, idx):
+            break
+        buf.append(lines[idx])
+        idx += 1
+    return "\n".join(buf), idx
+
+
 def _split_atomic_blocks(md: str) -> list[tuple[str, str]]:
     """Split markdown into atomic blocks: ('heading'|'code'|'table'|'para', content). Never breaks tables/code."""
     blocks: list[tuple[str, str]] = []
     lines = (md or "").splitlines()
     i = 0
     while i < len(lines):
-        line = lines[i]
-        stripped = line.strip()
+        stripped = lines[i].strip()
         if not stripped:
             i += 1
-            continue
-        if stripped.startswith("```"):
-            buf = [line]
-            i += 1
-            while i < len(lines):
-                buf.append(lines[i])
-                if lines[i].strip().startswith("```"):
-                    i += 1
-                    break
-                i += 1
-            blocks.append(("code", "\n".join(buf)))
-            continue
-        if stripped.startswith("#"):
+        elif stripped.startswith("```"):
+            content, i = _consume_fenced_code(lines, i)
+            blocks.append(("code", content))
+        elif stripped.startswith("#"):
             blocks.append(("heading", stripped))
             i += 1
-            continue
-        if "|" in line and i + 1 < len(lines) and re.match(r"^\s*\|?[\s:\-|]+\|[\s:\-|]*$", lines[i + 1]):
-            buf = [line, lines[i + 1]]
-            i += 2
-            while i < len(lines) and "|" in lines[i] and lines[i].strip():
-                buf.append(lines[i])
-                i += 1
-            blocks.append(("table", "\n".join(buf)))
-            continue
-        buf = [line]
-        i += 1
-        while i < len(lines) and lines[i].strip() and not lines[i].strip().startswith(("#", "```")):
-            if "|" in lines[i] and i + 1 < len(lines) and re.match(r"^\s*\|?[\s:\-|]+\|[\s:\-|]*$", lines[i + 1]):
-                break
-            buf.append(lines[i])
-            i += 1
-        blocks.append(("para", "\n".join(buf)))
+        elif _is_md_table_start(lines, i):
+            content, i = _consume_table_block(lines, i)
+            blocks.append(("table", content))
+        else:
+            content, i = _consume_para_block(lines, i)
+            blocks.append(("para", content))
     return blocks
+
+
+def _make_chunk_record(parts: list[str], sec: str, meta: tuple[int, int, int, bool]) -> ChunkRecord:
+    chunk_idx, page_num, global_offset, page_is_ocr = meta
+    body = "\n\n".join(parts).strip()
+    full_text = f"[{sec}]\n{body}" if sec and not body.startswith("#") else body
+    sec_scan = scan_ingest_security(full_text)
+    h = hashlib.sha256(full_text.encode("utf-8")).hexdigest()[:24]
+    return ChunkRecord(
+        chunk_index=chunk_idx,
+        page=page_num,
+        section=sec,
+        offset=global_offset,
+        content=full_text,
+        content_hash=h,
+        is_table=False,
+        is_ocr=page_is_ocr,
+        quarantine=sec_scan["quarantine"],
+        pii_tags=sec_scan["pii_tags"],
+    )
+
+
+def _update_heading_stack(heading_stack: list[tuple[int, str]], btext: str) -> None:
+    level = len(btext) - len(btext.lstrip("#"))
+    title_txt = btext.lstrip("#").strip()
+    while heading_stack and heading_stack[-1][0] >= level:
+        heading_stack.pop()
+    heading_stack.append((level, title_txt))
 
 
 def chunk_document(parsed: ParsedDocument, *, min_tokens: int = 300, max_tokens: int = 750) -> list[ChunkRecord]:
     """RAG-04: Structure-aware chunking preserving heading breadcrumbs, whole tables, and whole code blocks."""
     chunks: list[ChunkRecord] = []
     heading_stack: list[tuple[int, str]] = []
-    chunk_idx = 0
-    global_offset = 0
+    state = {"idx": 0, "offset": 0}
 
     for page in parsed.pages:
-        blocks = _split_atomic_blocks(page.markdown)
         cur_parts: list[str] = []
         cur_tokens = 0
         cur_has_table = False
 
-        def _breadcrumb() -> str:
-            return " > ".join(h for _, h in heading_stack)
-
         def _flush(page_num: int = page.page_number, page_is_ocr: bool = page.is_ocr) -> None:
-            nonlocal chunk_idx, cur_parts, cur_tokens, cur_has_table, global_offset
+            nonlocal cur_parts, cur_tokens, cur_has_table
             if not cur_parts:
                 return
-            sec = _breadcrumb()
-            body = "\n\n".join(cur_parts).strip()
-            full_text = f"[{sec}]\n{body}" if sec and not body.startswith("#") else body
-            sec_scan = scan_ingest_security(full_text)
-            h = hashlib.sha256(full_text.encode("utf-8")).hexdigest()[:24]
-            chunks.append(
-                ChunkRecord(
-                    chunk_index=chunk_idx,
-                    page=page_num,
-                    section=sec,
-                    offset=global_offset,
-                    content=full_text,
-                    content_hash=h,
-                    is_table=cur_has_table,
-                    is_ocr=page_is_ocr,
-                    quarantine=sec_scan["quarantine"],
-                    pii_tags=sec_scan["pii_tags"],
-                )
-            )
-            chunk_idx += 1
-            global_offset += len(full_text)
-            cur_parts = []
-            cur_tokens = 0
-            cur_has_table = False
+            sec = " > ".join(h for _, h in heading_stack)
+            rec = _make_chunk_record(cur_parts, sec, (state["idx"], page_num, state["offset"], page_is_ocr))
+            rec.is_table = cur_has_table
+            chunks.append(rec)
+            state["idx"] += 1
+            state["offset"] += len(rec.content)
+            cur_parts, cur_tokens, cur_has_table = [], 0, False
 
-        for btype, btext in blocks:
+        for btype, btext in _split_atomic_blocks(page.markdown):
+            btoks = _approx_tokens(btext)
             if btype == "heading":
-                level = len(btext) - len(btext.lstrip("#"))
-                title_txt = btext.lstrip("#").strip()
                 if cur_tokens >= min_tokens // 2:
                     _flush()
-                while heading_stack and heading_stack[-1][0] >= level:
-                    heading_stack.pop()
-                heading_stack.append((level, title_txt))
-                cur_parts.append(btext)
-                cur_tokens += _approx_tokens(btext)
-                continue
-
-            btoks = _approx_tokens(btext)
-            # Never split atomic tables or code blocks; flush before them if adding overflows max_tokens
-            if cur_parts and cur_tokens + btoks > max_tokens:
+                _update_heading_stack(heading_stack, btext)
+            elif cur_parts and cur_tokens + btoks > max_tokens:
                 _flush()
             cur_parts.append(btext)
             cur_tokens += btoks
-            if btype == "table":
-                cur_has_table = True
-            if cur_tokens >= max_tokens:
+            cur_has_table = cur_has_table or (btype == "table")
+            if btype != "heading" and cur_tokens >= max_tokens:
                 _flush()
-
         _flush()
     return chunks
 
 
 # ---------------------------------------------------------------- RAG-16 Deterministic Table QA
 
+def _parse_numeric_cell(cell: str) -> float | None:
+    raw = cell.replace(" ", "").replace("TL", "").replace("$", "").replace("%", "")
+    if "," in raw and "." in raw:
+        raw = raw.replace(".", "").replace(",", ".")
+    elif "," in raw:
+        raw = raw.replace(",", ".")
+    try:
+        return float(raw)
+    except ValueError:
+        return None
+
+
+def _aggregate_values(vals: list[float], op: str) -> float:
+    ops: dict[str, Any] = {
+        "sum": sum,
+        "avg": lambda vs: sum(vs) / len(vs),
+        "mean": lambda vs: sum(vs) / len(vs),
+        "min": min,
+        "max": max,
+        "count": lambda vs: float(len(vs)),
+    }
+    fn = ops.get(op)
+    if fn is None:
+        raise ValueError(f"Desteklenmeyen tablo işlemi: {op}")
+    return float(fn(vals))
+
+
 def query_table_numeric(table: ParsedTable, operation: str, column_name: str) -> dict[str, Any]:
     """RAG-16: Deterministic numeric aggregation (sum/avg/min/max/count) over structured table cells."""
-    col_idx = -1
     target = column_name.strip().lower()
-    for i, h in enumerate(table.headers):
-        if target in h.strip().lower():
-            col_idx = i
-            break
+    col_idx = next((i for i, h in enumerate(table.headers) if target in h.strip().lower()), -1)
     if col_idx < 0:
         raise ValueError(f"Sütun bulunamadı: {column_name}")
 
     vals: list[float] = []
     cell_refs: list[str] = []
     for r_idx, row in enumerate(table.rows, start=1):
-        if col_idx >= len(row):
-            continue
-        raw = row[col_idx].replace(" ", "").replace("TL", "").replace("$", "").replace("%", "")
-        # Handle Turkish decimal/thousand formatting cleanly
-        if "," in raw and "." in raw:
-            raw = raw.replace(".", "").replace(",", ".")
-        elif "," in raw:
-            raw = raw.replace(",", ".")
-        try:
-            vals.append(float(raw))
+        num = _parse_numeric_cell(row[col_idx]) if col_idx < len(row) else None
+        if num is not None:
+            vals.append(num)
             cell_refs.append(f"R{r_idx}C{col_idx + 1}")
-        except ValueError:
-            continue
-
     if not vals:
         raise ValueError(f"'{column_name}' sütununda sayısal değer bulunamadı.")
 
     op = operation.lower()
-    if op == "sum":
-        res = sum(vals)
-    elif op in {"avg", "mean"}:
-        res = sum(vals) / len(vals)
-    elif op == "min":
-        res = min(vals)
-    elif op == "max":
-        res = max(vals)
-    elif op == "count":
-        res = float(len(vals))
-    else:
-        raise ValueError(f"Desteklenmeyen tablo işlemi: {operation}")
-
     return {
         "operation": op,
         "column": table.headers[col_idx],
-        "result": round(res, 6),
+        "result": round(_aggregate_values(vals, op), 6),
         "count": len(vals),
         "cell_range": f"{cell_refs[0]}:{cell_refs[-1]}",
         "page": table.page,

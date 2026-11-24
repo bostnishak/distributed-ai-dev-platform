@@ -4,22 +4,15 @@ from __future__ import annotations
 
 from typing import Any
 
+from prompt_loader import load_prompt
+
 # 8 working starter templates — LLM customizes these instead of writing boilerplate from scratch (IDE-17)
 STARTER_TEMPLATES: dict[str, dict[str, Any]] = {
     "fastapi_sqlite": {
         "name": "FastAPI + SQLite Web API",
         "stack": ["python", "fastapi", "sqlite", "pytest"],
         "files": {
-            "app.py": (
-                "from fastapi import FastAPI\n\n"
-                "app = FastAPI(title='{{PROJECT_NAME}}')\n\n"
-                "@app.get('/health')\n"
-                "def health():\n"
-                "    return {'status': 'ok', 'app': '{{PROJECT_NAME}}'}\n\n"
-                "@app.get('/items')\n"
-                "def list_items():\n"
-                "    return {'items': ['ornek-1', 'ornek-2']}\n"
-            ),
+            "app.py": load_prompt("b4_tpl_fastapi_app.txt"),
             "tests/test_app.py": (
                 "from app import health, list_items\n\n"
                 "def test_health():\n"
@@ -47,7 +40,7 @@ STARTER_TEMPLATES: dict[str, dict[str, Any]] = {
         "name": "Python CLI Aracı",
         "stack": ["python", "argparse", "pytest"],
         "files": {
-            "cli.py": "import argparse\n\ndef compute(val: int) -> int:\n    return val * 2\n\ndef main() -> int:\n    p = argparse.ArgumentParser(description='{{PROJECT_NAME}}')\n    p.add_argument('--value', type=int, default=21)\n    args = p.parse_args()\n    print(compute(args.value))\n    return 0\n\nif __name__ == '__main__':\n    raise SystemExit(main())\n",
+            "cli.py": load_prompt("b4_tpl_cli_tool.txt"),
             "tests/test_cli.py": "from cli import compute\ndef test_compute():\n    assert compute(21) == 42\n",
             "requirements.txt": "pytest==8.3.0\n",
             "README.md": "# {{PROJECT_NAME}}\n\n```bash\npython cli.py --value 21\npytest -q\n```\n",

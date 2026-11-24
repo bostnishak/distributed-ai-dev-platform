@@ -5110,1988 +5110,2484 @@
       "note": "Replaced all blind except Exception with specific exception tuples; ruff --select BLE001 = 0"
     },
     "KMP-01": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-02": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-03": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-04": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-05": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-06": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-07": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-08": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-09": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-10": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-11": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-12": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-13": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-14": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-15": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-16": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-17": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-18": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-19": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-20": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-21": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-22": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-23": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-24": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-25": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-26": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-27": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-28": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-29": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-30": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-31": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-32": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-33": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-34": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-35": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-36": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-37": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-38": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-39": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-40": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-41": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-42": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-43": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-44": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-45": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-46": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-47": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-48": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-49": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-50": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-51": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-52": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-53": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-54": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-55": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-56": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-57": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-58": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-59": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-60": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-61": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-62": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-63": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-64": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-65": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-66": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-67": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-68": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-69": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-70": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-71": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-72": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-73": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-74": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "KMP-75": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-01": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-02": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-03": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-04": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-05": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-06": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-07": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-08": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-09": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-10": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-11": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-12": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-13": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-14": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-15": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-16": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-17": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-18": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-19": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-20": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-21": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-22": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-23": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-24": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-25": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-26": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-27": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-28": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-29": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-30": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-31": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-32": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-33": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-34": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-35": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-36": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-37": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-38": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-39": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-40": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-41": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-42": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-43": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-44": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-45": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-46": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-47": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-48": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PYD-49": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-01": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-02": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-03": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-04": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-05": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-06": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-07": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-08": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-09": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-10": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-11": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-12": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-13": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-14": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-15": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-16": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-17": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-18": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-19": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-20": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-21": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-22": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-23": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-24": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-25": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-26": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-27": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-28": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-29": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-30": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-31": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-32": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-33": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-34": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-35": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-36": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-37": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-38": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-39": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-40": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-41": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-42": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-43": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-44": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-45": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-46": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-47": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-48": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-49": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-50": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-51": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-52": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-53": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-54": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "PRM-55": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-01": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-02": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-03": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-04": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-05": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-06": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-07": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-08": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-09": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-10": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-11": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-12": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-13": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-14": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-15": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-16": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-17": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-18": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-19": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-20": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-21": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-22": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-23": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-24": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-25": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-26": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-27": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-28": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-29": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-30": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-31": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-32": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-33": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-34": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-35": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-36": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-37": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-38": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-39": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-40": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-41": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "DAL-42": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "UZN-01": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "UZN-02": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "UZN-03": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "UZN-04": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "UZN-05": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "UZN-06": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "UZN-07": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "UZN-08": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "UZN-09": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "UZN-10": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "UZN-11": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "UZN-12": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "UZN-13": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "UZN-14": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "UZN-15": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "UZN-16": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "UZN-17": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "UZN-18": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "UZN-19": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "UZN-20": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "UZN-21": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "UZN-22": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "UZN-23": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "UZN-24": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "UZN-25": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "UZN-26": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "UZN-27": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "SQL-01": {
       "status": "done",
@@ -7380,476 +7876,594 @@
       }
     },
     "STA-01": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-02": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-03": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-04": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-05": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-06": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-07": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-08": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-09": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-10": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-11": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-12": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-13": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-14": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-15": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-16": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-17": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-18": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-19": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-20": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-21": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-22": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-23": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-24": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-25": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-26": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-27": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-28": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-29": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-30": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-31": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-32": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-33": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-34": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-35": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-36": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-37": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-38": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-39": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-40": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-41": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-42": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-43": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-44": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-45": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-46": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-47": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-48": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-49": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-50": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-51": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-52": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-53": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-54": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-55": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-56": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-57": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-58": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "STA-59": {
-      "status": "open",
+      "status": "done",
       "evidence": {
-        "tests": [],
-        "commit": "",
-        "eval_report": ""
-      }
+        "tests": [
+          "master/tests/test_plan_v3_wiring_and_dos08.py::test_scan_py_and_ruff_static_zero"
+        ],
+        "note": "Wave 2 Python static quality refactor: scan_py.py==0, strict ruff (C901/PLR0912/PLR0915/PLR0913/STA)==0, pyrefly==0, wiring==0, 518 pytest passed."
+      },
+      "updated_at": "2026-11-24T09:51:55Z"
     },
     "XSS-01": {
       "status": "done",

@@ -62,84 +62,83 @@ def _is_same_origin(origin: str, request: Request) -> bool:
         return False
 
 
+def _check_mutating_guards(request: Request) -> JSONResponse | None:
+    if request.method not in _MUTATING_METHODS:
+        return None
+    origin = (request.headers.get("origin") or "").strip()
+    if origin and not _is_same_origin(origin, request):
+        return JSONResponse(
+            status_code=403,
+            content={"detail": "Farklı kaynak (cross-origin) mutasyon isteği engellendi."},
+        )
+    cookie_tok = request.cookies.get(CSRF_COOKIE_NAME, "")
+    has_api_auth = bool(
+        request.headers.get("authorization")
+        or request.headers.get("x-admin-token")
+        or request.headers.get("x-agent-key")
+    )
+    if cookie_tok and not has_api_auth:
+        header_tok = request.headers.get(CSRF_HEADER_NAME, "")
+        if not header_tok or not hmac.compare_digest(cookie_tok.encode(), header_tok.encode()):
+            return JSONResponse(
+                status_code=403,
+                content={"detail": "CSRF doğrulaması başarısız (X-CSRF-Token eksik veya geçersiz)."},
+            )
+    return None
+
+
+def _check_api_guards(request: Request, path: str) -> JSONResponse | None:
+    if not path.startswith("/api/"):
+        return None
+    client_ip = request.client.host if request.client else "unknown"
+    allowed, retry_after = _API_RATE_LIMITER.take(f"{client_ip}:{request.method}:{path}")
+    if not allowed:
+        return JSONResponse(
+            status_code=429,
+            headers={"Retry-After": str(max(1, int(retry_after) + 1))},
+            content={"detail": "İstek hız sınırı aşıldı. Lütfen kısa süre sonra tekrar deneyin."},
+        )
+    session_cookie = request.cookies.get(auth_service.SESSION_COOKIE_NAME)
+    if session_cookie:
+        session_user = auth_service.get_session_user(session_cookie)
+        if session_user and not auth_policy.can(str(session_user.get("role") or "viewer"), request.method, path):
+            return JSONResponse(status_code=403, content={"detail": "Bu işlem için rolünüz yetmiyor."})
+    return None
+
+
+def _apply_security_headers(response, request: Request, path: str, is_preview: bool) -> None:
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault("Permissions-Policy", "camera=(), geolocation=(), microphone=(self)")
+    response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+    response.headers.setdefault("Cross-Origin-Opener-Policy", "same-origin")
+    response.headers.setdefault("Cross-Origin-Resource-Policy", "same-origin")
+    if path.startswith("/api/"):
+        response.headers.setdefault("Cache-Control", "no-store")
+    if is_preview:
+        response.headers["Content-Security-Policy"] = PREVIEW_CSP
+        response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    else:
+        response.headers.setdefault("Content-Security-Policy", APP_CSP)
+        response.headers.setdefault("X-Frame-Options", "DENY")
+    if path == "/" and CSRF_COOKIE_NAME not in request.cookies:
+        response.set_cookie(
+            key=CSRF_COOKIE_NAME,
+            value=secrets.token_urlsafe(24),
+            httponly=False,
+            samesite="strict",
+            secure=request.url.scheme == "https",
+            path="/",
+        )
+
+
 class SecurityHeadersAndCSRFMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         path = request.url.path
         is_preview = "/preview/" in path and path.startswith("/api/studio/workspaces/")
-
-        # 1. Cross-Origin rejection on all mutating endpoints (CORS disabled -> same-origin only)
-        if request.method in _MUTATING_METHODS:
-            origin = (request.headers.get("origin") or "").strip()
-            if origin and not _is_same_origin(origin, request):
-                return JSONResponse(
-                    status_code=403,
-                    content={"detail": "Farklı kaynak (cross-origin) mutasyon isteği engellendi."},
-                )
-
-            # 2. Double-submit CSRF verification when a browser session cookie is present
-            cookie_tok = request.cookies.get(CSRF_COOKIE_NAME, "")
-            has_api_auth = bool(
-                request.headers.get("authorization")
-                or request.headers.get("x-admin-token")
-                or request.headers.get("x-agent-key")
-            )
-            if cookie_tok and not has_api_auth:
-                header_tok = request.headers.get(CSRF_HEADER_NAME, "")
-                if not header_tok or not hmac.compare_digest(cookie_tok.encode(), header_tok.encode()):
-                    return JSONResponse(
-                        status_code=403,
-                        content={"detail": "CSRF doğrulaması başarısız (X-CSRF-Token eksik veya geçersiz)."},
-                    )
-
-        # 2b. Global token-bucket rate limiting on API routes (HDR-06)
-        if path.startswith("/api/"):
-            client_ip = request.client.host if request.client else "unknown"
-            allowed, retry_after = _API_RATE_LIMITER.take(f"{client_ip}:{request.method}:{path}")
-            if not allowed:
-                return JSONResponse(
-                    status_code=429,
-                    headers={"Retry-After": str(max(1, int(retry_after) + 1))},
-                    content={"detail": "İstek hız sınırı aşıldı. Lütfen kısa süre sonra tekrar deneyin."},
-                )
-
-            # 2c. Role matrix enforcement whenever a signed-in session user is present (ALT-14)
-            session_cookie = request.cookies.get(auth_service.SESSION_COOKIE_NAME)
-            if session_cookie:
-                session_user = auth_service.get_session_user(session_cookie)
-                if session_user and not auth_policy.can(str(session_user.get("role") or "viewer"), request.method, path):
-                    return JSONResponse(
-                        status_code=403,
-                        content={"detail": "Bu işlem için rolünüz yetmiyor."},
-                    )
-
+        blocked = _check_mutating_guards(request) or _check_api_guards(request, path)
+        if blocked is not None:
+            return blocked
         response = await call_next(request)
-
-        # 3. Security headers (HDR-01..05)
-        response.headers.setdefault("X-Content-Type-Options", "nosniff")
-        response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
-        response.headers.setdefault("Permissions-Policy", "camera=(), geolocation=(), microphone=(self)")
-        response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
-        response.headers.setdefault("Cross-Origin-Opener-Policy", "same-origin")
-        response.headers.setdefault("Cross-Origin-Resource-Policy", "same-origin")
-        if path.startswith("/api/"):
-            response.headers.setdefault("Cache-Control", "no-store")
-        if is_preview:
-            # SEC-17: Force opaque null origin sandbox on preview responses; never send cookies
-            response.headers["Content-Security-Policy"] = PREVIEW_CSP
-            response.headers["X-Frame-Options"] = "SAMEORIGIN"
-        else:
-            response.headers.setdefault("Content-Security-Policy", APP_CSP)
-            response.headers.setdefault("X-Frame-Options", "DENY")
-
-        # 4. Issue CSRF double-submit cookie on root UI load
-        if path == "/" and CSRF_COOKIE_NAME not in request.cookies:
-            token = secrets.token_urlsafe(24)
-            response.set_cookie(
-                key=CSRF_COOKIE_NAME,
-                value=token,
-                httponly=False,  # JS reads cookie and mirrors into X-CSRF-Token header (double-submit pattern)
-                samesite="strict",
-                secure=request.url.scheme == "https",
-                path="/",
-            )
+        _apply_security_headers(response, request, path, is_preview)
         return response

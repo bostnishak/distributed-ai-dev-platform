@@ -15,6 +15,40 @@ import db
 log = logging.getLogger(__name__)
 
 
+def _parse_task_files(task: dict) -> list[dict]:
+    raw_files = task.get("files")
+    if not raw_files:
+        return []
+    try:
+        parsed = json.loads(raw_files) if isinstance(raw_files, str) else raw_files
+    except (json.JSONDecodeError, TypeError):
+        return []
+    return parsed if isinstance(parsed, list) else []
+
+
+def _record_overlaps(
+    project_id: int,
+    existing_task_id: int,
+    new_task_id: int,
+    overlap: set[str],
+) -> list[dict]:
+    recorded: list[dict] = []
+    for path in overlap:
+        conflict_id = db.save_conflict(project_id, existing_task_id, new_task_id, path)
+        if conflict_id:
+            log.warning(
+                "Conflict detected in project %d: tasks %d and %d both write '%s'",
+                project_id, existing_task_id, new_task_id, path,
+            )
+            recorded.append({
+                "id": conflict_id,
+                "task_id_a": existing_task_id,
+                "task_id_b": new_task_id,
+                "file_path": path,
+            })
+    return recorded
+
+
 def detect_and_save(project_id: int, new_task_id: int, new_files: list[dict]) -> list[dict]:
     """Compare new_task's output files against all other done tasks in the project.
 
@@ -28,41 +62,16 @@ def detect_and_save(project_id: int, new_task_id: int, new_files: list[dict]) ->
     if not new_paths:
         return []
 
-    # Fetch all other done tasks in this project that have files
     tasks = db.list_tasks(project_id)
     conflicts_found: list[dict] = []
 
     for task in tasks:
-        if task["id"] == new_task_id:
+        if task["id"] == new_task_id or task["status"] != "done":
             continue
-        if task["status"] != "done":
-            continue
-        if not task.get("files"):
-            continue
-
-        try:
-            existing_files = json.loads(task["files"]) if isinstance(task["files"], str) else task["files"]
-        except (json.JSONDecodeError, TypeError):
-            continue
-
+        existing_files = _parse_task_files(task)
         if not existing_files:
             continue
-
         existing_paths = {f["path"] for f in existing_files if f.get("path")}
-        overlap = new_paths & existing_paths
-
-        for path in overlap:
-            conflict_id = db.save_conflict(project_id, task["id"], new_task_id, path)
-            if conflict_id:
-                log.warning(
-                    "Conflict detected in project %d: tasks %d and %d both write '%s'",
-                    project_id, task["id"], new_task_id, path,
-                )
-                conflicts_found.append({
-                    "id": conflict_id,
-                    "task_id_a": task["id"],
-                    "task_id_b": new_task_id,
-                    "file_path": path,
-                })
+        conflicts_found.extend(_record_overlaps(project_id, task["id"], new_task_id, new_paths & existing_paths))
 
     return conflicts_found

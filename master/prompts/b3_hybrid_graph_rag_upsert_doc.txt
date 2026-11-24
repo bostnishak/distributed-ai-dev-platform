@@ -1,0 +1,9 @@
+INSERT INTO rag_documents (doc_id, title, content, metadata_json, token_count, embedding_blob, created_at)
+VALUES (?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(doc_id) DO UPDATE SET
+    title = excluded.title,
+    content = excluded.content,
+    metadata_json = excluded.metadata_json,
+    token_count = excluded.token_count,
+    embedding_blob = excluded.embedding_blob,
+    created_at = excluded.created_at

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from typing import Any
 
 _IDENT_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]{0,63}$")
 
@@ -41,7 +42,11 @@ def placeholders_for(count: int) -> str:
     return ", ".join("?" for _ in range(count))
 
 
-def build_select(table: str, columns: str = "*", *, where: str = "", order_by: str = "", limit: int | None = None, schema: str = "") -> str:
+def build_select(table: str, columns: str = "*", **opts: Any) -> str:
+    where = str(opts.get("where", ""))
+    order_by = str(opts.get("order_by", ""))
+    limit: int | None = opts.get("limit")
+    schema = str(opts.get("schema", ""))
     tbl = f"{safe_ident(schema)}.{safe_ident(table)}" if schema else safe_ident(table)
     cols = safe_columns(columns)
     parts = ["SELECT", cols, "FROM", tbl]

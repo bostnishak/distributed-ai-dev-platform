@@ -3,12 +3,12 @@ from __future__ import annotations
 import ast
 import json
 import re
-import subprocess
 import sys
 from pathlib import Path
 from typing import Any
 
 from code_graph import IGNORED_DIRS, build_workspace_code_graph
+from process_utils import run_process
 
 SCANNABLE_EXTENSIONS = {".py", ".js", ".ts", ".html", ".sql", ".json", ".env", ".yaml", ".yml"}
 
@@ -130,11 +130,95 @@ def _scan_python_ast_security(source: str, rel_path: str) -> list[dict[str, Any]
     return issues
 
 
+class _IssueCollector:
+    def __init__(self) -> None:
+        self.issues: list[dict[str, Any]] = []
+        self._seen: set[tuple[str, str, int]] = set()
+
+    def add(self, issue: dict[str, Any]) -> None:
+        key = (issue["category"], issue["file"], issue["line"])
+        if key in self._seen:
+            return
+        self._seen.add(key)
+        self.issues.append(issue)
+
+
+def _scan_line_patterns(
+    line: str,
+    rel_path: str,
+    line_no: int,
+    has_resolve: bool,
+    collector: _IssueCollector,
+) -> None:
+    if any(pat.search(line) for pat in _SQL_INJECTION_PATTERNS):
+        collector.add({
+            "category": "SQL_INJECTION",
+            "severity": "CRITICAL",
+            "file": rel_path,
+            "line": line_no,
+            "message": "String-interpolated SQL statement detected (potential SQL Injection).",
+            "recommendation": "Use parameterized SQL queries (`cursor.execute('SELECT ... WHERE id = ?', (val,))`).",
+        })
+    if any(pat.search(line) for pat in _XSS_PATTERNS):
+        if "escapeHtml" not in line and "DOMPurify" not in line and "sanitize" not in line.lower():
+            collector.add({
+                "category": "XSS",
+                "severity": "HIGH",
+                "file": rel_path,
+                "line": line_no,
+                "message": "Potentially unsanitized HTML sink (`innerHTML` / `outerHTML` / `document.write`) detected.",
+                "recommendation": "Use `textContent` for text data or sanitize HTML string via an escaping helper before assignment.",
+            })
+    if not has_resolve and any(pat.search(line) for pat in _PATH_TRAVERSAL_PATTERNS):
+        collector.add({
+            "category": "PATH_TRAVERSAL",
+            "severity": "HIGH",
+            "file": rel_path,
+            "line": line_no,
+            "message": "Relative parent traversal pattern (`..`) without canonical path resolution check.",
+            "recommendation": "Canonicalize paths with `Path.resolve()` and enforce workspace root containment.",
+        })
+    for secret_label, pat in _SECRET_PATTERNS:
+        if pat.search(line):
+            collector.add({
+                "category": "HARDCODED_SECRET",
+                "severity": "CRITICAL",
+                "file": rel_path,
+                "line": line_no,
+                "message": f"{secret_label} found hardcoded in source.",
+                "recommendation": "Load secrets from environment variables (`os.environ.get(...)`) or a git-ignored `.env` vault.",
+            })
+            break
+    if any(pat.search(line) for pat in _UNSAFE_EXEC_PATTERNS):
+        collector.add({
+            "category": "UNSAFE_EVAL_EXEC",
+            "severity": "CRITICAL",
+            "file": rel_path,
+            "line": line_no,
+            "message": "Unsafe dynamic code or shell execution detected.",
+            "recommendation": "Avoid `eval`/`exec` and `shell=True`; pass argument lists directly to `subprocess.run([...], shell=False)`.",
+        })
+
+
+def _scan_file_security(file_path: Path, ws_dir: Path, collector: _IssueCollector) -> None:
+    rel_path = file_path.relative_to(ws_dir).as_posix()
+    try:
+        source = file_path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return
+    has_resolve = ".resolve(" in source or "realpath(" in source
+    for idx, line in enumerate(source.splitlines(), start=1):
+        stripped = line.strip()
+        if not stripped or stripped.startswith(("#", "//")):
+            continue
+        _scan_line_patterns(line, rel_path, idx, has_resolve, collector)
+    if file_path.suffix.lower() == ".py":
+        for ast_issue in _scan_python_ast_security(source, rel_path):
+            collector.add(ast_issue)
+
+
 def scan_code_security(ws_dir: Path) -> dict[str, Any]:
     ws_dir = Path(ws_dir).resolve()
-    issues: list[dict[str, Any]] = []
-    seen_keys: set[tuple[str, str, int]] = set()
-
     if not ws_dir.exists():
         return {
             "workspace": str(ws_dir),
@@ -143,140 +227,69 @@ def scan_code_security(ws_dir: Path) -> dict[str, Any]:
             "severity_counts": {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0},
             "issues": [],
         }
-
-    def _add_issue(
-        category: str,
-        severity: str,
-        rel_path: str,
-        line_no: int,
-        message: str,
-        recommendation: str,
-    ) -> None:
-        key = (category, rel_path, line_no)
-        if key in seen_keys:
-            return
-        seen_keys.add(key)
-        issues.append(
-            {
-                "category": category,
-                "severity": severity,
-                "file": rel_path,
-                "line": line_no,
-                "message": message,
-                "recommendation": recommendation,
-            }
-        )
-
+    collector = _IssueCollector()
     for file_path in sorted(ws_dir.rglob("*")):
         if any(part in IGNORED_DIRS for part in file_path.parts):
             continue
         if not file_path.is_file() or file_path.suffix.lower() not in SCANNABLE_EXTENSIONS:
             continue
-
-        rel_path = file_path.relative_to(ws_dir).as_posix()
-        try:
-            source = file_path.read_text(encoding="utf-8", errors="replace")
-        except OSError:
-            continue
-
-        lines = source.splitlines()
-        has_resolve = ".resolve(" in source or "realpath(" in source
-
-        for idx, line in enumerate(lines, start=1):
-            stripped = line.strip()
-            if not stripped or stripped.startswith(("#", "//")):
-                continue
-
-            for pat in _SQL_INJECTION_PATTERNS:
-                if pat.search(line):
-                    _add_issue(
-                        category="SQL_INJECTION",
-                        severity="CRITICAL",
-                        rel_path=rel_path,
-                        line_no=idx,
-                        message="String-interpolated SQL statement detected (potential SQL Injection).",
-                        recommendation="Use parameterized SQL queries (`cursor.execute('SELECT ... WHERE id = ?', (val,))`).",
-                    )
-                    break
-
-            for pat in _XSS_PATTERNS:
-                if pat.search(line):
-                    if "escapeHtml" not in line and "DOMPurify" not in line and "sanitize" not in line.lower():
-                        _add_issue(
-                            category="XSS",
-                            severity="HIGH",
-                            rel_path=rel_path,
-                            line_no=idx,
-                            message="Potentially unsanitized HTML sink (`innerHTML` / `outerHTML` / `document.write`) detected.",
-                            recommendation="Use `textContent` for text data or sanitize HTML string via an escaping helper before assignment.",
-                        )
-                        break
-
-            for pat in _PATH_TRAVERSAL_PATTERNS:
-                if pat.search(line) and not has_resolve:
-                    _add_issue(
-                        category="PATH_TRAVERSAL",
-                        severity="HIGH",
-                        rel_path=rel_path,
-                        line_no=idx,
-                        message="Relative parent traversal pattern (`..`) without canonical path resolution check.",
-                        recommendation="Canonicalize paths with `Path.resolve()` and enforce workspace root containment.",
-                    )
-                    break
-
-            for secret_label, pat in _SECRET_PATTERNS:
-                if pat.search(line):
-                    _add_issue(
-                        category="HARDCODED_SECRET",
-                        severity="CRITICAL",
-                        rel_path=rel_path,
-                        line_no=idx,
-                        message=f"{secret_label} found hardcoded in source.",
-                        recommendation="Load secrets from environment variables (`os.environ.get(...)`) or a git-ignored `.env` vault.",
-                    )
-                    break
-
-            for pat in _UNSAFE_EXEC_PATTERNS:
-                if pat.search(line):
-                    _add_issue(
-                        category="UNSAFE_EVAL_EXEC",
-                        severity="CRITICAL",
-                        rel_path=rel_path,
-                        line_no=idx,
-                        message="Unsafe dynamic code or shell execution detected.",
-                        recommendation="Avoid `eval`/`exec` and `shell=True`; pass argument lists directly to `subprocess.run([...], shell=False)`.",
-                    )
-                    break
-
-        if file_path.suffix.lower() == ".py":
-            for ast_issue in _scan_python_ast_security(source, rel_path):
-                _add_issue(
-                    category=ast_issue["category"],
-                    severity=ast_issue["severity"],
-                    rel_path=ast_issue["file"],
-                    line_no=ast_issue["line"],
-                    message=ast_issue["message"],
-                    recommendation=ast_issue["recommendation"],
-                )
+        _scan_file_security(file_path, ws_dir, collector)
 
     severity_counts = {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0}
-    for item in issues:
+    for item in collector.issues:
         sev = item.get("severity", "MEDIUM")
         severity_counts[sev] = severity_counts.get(sev, 0) + 1
-
     return {
         "workspace": str(ws_dir),
         "ok": severity_counts["CRITICAL"] == 0 and severity_counts["HIGH"] == 0,
-        "total_issues": len(issues),
+        "total_issues": len(collector.issues),
         "severity_counts": severity_counts,
-        "issues": issues,
+        "issues": collector.issues,
     }
+
+
+def _collect_smoke_targets(ws_dir: Path) -> tuple[list[Path], list[Path]]:
+    py_files: list[Path] = []
+    json_files: list[Path] = []
+    for file_path in sorted(ws_dir.rglob("*")):
+        if any(part in IGNORED_DIRS for part in file_path.parts) or not file_path.is_file():
+            continue
+        suffix = file_path.suffix.lower()
+        if suffix == ".py":
+            py_files.append(file_path)
+        elif suffix == ".json":
+            json_files.append(file_path)
+    return py_files, json_files
+
+
+def _check_python_smoke(py_path: Path, ws_dir: Path) -> list[dict[str, Any]]:
+    rel_path = py_path.relative_to(ws_dir).as_posix()
+    try:
+        source = py_path.read_text(encoding="utf-8", errors="replace")
+        ast.parse(source, filename=rel_path)
+    except SyntaxError as exc:
+        return [{"type": "python_syntax_error", "file": rel_path, "line": exc.lineno or 1, "message": f"SyntaxError: {exc.msg}"}]
+    try:
+        proc = run_process([sys.executable, "-m", "py_compile", str(py_path)], cwd=ws_dir, timeout_s=15.0)
+        if proc.returncode != 0:
+            err_msg = (proc.stderr or proc.stdout or "py_compile failed").strip()
+            return [{"type": "py_compile_error", "file": rel_path, "line": 1, "message": err_msg}]
+    except (OSError, ValueError) as exc:
+        return [{"type": "py_compile_exception", "file": rel_path, "line": 1, "message": str(exc)}]
+    return []
+
+
+def _check_json_smoke(json_path: Path, ws_dir: Path) -> list[dict[str, Any]]:
+    rel_path = json_path.relative_to(ws_dir).as_posix()
+    try:
+        json.loads(json_path.read_text(encoding="utf-8", errors="replace"))
+    except json.JSONDecodeError as exc:
+        return [{"type": "json_decode_error", "file": rel_path, "line": exc.lineno, "message": f"Invalid JSON: {exc.msg}"}]
+    return []
 
 
 def run_workspace_smoke_check(ws_dir: Path) -> dict[str, Any]:
     ws_dir = Path(ws_dir).resolve()
-    errors: list[dict[str, Any]] = []
-
     if not ws_dir.exists():
         return {
             "ok": False,
@@ -284,95 +297,21 @@ def run_workspace_smoke_check(ws_dir: Path) -> dict[str, Any]:
             "security": scan_code_security(ws_dir),
         }
 
-    py_files: list[Path] = []
-    json_files: list[Path] = []
-
-    for file_path in sorted(ws_dir.rglob("*")):
-        if any(part in IGNORED_DIRS for part in file_path.parts):
-            continue
-        if not file_path.is_file():
-            continue
-        suffix = file_path.suffix.lower()
-        if suffix == ".py":
-            py_files.append(file_path)
-        elif suffix == ".json":
-            json_files.append(file_path)
-
+    py_files, json_files = _collect_smoke_targets(ws_dir)
+    errors: list[dict[str, Any]] = []
     for py_path in py_files:
-        rel_path = py_path.relative_to(ws_dir).as_posix()
-        try:
-            source = py_path.read_text(encoding="utf-8", errors="replace")
-            ast.parse(source, filename=rel_path)
-        except SyntaxError as exc:
-            errors.append(
-                {
-                    "type": "python_syntax_error",
-                    "file": rel_path,
-                    "line": exc.lineno or 1,
-                    "message": f"SyntaxError: {exc.msg}",
-                }
-            )
-            continue
-
-        try:
-            proc = subprocess.run(
-                [sys.executable, "-m", "py_compile", str(py_path)],
-                cwd=str(ws_dir),
-                capture_output=True,
-                text=True,
-                timeout=15,
-                check=False,
-            )
-            if proc.returncode != 0:
-                err_msg = (proc.stderr or proc.stdout or "py_compile failed").strip()
-                errors.append(
-                    {
-                        "type": "py_compile_error",
-                        "file": rel_path,
-                        "line": 1,
-                        "message": err_msg,
-                    }
-                )
-        except (subprocess.SubprocessError, OSError, ValueError) as exc:
-            errors.append(
-                {
-                    "type": "py_compile_exception",
-                    "file": rel_path,
-                    "line": 1,
-                    "message": str(exc),
-                }
-            )
-
+        errors.extend(_check_python_smoke(py_path, ws_dir))
     for json_path in json_files:
-        rel_path = json_path.relative_to(ws_dir).as_posix()
-        try:
-            raw = json_path.read_text(encoding="utf-8", errors="replace")
-            json.loads(raw)
-        except json.JSONDecodeError as exc:
-            errors.append(
-                {
-                    "type": "json_decode_error",
-                    "file": rel_path,
-                    "line": exc.lineno,
-                    "message": f"Invalid JSON: {exc.msg}",
-                }
-            )
+        errors.extend(_check_json_smoke(json_path, ws_dir))
 
     graph = build_workspace_code_graph(ws_dir)
     for broken in graph.get("broken_references", []):
-        errors.append(
-            {
-                "type": broken.get("type", "broken_reference"),
-                "file": broken.get("source", ""),
-                "line": broken.get("line", 1),
-                "target": broken.get("target", ""),
-                "message": f"Broken reference `{broken.get('target', '')}` in `{broken.get('source', '')}`.",
-            }
-        )
+        errors.append({
+            "type": broken.get("type", "broken_reference"),
+            "file": broken.get("source", ""),
+            "line": broken.get("line", 1),
+            "target": broken.get("target", ""),
+            "message": f"Broken reference `{broken.get('target', '')}` in `{broken.get('source', '')}`.",
+        })
 
-    security_report = scan_code_security(ws_dir)
-    return {
-        "ok": len(errors) == 0,
-        "errors": errors,
-        "security": security_report,
-    }
+    return {"ok": len(errors) == 0, "errors": errors, "security": scan_code_security(ws_dir)}

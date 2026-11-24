@@ -163,7 +163,8 @@ def _write_golden_dataset(path: Path) -> None:
             "taxonomy_if_failed": "instruction_violation",
         })
 
-    assert len(records) == 300
+    if len(records) != 300:
+        raise ValueError(f"Expected 300 golden records, got {len(records)}")
     path.write_text("\n".join(json.dumps(r, ensure_ascii=False) for r in records) + "\n", encoding="utf-8")
 
 

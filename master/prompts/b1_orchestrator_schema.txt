@@ -1,0 +1,71 @@
+CREATE TABLE IF NOT EXISTS orchestrator_jobs (
+    job_id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL DEFAULT 'default',
+    kind TEXT NOT NULL,
+    status TEXT NOT NULL,
+    progress INTEGER NOT NULL DEFAULT 0,
+    message TEXT NOT NULL DEFAULT '',
+    result_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS orchestrator_artifacts (
+    artifact_id TEXT PRIMARY KEY,
+    chat_id TEXT NOT NULL DEFAULT '',
+    user_id TEXT NOT NULL DEFAULT 'default',
+    kind TEXT NOT NULL,
+    title TEXT NOT NULL,
+    version INTEGER NOT NULL DEFAULT 1,
+    sections_json TEXT NOT NULL DEFAULT '[]',
+    content TEXT NOT NULL DEFAULT '',
+    metadata_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS orchestrator_artifact_versions (
+    artifact_id TEXT NOT NULL,
+    version INTEGER NOT NULL,
+    sections_json TEXT NOT NULL DEFAULT '[]',
+    content TEXT NOT NULL DEFAULT '',
+    saved_at TEXT NOT NULL,
+    PRIMARY KEY (artifact_id, version)
+);
+CREATE TABLE IF NOT EXISTS orchestrator_runs (
+    run_id TEXT PRIMARY KEY,
+    chat_id TEXT NOT NULL DEFAULT '',
+    user_id TEXT NOT NULL DEFAULT 'default',
+    prompt TEXT NOT NULL,
+    intent TEXT NOT NULL,
+    mode TEXT NOT NULL,
+    tier TEXT NOT NULL,
+    model TEXT NOT NULL,
+    provider TEXT NOT NULL,
+    seed INTEGER,
+    plan_json TEXT NOT NULL DEFAULT '{}',
+    tools_json TEXT NOT NULL DEFAULT '[]',
+    citations_json TEXT NOT NULL DEFAULT '[]',
+    verification_json TEXT NOT NULL DEFAULT '{}',
+    response_text TEXT NOT NULL DEFAULT '',
+    latency_ms INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS orchestrator_feedback (
+    feedback_id TEXT PRIMARY KEY,
+    run_id TEXT NOT NULL,
+    user_id TEXT NOT NULL DEFAULT 'default',
+    rating INTEGER NOT NULL,
+    reason_tags_json TEXT NOT NULL DEFAULT '[]',
+    note TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS conversation_states (
+    chat_id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL DEFAULT 'default',
+    goals_json TEXT NOT NULL DEFAULT '[]',
+    decisions_json TEXT NOT NULL DEFAULT '[]',
+    open_questions_json TEXT NOT NULL DEFAULT '[]',
+    artifact_ids_json TEXT NOT NULL DEFAULT '[]',
+    active_mode TEXT NOT NULL DEFAULT 'general',
+    turn_count INTEGER NOT NULL DEFAULT 0,
+    updated_at TEXT NOT NULL
+);

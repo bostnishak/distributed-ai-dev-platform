@@ -8,14 +8,10 @@ Diffusion (Automatic1111 / ComfyUI) bridge, and Windows System.Speech / Faster-W
 from __future__ import annotations
 
 import base64
-import io
+import json
+import logging
 import re
-import shutil
-import subprocess
-import sys
-import tempfile
 import uuid
-import wave
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -23,29 +19,39 @@ from typing import Any
 import httpx
 import numpy as np
 import pymupdf as fitz
-from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
+from PIL import Image, ImageDraw
 
 import config
+from multimodal_studio_media import (
+    IMAGE_EDIT_KEYWORDS,
+    _decode_audio_to_float32_16k,
+    _get_whisper_model,
+    _load_font,
+    is_image_edit_request,
+    media_dir,
+    process_and_edit_image,
+    transcribe_audio_bytes,
+)
+from prompt_loader import load_prompt
 
-
-def media_dir() -> Path:
-    d = config.DATA_DIR / "media"
-    d.mkdir(parents=True, exist_ok=True)
-    return d
-
-
-def _load_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
-    candidates = (
-        ["arialbd.ttf", "DejaVuSans-Bold.ttf", "C:/Windows/Fonts/arialbd.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"]
-        if bold
-        else ["arial.ttf", "DejaVuSans.ttf", "C:/Windows/Fonts/arial.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"]
-    )
-    for path in candidates:
-        try:
-            return ImageFont.truetype(path, size)
-        except OSError:
-            continue
-    return ImageFont.load_default()
+__all__ = [
+    "ARCHETYPE_ORDER",
+    "IMAGE_ACTION_RE",
+    "IMAGE_EDIT_KEYWORDS",
+    "IMAGE_NOUN_RE",
+    "LAYOUT_ORDER",
+    "STUDIO_PALETTES",
+    "_decode_audio_to_float32_16k",
+    "_get_whisper_model",
+    "_load_font",
+    "generate_ai_image",
+    "is_image_edit_request",
+    "is_image_generation_request",
+    "media_dir",
+    "pick_best_model",
+    "process_and_edit_image",
+    "transcribe_audio_bytes",
+]
 
 
 async def pick_best_model(task: str = "general") -> str:
@@ -67,167 +73,13 @@ async def pick_best_model(task: str = "general") -> str:
                 for cand in prefs:
                     if cand in installed:
                         return cand
-    except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError) as _exc:
-        import logging
-
-        logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
+    except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError) as exc:
+        logging.getLogger(__name__).debug("Recoverable error suppressed: %s", exc)
     return config.MASTER_MODEL
 
 
 # ============================================================================
-# 1. IMAGE PROCESSING & COMPUTER VISION EDITING ENGINE
-# ============================================================================
-
-IMAGE_EDIT_KEYWORDS = (
-    "siyah beyaz", "gri ton", "grayscale", "kontrast", "netleştir", "netlestir", "keskinleştir",
-    "bulanık", "bulanik", "blur", "kenar", "eskiz", "sketch", "edge", "ters çevir", "negatif",
-    "invert", "döndür", "dondur", "rotate", "çevir", "ayna", "flip", "boyutlandır", "boyutlandir",
-    "resize", "küçült", "बüyüt", "kırp", "kirp", "crop", "parlaklık", "parlaklik", "sepya",
-    "sepia", "arka plan", "arkaplan", "filigran", "yazı ekle", "yazi ekle", "watermark",
-    "düzenle", "duzenle", "efekt", "işle", "isle", "görüntü işle", "goruntu isle",
-)
-
-
-def is_image_edit_request(prompt: str) -> bool:
-    lower = prompt.lower()
-    return any(k in lower for k in IMAGE_EDIT_KEYWORDS)
-
-
-def process_and_edit_image(raw_bytes: bytes, prompt: str) -> dict[str, Any]:
-    """Apply computer-vision filters, geometric transforms, background removal, or watermarks."""
-    orig = Image.open(io.BytesIO(raw_bytes)).convert("RGB")
-    img = orig.copy()
-    lower = prompt.lower()
-    applied: list[str] = []
-
-    # 1. Rotation / Flip
-    if "90" in lower and ("döndür" in lower or "dondur" in lower or "rotate" in lower):
-        img = img.rotate(-90, expand=True)
-        applied.append("90 Derece Döndürme")
-    elif "180" in lower and ("döndür" in lower or "dondur" in lower or "rotate" in lower):
-        img = img.rotate(180, expand=True)
-        applied.append("180 Derece Döndürme")
-    elif "döndür" in lower or "dondur" in lower or "rotate" in lower:
-        img = img.rotate(-90, expand=True)
-        applied.append("90 Derece Saat Yönünde Döndürme")
-
-    if "ayna" in lower or "yatay çevir" in lower or "flip" in lower:
-        img = ImageOps.mirror(img)
-        applied.append("Yatay Aynalama (Mirror)")
-
-    # 2. Resize / Crop
-    m_size = re.search(r"(\d{2,4})\s*[xX\u00d7]\s*(\d{2,4})", prompt)
-    if m_size:
-        nw, nh = min(4096, int(m_size.group(1))), min(4096, int(m_size.group(2)))
-        img = img.resize((nw, nh), Image.Resampling.LANCZOS)
-        applied.append(f"Yeniden Boyutlandırma ({nw}x{nh} px)")
-    elif "küçült" in lower or "kucult" in lower or "yarı" in lower:
-        nw, nh = max(64, img.width // 2), max(64, img.height // 2)
-        img = img.resize((nw, nh), Image.Resampling.LANCZOS)
-        applied.append(f"%50 Ölçekleme ({nw}x{nh} px)")
-    elif "kırp" in lower or "kirp" in lower or "crop" in lower:
-        w, h = img.size
-        mx, my = int(w * 0.12), int(h * 0.12)
-        img = img.crop((mx, my, w - mx, h - my))
-        applied.append("Merkez Odaklı Kırpma (%76 Alan)")
-
-    # 3. Background Removal / High-Contrast Thresholding
-    if "arka plan" in lower or "arkaplan" in lower or "background" in lower:
-        arr = np.array(img, dtype=np.float32)
-        # Estimate background color from the 4 corners
-        corners = np.vstack([arr[0, 0], arr[0, -1], arr[-1, 0], arr[-1, -1]])
-        bg_color = np.mean(corners, axis=0)
-        dist = np.linalg.norm(arr - bg_color, axis=2)
-        mask = dist < 42.0
-        arr[mask] = [255.0, 255.0, 255.0]
-        img = Image.fromarray(arr.astype(np.uint8), mode="RGB")
-        applied.append("Arka Plan Temizleme (Köşe Renk Uzaklığı Segmentasyonu)")
-
-    # 4. Color & Tone Filters
-    if "siyah beyaz" in lower or "gri" in lower or "grayscale" in lower:
-        img = ImageOps.grayscale(img).convert("RGB")
-        applied.append("Gri Tonlama (Grayscale)")
-
-    if "sepya" in lower or "sepia" in lower or "nostalji" in lower:
-        gray = np.array(ImageOps.grayscale(img), dtype=np.float32)
-        r = np.clip(gray * 1.08 + 28, 0, 255)
-        g = np.clip(gray * 0.92 + 12, 0, 255)
-        b = np.clip(gray * 0.74, 0, 255)
-        img = Image.fromarray(np.stack([r, g, b], axis=-1).astype(np.uint8), mode="RGB")
-        applied.append("Sepya Tonlama Filtresi")
-
-    if "ters çevir" in lower or "negatif" in lower or "invert" in lower:
-        img = ImageOps.invert(img)
-        applied.append("Renk Ters Çevirme (Negatif)")
-
-    if "kenar" in lower or "eskiz" in lower or "sketch" in lower or "edge" in lower:
-        gray_im = ImageOps.grayscale(img)
-        edges = gray_im.filter(ImageFilter.FIND_EDGES)
-        edges = ImageOps.invert(edges)
-        edges = ImageEnhance.Contrast(edges).enhance(2.2)
-        img = edges.convert("RGB")
-        applied.append("Sobel Kenar Tespiti / Teknik Eskiz Dönüşümü")
-
-    if "bulanık" in lower or "bulanik" in lower or "blur" in lower:
-        img = img.filter(ImageFilter.GaussianBlur(radius=3.5))
-        applied.append("Gaussian Bulanıklaştırma (r=3.5)")
-
-    if "netleştir" in lower or "netlestir" in lower or "keskin" in lower or "sharpen" in lower:
-        img = img.filter(ImageFilter.UnsharpMask(radius=2.0, percent=180, threshold=3))
-        applied.append("Unsharp Mask Keskinleştirme")
-
-    if "kontrast" in lower or "canlandır" in lower or "iyileştir" in lower:
-        img = ImageOps.autocontrast(img, cutoff=1)
-        img = ImageEnhance.Contrast(img).enhance(1.32)
-        img = ImageEnhance.Color(img).enhance(1.18)
-        applied.append("Otomatik Histogram Germe ve Kontrast Güçlendirme")
-
-    if "parlak" in lower or "aydınlat" in lower or "aydinlat" in lower:
-        img = ImageEnhance.Brightness(img).enhance(1.28)
-        applied.append("Parlaklık Artırma (+%28)")
-
-    # 5. Text Overlay / Watermark
-    m_txt = re.search(r'["“”\']([^"“”\']{2,50})["“”\']', prompt)
-    if ("yazı" in lower or "yazi" in lower or "filigran" in lower or "watermark" in lower) and m_txt:
-        wm_text = m_txt.group(1)
-        draw = ImageDraw.Draw(img)
-        fsize = max(18, img.width // 24)
-        font = _load_font(fsize, bold=True)
-        bbox = draw.textbbox((0, 0), wm_text, font=font)
-        tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
-        px, py = img.width - tw - 24, img.height - th - 24
-        draw.rectangle([px - 10, py - 6, px + tw + 10, py + th + 8], fill=(15, 23, 42))
-        draw.text((px, py), wm_text, fill=(248, 250, 252), font=font)
-        applied.append(f'Metin / Filigran Ekleme ("{wm_text}")')
-
-    # Default smart enhancement if user just said "bu görüntüyü işle / düzenle" without specific filter
-    if not applied:
-        img = ImageOps.autocontrast(img, cutoff=1)
-        img = ImageEnhance.Contrast(img).enhance(1.2)
-        img = img.filter(ImageFilter.UnsharpMask(radius=1.6, percent=140, threshold=3))
-        applied.append("Otomatik Kontrast Dengeleme ve Netleştirme (HDR İyileştirme)")
-
-    # Save edited image and side-by-side comparison
-    file_id = f"img-edit-{datetime.now(UTC).strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:6]}"
-    out_png = media_dir() / f"{file_id}.png"
-    img.save(out_png, format="PNG")
-
-    # Image statistics (mean RGB, brightness, resolution)
-    arr_out = np.array(img)
-    stats = {
-        "original_size": f"{orig.width}x{orig.height} px",
-        "output_size": f"{img.width}x{img.height} px",
-        "mean_brightness": round(float(np.mean(arr_out)), 1),
-        "std_contrast": round(float(np.std(arr_out)), 1),
-        "applied_filters": applied,
-        "file_id": file_id,
-        "url": f"/api/assistant/media/{file_id}.png",
-    }
-    return stats
-
-
-# ============================================================================
-# 2. AI IMAGE & VECTOR ILLUSTRATION GENERATOR
+# AI IMAGE & VECTOR ILLUSTRATION GENERATOR
 # ============================================================================
 
 IMAGE_NOUN_RE = re.compile(
@@ -367,21 +219,9 @@ def _resolve_context_prompt(prompt: str, history: list[dict[str, Any]] | None) -
     is_revision = any(
         k in low
         for k in (
-            "farklı",
-            "farkli",
-            "beğenmedim",
-            "begenmedim",
-            "kötü",
-            "kotu",
-            "başka",
-            "baska",
-            "yeniden",
-            "tekrar",
-            "değiştir",
-            "degistir",
-            "alternatif",
-            "revize",
-            "daha iyi",
+            "farklı", "farkli", "beğenmedim", "begenmedim", "kötü", "kotu",
+            "başka", "baska", "yeniden", "tekrar", "değiştir", "degistir",
+            "alternatif", "revize", "daha iyi",
         )
     )
     prior_img_count = 0
@@ -419,7 +259,6 @@ def _pick_palette_from_text(text: str, seed: int) -> str:
 def _pick_archetype_from_text(text: str, seed: int) -> str:
     low = text.lower()
     if seed > 0:
-        # Rotate cleanly on every revision so the user always gets a genuinely fresh emblem
         return ARCHETYPE_ORDER[seed % len(ARCHETYPE_ORDER)]
     if any(k in low for k in ("havacılık", "havacilik", "uçak", "cnc", "otomotiv", "hız", "drone")):
         return "wing_aero"
@@ -436,15 +275,30 @@ def _pick_archetype_from_text(text: str, seed: int) -> str:
 
 def _extract_quoted_brand(text: str) -> str:
     m = re.search(r'["“”\']([A-Za-z0-9ÇĞİÖŞÜçğıöşü\-\s]{2,22})["“”\']', text)
-    if m:
-        return m.group(1).strip().upper()
-    return ""
+    return m.group(1).strip().upper() if m else ""
+
+
+def _merge_llm_design_spec(spec: dict[str, str], parsed: dict[str, Any], quoted: str, seed: int) -> None:
+    bname = str(parsed.get("brand_name") or "").strip()[:20]
+    bad_brand = ("beğenmedim", "begenmedim", "kötü", "kotu", "görsel", "gorsel", "üret", "uret")
+    if bname and not any(bad in bname.lower() for bad in bad_brand):
+        spec["brand_name"] = quoted or bname.upper()
+    tag = str(parsed.get("tagline") or "").strip()[:38]
+    if tag and not any(bad in tag.lower() for bad in ("beğenmedim", "begenmedim", "kötü", "kotu")):
+        spec["tagline"] = tag.upper()
+    arch = parsed.get("archetype")
+    if isinstance(arch, str) and arch in ARCHETYPE_ORDER and (seed == 0 or arch != ARCHETYPE_ORDER[(seed - 1) % len(ARCHETYPE_ORDER)]):
+        spec["archetype"] = arch
+    pal = parsed.get("palette")
+    if isinstance(pal, str) and pal in STUDIO_PALETTES:
+        spec["palette"] = pal
+    lay = parsed.get("layout")
+    if isinstance(lay, str) and lay in LAYOUT_ORDER and seed == 0:
+        spec["layout"] = lay
 
 
 async def _design_spec_from_llm(combined_prompt: str, seed: int) -> dict[str, str]:
     """Use local LLM as Creative Director to produce a structured brand/visual design specification."""
-    import json
-
     fallback_names = ["NEXORA", "AETHERIS", "KINETIX", "VORTEXA", "LUMINEX", "SYNAPSE", "QUANTIX", "SOLARIS"]
     fallback_tags = [
         "GELECEĞİN TEKNOLOJİSİ",
@@ -482,10 +336,7 @@ async def _design_spec_from_llm(combined_prompt: str, seed: int) -> dict[str, st
         import gateway
 
         res = await gateway.default_client.chat(
-            [
-                {"role": "system", "content": sys_msg},
-                {"role": "user", "content": combined_prompt},
-            ],
+            [{"role": "system", "content": sys_msg}, {"role": "user", "content": combined_prompt}],
             model=model,
             profile="creative",
             num_predict=320,
@@ -493,30 +344,14 @@ async def _design_spec_from_llm(combined_prompt: str, seed: int) -> dict[str, st
             feature="multimodal_studio",
             max_retries=0,
         )
-        raw = res.content
-        m = re.search(r"\{[\s\S]*\}", raw)
+        m = re.search(r"\{[\s\S]*\}", res.content)
         if m:
             parsed = json.loads(m.group(0))
             if isinstance(parsed, dict):
-                bname = str(parsed.get("brand_name") or "").strip()[:20]
-                if bname and not any(bad in bname.lower() for bad in ("beğenmedim", "begenmedim", "kötü", "kotu", "görsel", "gorsel", "üret", "uret")):
-                    default_spec["brand_name"] = quoted or bname.upper()
-                tag = str(parsed.get("tagline") or "").strip()[:38]
-                if tag and not any(bad in tag.lower() for bad in ("beğenmedim", "begenmedim", "kötü", "kotu")):
-                    default_spec["tagline"] = tag.upper()
-                if parsed.get("archetype") in ARCHETYPE_ORDER and seed == 0:
-                    default_spec["archetype"] = parsed["archetype"]
-                elif parsed.get("archetype") in ARCHETYPE_ORDER and parsed["archetype"] != ARCHETYPE_ORDER[(seed - 1) % len(ARCHETYPE_ORDER)]:
-                    default_spec["archetype"] = parsed["archetype"]
-                if parsed.get("palette") in STUDIO_PALETTES:
-                    default_spec["palette"] = parsed["palette"]
-                if parsed.get("layout") in LAYOUT_ORDER and seed == 0:
-                    default_spec["layout"] = parsed["layout"]
-    except (httpx.HTTPError, OSError, RuntimeError, ValueError, TypeError, KeyError, ImportError) as _exc:
-        import logging
+                _merge_llm_design_spec(default_spec, parsed, quoted, seed)
+    except (httpx.HTTPError, OSError, RuntimeError, ValueError, TypeError, KeyError, ImportError) as exc:
+        logging.getLogger(__name__).debug("Recoverable error suppressed: %s", exc)
 
-        logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
-    # If user explicitly requested a revision (seed > 0), guarantee layout & palette freshness
     if seed > 0:
         default_spec["layout"] = LAYOUT_ORDER[seed % len(LAYOUT_ORDER)]
         if default_spec["palette"] == "midnight_cyan" and seed % 2 == 1:
@@ -564,28 +399,7 @@ def _emblem_svg_group(archetype: str, pal: dict[str, str], use_solid: bool = Fal
         <circle cx="0" cy="-16" r="7" fill="{pal['bg1']}"/>
         """
     if archetype == "neural_constellation":
-        return f"""
-        <circle cx="0" cy="0" r="90" fill="none" stroke="{p1}" stroke-width="2" opacity="0.28"/>
-        <g stroke="{p1}" stroke-width="3.5" opacity="0.82">
-          <line x1="0" y1="-78" x2="72" y2="-28"/>
-          <line x1="72" y1="-28" x2="54" y2="64"/>
-          <line x1="54" y1="64" x2="-54" y2="64"/>
-          <line x1="-54" y1="64" x2="-72" y2="-28"/>
-          <line x1="-72" y1="-28" x2="0" y2="-78"/>
-          <line x1="0" y1="-78" x2="0" y2="0"/>
-          <line x1="72" y1="-28" x2="0" y2="0"/>
-          <line x1="54" y1="64" x2="0" y2="0"/>
-          <line x1="-54" y1="64" x2="0" y2="0"/>
-          <line x1="-72" y1="-28" x2="0" y2="0"/>
-        </g>
-        <circle cx="0" cy="0" r="24" fill="{p1}"/>
-        <circle cx="0" cy="0" r="10" fill="{txt}"/>
-        <circle cx="0" cy="-78" r="12" fill="{acc}"/>
-        <circle cx="72" cy="-28" r="11" fill="{p2}"/>
-        <circle cx="54" cy="64" r="10" fill="{p1}"/>
-        <circle cx="-54" cy="64" r="10" fill="{p2}"/>
-        <circle cx="-72" cy="-28" r="11" fill="{acc}"/>
-        """
+        return load_prompt("b3_multimodal_neural_svg.txt").format(p1=p1, p2=p2, acc=acc, txt=txt)
     if archetype == "wave_pulse":
         return f"""
         <rect x="-86" y="-86" width="172" height="172" rx="42" fill="{pal['card']}" stroke="{p1}" stroke-width="4.5"/>
@@ -609,7 +423,6 @@ def _emblem_svg_group(archetype: str, pal: dict[str, str], use_solid: bool = Fal
         <path d="M-12,18 L-28,-12 M14,-8 L-2,-34 M12,10 L42,2" fill="none" stroke="{acc}" stroke-width="3.5" stroke-linecap="round"/>
         <circle cx="-62" cy="56" r="8" fill="{acc}"/>
         """
-    # Default: hex_nexus (isometric layered hexagon with precision inner cube)
     return f"""
     <polygon points="0,-94 81,-47 81,47 0,94 -81,47 -81,-47" fill="none" stroke="{p1}" stroke-width="6.5"/>
     <polygon points="0,-72 62,-36 62,36 0,72 -62,36 -62,-36" fill="{pal['card']}" stroke="{p2}" stroke-width="3" opacity="0.9"/>
@@ -625,22 +438,18 @@ def _render_studio_svg(spec: dict[str, str], use_solid: bool = False) -> str:
     pal = STUDIO_PALETTES.get(spec["palette"], STUDIO_PALETTES["midnight_cyan"])
     brand = _xml_esc(spec["brand_name"])
     tagline = _xml_esc(spec["tagline"])
-    archetype = spec["archetype"]
+    emblem = _emblem_svg_group(spec["archetype"], pal, use_solid=use_solid)
     layout = spec["layout"]
-    emblem = _emblem_svg_group(archetype, pal, use_solid=use_solid)
 
-    # Subtle architectural grid lines
-    grid_lines = []
-    for x in range(120, 1200, 120):
-        grid_lines.append(f'<line x1="{x}" y1="0" x2="{x}" y2="760"/>')
-    for y in range(95, 760, 95):
-        grid_lines.append(f'<line x1="0" y1="{y}" x2="1200" y2="{y}"/>')
+    grid_lines = [f'<line x1="{x}" y1="0" x2="{x}" y2="760"/>' for x in range(120, 1200, 120)]
+    grid_lines.extend(f'<line x1="0" y1="{y}" x2="1200" y2="{y}"/>' for y in range(95, 760, 95))
     grid_svg = "".join(grid_lines)
 
     bg_fill = pal["bg2"] if use_solid else "url(#gBg)"
+    bar_fill = pal["primary"] if use_solid else "url(#gPrimary)"
+
     def glow_el(cx: int, cy: int, r: int, op: float) -> str:
         return "" if use_solid else f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="url(#gGlow)" opacity="{op}"/>'
-    bar_fill = pal["primary"] if use_solid else "url(#gPrimary)"
 
     if layout == "horizontal_lockup":
         body = f"""
@@ -660,7 +469,6 @@ def _render_studio_svg(spec: dict[str, str], use_solid: bool = False) -> str:
         <text x="600" y="438" text-anchor="middle" fill="{pal['text']}" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="72" font-weight="800" letter-spacing="12">{brand}</text>
         <rect x="515" y="460" width="170" height="4" rx="2" fill="{bar_fill}"/>
         <text x="600" y="502" text-anchor="middle" fill="{pal['muted']}" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="20" font-weight="600" letter-spacing="6">{tagline}</text>
-        <!-- Brand Identity Palette Strip -->
         <rect x="64" y="612" width="1072" height="92" rx="20" fill="{pal['card']}" opacity="0.72" stroke="{pal['primary']}" stroke-opacity="0.22" stroke-width="1.5"/>
         <g transform="translate(132, 658) scale(0.28)">{emblem}</g>
         <text x="184" y="654" fill="{pal['text']}" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="3">{brand}</text>
@@ -672,7 +480,6 @@ def _render_studio_svg(spec: dict[str, str], use_solid: bool = False) -> str:
         <rect x="1020" y="636" width="44" height="44" rx="10" fill="{pal['accent']}"/>
         """
     else:
-        # centered_emblem
         body = f"""
         {glow_el(600, 280, 260, 0.24)}
         <circle cx="600" cy="280" r="158" fill="none" stroke="{pal['primary']}" stroke-width="1.5" opacity="0.28"/>
@@ -716,7 +523,6 @@ def _save_true_color_png(spec: dict[str, str], out_png: Path) -> None:
         pix = svg_doc[0].get_pixmap(dpi=150)
         pix.save(str(out_png))
         svg_doc.close()
-        # Blend subtle smooth diagonal gradient tint so PNG has genuine studio depth
         pal = STUDIO_PALETTES.get(spec["palette"], STUDIO_PALETTES["midnight_cyan"])
         im = Image.open(out_png).convert("RGB")
         w, h = im.size
@@ -725,7 +531,6 @@ def _save_true_color_png(spec: dict[str, str], out_png: Path) -> None:
         t = np.linspace(0.0, 1.0, w, dtype=np.float32)[None, :, None] * 0.5 + np.linspace(0.0, 1.0, h, dtype=np.float32)[:, None, None] * 0.5
         grad = c1 * (1.0 - t) + c2 * t
         arr = np.array(im, dtype=np.float32)
-        # Only tint pixels that match the flat bg2 color
         bg2_rgb = np.array(_hex_to_rgb(pal["bg2"]), dtype=np.float32)
         is_bg = np.linalg.norm(arr - bg2_rgb, axis=2) < 12.0
         arr[is_bg] = grad[is_bg]
@@ -746,7 +551,6 @@ async def generate_ai_image(prompt: str, history: list[dict[str, Any]] | None = 
 
     combined_prompt, variation_seed = _resolve_context_prompt(prompt, history)
 
-    # 1. Check if a local Stable Diffusion WebUI (Automatic1111) is listening on 127.0.0.1:7860
     try:
         async with httpx.AsyncClient(timeout=2.5) as client:
             sd_resp = await client.post(
@@ -754,22 +558,18 @@ async def generate_ai_image(prompt: str, history: list[dict[str, Any]] | None = 
                 json={"prompt": combined_prompt, "steps": 24, "width": 1024, "height": 640},
             )
             if sd_resp.status_code == 200 and sd_resp.json().get("images"):
-                b64_img = sd_resp.json()["images"][0]
-                out_png.write_bytes(base64.b64decode(b64_img))
+                out_png.write_bytes(base64.b64decode(sd_resp.json()["images"][0]))
                 return {
                     "file_id": file_id,
                     "engine": "stable-diffusion-local",
                     "png_url": f"/api/assistant/media/{file_id}.png",
                     "svg_url": "",
                 }
-    except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError, IndexError) as _exc:
-        import logging
+    except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError, IndexError) as exc:
+        logging.getLogger(__name__).debug("Recoverable error suppressed: %s", exc)
 
-        logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
-    # 2. Studio-Grade Parametric Brand & Visual Design Engine guided by local LLM Creative Director
     spec = await _design_spec_from_llm(combined_prompt, variation_seed)
-    svg_code = _render_studio_svg(spec, use_solid=False)
-    out_svg.write_text(svg_code, encoding="utf-8")
+    out_svg.write_text(_render_studio_svg(spec, use_solid=False), encoding="utf-8")
     _save_true_color_png(spec, out_png)
 
     pal = STUDIO_PALETTES.get(spec["palette"], STUDIO_PALETTES["midnight_cyan"])
@@ -783,130 +583,4 @@ async def generate_ai_image(prompt: str, history: list[dict[str, Any]] | None = 
         "palette_name": pal["name"],
         "png_url": f"/api/assistant/media/{file_id}.png",
         "svg_url": f"/api/assistant/media/{file_id}.svg",
-    }
-
-
-# ============================================================================
-# 3. VOICE MESSAGE TO TEXT (STT — Faster-Whisper / Windows SAPI / Audio Analysis)
-# ============================================================================
-
-_WHISPER_MODEL_CACHE: Any = None
-
-
-def _get_whisper_model():
-    global _WHISPER_MODEL_CACHE
-    if _WHISPER_MODEL_CACHE is None:
-        from faster_whisper import WhisperModel  # type: ignore[import-not-found]
-
-        _WHISPER_MODEL_CACHE = WhisperModel("base", device="cpu", compute_type="int8")
-    return _WHISPER_MODEL_CACHE
-
-
-def _decode_audio_to_float32_16k(raw_bytes: bytes, tmp_path: Path, suffix: str) -> tuple[np.ndarray | None, float]:
-    """Decode WAV (stdlib wave) or WebM/MP3/OGG/M4A (PyAV without metadata_errors) to 16kHz mono float32."""
-    if suffix == ".wav":
-        try:
-            with wave.open(io.BytesIO(raw_bytes), "rb") as wf:
-                nch = wf.getnchannels() or 1
-                sw = wf.getsampwidth()
-                rate = wf.getframerate() or 16000
-                frames = wf.readframes(wf.getnframes())
-                duration = round(wf.getnframes() / float(rate), 2)
-                if sw == 2:
-                    arr = np.frombuffer(frames, dtype=np.int16).astype(np.float32) / 32768.0
-                elif sw == 4:
-                    arr = np.frombuffer(frames, dtype=np.int32).astype(np.float32) / 2147483648.0
-                else:
-                    arr = (np.frombuffer(frames, dtype=np.uint8).astype(np.float32) - 128.0) / 128.0
-                if nch > 1:
-                    arr = arr.reshape(-1, nch).mean(axis=1)
-                if rate != 16000 and len(arr) > 0:
-                    target_len = max(1, round(len(arr) * 16000.0 / rate))
-                    x_old = np.linspace(0.0, 1.0, len(arr), dtype=np.float32)
-                    x_new = np.linspace(0.0, 1.0, target_len, dtype=np.float32)
-                    arr = np.interp(x_new, x_old, arr).astype(np.float32)
-                return arr, duration
-        except (wave.Error, OSError, ValueError, TypeError, ZeroDivisionError) as _exc:
-            import logging
-
-            logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
-    try:
-        import av  # type: ignore[import-not-found]
-
-        with av.open(str(tmp_path), mode="r") as container:
-            stream = next((s for s in container.streams if s.type == "audio"), None)
-            if stream is None:
-                return None, 0.0
-            resampler = av.AudioResampler(format="fltp", layout="mono", rate=16000)
-            chunks: list[np.ndarray] = []
-            for frame in container.decode(stream):
-                audio_frame: Any = frame
-                for resampled in resampler.resample(audio_frame):
-                    chunks.append(resampled.to_ndarray().reshape(-1).astype(np.float32))
-            if not chunks:
-                return None, 0.0
-            arr = np.concatenate(chunks)
-            return arr, round(len(arr) / 16000.0, 2)
-    except (ImportError, OSError, RuntimeError, ValueError, TypeError, AttributeError, KeyError):
-        return None, 0.0
-
-
-def transcribe_audio_bytes(filename: str, raw_bytes: bytes) -> dict[str, Any]:
-    """Transcribe an uploaded or microphone-recorded voice message (.wav, .mp3, .m4a, .ogg, .webm) to Turkish text."""
-    suffix = Path(filename).suffix.lower() or ".wav"
-    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
-        tmp.write(raw_bytes)
-        tmp_path = Path(tmp.name)
-
-    audio_np, duration_sec = _decode_audio_to_float32_16k(raw_bytes, tmp_path, suffix)
-    transcript = ""
-    engine = "audio-metadata"
-
-    # 1. Try local faster_whisper with pre-decoded 16kHz float32 numpy array (bypasses PyAV metadata_errors bug)
-    if audio_np is not None and len(audio_np) > 0:
-        try:
-            wmodel = _get_whisper_model()
-            segments, _ = wmodel.transcribe(audio_np, language="tr", vad_filter=False)
-            transcript = " ".join(seg.text.strip() for seg in segments).strip()
-            engine = "faster-whisper-base (local)"
-        except (ImportError, OSError, RuntimeError, ValueError, TypeError, AttributeError) as _exc:
-            import logging
-
-            logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
-    # 2. Try Windows System.Speech Recognition (built into Windows, 100% offline for WAV files)
-    if not transcript and sys.platform == "win32" and suffix == ".wav":
-        ps_script = (
-            "Add-Type -AssemblyName System.Speech; "
-            "$rec = New-Object System.Speech.Recognition.SpeechRecognitionEngine; "
-            "$rec.LoadGrammar((New-Object System.Speech.Recognition.DictationGrammar)); "
-            f"$rec.SetInputToWaveFile('{tmp_path}'); "
-            "$res = $rec.Recognize(); "
-            "if ($res) { Write-Output $res.Text }"
-        )
-        try:
-            proc = subprocess.run(
-                [shutil.which("powershell") or "powershell", "-NoProfile", "-Command", ps_script],
-                capture_output=True,
-                text=True,
-                timeout=15,
-                check=False,
-            )
-            if proc.returncode == 0 and proc.stdout.strip():
-                transcript = proc.stdout.strip()
-                engine = "windows-system-speech"
-        except (subprocess.SubprocessError, OSError, ValueError) as _exc:
-            import logging
-
-            logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
-    try:
-        tmp_path.unlink(missing_ok=True)
-    except OSError:
-        pass
-
-    return {
-        "filename": filename,
-        "size_kb": round(len(raw_bytes) / 1024.0, 1),
-        "duration_sec": duration_sec,
-        "transcript": transcript,
-        "engine": engine,
     }

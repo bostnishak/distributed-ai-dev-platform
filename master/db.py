@@ -4,25 +4,46 @@ Every call opens a short-lived connection. The data volume is small and SQLite i
 enough for one master process, so no ORM or connection pool is needed.
 """
 
+from __future__ import annotations
+
 import json
 import sqlite3
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 import config
+import db_tasks
 import dbconn
 import dbindexes
 import dbunify
 import migrate
+from db_tasks import (
+    MAX_ATTEMPTS,
+    assign_task,
+    create_task,
+    expire_stale_leases,
+    get_next_task_for_agent,
+    get_perf_stats,
+    get_task,
+    list_conflicts,
+    list_events,
+    list_tasks,
+    list_unassigned_planned_tasks,
+    log_event,
+    release_all_ready_tasks,
+    resolve_conflict,
+    save_conflict,
+    submit_task_result,
+    submit_task_result_with_files,
+    update_task_validation,
+)
+from prompt_loader import load_prompt
 
 MIGRATIONS_DIR = config.BASE_DIR / "migrations" / "platform"
 SCHEMA_VERSION = 7
 
-MAX_ATTEMPTS = 3  # PB-44: tasks fail permanently after this many attempts
-
-# SCHEMA always describes the latest version (used for new databases). Existing databases are
-# brought up to date by the statements in MIGRATIONS, keyed by the version they produce.
 MIGRATIONS = {
     2: ["ALTER TABLE agents ADD COLUMN runtime TEXT"],
     3: [
@@ -86,119 +107,54 @@ MIGRATIONS = {
     ],
 }
 
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS schema_version (
-    version INTEGER NOT NULL
-);
+SCHEMA = load_prompt("b4_db_schema.txt")
 
-CREATE TABLE IF NOT EXISTS agents (
-    agent_id         TEXT PRIMARY KEY,
-    member_name      TEXT NOT NULL,
-    model            TEXT NOT NULL,
-    mode             TEXT NOT NULL,          -- 'node' (member's own computer) or 'staging'
-    runtime          TEXT,                   -- 'native' or 'docker' (host values then describe the Docker VM)
-    hostname         TEXT,
-    os               TEXT,
-    cpu_count        INTEGER,
-    ram_gb           REAL,
-    model_family     TEXT,
-    parameter_size   TEXT,
-    quantization     TEXT,
-    context_length   INTEGER,
-    capabilities     TEXT NOT NULL,          -- JSON array reported by Ollama, e.g. ["completion","vision"]
-    agent_version    TEXT,
-    heartbeat_status TEXT NOT NULL DEFAULT 'idle',
-    agent_key_hash   TEXT,
-    agent_key_revoked INTEGER NOT NULL DEFAULT 0,
-    approved         INTEGER NOT NULL DEFAULT 1,
-    registered_at    TEXT NOT NULL,          -- first registration (UTC, ISO 8601)
-    last_seen_at     TEXT NOT NULL           -- latest heartbeat/registration timestamp
-);
-
-CREATE TABLE IF NOT EXISTS eval_sessions (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    started_at  TEXT NOT NULL,
-    finished_at TEXT,
-    status      TEXT NOT NULL DEFAULT 'running'
-);
-
-CREATE TABLE IF NOT EXISTS agent_scores (
-    id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    agent_id        TEXT NOT NULL REFERENCES agents(agent_id),
-    eval_session_id INTEGER REFERENCES eval_sessions(id),
-    dimension       TEXT NOT NULL,
-    score           REAL NOT NULL,
-    evaluated_at    TEXT NOT NULL,
-    details         TEXT
-);
-
-CREATE TABLE IF NOT EXISTS projects (
-    id               INTEGER PRIMARY KEY AUTOINCREMENT,
-    name             TEXT NOT NULL,
-    source_filename  TEXT,
-    document         TEXT NOT NULL,
-    status           TEXT NOT NULL,         -- analyzing | decomposed | failed
-    error            TEXT,
-    spec             TEXT,                  -- JSON RequirementsSpec
-    analysis_model   TEXT,
-    analysis_seconds REAL,
-    chunk_count      INTEGER,
-    created_at       TEXT NOT NULL,
-    updated_at       TEXT NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS tasks (
-    id                INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id        INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-    key               TEXT NOT NULL,            -- T1, T2, ... (stable within a project)
-    stage             INTEGER NOT NULL,          -- longest-path layer in the DAG, starting at 1
-    type              TEXT NOT NULL,
-    title             TEXT NOT NULL,
-    description       TEXT NOT NULL,
-    details           TEXT NOT NULL,             -- JSON slice of the spec this task covers
-    status            TEXT NOT NULL,             -- done | planned | blocked
-    performed_by      TEXT,                      -- 'master' for the analysis task; agent id from Sprint 3
-    assigned_to       TEXT REFERENCES agents(agent_id),
-    assigned_at       TEXT,
-    lease_expires_at  TEXT,                      -- ISO 8601; 5 minutes from assignment
-    assignment_reason TEXT,                      -- JSON score breakdown
-    result            TEXT,                      -- agent's output (plain text)
-    result_at         TEXT,
-    tokens_per_second REAL,
-    files             TEXT,                      -- JSON array of {path, content}
-    validation_status TEXT DEFAULT 'pending',    -- pending | ok | failed
-    validation_message TEXT,
-    attempt           INTEGER DEFAULT 0,         -- how many times this task has been attempted
-    perf_ms           INTEGER,                   -- wall-clock ms from assignment to result (PB-52)
-    UNIQUE (project_id, key)
-);
-
-CREATE TABLE IF NOT EXISTS task_dependencies (
-    task_id            INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
-    depends_on_task_id INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
-    PRIMARY KEY (task_id, depends_on_task_id)
-);
-
-CREATE TABLE IF NOT EXISTS conflicts (
-    id           INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id   INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-    task_id_a    INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
-    task_id_b    INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
-    file_path    TEXT NOT NULL,
-    detected_at  TEXT NOT NULL,
-    resolved_at  TEXT,
-    resolution   TEXT
-);
-
-CREATE TABLE IF NOT EXISTS events (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id  INTEGER REFERENCES projects(id) ON DELETE CASCADE,
-    agent_id    TEXT REFERENCES agents(agent_id) ON DELETE SET NULL,
-    event_type  TEXT NOT NULL,
-    payload     TEXT,
-    created_at  TEXT NOT NULL
-);
-"""
+__all__ = [
+    "AGENT_FIELDS",
+    "MAX_ATTEMPTS",
+    "MIGRATIONS",
+    "MIGRATIONS_DIR",
+    "SCHEMA",
+    "SCHEMA_VERSION",
+    "apply_sql_migrations",
+    "assign_task",
+    "connect",
+    "create_eval_session",
+    "create_project",
+    "create_task",
+    "delete_project",
+    "expire_stale_leases",
+    "fail_interrupted_analyses",
+    "finish_eval_session",
+    "get_agent",
+    "get_agent_scores",
+    "get_next_task_for_agent",
+    "get_perf_stats",
+    "get_project",
+    "get_task",
+    "init_db",
+    "list_agents",
+    "list_conflicts",
+    "list_events",
+    "list_projects",
+    "list_tasks",
+    "list_unassigned_planned_tasks",
+    "log_event",
+    "mark_analyzing",
+    "mark_failed",
+    "release_all_ready_tasks",
+    "requeue_task",
+    "resolve_conflict",
+    "save_agent_score",
+    "save_conflict",
+    "save_decomposition",
+    "submit_task_result",
+    "submit_task_result_with_files",
+    "update_heartbeat",
+    "update_task_validation",
+    "upsert_agent",
+    "utc_now",
+]
 
 
 def utc_now() -> str:
@@ -236,7 +192,6 @@ def init_db() -> None:
                         try:
                             conn.execute(statement)
                         except sqlite3.OperationalError as exc:
-                            # Skip "duplicate column name" errors: the column was already added by SCHEMA.
                             if "duplicate column name" not in str(exc).lower():
                                 raise
                     version = target
@@ -246,7 +201,10 @@ def init_db() -> None:
         dbindexes.ensure_indexes(conn)
 
 
-# --- Agents -------------------------------------------------------------------------------
+def requeue_task(task_id: int) -> str:
+    """Reset a task to planned, or mark it permanently failed if MAX_ATTEMPTS reached."""
+    return db_tasks.requeue_task(task_id, max_attempts=MAX_ATTEMPTS)
+
 
 AGENT_FIELDS = (
     "member_name", "model", "mode", "runtime", "hostname", "os", "cpu_count", "ram_gb", "model_family",
@@ -284,7 +242,8 @@ def upsert_agent(agent: dict) -> dict:
                 {**values, "now": now, "agent_id": agent["agent_id"]},
             )
     rec = get_agent(agent["agent_id"])
-    assert rec is not None
+    if rec is None:
+        raise RuntimeError(f"Agent record missing after upsert: {agent['agent_id']}")
     return rec
 
 
@@ -316,8 +275,6 @@ def update_heartbeat(agent_id: str, status: str) -> bool:
         )
         return cursor.rowcount > 0
 
-
-# --- Eval sessions and scores -----------------------------------------------------------------
 
 def create_eval_session() -> int:
     with connect() as conn:
@@ -360,171 +317,6 @@ def get_agent_scores(agent_id: str) -> dict:
             latest[r["dimension"]] = {"score": r["score"], "evaluated_at": r["evaluated_at"]}
     return {"latest": latest, "history": history}
 
-
-# --- Task assignment --------------------------------------------------------------------------
-
-def assign_task(task_id: int, agent_id: str, reason: dict, lease_minutes: int = 5) -> None:
-    from datetime import timedelta
-    now = datetime.now(UTC)
-    expires = (now + timedelta(minutes=lease_minutes)).isoformat(timespec="seconds")
-    with connect() as conn:
-        conn.execute(
-            "UPDATE tasks SET assigned_to = ?, assigned_at = ?, lease_expires_at = ?, "
-            "assignment_reason = ?, status = 'planned' WHERE id = ?",
-            (agent_id, now.isoformat(timespec="seconds"), expires, json.dumps(reason), task_id),
-        )
-
-
-def get_next_task_for_agent(agent_id: str) -> dict | None:
-    """Return the next assigned planned task for this agent, or None."""
-    with connect() as conn:
-        row = conn.execute(
-            "SELECT * FROM tasks WHERE assigned_to = ? AND status = 'planned' "
-            "ORDER BY stage, id LIMIT 1",
-            (agent_id,),
-        ).fetchone()
-    if row is None:
-        return None
-    task = dict(row)
-    task["details"] = json.loads(task["details"])
-    return task
-
-
-def get_task(task_id: int) -> dict | None:
-    with connect() as conn:
-        row = conn.execute("SELECT * FROM tasks WHERE id = ?", (task_id,)).fetchone()
-    if row is None:
-        return None
-    task = dict(row)
-    task["details"] = json.loads(task["details"])
-    return task
-
-
-def submit_task_result(task_id: int, status: str, output: str, tokens_per_second: float | None) -> None:
-    with connect() as conn:
-        conn.execute(
-            "UPDATE tasks SET status = ?, result = ?, result_at = ?, tokens_per_second = ? WHERE id = ?",
-            (status, output, utc_now(), tokens_per_second, task_id),
-        )
-
-
-def expire_stale_leases() -> int:
-    """Reset tasks whose lease has expired back to planned (unassigned)."""
-    now = utc_now()
-    with connect() as conn:
-        cursor = conn.execute(
-            "UPDATE tasks SET assigned_to = NULL, assigned_at = NULL, lease_expires_at = NULL, "
-            "assignment_reason = NULL WHERE status = 'planned' AND lease_expires_at IS NOT NULL "
-            "AND lease_expires_at < ?",
-            (now,),
-        )
-        return cursor.rowcount
-
-
-def list_unassigned_planned_tasks() -> list[dict]:
-    with connect() as conn:
-        rows = conn.execute(
-            "SELECT * FROM tasks WHERE status = 'planned' AND assigned_to IS NULL ORDER BY stage, id"
-        ).fetchall()
-    result = []
-    for row in rows:
-        task = dict(row)
-        task["details"] = json.loads(task["details"])
-        result.append(task)
-    return result
-
-
-def submit_task_result_with_files(
-    task_id: int,
-    status: str,
-    output: str,
-    files: list[dict] | None,
-    tokens_per_second: float | None,
-    performed_by: str | None = None,
-) -> None:
-    """Submit task result including optional files list. Records perf_ms from assignment."""
-    with connect() as conn:
-        row = conn.execute("SELECT assigned_at FROM tasks WHERE id = ?", (task_id,)).fetchone()
-        perf_ms: int | None = None
-        if row and row["assigned_at"]:
-            try:
-                assigned = datetime.fromisoformat(row["assigned_at"].replace("Z", "+00:00"))
-                if assigned.tzinfo is None:
-                    assigned = assigned.replace(tzinfo=UTC)
-                perf_ms = int((datetime.now(UTC) - assigned).total_seconds() * 1000)
-            except (ValueError, TypeError):
-                pass
-        conn.execute(
-            "UPDATE tasks SET status = ?, result = ?, result_at = ?, tokens_per_second = ?, "
-            "files = ?, attempt = attempt + 1, perf_ms = ?, performed_by = COALESCE(?, performed_by) WHERE id = ?",
-            (
-                status,
-                output,
-                utc_now(),
-                tokens_per_second,
-                json.dumps(files, ensure_ascii=False) if files else None,
-                perf_ms,
-                performed_by,
-                task_id,
-            ),
-        )
-
-
-def update_task_validation(task_id: int, validation_status: str, message: str) -> None:
-    with connect() as conn:
-        conn.execute(
-            "UPDATE tasks SET validation_status = ?, validation_message = ? WHERE id = ?",
-            (validation_status, message, task_id),
-        )
-
-
-def requeue_task(task_id: int) -> str:
-    """Reset a task to planned, or mark it permanently failed if MAX_ATTEMPTS reached.
-
-    Returns 'requeued' or 'failed'.
-    """
-    with connect() as conn:
-        row = conn.execute("SELECT attempt FROM tasks WHERE id = ?", (task_id,)).fetchone()
-        current_attempt = (row["attempt"] or 0) if row else 0
-        if current_attempt >= MAX_ATTEMPTS:
-            conn.execute(
-                "UPDATE tasks SET status = 'failed', assigned_to = NULL, assigned_at = NULL, "
-                "lease_expires_at = NULL WHERE id = ?",
-                (task_id,),
-            )
-            return "failed"
-        conn.execute(
-            "UPDATE tasks SET status = 'planned', assigned_to = NULL, assigned_at = NULL, "
-            "lease_expires_at = NULL, assignment_reason = NULL, result = NULL, result_at = NULL, "
-            "tokens_per_second = NULL, files = NULL, validation_status = 'pending', "
-            "validation_message = NULL WHERE id = ?",
-            (task_id,),
-        )
-        return "requeued"
-
-
-def release_all_ready_tasks() -> int:
-    """Flip blocked tasks to planned when all their dependencies are done (DAG scheduler)."""
-    with connect() as conn:
-        blocked = conn.execute(
-            "SELECT id FROM tasks WHERE status = 'blocked'"
-        ).fetchall()
-        released = 0
-        for row in blocked:
-            task_id = row[0]
-            deps = conn.execute(
-                "SELECT dep.status FROM task_dependencies td "
-                "JOIN tasks dep ON dep.id = td.depends_on_task_id "
-                "WHERE td.task_id = ?",
-                (task_id,),
-            ).fetchall()
-            if all(d[0] == "done" for d in deps):
-                conn.execute("UPDATE tasks SET status = 'planned' WHERE id = ?", (task_id,))
-                released += 1
-        return released
-
-
-# --- Projects -----------------------------------------------------------------------------
 
 def create_project(name: str, document: str, source_filename: str | None) -> int:
     now = utc_now()
@@ -593,11 +385,13 @@ def save_decomposition(
     project_id: int,
     spec: dict,
     tasks: list[dict],
-    analysis_model: str,
-    analysis_seconds: float,
-    chunk_count: int,
+    *extra: Any,
+    **meta: Any,
 ) -> None:
     """Store the spec and the task graph in one transaction."""
+    analysis_model: str = meta.get("analysis_model", extra[0] if len(extra) > 0 else "")
+    analysis_seconds: float = meta.get("analysis_seconds", extra[1] if len(extra) > 1 else 0.0)
+    chunk_count: int = meta.get("chunk_count", extra[2] if len(extra) > 2 else 1)
     with connect() as conn:
         conn.execute("DELETE FROM tasks WHERE project_id = ?", (project_id,))
         ids_by_key: dict[str, int] = {}
@@ -628,163 +422,7 @@ def save_decomposition(
         )
 
 
-def create_task(
-    project_id: int,
-    key: str,
-    title: str,
-    description: str,
-    task_type: str,
-    depends_on: list[str] | None = None,
-    details: dict | None = None,
-    stage: int = 2,
-) -> int:
-    """Insert a single dynamic task (e.g. review or fix task) and return its id."""
-    with connect() as conn:
-        cursor = conn.execute(
-            "INSERT INTO tasks (project_id, key, stage, type, title, description, details, status)"
-            " VALUES (?, ?, ?, ?, ?, ?, ?, 'planned')",
-            (
-                project_id, key, stage, task_type, title, description,
-                json.dumps(details or {}, ensure_ascii=False),
-            ),
-        )
-        new_id = cursor.lastrowid
-        # Wire up dependencies by key
-        for dep_key in (depends_on or []):
-            dep_row = conn.execute(
-                "SELECT id FROM tasks WHERE project_id = ? AND key = ?", (project_id, dep_key)
-            ).fetchone()
-            if dep_row:
-                conn.execute(
-                    "INSERT OR IGNORE INTO task_dependencies (task_id, depends_on_task_id) VALUES (?, ?)",
-                    (new_id, dep_row["id"]),
-                )
-    return int(new_id or 0)
-
-
-def list_tasks(project_id: int) -> list[dict]:
-    with connect() as conn:
-        rows = conn.execute(
-            "SELECT * FROM tasks WHERE project_id = ? ORDER BY stage, id", (project_id,)
-        ).fetchall()
-        deps = conn.execute(
-            "SELECT t.key AS task_key, d.key AS dep_key FROM task_dependencies td "
-            "JOIN tasks t ON t.id = td.task_id JOIN tasks d ON d.id = td.depends_on_task_id "
-            "WHERE t.project_id = ? ORDER BY d.id",
-            (project_id,),
-        ).fetchall()
-        conflict_rows = conn.execute(
-            "SELECT task_id_a, task_id_b FROM conflicts WHERE project_id = ?", (project_id,)
-        ).fetchall()
-    tasks_with_conflicts: set[int] = set()
-    for c in conflict_rows:
-        tasks_with_conflicts.add(c["task_id_a"])
-        tasks_with_conflicts.add(c["task_id_b"])
-    depends_on: dict[str, list[str]] = {}
-    for dep in deps:
-        depends_on.setdefault(dep["task_key"], []).append(dep["dep_key"])
-    result = []
-    for row in rows:
-        task = dict(row)
-        task["details"] = json.loads(task["details"])
-        task["depends_on"] = depends_on.get(task["key"], [])
-        task["has_conflict"] = task["id"] in tasks_with_conflicts
-        result.append(task)
-    return result
-
-
 def delete_project(project_id: int) -> bool:
     with connect() as conn:
         cursor = conn.execute("DELETE FROM projects WHERE id = ?", (project_id,))
         return cursor.rowcount > 0
-
-
-# --- Conflicts (PB-45) --------------------------------------------------------------------
-
-def save_conflict(project_id: int, task_id_a: int, task_id_b: int, file_path: str) -> int:
-    with connect() as conn:
-        cursor = conn.execute(
-            "INSERT OR IGNORE INTO conflicts (project_id, task_id_a, task_id_b, file_path, detected_at) "
-            "VALUES (?, ?, ?, ?, ?)",
-            (project_id, task_id_a, task_id_b, file_path, utc_now()),
-        )
-        return cursor.lastrowid or 0
-
-
-def list_conflicts(project_id: int) -> list[dict]:
-    with connect() as conn:
-        rows = conn.execute(
-            "SELECT * FROM conflicts WHERE project_id = ? ORDER BY detected_at DESC",
-            (project_id,),
-        ).fetchall()
-    return [dict(r) for r in rows]
-
-
-def resolve_conflict(conflict_id: int, resolution: str) -> bool:
-    with connect() as conn:
-        cursor = conn.execute(
-            "UPDATE conflicts SET resolved_at = ?, resolution = ? WHERE id = ? AND resolved_at IS NULL",
-            (utc_now(), resolution, conflict_id),
-        )
-        return cursor.rowcount > 0
-
-
-# --- Events (PB-51) -----------------------------------------------------------------------
-
-def log_event(event_type: str, project_id: int | None = None, agent_id: str | None = None, payload: dict | None = None) -> None:
-    with connect() as conn:
-        conn.execute(
-            "INSERT INTO events (project_id, agent_id, event_type, payload, created_at) VALUES (?, ?, ?, ?, ?)",
-            (project_id, agent_id, event_type, json.dumps(payload, ensure_ascii=False) if payload else None, utc_now()),
-        )
-
-
-def list_events(limit: int = 50, project_id: int | None = None) -> list[dict]:
-    with connect() as conn:
-        if project_id is not None:
-            rows = conn.execute(
-                "SELECT * FROM events WHERE project_id = ? ORDER BY id DESC LIMIT ?",
-                (project_id, limit),
-            ).fetchall()
-        else:
-            rows = conn.execute(
-                "SELECT * FROM events ORDER BY id DESC LIMIT ?", (limit,)
-            ).fetchall()
-    result = []
-    for row in rows:
-        e = dict(row)
-        e["payload"] = json.loads(e["payload"]) if e["payload"] else None
-        result.append(e)
-    return result
-
-
-# --- Performance stats (PB-52) ------------------------------------------------------------
-
-def get_perf_stats(project_id: int | None = None) -> dict:
-    """Return aggregate performance metrics for tasks."""
-    with connect() as conn:
-        base = "FROM tasks WHERE perf_ms IS NOT NULL AND status = 'done'"
-        params: list = []
-        if project_id is not None:
-            base += " AND project_id = ?"
-            params.append(project_id)
-        row = conn.execute(
-            f"SELECT COUNT(*) as cnt, AVG(perf_ms) as avg_ms, MIN(perf_ms) as min_ms, MAX(perf_ms) as max_ms {base}",
-            params,
-        ).fetchone()
-        by_type = conn.execute(
-            f"SELECT type, COUNT(*) as cnt, AVG(perf_ms) as avg_ms {base} GROUP BY type ORDER BY avg_ms DESC",
-            params,
-        ).fetchall()
-        by_agent = conn.execute(
-            f"SELECT assigned_to, COUNT(*) as cnt, AVG(perf_ms) as avg_ms {base} GROUP BY assigned_to ORDER BY cnt DESC",
-            params,
-        ).fetchall()
-    return {
-        "total_tasks": row["cnt"] if row else 0,
-        "avg_ms": round(row["avg_ms"] or 0) if row else 0,
-        "min_ms": row["min_ms"] if row else None,
-        "max_ms": row["max_ms"] if row else None,
-        "by_type": [dict(r) for r in by_type],
-        "by_agent": [dict(r) for r in by_agent],
-    }

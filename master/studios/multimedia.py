@@ -21,6 +21,7 @@ from PIL import Image, ImageEnhance, ImageFilter, ImageOps
 
 import config
 from orchestrator.state import save_artifact
+from prompt_loader import load_prompt
 
 # ---------------------------------------------------------------- MM-02 Meeting/Lecture Summary with Evidence Timestamps
 
@@ -288,19 +289,7 @@ class MediaLifecycleManager:
 
     def _init_db(self) -> None:
         with self._conn() as conn:
-            conn.execute(
-                """
-                CREATE TABLE IF NOT EXISTS signed_media (
-                    media_id TEXT PRIMARY KEY,
-                    owner_id TEXT NOT NULL,
-                    filename TEXT NOT NULL,
-                    content_type TEXT NOT NULL,
-                    file_path TEXT NOT NULL,
-                    expires_at REAL NOT NULL,
-                    created_at TEXT NOT NULL
-                )
-                """
-            )
+            conn.execute(load_prompt("b2_media_lifecycle_schema.txt"))
 
     def _sign(self, media_id: str, owner_id: str, expires_at: int) -> str:
         msg = f"{media_id}:{owner_id}:{expires_at}".encode()

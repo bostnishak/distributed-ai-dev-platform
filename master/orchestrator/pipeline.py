@@ -184,6 +184,66 @@ def stage_plan(ctx: OrchestratorContext, registry: ToolRegistry) -> None:
 
 # ---------------------------------------------------------------- Stage 5: Execute
 
+@dataclass
+class _ExecEnv:
+    ctx: OrchestratorContext
+    client: LLMClient
+    registry: ToolRegistry
+    sys_prompt: str
+    max_predict: int
+    cancel_token: CancellationToken | None = None
+
+
+async def _run_plan_step(env: _ExecEnv, step: Any, prior: dict[str, StepOutcome]) -> Any:
+    ctx = env.ctx
+    if step.action == "tool":
+        tr = await env.registry.execute(
+            step.tool,
+            step.args,
+            approval_granted=ctx.approval_granted,
+            actor=ctx.user_id,
+        )
+        ctx.tools_used.append(step.tool)
+        if tr.status == "approval_required":
+            ctx.emit("approval_required", {"tool": step.tool, "message": tr.error})
+        return tr.output if tr.status == "ok" else {"error": tr.error}
+
+    prior_notes = [f"[{k}]: {v.output}" for k, v in prior.items() if v.status == "ok" and v.output]
+    user_msg = str(step.args.get("prompt") or ctx.clean_text)
+    if prior_notes:
+        user_msg = f"{user_msg}\n\nÖnceki adım çıktıları:\n" + "\n".join(prior_notes)
+    msgs = [{"role": "system", "content": env.sys_prompt}, {"role": "user", "content": user_msg}]
+
+    async def _local_call() -> str:
+        intent = ctx.decision.intent if ctx.decision else "genel"
+        res = await env.client.chat(
+            msgs,
+            model=ctx.model_override,
+            task_type=intent,
+            user_id=ctx.user_id,
+            run_id=ctx.run_id,
+            feature=f"orchestrator:{intent if ctx.decision else 'chat'}",
+            seed=ctx.seed,
+            num_predict=env.max_predict,
+            cancel_token=env.cancel_token,
+        )
+        ctx.model_used = res.model
+        ctx.provider_used = res.provider
+        return res.content
+
+    if step.action == "agent":
+        dispatched = await dispatch_to_agent_or_local(
+            prompt=user_msg,
+            capability=step.capability,
+            local_fallback=_local_call,
+            poll_timeout_s=0.3,
+        )
+        if not ctx.provider_used:
+            ctx.provider_used = dispatched["source"]
+        return dispatched["content"]
+    return await _local_call()
+
+
 async def stage_execute(
     ctx: OrchestratorContext,
     client: LLMClient,
@@ -199,7 +259,8 @@ async def stage_execute(
         lines.extend(f"{i}. {q}" for i, q in enumerate(ctx.clarification_questions, start=1))
         ctx.raw_response = "\n".join(lines)
         return
-    assert ctx.decision is not None and ctx.contract is not None and ctx.plan is not None
+    if ctx.decision is None or ctx.contract is None or ctx.plan is None:
+        raise RuntimeError("Orchestrator stage_execute requires route and plan stages to complete first.")
 
     mem_texts = [m["fact"] if isinstance(m, dict) else str(m) for m in ctx.filtered_memories]
     sys_prompt, _layers = build_layered_system_prompt(
@@ -209,54 +270,17 @@ async def stage_execute(
         user_prompt=ctx.clean_text,
     )
     tier_cfg = TIER_CONFIG.get(ctx.tier, TIER_CONFIG["standard"])
+    env = _ExecEnv(
+        ctx=ctx,
+        client=client,
+        registry=registry,
+        sys_prompt=sys_prompt,
+        max_predict=int(tier_cfg["max_predict"]),
+        cancel_token=cancel_token,
+    )
 
-    async def _run_step(step, prior: dict[str, StepOutcome]) -> Any:
-        if step.action == "tool":
-            tr = await registry.execute(
-                step.tool,
-                step.args,
-                approval_granted=ctx.approval_granted,
-                actor=ctx.user_id,
-            )
-            ctx.tools_used.append(step.tool)
-            if tr.status == "approval_required":
-                ctx.emit("approval_required", {"tool": step.tool, "message": tr.error})
-            return tr.output if tr.status == "ok" else {"error": tr.error}
-
-        prior_notes = [f"[{k}]: {v.output}" for k, v in prior.items() if v.status == "ok" and v.output]
-        user_msg = str(step.args.get("prompt") or ctx.clean_text)
-        if prior_notes:
-            user_msg = f"{user_msg}\n\nÖnceki adım çıktıları:\n" + "\n".join(prior_notes)
-
-        msgs = [{"role": "system", "content": sys_prompt}, {"role": "user", "content": user_msg}]
-
-        async def _local_call() -> str:
-            res = await client.chat(
-                msgs,
-                model=ctx.model_override,
-                task_type=ctx.decision.intent if ctx.decision else "genel",
-                user_id=ctx.user_id,
-                run_id=ctx.run_id,
-                feature=f"orchestrator:{ctx.decision.intent if ctx.decision else 'chat'}",
-                seed=ctx.seed,
-                num_predict=tier_cfg["max_predict"],
-                cancel_token=cancel_token,
-            )
-            ctx.model_used = res.model
-            ctx.provider_used = res.provider
-            return res.content
-
-        if step.action == "agent":
-            dispatched = await dispatch_to_agent_or_local(
-                prompt=user_msg,
-                capability=step.capability,
-                local_fallback=_local_call,
-                poll_timeout_s=0.3,
-            )
-            if not ctx.provider_used:
-                ctx.provider_used = dispatched["source"]
-            return dispatched["content"]
-        return await _local_call()
+    async def _run_step(step: Any, prior: dict[str, StepOutcome]) -> Any:
+        return await _run_plan_step(env, step, prior)
 
     async def _on_dag_evt(etype: str, payload: dict[str, Any]) -> None:
         ctx.emit(etype, payload)
@@ -379,38 +403,24 @@ def stage_persist(ctx: OrchestratorContext) -> None:
 
 # ---------------------------------------------------------------- Pipeline Entrypoint
 
-async def run_pipeline(
-    user_text: str,
-    *,
-    user_id: str = "default",
-    chat_id: str = "",
-    mode_override: str | None = None,
-    tier_override: str | None = None,
-    model_override: str | None = None,
-    outline_approved: bool = False,
-    approval_granted: bool = False,
-    memories: list[dict[str, Any] | str] | None = None,
-    seed: int | None = None,
-    client: LLMClient | None = None,
-    registry: ToolRegistry | None = None,
-    cancel_token: CancellationToken | None = None,
-) -> OrchestratorContext:
+async def run_pipeline(user_text: str, **opts: Any) -> OrchestratorContext:
     """ORC-01: Execute the 8-stage orchestrator pipeline cleanly end-to-end."""
     ctx = OrchestratorContext(
         run_id=f"run-{uuid.uuid4().hex[:10]}",
         user_text=user_text,
-        user_id=user_id,
-        chat_id=chat_id,
-        mode_override=mode_override,
-        tier_override=tier_override,
-        model_override=model_override,
-        outline_approved=outline_approved,
-        approval_granted=approval_granted,
-        memories=list(memories or []),
-        seed=seed,
+        user_id=str(opts.get("user_id", "default")),
+        chat_id=str(opts.get("chat_id", "")),
+        mode_override=opts.get("mode_override"),
+        tier_override=opts.get("tier_override"),
+        model_override=opts.get("model_override"),
+        outline_approved=bool(opts.get("outline_approved", False)),
+        approval_granted=bool(opts.get("approval_granted", False)),
+        memories=list(opts.get("memories") or []),
+        seed=opts.get("seed"),
     )
-    llm_client = client or default_client
-    tool_reg = registry or default_registry
+    llm_client: LLMClient = opts.get("client") or default_client
+    tool_reg: ToolRegistry = opts.get("registry") or default_registry
+    cancel_token: CancellationToken | None = opts.get("cancel_token")
 
     stage_preprocess(ctx)
     stage_guard_in(ctx)

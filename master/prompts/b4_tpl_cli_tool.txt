@@ -1,0 +1,14 @@
+import argparse
+
+def compute(val: int) -> int:
+    return val * 2
+
+def main() -> int:
+    p = argparse.ArgumentParser(description='{{PROJECT_NAME}}')
+    p.add_argument('--value', type=int, default=21)
+    args = p.parse_args()
+    print(compute(args.value))
+    return 0
+
+if __name__ == '__main__':
+    raise SystemExit(main())

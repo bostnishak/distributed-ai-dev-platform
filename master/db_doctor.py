@@ -44,6 +44,70 @@ def _json_columns(conn: sqlite3.Connection) -> list[tuple[str, str]]:
     return sorted(found)
 
 
+def _check_json_columns(conn: sqlite3.Connection) -> list[Finding]:
+    import sql_safe
+
+    findings: list[Finding] = []
+    for table, column in _json_columns(conn):
+        if not _exists(conn, table):
+            continue
+        if column not in {r[1] for r in conn.execute(f'PRAGMA table_info("{table}")')}:
+            continue
+        bad = 0
+        q_col = sql_safe.safe_ident(column)
+        for (text,) in conn.execute(sql_safe.build_select(table, column, where=f"{q_col} IS NOT NULL")):
+            try:
+                json.loads(text)
+            except (TypeError, ValueError):
+                bad += 1
+        if bad:
+            findings.append(Finding("error", "json", f"{table}.{column}: {bad} geçersiz JSON değeri"))
+    return findings
+
+
+def _check_ownership_and_blobs(conn: sqlite3.Connection) -> list[Finding]:
+    import sql_safe
+
+    findings: list[Finding] = []
+    for table, column in ownership.OWNED.items():
+        if not _exists(conn, table):
+            continue
+        q_col = sql_safe.safe_ident(column)
+        empty = conn.execute(
+            sql_safe.build_select(table, "COUNT(*)", where=f"{q_col} IS NULL OR TRIM({q_col}) = ''")
+        ).fetchone()[0]
+        if empty:
+            findings.append(Finding("error", "owner", f"{table}: {empty} satırın sahibi yok"))
+    if _exists(conn, "files"):
+        lost = conn.execute("SELECT COUNT(*) FROM files WHERE sha256 NOT IN (SELECT sha256 FROM blobs)").fetchone()[0]
+        if lost:
+            findings.append(Finding("error", "blobs", f"{lost} dosya kaydının blob satırı yok"))
+        loose = conn.execute("SELECT COUNT(*) FROM blobs WHERE sha256 NOT IN (SELECT sha256 FROM files)").fetchone()[0]
+        if loose:
+            findings.append(Finding("warning", "blobs", f"{loose} blob hiçbir dosyaya bağlı değil (onarılabilir)"))
+        findings += [Finding("error", "blob_bytes", p) for p in blobstore.verify(conn)]
+    return findings
+
+
+def _check_fts_and_metadata(conn: sqlite3.Connection) -> list[Finding]:
+    findings: list[Finding] = []
+    for table in _FTS_TABLES:
+        if not _exists(conn, table):
+            continue
+        try:
+            conn.execute(f"INSERT INTO {table}({table}) VALUES('integrity-check')")
+        except sqlite3.DatabaseError as exc:
+            findings.append(Finding("error", "fts", f"{table}: {exc} (onarım: yeniden oluşturma)"))
+    if _exists(conn, "rag_documents"):
+        cols = {r[1] for r in conn.execute("PRAGMA table_info(rag_documents)")}
+        if "embedding_model" not in cols:
+            findings.append(Finding("warning", "vectors", "rag_documents gömme modeli kaydı tutmuyor (DAT-11)"))
+    unknown = ownership.unclassified_tables(conn)
+    if unknown:
+        findings.append(Finding("warning", "ownership", f"sahiplik sınıfı olmayan tablolar: {', '.join(unknown)}"))
+    return findings
+
+
 def diagnose(path: Path) -> list[Finding]:
     findings: list[Finding] = []
     with dbconn.connection(path) as conn:
@@ -52,48 +116,9 @@ def diagnose(path: Path) -> list[Finding]:
             findings += [Finding("error", "integrity_check", r[0]) for r in result[:5]]
         for row in conn.execute("PRAGMA foreign_key_check").fetchall()[:20]:
             findings.append(Finding("error", "foreign_key_check", f"{row[0]} satır {row[1]} -> {row[2]}"))
-        import sql_safe
-
-        for table, column in _json_columns(conn):
-            if _exists(conn, table) and column in {r[1] for r in conn.execute(f'PRAGMA table_info("{table}")')}:
-                bad = 0
-                q_col = sql_safe.safe_ident(column)
-                for (text,) in conn.execute(sql_safe.build_select(table, column, where=f"{q_col} IS NOT NULL")):
-                    try:
-                        json.loads(text)
-                    except (TypeError, ValueError):
-                        bad += 1
-                if bad:
-                    findings.append(Finding("error", "json", f"{table}.{column}: {bad} geçersiz JSON değeri"))
-        for table, column in ownership.OWNED.items():
-            if _exists(conn, table):
-                q_col = sql_safe.safe_ident(column)
-                empty = conn.execute(
-                    sql_safe.build_select(table, "COUNT(*)", where=f"{q_col} IS NULL OR TRIM({q_col}) = ''")
-                ).fetchone()[0]
-                if empty:
-                    findings.append(Finding("error", "owner", f"{table}: {empty} satırın sahibi yok"))
-        if _exists(conn, "files"):
-            lost = conn.execute("SELECT COUNT(*) FROM files WHERE sha256 NOT IN (SELECT sha256 FROM blobs)").fetchone()[0]
-            if lost:
-                findings.append(Finding("error", "blobs", f"{lost} dosya kaydının blob satırı yok"))
-            loose = conn.execute("SELECT COUNT(*) FROM blobs WHERE sha256 NOT IN (SELECT sha256 FROM files)").fetchone()[0]
-            if loose:
-                findings.append(Finding("warning", "blobs", f"{loose} blob hiçbir dosyaya bağlı değil (onarılabilir)"))
-            findings += [Finding("error", "blob_bytes", p) for p in blobstore.verify(conn)]
-        for table in _FTS_TABLES:
-            if _exists(conn, table):
-                try:
-                    conn.execute(f"INSERT INTO {table}({table}) VALUES('integrity-check')")
-                except sqlite3.DatabaseError as exc:
-                    findings.append(Finding("error", "fts", f"{table}: {exc} (onarım: yeniden oluşturma)"))
-        if _exists(conn, "rag_documents"):
-            cols = {r[1] for r in conn.execute("PRAGMA table_info(rag_documents)")}
-            if "embedding_model" not in cols:
-                findings.append(Finding("warning", "vectors", "rag_documents gömme modeli kaydı tutmuyor (DAT-11)"))
-        unknown = ownership.unclassified_tables(conn)
-        if unknown:
-            findings.append(Finding("warning", "ownership", f"sahiplik sınıfı olmayan tablolar: {', '.join(unknown)}"))
+        findings.extend(_check_json_columns(conn))
+        findings.extend(_check_ownership_and_blobs(conn))
+        findings.extend(_check_fts_and_metadata(conn))
     wal = Path(str(path) + "-wal")
     if wal.is_file() and wal.stat().st_size > WAL_WARN_BYTES:
         findings.append(Finding("warning", "wal", f"WAL dosyası {wal.stat().st_size // (1024 * 1024)} MB; checkpoint gerekli"))

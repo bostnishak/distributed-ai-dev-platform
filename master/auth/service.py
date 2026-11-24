@@ -15,6 +15,7 @@ from typing import Any
 
 import config
 import dbconn
+from prompt_loader import load_prompt
 
 SESSION_COOKIE_NAME = "dadp_session"
 SESSION_TTL_SECONDS = 8 * 3600
@@ -41,35 +42,7 @@ def _signing_secret() -> bytes:
 
 def init_auth_db() -> None:
     with _conn() as conn:
-        conn.executescript(
-            """
-            CREATE TABLE IF NOT EXISTS auth_users (
-                id TEXT PRIMARY KEY,
-                username TEXT UNIQUE NOT NULL,
-                email TEXT UNIQUE,
-                password_hash TEXT NOT NULL,
-                role TEXT NOT NULL DEFAULT 'member',
-                is_active INTEGER NOT NULL DEFAULT 1,
-                created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS auth_sessions (
-                session_id TEXT PRIMARY KEY,
-                user_id TEXT NOT NULL REFERENCES auth_users(id) ON DELETE CASCADE,
-                created_at TEXT NOT NULL,
-                expires_at TEXT NOT NULL,
-                revoked INTEGER NOT NULL DEFAULT 0,
-                client_ip TEXT NOT NULL DEFAULT ''
-            );
-            CREATE INDEX IF NOT EXISTS idx_auth_sessions_user ON auth_sessions(user_id);
-            CREATE TABLE IF NOT EXISTS auth_totp (
-                user_id TEXT PRIMARY KEY REFERENCES auth_users(id) ON DELETE CASCADE,
-                secret TEXT NOT NULL,
-                enabled INTEGER NOT NULL DEFAULT 0,
-                created_at TEXT NOT NULL
-            );
-            """
-        )
+        conn.executescript(load_prompt("b1_auth_schema.txt"))
 
 
 def hash_password(password: str) -> str:

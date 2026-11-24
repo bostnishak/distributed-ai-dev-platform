@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import logging
 import sqlite3
 import sys
 import tempfile
@@ -78,6 +79,7 @@ def build() -> str:
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
     target = Path(__file__).resolve().parent.parent / "docs" / "plan-v2" / "erd.md"
     target.write_text(build(), encoding="utf-8")
-    print(f"yazıldı: {target}")
+    logging.getLogger(__name__).info("yazıldı: %s", target)

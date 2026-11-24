@@ -16,6 +16,7 @@ import numpy as np
 
 import config
 from log_sanitizer import redact_sensitive_text
+from prompt_loader import load_prompt
 from rag.store import normalize_turkish_text
 
 
@@ -271,48 +272,24 @@ def _ml_conn() -> sqlite3.Connection:
 
 def init_ml_db() -> None:
     with _ml_conn() as conn:
-        conn.executescript(
-            """
-            CREATE TABLE IF NOT EXISTS ml_model_registry (
-                model_id TEXT PRIMARY KEY,
-                base_model TEXT NOT NULL,
-                adapter_name TEXT NOT NULL,
-                dataset_hash TEXT NOT NULL,
-                hyperparams_json TEXT NOT NULL,
-                eval_report_path TEXT NOT NULL,
-                eval_score REAL NOT NULL,
-                baseline_score REAL NOT NULL,
-                status TEXT NOT NULL,
-                canary_traffic_pct INTEGER NOT NULL DEFAULT 0,
-                owner TEXT NOT NULL DEFAULT 'system',
-                created_at TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS active_learning_queue (
-                item_id TEXT PRIMARY KEY,
-                prompt TEXT NOT NULL,
-                predicted_intent TEXT NOT NULL,
-                uncertainty REAL NOT NULL,
-                priority_score REAL NOT NULL,
-                status TEXT NOT NULL DEFAULT 'pending',
-                human_label TEXT NOT NULL DEFAULT '',
-                created_at TEXT NOT NULL
-            );
-            """
-        )
+        conn.executescript(load_prompt("b2_ml_ops_schema.txt"))
 
 
 def register_and_gate_adapter(
-    *,
-    base_model: str,
-    adapter_name: str,
-    dataset_hash: str,
-    hyperparams: dict[str, Any],
-    eval_report_path: str,
-    eval_score: float,
-    baseline_score: float,
-    owner: str = "system",
+    spec: dict[str, Any] | None = None,
+    **kwargs: Any,
 ) -> dict[str, Any]:
     """ML-08 & ML-10: Register reproducible adapter metadata; promote to 10% canary ONLY if eval beats baseline."""
+    cfg = {**(spec or {}), **kwargs}
+    base_model = str(cfg["base_model"])
+    adapter_name = str(cfg["adapter_name"])
+    dataset_hash = str(cfg["dataset_hash"])
+    hyperparams = dict(cfg["hyperparams"])
+    eval_report_path = str(cfg["eval_report_path"])
+    eval_score = float(cfg["eval_score"])
+    baseline_score = float(cfg["baseline_score"])
+    owner = str(cfg.get("owner", "system"))
+
     init_ml_db()
     mid = f"mdl-{uuid.uuid4().hex[:10]}"
     promoted = eval_score > baseline_score
@@ -329,7 +306,7 @@ def register_and_gate_adapter(
             """,
             (
                 mid, base_model, adapter_name, dataset_hash, json.dumps(hyperparams, sort_keys=True),
-                eval_report_path, float(eval_score), float(baseline_score), status, canary_pct, owner, now,
+                eval_report_path, eval_score, baseline_score, status, canary_pct, owner, now,
             ),
         )
     return {"model_id": mid, "status": status, "canary_traffic_pct": canary_pct, "promoted": promoted}

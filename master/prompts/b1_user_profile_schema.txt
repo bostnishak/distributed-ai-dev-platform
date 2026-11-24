@@ -1,0 +1,32 @@
+CREATE TABLE IF NOT EXISTS profiles (
+    user_id TEXT PRIMARY KEY,
+    display_name TEXT NOT NULL,
+    role_title TEXT NOT NULL DEFAULT '',
+    bio TEXT NOT NULL DEFAULT '',
+    avatar_color TEXT NOT NULL DEFAULT '#4f46e5',
+    settings_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS usage_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL,
+    ts TEXT NOT NULL,
+    conversation_id TEXT NOT NULL DEFAULT '',
+    model TEXT NOT NULL DEFAULT '',
+    task_type TEXT NOT NULL DEFAULT '',
+    prompt_tokens INTEGER NOT NULL DEFAULT 0,
+    completion_tokens INTEGER NOT NULL DEFAULT 0,
+    latency_ms INTEGER NOT NULL DEFAULT 0,
+    estimated INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_usage_user_ts ON usage_events(user_id, ts);
+CREATE TABLE IF NOT EXISTS saved_chats (
+    chat_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    title TEXT NOT NULL DEFAULT 'Yeni sohbet',
+    updated_at INTEGER NOT NULL DEFAULT 0,
+    messages_json TEXT NOT NULL DEFAULT '[]',
+    PRIMARY KEY (user_id, chat_id)
+);
+CREATE INDEX IF NOT EXISTS idx_saved_chats_user_updated ON saved_chats(user_id, updated_at DESC);
