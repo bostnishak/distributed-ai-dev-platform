@@ -15,11 +15,24 @@ def safe_ident(name: str) -> str:
     return f'"{clean}"'
 
 
+_IDENT = r'"?[A-Za-z_][A-Za-z0-9_]{0,63}"?'
+_PROJECTION = re.compile(
+    rf"(?:\*|{_IDENT}|(?:COUNT|SUM|AVG|MIN|MAX|BM25)\((?:\*|{_IDENT})\))(?:\s+AS\s+[A-Za-z_][A-Za-z0-9_]{{0,63}})?",
+    re.IGNORECASE,
+)
+
+
 def safe_columns(columns: str) -> str:
-    """Validate a comma-separated projection list (or '*')."""
+    """Validate a comma-separated projection list: '*', identifiers, simple aggregates and `AS alias`."""
     if columns.strip() == "*":
         return "*"
-    return ", ".join(safe_ident(part.strip()) for part in columns.split(",") if part.strip())
+    parts = [part.strip() for part in columns.split(",") if part.strip()]
+    if not parts:
+        raise ValueError("Boş sütun listesi.")
+    for part in parts:
+        if not _PROJECTION.fullmatch(part):
+            raise ValueError(f"Geçersiz sütun ifadesi: {part!r}")
+    return ", ".join(parts)
 
 
 def placeholders_for(count: int) -> str:
@@ -30,7 +43,7 @@ def placeholders_for(count: int) -> str:
 
 def build_select(table: str, columns: str = "*", *, where: str = "", order_by: str = "", limit: int | None = None, schema: str = "") -> str:
     tbl = f"{safe_ident(schema)}.{safe_ident(table)}" if schema else safe_ident(table)
-    cols = columns if "(" in columns or " AS " in columns.upper() else safe_columns(columns)
+    cols = safe_columns(columns)
     parts = ["SELECT", cols, "FROM", tbl]
     if where:
         parts.extend(["WHERE", where])

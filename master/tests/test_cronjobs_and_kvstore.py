@@ -116,3 +116,13 @@ def test_drained_agent_gets_no_new_task_even_when_work_is_waiting(client, auth_h
     assert client.get(url, headers=auth_headers).status_code == 204
     client.post(f"/api/productivity/agents/{agent_id}/drain", params={"maintenance_mode": "false"})
     assert client.get(url, headers=auth_headers).status_code == 200
+
+
+def test_sql_safe_projection_rejects_injection_but_keeps_aggregates():
+    import sql_safe
+
+    assert sql_safe.build_select("t", "COUNT(*) AS total_count") == "SELECT COUNT(*) AS total_count FROM \"t\""
+    assert sql_safe.build_select("t", 'SUM("x") AS s, COUNT(*) AS n').startswith('SELECT SUM("x") AS s, COUNT(*) AS n')
+    for bad in ("1) FROM sqlite_master; --", "COUNT(*) AS a; DROP TABLE t", "x FROM y --", "(SELECT password FROM users)", "name, (SELECT 1)"):
+        with pytest.raises(ValueError):
+            sql_safe.build_select("t", bad)
