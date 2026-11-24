@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-24T04:24:59+00:00",
+ "generated_at": "2026-11-24T04:33:00+00:00",
  "items": {
   "AUD-01": {
    "status": "open",
@@ -26,10 +26,13 @@
    }
   },
   "AUD-04": {
-   "status": "open",
+   "status": "partial",
+   "gap": "40/40 yakalama, 0/40 yanlış alarm ama küme dedektör ayarlanırken görüldü; dışlanmış küme (AUD-05) yok",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_sec_acceptance.py"
+    ],
+    "commit": "a6d0d7e",
     "eval_report": ""
    }
   },
@@ -42,18 +45,23 @@
    }
   },
   "AUD-06": {
-   "status": "open",
+   "status": "done",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_sec_acceptance.py"
+    ],
+    "commit": "a6d0d7e",
     "eval_report": ""
    }
   },
   "AUD-07": {
-   "status": "open",
+   "status": "partial",
+   "gap": "auth/policy.py matrisi ve require_role var; route bağımlılığı olarak uygulanmıyor (AUD-08)",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_sec_acceptance.py"
+    ],
+    "commit": "a6d0d7e",
     "eval_report": ""
    }
   },
@@ -66,10 +74,13 @@
    }
   },
   "AUD-09": {
-   "status": "open",
+   "status": "partial",
+   "gap": "eval/security eklendi; eval/latency yok",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_sec_acceptance.py"
+    ],
+    "commit": "a6d0d7e",
     "eval_report": ""
    }
   },
@@ -162,34 +173,46 @@
    }
   },
   "AUD-21": {
-   "status": "open",
+   "status": "partial",
+   "gap": "TokenBucket modülü ve giriş 429 var; pahalı rotalara orta katman bağlı değil",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_sec_acceptance.py"
+    ],
+    "commit": "a6d0d7e",
     "eval_report": ""
    }
   },
   "AUD-22": {
-   "status": "open",
+   "status": "partial",
+   "gap": "JobLimiter yalnız proje analizinde; araştırma/sunum/oyun bağlı değil",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_sec_acceptance.py"
+    ],
+    "commit": "a6d0d7e",
     "eval_report": ""
    }
   },
   "AUD-23": {
-   "status": "open",
+   "status": "partial",
+   "gap": "uyarı RAG yükleme yanıtında; sohbet eki yolunda yok",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_sec_acceptance.py"
+    ],
+    "commit": "a6d0d7e",
     "eval_report": ""
    }
   },
   "AUD-24": {
-   "status": "open",
+   "status": "partial",
+   "gap": "uzantı/içerik denetimi yalnız RAG yüklemesinde; diğer yükleme yollarında yok",
    "evidence": {
-    "tests": [],
-    "commit": "",
+    "tests": [
+     "master/tests/test_sec_acceptance.py"
+    ],
+    "commit": "a6d0d7e",
     "eval_report": ""
    }
   },
