@@ -42,15 +42,17 @@ def export_user(owner: str, destination: Path) -> dict[str, int]:
     for path in retention.database_files():
         with dbconn.connection(path) as conn:
             present = ownership.table_names(conn)
+            import sql_safe
+
             for table, column in ownership.OWNED.items():
                 if table in present and table not in _RESERVED:
                     tables.setdefault(table, []).extend(
-                        _rows(conn, f"SELECT * FROM {table} WHERE {column} = ?", (owner,)))
+                        _rows(conn, sql_safe.build_select(table, "*", where=f"{sql_safe.safe_ident(column)} = ?"), (owner,)))
             for child, (col, parent, key) in ownership.CHILDREN.items():
                 if child in present:
-                    tables.setdefault(child, []).extend(_rows(
-                        conn, f"SELECT * FROM {child} WHERE {col} IN "
-                              f"(SELECT {key} FROM {parent} WHERE {ownership.OWNED[parent]} = ?)", (owner,)))
+                    sub = sql_safe.build_select(parent, key, where=f"{sql_safe.safe_ident(ownership.OWNED[parent])} = ?")
+                    tables.setdefault(child, []).extend(
+                        _rows(conn, sql_safe.build_select(child, "*", where=f"{sql_safe.safe_ident(col)} IN ({sub})"), (owner,)))
     blob_hashes = {row["sha256"] for row in tables.get("files", [])}
     destination.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(destination, "w", zipfile.ZIP_DEFLATED) as zf:

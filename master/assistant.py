@@ -14,6 +14,7 @@ import operator
 import os
 import re
 import sys
+from typing import Any
 
 import httpx
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
@@ -488,7 +489,7 @@ def _safe_pow(base: float, exp: float) -> float:
     return operator.pow(base, exp)
 
 
-_SAFE_OPERATORS = {
+_SAFE_BIN_OPS: dict[type[ast.operator], Any] = {
     ast.Add: operator.add,
     ast.Sub: operator.sub,
     ast.Mult: operator.mul,
@@ -496,6 +497,8 @@ _SAFE_OPERATORS = {
     ast.FloorDiv: operator.floordiv,
     ast.Mod: operator.mod,
     ast.Pow: _safe_pow,
+}
+_SAFE_UNARY_OPS: dict[type[ast.unaryop], Any] = {
     ast.USub: operator.neg,
     ast.UAdd: operator.pos,
 }
@@ -511,11 +514,11 @@ _CALC_TRAILING_WORDS = re.compile(
 
 def _safe_eval_node(node: ast.AST) -> float:
     if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
-        return node.value
-    if isinstance(node, ast.BinOp) and type(node.op) in _SAFE_OPERATORS:
-        return _SAFE_OPERATORS[type(node.op)](_safe_eval_node(node.left), _safe_eval_node(node.right))
-    if isinstance(node, ast.UnaryOp) and type(node.op) in _SAFE_OPERATORS:
-        return _SAFE_OPERATORS[type(node.op)](_safe_eval_node(node.operand))
+        return float(node.value)
+    if isinstance(node, ast.BinOp) and type(node.op) in _SAFE_BIN_OPS:
+        return float(_SAFE_BIN_OPS[type(node.op)](_safe_eval_node(node.left), _safe_eval_node(node.right)))
+    if isinstance(node, ast.UnaryOp) and type(node.op) in _SAFE_UNARY_OPS:
+        return float(_SAFE_UNARY_OPS[type(node.op)](_safe_eval_node(node.operand)))
     raise ValueError("unsupported expression")
 
 

@@ -7,6 +7,7 @@ import {
   wsSvgIcon,
 } from './assistant_ide_render.js';
 import { setSanitizedHtml } from './sanitizer.js';
+import { mountOfflineCodeEditor } from '../vendor/code_editor.js';
 
 export function buildInlineWorkspaceCard(wsMeta, wsTree) {
   const wsId = wsMeta.id;
@@ -223,6 +224,7 @@ export function buildInlineWorkspaceCard(wsMeta, wsTree) {
   rawTextarea.className = 'ide-raw-editor';
   rawTextarea.spellcheck = false;
   rawTextarea.hidden = true;
+  mountOfflineCodeEditor(rawTextarea, { onSave: () => saveFileBtn.click() });
   codeScroll.append(gutter, codeBlock, rawTextarea);
   codePane.append(tabBar, subBar, codeScroll);
 

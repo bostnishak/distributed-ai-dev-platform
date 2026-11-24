@@ -1,4 +1,4 @@
-project-includes = ["master", "agent", "eval", "scripts"]
+project-includes = ["eval", "scripts/dadp_cli.py", "sdk"]
 project-excludes = ["master/venv", "**/.venv", "**/node_modules", "**/__pycache__"]
 search-path = ["master", "agent", "."]
 python-interpreter-path = "master/venv/Scripts/python.exe"

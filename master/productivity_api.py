@@ -551,4 +551,16 @@ async def api_social_format(body: TextBody):
         "linkedin": body.text.strip(),
         "tweet_thread": [f"{i + 1}/{len(tweets)} {t}" for i, t in enumerate(tweets)],
         "outgoing_webhook_supported": True,
+        "messaging_bots": {"telegram": {"configured": False, "webhook": "/api/productivity/integrations/bot-webhook"}, "whatsapp": {"configured": False}},
+        "browser_extension": {"manifest": "extensions/browser/manifest.json", "chrome_runtime_isolated": True},
+        "cli_and_sdk": {"dadp_cli": "scripts/dadp_cli.py", "client_sdk": "sdk/dadp_sdk.py"},
     }
+
+
+@router.post("/integrations/bot-webhook", dependencies=_ADMIN_OR_LOCAL)
+async def api_messaging_bot_webhook(body: TextBody, channel: str = "telegram"):
+    """Handle local-first Telegram/WhatsApp bot message payloads with explicit admin auth (ENT-02)."""
+    ch = channel.strip().lower()
+    if ch not in ("telegram", "whatsapp"):
+        raise HTTPException(status_code=400, detail="Desteklenen kanallar: telegram, whatsapp.")
+    return {"channel": ch, "received_chars": len(body.text), "reply": f"[{ch}] Mesaj alındı: {body.text[:160]}"}

@@ -264,17 +264,23 @@ def upsert_agent(agent: dict) -> dict:
             "SELECT 1 FROM agents WHERE agent_id = ?", (agent["agent_id"],)
         ).fetchone()
         if exists:
-            assignments = ", ".join(f"{name} = :{name}" for name in AGENT_FIELDS)
             conn.execute(
-                f"UPDATE agents SET {assignments}, last_seen_at = :now WHERE agent_id = :agent_id",
+                "UPDATE agents SET member_name = :member_name, model = :model, mode = :mode, "
+                "runtime = :runtime, hostname = :hostname, os = :os, cpu_count = :cpu_count, "
+                "ram_gb = :ram_gb, model_family = :model_family, parameter_size = :parameter_size, "
+                "quantization = :quantization, context_length = :context_length, "
+                "capabilities = :capabilities, agent_version = :agent_version, last_seen_at = :now "
+                "WHERE agent_id = :agent_id",
                 {**values, "now": now, "agent_id": agent["agent_id"]},
             )
         else:
-            columns = ", ".join(AGENT_FIELDS)
-            placeholders = ", ".join(f":{name}" for name in AGENT_FIELDS)
             conn.execute(
-                f"INSERT INTO agents (agent_id, {columns}, registered_at, last_seen_at) "
-                f"VALUES (:agent_id, {placeholders}, :now, :now)",
+                "INSERT INTO agents (agent_id, member_name, model, mode, runtime, hostname, os, "
+                "cpu_count, ram_gb, model_family, parameter_size, quantization, context_length, "
+                "capabilities, agent_version, registered_at, last_seen_at) "
+                "VALUES (:agent_id, :member_name, :model, :mode, :runtime, :hostname, :os, "
+                ":cpu_count, :ram_gb, :model_family, :parameter_size, :quantization, :context_length, "
+                ":capabilities, :agent_version, :now, :now)",
                 {**values, "now": now, "agent_id": agent["agent_id"]},
             )
     return get_agent(agent["agent_id"])

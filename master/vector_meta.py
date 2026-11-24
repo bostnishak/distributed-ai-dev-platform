@@ -30,7 +30,7 @@ def ensure_columns(conn: sqlite3.Connection) -> bool:
 
 def stamp(conn: sqlite3.Connection, doc_id: str, model: str, dim: int, version: int = 1) -> None:
     conn.execute(
-        f"UPDATE {TABLE} SET embedding_model = ?, embedding_dim = ?, embedding_version = ? WHERE doc_id = ?",
+        "UPDATE rag_documents SET embedding_model = ?, embedding_dim = ?, embedding_version = ? WHERE doc_id = ?",
         (model, dim, version, doc_id),
     )
 
@@ -40,5 +40,5 @@ def stale(conn: sqlite3.Connection, model: str, dim: int, version: int = 1) -> l
     if not ensure_columns(conn):
         return []
     return [r[0] for r in conn.execute(
-        f"SELECT doc_id FROM {TABLE} WHERE embedding_model IS NOT ? OR embedding_dim IS NOT ? "
+        "SELECT doc_id FROM rag_documents WHERE embedding_model IS NOT ? OR embedding_dim IS NOT ? "
         "OR embedding_version IS NOT ?", (model, dim, version))]

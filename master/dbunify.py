@@ -24,9 +24,16 @@ class UnifyError(RuntimeError):
 
 
 def _tables(conn: sqlite3.Connection, schema: str) -> list[tuple[str, str]]:
+    import sql_safe
+
     rows = conn.execute(
-        f"SELECT name, sql FROM {schema}.sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' "
-        "AND sql IS NOT NULL ORDER BY rowid"
+        sql_safe.build_select(
+            "sqlite_master",
+            "name, sql",
+            schema=schema,
+            where="type = 'table' AND name NOT LIKE 'sqlite_%' AND sql IS NOT NULL",
+            order_by="rowid",
+        )
     ).fetchall()
     virtual = {name for name, sql in rows if sql.upper().startswith("CREATE VIRTUAL TABLE")}
     keep = []
@@ -39,6 +46,8 @@ def _tables(conn: sqlite3.Connection, schema: str) -> list[tuple[str, str]]:
 
 
 def _copy_one(conn: sqlite3.Connection, legacy: Path) -> dict[str, int]:
+    import sql_safe
+
     conn.execute("ATTACH DATABASE ? AS legacy", (str(legacy),))
     copied: dict[str, int] = {}
     try:
@@ -51,16 +60,16 @@ def _copy_one(conn: sqlite3.Connection, legacy: Path) -> dict[str, int]:
                 theirs = [r[1] for r in conn.execute(f'PRAGMA legacy.table_info("{name}")')]
                 if mine != theirs:
                     raise UnifyError(f"{legacy.name}: '{name}' tablosu platform.db'dekiyle aynı adı taşıyor ama sütunları farklı")
-            conn.execute(f'INSERT OR IGNORE INTO main."{name}" SELECT * FROM legacy."{name}"')
-            before = conn.execute(f'SELECT COUNT(*) FROM legacy."{name}"').fetchone()[0]
-            after = conn.execute(f'SELECT COUNT(*) FROM main."{name}"').fetchone()[0]
+            conn.execute(sql_safe.build_copy_table("main", "legacy", name))
+            before = conn.execute(sql_safe.build_select(name, "COUNT(*)", schema="legacy")).fetchone()[0]
+            after = conn.execute(sql_safe.build_select(name, "COUNT(*)", schema="main")).fetchone()[0]
             if after < before:
                 raise UnifyError(f"{legacy.name}: '{name}' tablosunda {before} satırdan yalnız {after} kopyalandı")
             copied[name] = before
         for kind in ("index", "trigger"):
             for (sql,) in conn.execute(
-                f"SELECT sql FROM legacy.sqlite_master WHERE type = '{kind}' AND sql IS NOT NULL "
-                "AND name NOT LIKE 'sqlite_%'"
+                "SELECT sql FROM legacy.sqlite_master WHERE type = ? AND sql IS NOT NULL AND name NOT LIKE 'sqlite_%'",
+                (kind,),
             ).fetchall():
                 try:
                     conn.execute(sql)

@@ -150,7 +150,6 @@ def query_csv_with_sql(csv_text: str, sql_query: str = "SELECT * FROM data LIMIT
     col_defs = ", ".join(f'"{c}" NUMERIC' for c in clean_cols)
     conn.execute(f"CREATE TABLE data ({col_defs})")
 
-    placeholders = ", ".join("?" for _ in clean_cols)
     typed_rows = []
     for r in data_rows:
         row_vals = []
@@ -161,7 +160,9 @@ def query_csv_with_sql(csv_text: str, sql_query: str = "SELECT * FROM data LIMIT
             except ValueError:
                 row_vals.append(v)
         typed_rows.append(row_vals)
-    conn.executemany(f"INSERT INTO data VALUES ({placeholders})", typed_rows)
+    import sql_safe
+
+    conn.executemany(sql_safe.build_insert_values("data", len(clean_cols)), typed_rows)
 
     # Only allow read-only SELECT queries
     if not sql_query.strip().upper().startswith("SELECT"):

@@ -101,6 +101,21 @@ def snapshot(db_path: Path, directory: Path) -> Path | None:
     return target
 
 
+def _split_sql_statements(sql: str) -> list[str]:
+    stmts: list[str] = []
+    buf = ""
+    for ch in sql:
+        buf += ch
+        if ch == ";" and sqlite3.complete_statement(buf):
+            cleaned = buf.strip()
+            if cleaned and cleaned != ";":
+                stmts.append(cleaned)
+            buf = ""
+    if buf.strip():
+        stmts.append(buf.strip())
+    return stmts
+
+
 def apply_pending(
     db_path: Path | str, directory: Path, *, snapshot_dir: Path | None = None, dry_run: bool = False
 ) -> list[str]:
@@ -120,14 +135,15 @@ def apply_pending(
     try:
         for migration in todo:
             stamp = datetime.now(UTC).isoformat(timespec="seconds")
-            script = (
-                "BEGIN IMMEDIATE;\n"
-                + migration.sql
-                + "\n;INSERT INTO schema_migrations (version, name, checksum, applied_at) VALUES "
-                + f"({migration.version}, '{migration.name}', '{migration.checksum}', '{stamp}');\nCOMMIT;"
-            )
             try:
-                conn.executescript(script)
+                conn.execute("BEGIN IMMEDIATE")
+                for stmt in _split_sql_statements(migration.sql):
+                    conn.execute(stmt)
+                conn.execute(
+                    "INSERT INTO schema_migrations (version, name, checksum, applied_at) VALUES (?, ?, ?, ?)",
+                    (migration.version, migration.name, migration.checksum, stamp),
+                )
+                conn.execute("COMMIT")
             except sqlite3.Error as exc:
                 if conn.in_transaction:
                     conn.execute("ROLLBACK")

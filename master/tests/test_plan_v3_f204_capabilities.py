@@ -129,3 +129,19 @@ def test_productivity_apis_code_data_media_agents_integrations(f204_client):
     assert "BEGIN:VEVENT" in ics["ics"] and "SUMMARY:Sprint Review" in ics["ics"]
     soc = f204_client.post("/api/productivity/integrations/social-format", json={"text": " ".join(["duyuru"] * 60)}).json()
     assert len(soc["tweet_thread"]) >= 2
+
+    # SQL-01..26 safe identifier builder, ENT-02 bot webhook, ENT-03 browser extension, KOD-01 offline editor
+    import pathlib
+
+    import sql_safe
+
+    assert sql_safe.safe_ident("users") == '"users"'
+    with pytest.raises(ValueError):
+        sql_safe.safe_ident("users; DROP TABLE users;--")
+
+    bot = f204_client.post("/api/productivity/integrations/bot-webhook?channel=telegram", json={"text": "Merhaba"}).json()
+    assert bot["channel"] == "telegram" and "Merhaba" in bot["reply"]
+
+    repo_root = pathlib.Path(__file__).resolve().parents[2]
+    assert (repo_root / "extensions" / "browser" / "manifest.json").is_file()
+    assert (repo_root / "master" / "static" / "vendor" / "code_editor.js").is_file()

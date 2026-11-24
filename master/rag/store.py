@@ -475,31 +475,33 @@ class RAGStore:
         fts_terms = [t for t in norm_q.split() if len(t) >= 2][:12]
         bm25_scores: dict[str, float] = {}
 
-        placeholders = ",".join("?" * len(target_cols))
+        import sql_safe
+
+        placeholders = sql_safe.placeholders_for(len(target_cols))
         with self._conn() as conn:
             if fts_terms:
                 fts_query = " OR ".join(f'"{t}"' for t in fts_terms)
                 try:
-                    rows = conn.execute(
-                        f"SELECT chunk_id, bm25(rag_chunks_fts) AS rank FROM rag_chunks_fts "
-                        f"WHERE rag_chunks_fts MATCH ? AND collection_id IN ({placeholders}) ORDER BY rank LIMIT 30",
-                        (fts_query, *target_cols),
-                    ).fetchall()
+                    fts_sql = sql_safe.build_select(
+                        "rag_chunks_fts",
+                        "chunk_id, bm25(rag_chunks_fts) AS rank",
+                        where=f"rag_chunks_fts MATCH ? AND collection_id IN ({placeholders})",
+                        order_by="rank",
+                        limit=30,
+                    )
+                    rows = conn.execute(fts_sql, (fts_query, *target_cols)).fetchall()
                     for r in rows:
                         # FTS5 bm25() is negative (more negative = better match)
                         bm25_scores[r["chunk_id"]] = min(1.0, max(0.0, -float(r["rank"]) / 8.0))
                 except sqlite3.OperationalError:
                     pass
 
-            chunk_rows = conn.execute(
-                f"""
-                SELECT c.*, d.title AS doc_title, d.is_sample AS doc_is_sample
-                FROM rag_chunks c
-                JOIN rag_documents d ON c.doc_id = d.doc_id
-                WHERE c.collection_id IN ({placeholders}) AND c.embedding_dim = ?
-                """,
-                (*target_cols, q_dim),
-            ).fetchall()
+            join_sql = (
+                "SELECT c.*, d.title AS doc_title, d.is_sample AS doc_is_sample "
+                "FROM rag_chunks c JOIN rag_documents d ON c.doc_id = d.doc_id "
+                "WHERE c.collection_id IN (" + placeholders + ") AND c.embedding_dim = ?"
+            )
+            chunk_rows = conn.execute(join_sql, (*target_cols, q_dim)).fetchall()
 
         if not chunk_rows:
             return self._no_source_result(risk=risk, rewritten=rewritten)

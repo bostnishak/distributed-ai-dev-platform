@@ -599,9 +599,11 @@ def _translate_natural_query_to_sql(natural_query: str, schema: dict[str, Any]) 
         and not c["pk"]
     ]
 
+    import sql_safe
+
     # Check if user asked for count
     if any(k in q_lower for k in ("kaç", "kac", "sayısı", "sayisi", "count", "how many", "toplam kayıt")):
-        return f"SELECT COUNT(*) AS total_count FROM {t_name}"
+        return sql_safe.build_select(t_name, "COUNT(*) AS total_count")
 
     # Check if user asked for sum / average
     if any(k in q_lower for k in ("toplam", "sum", "total")) and numeric_cols:
@@ -610,7 +612,8 @@ def _translate_natural_query_to_sql(natural_query: str, schema: dict[str, Any]) 
             if nc.lower() in q_lower:
                 target_col = nc
                 break
-        return f"SELECT SUM({target_col}) AS total_{target_col}, COUNT(*) AS row_count FROM {t_name}"
+        q_col = sql_safe.safe_ident(target_col)
+        return sql_safe.build_select(t_name, f"SUM({q_col}) AS total_{target_col}, COUNT(*) AS row_count")
 
     if any(k in q_lower for k in ("ortalama", "average", "avg", "mean")) and numeric_cols:
         target_col = numeric_cols[0]
@@ -618,7 +621,8 @@ def _translate_natural_query_to_sql(natural_query: str, schema: dict[str, Any]) 
             if nc.lower() in q_lower:
                 target_col = nc
                 break
-        return f"SELECT AVG({target_col}) AS avg_{target_col}, COUNT(*) AS row_count FROM {t_name}"
+        q_col = sql_safe.safe_ident(target_col)
+        return sql_safe.build_select(t_name, f"AVG({q_col}) AS avg_{target_col}, COUNT(*) AS row_count")
 
     # Ordering and limit heuristics
     order_clause = ""
@@ -628,14 +632,14 @@ def _translate_natural_query_to_sql(natural_query: str, schema: dict[str, Any]) 
             if c.lower() in q_lower:
                 sort_col = c
                 break
-        order_clause = f" ORDER BY {sort_col} DESC"
+        order_clause = f"{sql_safe.safe_ident(sort_col)} DESC"
 
     limit_val = 50
     m_lim = re.search(r"\b(?:ilk|top|limit)\s+(\d{1,4})\b", q_lower)
     if m_lim:
         limit_val = min(500, max(1, int(m_lim.group(1))))
 
-    return f"SELECT * FROM {t_name}{order_clause} LIMIT {limit_val}"
+    return sql_safe.build_select(t_name, "*", order_by=order_clause, limit=limit_val)
 
 
 def introspect_sqlite_and_query(

@@ -52,7 +52,7 @@ class Provider(Protocol):
         timeout_s: float = 120.0,
     ) -> ProviderResponse: ...
 
-    async def stream(
+    def stream(
         self,
         model: str,
         messages: list[dict[str, Any]],

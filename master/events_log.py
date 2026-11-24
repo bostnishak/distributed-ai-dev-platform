@@ -24,22 +24,23 @@ def query(
     limit: int = 50,
     offset: int = 0,
 ) -> list[dict]:
-    clauses, params = [], []
-    for column, value in (("event_type", event_type), ("agent_id", agent_id), ("project_id", project_id)):
-        if value is not None:
-            clauses.append(f"{column} = ?")
-            params.append(value)
-    if since:
-        clauses.append("created_at >= ?")
-        params.append(since)
-    if until:
-        clauses.append("created_at < ?")
-        params.append(until)
-    where = (" WHERE " + " AND ".join(clauses)) if clauses else ""
     rows = conn.execute(
-        f"SELECT id, project_id, agent_id, event_type, payload, created_at FROM events{where} "
+        "SELECT id, project_id, agent_id, event_type, payload, created_at FROM events "
+        "WHERE (? IS NULL OR event_type = ?) "
+        "AND (? IS NULL OR agent_id = ?) "
+        "AND (? IS NULL OR project_id = ?) "
+        "AND (? IS NULL OR created_at >= ?) "
+        "AND (? IS NULL OR created_at < ?) "
         "ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?",
-        (*params, max(1, min(int(limit), MAX_PAGE)), max(0, int(offset))),
+        (
+            event_type, event_type,
+            agent_id, agent_id,
+            project_id, project_id,
+            since, since,
+            until, until,
+            max(1, min(int(limit), MAX_PAGE)),
+            max(0, int(offset)),
+        ),
     ).fetchall()
     result = []
     for row in rows:

@@ -85,9 +85,10 @@ def scoped_select(
         raise UnscopedQuery(f"'{table}' kullanıcıya ait bir tablo olarak kayıtlı değil")
     if not _COLUMNS.match(columns) or (order_by and not _COLUMNS.match(order_by)):
         raise UnscopedQuery("sütun listesi geçersiz")
-    sql = f"SELECT {columns} FROM {table} WHERE {OWNED[table]} = ? AND ({where})"
-    if order_by:
-        sql += f" ORDER BY {order_by}"
+    import sql_safe
+
+    owner_col = sql_safe.safe_ident(OWNED[table])
+    sql = sql_safe.build_select(table, columns, where=f"{owner_col} = ? AND ({where})", order_by=order_by or "")
     if limit is not None:
         sql += f" LIMIT {int(limit)} OFFSET {int(offset)}"
     return conn.execute(sql, (owner, *params)).fetchall()
@@ -95,14 +96,15 @@ def scoped_select(
 
 def delete_owner(conn: sqlite3.Connection, owner: str) -> dict[str, int]:
     """Remove everything a user owns, children first. Blobs are collected separately (blobstore)."""
+    import sql_safe
+
     removed: dict[str, int] = {}
     existing = table_names(conn)
     for child, (col, parent, key) in CHILDREN.items():
         if child not in existing or parent not in existing:
             continue
-        cur = conn.execute(
-            f"DELETE FROM {child} WHERE {col} IN (SELECT {key} FROM {parent} WHERE {OWNED[parent]} = ?)", (owner,)
-        )
+        sub = sql_safe.build_select(parent, key, where=f"{sql_safe.safe_ident(OWNED[parent])} = ?")
+        cur = conn.execute(sql_safe.build_delete(child, f"{sql_safe.safe_ident(col)} IN ({sub})"), (owner,))
         removed[child] = cur.rowcount
     try:
         conn.execute(
@@ -112,14 +114,21 @@ def delete_owner(conn: sqlite3.Connection, owner: str) -> dict[str, int]:
         pass  # the chat full-text table only exists once chats were indexed
     for table, column in OWNED.items():
         if table in existing:
-            removed[table] = conn.execute(f"DELETE FROM {table} WHERE {column} = ?", (owner,)).rowcount
+            removed[table] = conn.execute(
+                sql_safe.build_delete(table, f"{sql_safe.safe_ident(column)} = ?"), (owner,)
+            ).rowcount
     return removed
 
 
 def count_owned(conn: sqlite3.Connection, owner: str) -> dict[str, int]:
+    import sql_safe
+
     existing = table_names(conn)
-    return {t: conn.execute(f"SELECT COUNT(*) FROM {t} WHERE {c} = ?", (owner,)).fetchone()[0]
-            for t, c in OWNED.items() if t in existing}
+    return {
+        t: conn.execute(sql_safe.build_select(t, "COUNT(*)", where=f"{sql_safe.safe_ident(c)} = ?"), (owner,)).fetchone()[0]
+        for t, c in OWNED.items()
+        if t in existing
+    }
 
 
 _VERB = re.compile(r"\s*(SELECT|DELETE|UPDATE)\b", re.IGNORECASE)

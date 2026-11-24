@@ -52,10 +52,13 @@ def diagnose(path: Path) -> list[Finding]:
             findings += [Finding("error", "integrity_check", r[0]) for r in result[:5]]
         for row in conn.execute("PRAGMA foreign_key_check").fetchall()[:20]:
             findings.append(Finding("error", "foreign_key_check", f"{row[0]} satır {row[1]} -> {row[2]}"))
+        import sql_safe
+
         for table, column in _json_columns(conn):
             if _exists(conn, table) and column in {r[1] for r in conn.execute(f'PRAGMA table_info("{table}")')}:
                 bad = 0
-                for (text,) in conn.execute(f'SELECT "{column}" FROM "{table}" WHERE "{column}" IS NOT NULL'):
+                q_col = sql_safe.safe_ident(column)
+                for (text,) in conn.execute(sql_safe.build_select(table, column, where=f"{q_col} IS NOT NULL")):
                     try:
                         json.loads(text)
                     except (TypeError, ValueError):
@@ -64,8 +67,10 @@ def diagnose(path: Path) -> list[Finding]:
                     findings.append(Finding("error", "json", f"{table}.{column}: {bad} geçersiz JSON değeri"))
         for table, column in ownership.OWNED.items():
             if _exists(conn, table):
+                q_col = sql_safe.safe_ident(column)
                 empty = conn.execute(
-                    f"SELECT COUNT(*) FROM {table} WHERE {column} IS NULL OR TRIM({column}) = ''").fetchone()[0]
+                    sql_safe.build_select(table, "COUNT(*)", where=f"{q_col} IS NULL OR TRIM({q_col}) = ''")
+                ).fetchone()[0]
                 if empty:
                     findings.append(Finding("error", "owner", f"{table}: {empty} satırın sahibi yok"))
         if _exists(conn, "files"):
