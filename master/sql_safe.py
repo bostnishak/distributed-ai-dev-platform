@@ -55,7 +55,7 @@ def build_select(table: str, columns: str = "*", **opts: Any) -> str:
     if order_by:
         parts.extend(["ORDER BY", order_by])
     if limit is not None:
-        parts.extend(["LIMIT", str(max(1, int(limit)))])
+        parts.extend(["LIMIT", str(max(1, limit))])
     return " ".join(parts)
 
 

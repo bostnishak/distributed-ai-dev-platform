@@ -114,7 +114,7 @@ def update_job(
             """,
             (
                 status or cur["status"],
-                cur["progress"] if progress is None else max(0, min(100, int(progress))),
+                cur["progress"] if progress is None else max(0, min(100, progress)),
                 cur["message"] if message is None else message,
                 json.dumps(cur["result"] if result is None else result, ensure_ascii=False),
                 now,
@@ -293,7 +293,7 @@ def save_conversation_state(state: ConversationState) -> None:
                 json.dumps(state.open_questions[-8:], ensure_ascii=False),
                 json.dumps(state.artifact_ids[-20:], ensure_ascii=False),
                 state.active_mode,
-                int(state.turn_count),
+                state.turn_count,
                 now,
             ),
         )
@@ -347,7 +347,7 @@ def filter_relevant_memories(
         return []
     scored: list[tuple[float, dict[str, Any] | str]] = []
     for item in memories:
-        txt = item.get("fact", "") if isinstance(item, dict) else str(item)
+        txt = item.get("fact", "") if isinstance(item, dict) else item
         m_tokens = {w for w in re.findall(r"[a-zA-Z0-9çğıöşüÇĞİÖŞÜ]+", txt.lower()) if len(w) >= 3}
         if not m_tokens:
             continue
@@ -420,8 +420,8 @@ def record_feedback(
     init_orchestrator_db()
     fid = f"fb-{uuid.uuid4().hex[:10]}"
     now = datetime.now(UTC).isoformat()
-    norm_rating = 1 if int(rating) > 0 else -1
-    tags = [str(t).strip() for t in (reason_tags or []) if str(t).strip()]
+    norm_rating = 1 if rating > 0 else -1
+    tags = [t.strip() for t in (reason_tags or []) if t.strip()]
     with _conn() as conn:
         conn.execute(
             """

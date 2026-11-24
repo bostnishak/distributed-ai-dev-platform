@@ -47,9 +47,9 @@ def promote_model(
         cur = conn.execute(
             "INSERT INTO ml_model_promotions (model_id, eval_score, min_threshold, stage, canary_pct, actor, created_at) "
             "VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (model_id, float(eval_score), float(min_threshold), stage, int(canary_pct), actor, now),
+            (model_id, float(eval_score), float(min_threshold), stage, canary_pct, actor, now),
         )
-        pid = int(cur.lastrowid or 0)
+        pid = (cur.lastrowid or 0)
     AuditTrail().append_event(
         actor=actor,
         action="ML_MODEL_PROMOTED",
@@ -76,7 +76,7 @@ def rollback_model(model_id: str, reason: str = "manual_rollback", actor: str = 
             "VALUES (?, 0.0, 0.0, 'rolled_back', 0, ?, ?)",
             (model_id, actor, now),
         )
-        pid = int(cur.lastrowid or 0)
+        pid = (cur.lastrowid or 0)
     AuditTrail().append_event(
         actor=actor,
         action="ML_MODEL_ROLLED_BACK",

@@ -34,7 +34,7 @@ def init_notifications_db() -> None:
 
 
 def is_in_quiet_hours(hour_utc: int, quiet_start: int, quiet_end: int) -> bool:
-    h = int(hour_utc) % 24
+    h = hour_utc % 24
     if quiet_start == quiet_end:
         return False
     if quiet_start < quiet_end:
@@ -56,7 +56,7 @@ def register_channel(
             "INSERT INTO notification_channels "
             "(channel_id, kind, name, config_json, quiet_start_hour, quiet_end_hour, rate_limit_per_hour, enabled, created_at) "
             "VALUES (?, ?, ?, '{}', ?, ?, ?, 1, ?)",
-            (cid, k, name.strip(), int(quiet_start_hour), int(quiet_end_hour), int(rate_limit_per_hour), now),
+            (cid, k, name.strip(), quiet_start_hour, quiet_end_hour, rate_limit_per_hour, now),
         )
     return {"ok": True, "channel_id": cid, "kind": k, "name": name.strip()}
 

@@ -65,7 +65,7 @@ def run_process(
             check=False,
         )
         return ProcessResult(
-            returncode=int(proc.returncode),
+            returncode=proc.returncode,
             stdout=(proc.stdout or "")[-max_output_chars:],
             stderr=(proc.stderr or "")[-max_output_chars:],
             timed_out=False,

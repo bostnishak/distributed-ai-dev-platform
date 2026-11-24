@@ -189,7 +189,7 @@ class HybridGraphRAG:
 
     def query_knowledge_subgraph(self, query: str, hops: int = 2) -> list[dict[str, Any]]:
         """Perform up to ``hops`` breadth-first traversal over extracted technical knowledge triples."""
-        max_hops = max(1, int(hops))
+        max_hops = max(1, hops)
         with self._connect() as conn:
             edges = conn.execute(
                 "SELECT source_name, source_type, relation, target_name, target_type, doc_id, evidence FROM kg_edges"
@@ -248,7 +248,7 @@ class HybridGraphRAG:
             })
 
         results.sort(key=lambda item: item["similarity"], reverse=True)
-        return results[: max(1, int(top_k))]
+        return results[: max(1, top_k)]
 
 
 _DEFAULT_RAG_STATE: dict[str, HybridGraphRAG | None] = {"instance": None}

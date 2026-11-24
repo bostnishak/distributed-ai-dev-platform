@@ -275,8 +275,8 @@ def verify_standard_and_law_numbers(text: str, sources: list[dict[str, Any]]) ->
 def datetime_tool(days_offset: int = 0) -> dict[str, Any]:
     """HAL-18: Deterministic system clock and date arithmetic."""
     now = datetime.now(UTC)
-    target = now + timedelta(days=int(days_offset))
-    return {"utc_now": now.isoformat(), "target_date": target.strftime("%Y-%m-%d"), "days_offset": int(days_offset)}
+    target = now + timedelta(days=days_offset)
+    return {"utc_now": now.isoformat(), "target_date": target.strftime("%Y-%m-%d"), "days_offset": days_offset}
 
 
 # ---------------------------------------------------------------- HAL-19 High-Risk, HAL-23 Slides, HAL-24 Memory Poisoning

@@ -400,7 +400,7 @@ def list_active_learning_queue(limit: int = 20) -> list[dict[str, Any]]:
     with _ml_conn() as conn:
         rows = conn.execute(
             "SELECT * FROM active_learning_queue WHERE status = 'pending' ORDER BY priority_score DESC LIMIT ?",
-            (int(limit),),
+            (limit,),
         ).fetchall()
     return [dict(r) for r in rows]
 

@@ -200,7 +200,7 @@ LAYOUT_ORDER = ["badge_showcase", "horizontal_lockup", "centered_emblem"]
 
 def _xml_esc(text: str) -> str:
     return (
-        str(text or "")
+        (text or "")
         .replace("&", "&amp;")
         .replace("<", "&lt;")
         .replace(">", "&gt;")

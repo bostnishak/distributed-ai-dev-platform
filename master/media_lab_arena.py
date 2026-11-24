@@ -120,7 +120,7 @@ def compute_visual_revision_diff(
     diff_mag = np.max(diff_rgb, axis=2)
 
     changed_mask = diff_mag >= float(diff_threshold)
-    total_pixels = int(target_w * target_h)
+    total_pixels = (target_w * target_h)
     changed_pixels = int(np.count_nonzero(changed_mask))
     changed_area_pct = round((changed_pixels / max(1, total_pixels)) * 100.0, 4)
 
@@ -254,7 +254,7 @@ def calibrate_confidence(
     if tool_verified:
         score += 0.25
 
-    citation_boost = min(0.15, max(0, int(citations_count)) * 0.05)
+    citation_boost = min(0.15, max(0, citations_count) * 0.05)
     score += citation_boost
 
     # Content depth and structure signal
@@ -285,8 +285,8 @@ def calibrate_confidence(
     return {
         "confidence_score": calibrated,
         "confidence_pct": pct,
-        "tool_verified": bool(tool_verified),
-        "citations_count": int(citations_count),
+        "tool_verified": tool_verified,
+        "citations_count": citations_count,
         "needs_cross_verification": needs_cross_check,
         "verification_badge": f"Confidence: {pct}% | Verification: {' + '.join(sources)}",
     }

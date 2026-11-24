@@ -11,6 +11,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
 import dbconn
+from ha.pg_adapter import detect_ha_backend
 
 router = APIRouter(prefix="/api/ha", tags=["high-availability"])
 
@@ -89,10 +90,11 @@ def drain_leader_node(node_id: str, lease_key: str = "master-primary") -> dict[s
 
 def get_ha_status(lease_key: str = "master-primary") -> dict[str, Any]:
     init_ha_db()
+    backend = detect_ha_backend()
     with _connect() as conn:
         row = conn.execute("SELECT * FROM ha_leases WHERE lease_key = ?", (lease_key,)).fetchone()
     if not row:
-        return {"ok": True, "lease_key": lease_key, "leader": None, "term": 0, "draining": False}
+        return {"ok": True, "lease_key": lease_key, "leader": None, "term": 0, "draining": False, "backend": backend}
     return {
         "ok": True,
         "lease_key": lease_key,
@@ -100,6 +102,7 @@ def get_ha_status(lease_key: str = "master-primary") -> dict[str, Any]:
         "term": int(row["term"]),
         "draining": bool(row["draining"]),
         "expires_at": row["expires_at"],
+        "backend": backend,
     }
 
 

@@ -437,7 +437,7 @@ def update_model_hallucination_profile(model: str, task_type: str, hallucination
             "hallucination_rate = excluded.hallucination_rate, "
             "sample_count = excluded.sample_count, "
             "updated_at = excluded.updated_at",
-            (model, task_type, float(hallucination_rate), int(sample_count), now),
+            (model, task_type, float(hallucination_rate), sample_count, now),
         )
 
 

@@ -1,0 +1,29 @@
+{
+  "ok": true,
+  "dataset": "turkish_benchmark_v1.jsonl",
+  "evaluated_count": 100,
+  "schema_pass_rate": 1.0,
+  "categories": {
+    "factuality": 50,
+    "citation": 50
+  },
+  "amdahl_speedup": [
+    {
+      "agents": 1,
+      "speedup": 1.0
+    },
+    {
+      "agents": 2,
+      "speedup": 1.739
+    },
+    {
+      "agents": 4,
+      "speedup": 2.759
+    },
+    {
+      "agents": 6,
+      "speedup": 3.429
+    }
+  ],
+  "generated_at": "2026-11-24T12:45:41.892106+00:00"
+}

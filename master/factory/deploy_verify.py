@@ -41,7 +41,7 @@ def generate_pwa_assets(ws_dir: Path, app_name: str = "AI Studio App") -> dict[s
 def generate_docker_bundle(ws_dir: Path, port: int = 8080) -> dict[str, Any]:
     ws_dir = Path(ws_dir).resolve()
     ws_dir.mkdir(parents=True, exist_ok=True)
-    safe_port = max(1024, min(int(port or 8080), 65535))
+    safe_port = max(1024, min((port or 8080), 65535))
     cmd = f'CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "{safe_port}"]' if (ws_dir / "main.py").is_file() else f'CMD ["python", "-m", "http.server", "{safe_port}"]'
     dockerfile_path = ws_dir / "Dockerfile"
     dockerfile_path.write_text(f"FROM python:3.12-slim\nWORKDIR /app\nCOPY . /app\nEXPOSE {safe_port}\n{cmd}\n", encoding="utf-8")

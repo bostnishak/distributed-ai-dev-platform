@@ -15,7 +15,21 @@ from pathlib import Path
 import dbconn
 import migrate
 
-LEGACY_FILES = ("user_profile.db", "cognitive_memory.db", "graph_rag.db", "cmm_quality.db")
+LEGACY_FILES = (
+    "user_profile.db",
+    "cognitive_memory.db",
+    "graph_rag.db",
+    "cmm_quality.db",
+    "auth.db",
+    "distributed.db",
+    "gateway.db",
+    "hallucination.db",
+    "media_lifecycle.db",
+    "ml_ops.db",
+    "rag.db",
+    "secrets.db",
+    "ux_shares.db",
+)
 _FTS_SHADOW = re.compile(r"_(data|idx|content|docsize|config)$")
 
 

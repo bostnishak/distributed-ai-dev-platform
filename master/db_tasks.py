@@ -217,7 +217,7 @@ def create_task(
                     "INSERT OR IGNORE INTO task_dependencies (task_id, depends_on_task_id) VALUES (?, ?)",
                     (new_id, dep_row["id"]),
                 )
-    return int(new_id or 0)
+    return (new_id or 0)
 
 
 def list_tasks(project_id: int) -> list[dict]:

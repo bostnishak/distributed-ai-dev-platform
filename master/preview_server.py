@@ -68,7 +68,7 @@ def start_preview_server_background() -> None:
 
     # If port is already listening (e.g. another worker or existing preview server), skip cleanly
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        if sock.connect_ex(("127.0.0.1", int(config.PREVIEW_PORT))) == 0:
+        if sock.connect_ex(("127.0.0.1", config.PREVIEW_PORT)) == 0:
             _STATE["preview_started"] = True
             return
     _STATE["preview_started"] = True
@@ -80,7 +80,7 @@ def start_preview_server_background() -> None:
             uvicorn.run(
                 preview_app,
                 host="127.0.0.1",
-                port=int(config.PREVIEW_PORT),
+                port=config.PREVIEW_PORT,
                 log_level="warning",
                 access_log=False,
             )

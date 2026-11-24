@@ -164,7 +164,7 @@ def upsert_model(name: str, **opts: Any) -> dict[str, Any]:
                 json.dumps(scores if scores is not None else inferred["scores"]),
                 float(hallucination_penalty),
                 status,
-                int(bool(warm)),
+                int(warm),
                 resolved_license,
                 now,
             ),
@@ -342,7 +342,7 @@ def estimate_tokens(text_or_messages: str | list[dict[str, Any]]) -> int:
 def choose_dynamic_num_ctx(used_tokens: int, model_max_ctx: int = 32768) -> int:
     """GW-06: Snap num_ctx to 4k/8k/16k/32k buckets to prevent unnecessary Ollama model reloads."""
     needed = int(used_tokens * 1.35) + 512
-    cap = max(4096, int(model_max_ctx or 8192))
+    cap = max(4096, (model_max_ctx or 8192))
     for bucket in _CTX_BUCKETS:
         if bucket >= needed and bucket <= cap:
             return bucket

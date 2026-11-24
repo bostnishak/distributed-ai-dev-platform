@@ -56,7 +56,7 @@ def detect_and_queue_conflict(user_id: str, category: str, fact_key: str, candid
             "VALUES (?, ?, ?, ?, ?, 'open', ?)",
             (uid, category, fact_key, str(existing["fact_value"]), clean_val, now),
         )
-        cid = int(cur.lastrowid or 0)
+        cid = (cur.lastrowid or 0)
     return {
         "ok": True,
         "conflict_detected": True,

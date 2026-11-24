@@ -51,8 +51,8 @@ PREVIEW_PORT = int(os.environ.get("PREVIEW_PORT", "8001"))
 
 # --- Storage and limits ---
 DB_PATH = Path(os.environ.get("DB_PATH", str(BASE_DIR / "data" / "platform.db")))
-# DAT-01: one SQLite file for every module instead of platform.db + four legacy files (see dbunify.py).
-UNIFIED_DB = os.environ.get("UNIFIED_DB", "false").strip().lower() in ("1", "true", "yes")
+# DAT-01: one SQLite file for every module instead of per-module legacy files (see dbunify.py).
+UNIFIED_DB = os.environ.get("UNIFIED_DB", "true").strip().lower() in ("1", "true", "yes")
 # DAT-07: take an encrypted, verified backup every N hours (0 = off).
 BACKUP_INTERVAL_HOURS = float(os.environ.get("BACKUP_INTERVAL_HOURS", "0"))
 # OPS-01/18: structured logs, request size cap, housekeeping interval.

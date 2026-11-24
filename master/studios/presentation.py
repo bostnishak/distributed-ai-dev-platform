@@ -149,7 +149,7 @@ def fit_slide_bullets(bullets: list[str], *, max_words: int = 40, min_font_pt: i
     trimmed_bullets: list[str] = []
     word_budget = max_words
     for b in bullets[:max_bullets]:
-        words = str(b).strip().split()
+        words = b.strip().split()
         if not words or word_budget <= 0:
             continue
         take = words[:word_budget]

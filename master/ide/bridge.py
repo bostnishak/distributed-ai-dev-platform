@@ -23,10 +23,10 @@ def get_lsp_diagnostics(code: str, language: str = "python") -> dict[str, Any]:
         except SyntaxError as exc:
             diagnostics.append({
                 "severity": "error",
-                "line": int(exc.lineno or 1),
-                "col": int(exc.offset or 1),
+                "line": (exc.lineno or 1),
+                "col": (exc.offset or 1),
                 "code": "E999",
-                "message": str(exc.msg),
+                "message": exc.msg,
             })
             return {"ok": True, "language": language, "diagnostics": diagnostics, "symbols": symbols}
         for node in ast.walk(tree):
@@ -65,7 +65,7 @@ def create_dap_trace_session(code: str, breakpoints: list[int]) -> dict[str, Any
         tree = ast.parse(code or "")
         for node in ast.walk(tree):
             if isinstance(node, ast.stmt) and hasattr(node, "lineno"):
-                executable_lines.add(int(node.lineno))
+                executable_lines.add(node.lineno)
     except SyntaxError as exc:
         return {"ok": False, "session_id": session_id, "error": f"SyntaxError line {exc.lineno}: {exc.msg}", "verified_breakpoints": []}
     verified = [{"line": bp, "verified": bp in executable_lines} for bp in sorted(set(breakpoints))]
@@ -84,9 +84,9 @@ def compute_multi_file_diff(files: list[dict[str, str]]) -> dict[str, Any]:
     total_added = 0
     total_removed = 0
     for item in files:
-        path = str(item.get("path") or "untitled")
-        before = str(item.get("before") or "").splitlines(keepends=True)
-        after = str(item.get("after") or "").splitlines(keepends=True)
+        path = (item.get("path") or "untitled")
+        before = (item.get("before") or "").splitlines(keepends=True)
+        after = (item.get("after") or "").splitlines(keepends=True)
         diff_lines = list(difflib.unified_diff(before, after, fromfile=f"a/{path}", tofile=f"b/{path}"))
         added = sum(1 for ln in diff_lines if ln.startswith("+") and not ln.startswith("+++"))
         removed = sum(1 for ln in diff_lines if ln.startswith("-") and not ln.startswith("---"))

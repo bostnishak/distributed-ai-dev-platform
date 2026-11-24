@@ -72,7 +72,7 @@ def run_inmemory_sql_analytics(rows: list[dict[str, Any]], sql: str) -> dict[str
         raise ValueError("Yalnızca salt-okunur SELECT sorgularına izin verilir.")
     if not rows:
         return {"ok": True, "columns": [], "row_count": 0, "rows": []}
-    cols = [re.sub(r"[^A-Za-z0-9_]", "_", str(c)) or f"col_{i}" for i, c in enumerate(rows[0].keys())]
+    cols = [re.sub(r"[^A-Za-z0-9_]", "_", c) or f"col_{i}" for i, c in enumerate(rows[0].keys())]
     conn = sqlite3.connect(":memory:")
     conn.row_factory = sqlite3.Row
     try:

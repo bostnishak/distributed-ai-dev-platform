@@ -18,12 +18,23 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Validate Master Plan v2 consistency (PROC-09)
-        run: python scripts/plan_tool.py check
-      - name: Module wiring gate (DEF-01)
-        run: python scripts/plan_tool.py wiring --fail-on-new
-      - name: Code complexity & function length gate (OPS-20)
-        run: python scripts/quality_gate.py
+      - name: Validate Master Plan v2 & v3 consistency (PROC-09)
+        run: |
+          python scripts/plan_tool.py --plan-dir docs/plan-v2 check
+          python scripts/plan_tool.py --plan-dir docs/plan-v3 check
+          python scripts/audit/verify_done.py docs/plan-v2
+          python scripts/audit/verify_done.py docs/plan-v3
+      - name: Module wiring & facade gate (DEF-01)
+        run: python scripts/plan_tool.py wiring --fail-on-new --facades
+      - name: Static Python & JS quality gates (OPS-20, F201, F202)
+        run: |
+          python scripts/quality_gate.py
+          python scripts/audit/scan_py.py /tmp/scan_py.json
+          python scripts/audit/scan_js.py /tmp/scan_js.json
+      - name: Frontend unit & syntax checks (Node.js)
+        run: |
+          node --test frontend/tests/
+          for f in master/static/js/*.js master/static/vendor/*.js extensions/browser/*.js; do node --check "$f"; done
 
   master:
     runs-on: ubuntu-latest

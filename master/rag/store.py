@@ -20,6 +20,7 @@ import httpx
 import numpy as np
 
 import config
+from rag.ann_index import probe_ann_backends
 from rag.parsing import ParsedDocument, chunk_document, parse_document
 
 SAMPLE_KB_PATH = Path(__file__).resolve().parent / "data" / "sample_company_kb.json"
@@ -125,28 +126,39 @@ class RAGStore:
     EMBED_VERSION = "1.0"
 
     def __init__(self, db_path: Path | None = None, *, allow_test_embeddings: bool | None = None) -> None:
+        self._explicit_db_path = db_path
         self.db_path = db_path or _rag_db_path()
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        self._initialized_paths: set[str] = set()
         # RAG-05: NEVER enable fallback embeddings in production; only when explicitly allowed in unit tests.
         self.allow_test_embeddings = (
-            bool(allow_test_embeddings)
+            allow_test_embeddings
             if allow_test_embeddings is not None
             else (os.environ.get("RAG_ALLOW_TEST_EMBEDDINGS", "0") == "1")
         )
         self.embedding_status: str = "ready"
         self.embedding_reason: str = ""
+        self.ann_backends: dict[str, Any] = probe_ann_backends()
         self._init_db()
+
+    def _active_db_path(self) -> Path:
+        return self._explicit_db_path or _rag_db_path()
 
     def _conn(self) -> sqlite3.Connection:
         import dbconn
-
-        return dbconn.open_db(self.db_path)
-
-    def _init_db(self) -> None:
         from prompt_loader import load_prompt
 
-        with self._conn() as conn:
+        target = self._active_db_path()
+        conn = dbconn.open_db(target)
+        key = str(target.resolve())
+        if key not in self._initialized_paths:
             conn.executescript(load_prompt("b3_rag_schema.sql"))
+            self._initialized_paths.add(key)
+        return conn
+
+    def _init_db(self) -> None:
+        with self._conn():
+            pass
 
     # ---------------------------------------------------------------- RAG-12 Collections & Permissions
 
@@ -231,7 +243,7 @@ class RAGStore:
                 norm = float(np.linalg.norm(arr))
                 self.embedding_status = "ready"
                 self.embedding_reason = ""
-                return (arr / norm if norm > 0 else arr), self.EMBED_MODEL, int(arr.shape[0])
+                return (arr / norm if norm > 0 else arr), self.EMBED_MODEL, arr.shape[0]
         except (httpx.HTTPError, OSError, RuntimeError, ValueError, TypeError, AttributeError) as exc:
             logging.getLogger(__name__).debug("Ollama embedding fallback triggered: %s", exc)
 
@@ -529,7 +541,7 @@ class RAGStore:
             except SyntaxError:
                 pass
         md = "\n\n".join(sections) if sections else f"## {file_path.name}:1-{len(lines)}\n```\n{src[:4000]}\n```"
-        return await self.ingest_document(collection_id=collection_id, raw_text=md, title=str(file_path.name), embed_fn=embed_fn)
+        return await self.ingest_document(collection_id=collection_id, raw_text=md, title=file_path.name, embed_fn=embed_fn)
 
     # ---------------------------------------------------------------- RAG-17 Gated GraphRAG Triples
 

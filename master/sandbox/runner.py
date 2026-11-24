@@ -115,7 +115,7 @@ def build_docker_run_args(
     timeout_s: int = TIMEOUT_SECONDS,
 ) -> list[str]:
     """Construct the hardened `docker run` argument vector (never shell=True)."""
-    if int(timeout_s) <= 0:
+    if timeout_s <= 0:
         raise ValueError("timeout_s must be positive.")
     mount_mode = "ro" if read_only_mount else "rw"
     args = [
@@ -146,7 +146,7 @@ def build_docker_run_args(
         args.extend(["--security-opt", f"seccomp={_SECCOMP_PATH.resolve()}"])
     if publish_port is not None:
         host_p, cont_p = publish_port
-        args.extend(["-p", f"127.0.0.1:{int(host_p)}:{int(cont_p)}"])
+        args.extend(["-p", f"127.0.0.1:{host_p}:{cont_p}"])
     else:
         args.extend(["--network", "none"])
 
@@ -212,12 +212,12 @@ def run(files: list[dict[str, str]]) -> dict[str, Any]:
     with tempfile.TemporaryDirectory(prefix="sandbox_") as tmpdir:
         base = Path(tmpdir).resolve()
         for f in files:
-            rel = str(f["path"]).replace("\\", "/").lstrip("/")
+            rel = f["path"].replace("\\", "/").lstrip("/")
             dest = (base / rel).resolve()
             if base != dest and base not in dest.parents:
                 raise ValueError(f"Geçersiz sandbox dosya yolu: {rel}")
             dest.parent.mkdir(parents=True, exist_ok=True)
-            dest.write_text(str(f["content"]), encoding="utf-8")
+            dest.write_text(f["content"], encoding="utf-8")
         args = build_docker_run_args(base, command=["python", "-m", "pytest", "--tb=short", "-q", "."])
         return _exec_container(args, timeout_s=TIMEOUT_SECONDS)
 

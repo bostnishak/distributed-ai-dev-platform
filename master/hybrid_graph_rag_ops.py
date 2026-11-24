@@ -265,7 +265,7 @@ def fuse_hybrid_search(
         })
 
     fused.sort(key=lambda item: (item["rrf_score"], item["bm25_score"], item["vector_score"]), reverse=True)
-    return fused[: max(1, int(top_k))]
+    return fused[: max(1, top_k)]
 
 
 def _extract_sentence_entities(sent: str, all_entities: dict[str, tuple[str, str]]) -> list[tuple[str, str]]:

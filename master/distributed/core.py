@@ -355,9 +355,9 @@ def save_checkpoint(task_id: str, step_index: int, state: dict[str, Any], *, max
             VALUES (?, ?, ?, ?)
             ON CONFLICT(task_id) DO UPDATE SET step_index=excluded.step_index, state_json=excluded.state_json, updated_at=excluded.updated_at
             """,
-            (task_id, int(step_index), blob, now),
+            (task_id, step_index, blob, now),
         )
-    return {"task_id": task_id, "step_index": int(step_index), "saved_at": now}
+    return {"task_id": task_id, "step_index": step_index, "saved_at": now}
 
 
 def load_checkpoint(task_id: str, *, db_path: Path | None = None) -> dict[str, Any] | None:

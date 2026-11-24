@@ -97,7 +97,7 @@ def _detect_requested_language(prompt: str) -> str:
 
 def detect_document_request(prompt: str, has_file: bool) -> str | None:
     """Return 'xlsx' | 'docx' | 'pptx' | 'pdf' if the user is asking for a downloadable document file."""
-    _ = bool(has_file)
+    _ = has_file
     lower = prompt.lower()
     if any(k in lower for k in ("balonla", "teknik çizim", "web sitesi", "e-ticaret", "oyun", "exe")):
         return None
@@ -231,7 +231,7 @@ def _xlsx_write_banner(ws: Any, content: _DocContent, border: Border) -> list[in
     ws["A2"].alignment = Alignment(vertical="center", wrap_text=True)
     ws.row_dimensions[2].height = 28
 
-    col_widths = [max(14, len(str(h)) + 6) for h in content.headers]
+    col_widths = [max(14, len(h) + 6) for h in content.headers]
     for ci, h in enumerate(content.headers, start=1):
         c = ws.cell(4, ci, h)
         c.font = Font(name="Calibri", bold=True, color="FFFFFF", size=10.5)
@@ -362,7 +362,7 @@ def _docx_add_table(doc: Any, headers: list[str], rows: list[list[Any]]) -> None
     tbl.style = "Table Grid"
     for i, h in enumerate(headers):
         cell = tbl.rows[0].cells[i]
-        cell.text = str(h)
+        cell.text = h
         _shade_docx_cell(cell, "1E293B")
         _style_docx_cell_runs(cell, size_pt=9.5, bold=True, rgb=RGBColor(0xFF, 0xFF, 0xFF))
     for r_idx, rdata in enumerate(rows):
@@ -420,7 +420,7 @@ def _pdf_draw_table_header(pg: fitz.Page, y_pos: float, headers: list[str], fn_b
     for i, h in enumerate(headers):
         pg.insert_textbox(
             fitz.Rect(39 + i * col_w, y_pos + 4, 36 + (i + 1) * col_w - 3, y_pos + 20),
-            str(h),
+            h,
             fontname=fn_bold,
             fontsize=8.5,
             color=(1, 1, 1),

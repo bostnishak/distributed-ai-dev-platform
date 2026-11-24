@@ -7,7 +7,7 @@ timeout, so a background thread writing while a request read could raise "databa
 from __future__ import annotations
 
 import sqlite3
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -51,7 +51,7 @@ def open_db(path: Path | str, *, row_factory: bool = True) -> sqlite3.Connection
 
 
 @contextmanager
-def connection(path: Path | str) -> Iterator[sqlite3.Connection]:
+def connection(path: Path | str) -> Generator[sqlite3.Connection, None, None]:
     """Commit on success, roll back on error, always close (unlike ``with sqlite3.connect``)."""
     conn = open_db(path)
     try:

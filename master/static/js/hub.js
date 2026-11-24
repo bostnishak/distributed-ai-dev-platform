@@ -3,6 +3,7 @@ import { safeFetchJson } from './storage.js';
 import { uiConfirm } from './ui_dialog.js';
 import { csrfHeaders, h, loading } from './util.js';
 import { renderWorkbenchTab, WORKBENCH_TABS } from './workbench.js';
+import { renderInteractiveLabsTab } from './workspace_labs.js';
 
 const GROUP_LABELS = {
   orchestrator: 'Orkestratör', rag: 'Bilgi tabanı (RAG)', hallucination: 'Doğrulama ve güvenilirlik',
@@ -185,14 +186,14 @@ export async function renderHub(root, ctx) {
   }
   if (!ctx.isCurrent()) return;
   const groups = groupEndpoints();
-  let activeTab = WORKBENCH_TABS[0].id;
+  let activeTab = 'labs';
   const filter = h('input', { type: 'search', class: 'hub-filter', placeholder: 'Araç veya uç nokta ara (ör. 2FA, quiz, CNC, RAG, vergi)', 'aria-label': 'Araç ara' });
   const token = h('input', { type: 'password', class: 'hub-token', placeholder: 'Yönetici anahtarı (yalnız bu oturum)', value: readToken(), 'aria-label': 'Yönetici anahtarı' });
   token.addEventListener('change', () => writeToken(token.value));
 
   const tabBar = h('div', { class: 'wb-tabs', role: 'tablist', 'aria-label': 'Stüdyo kategorileri' });
   const bodySlot = h('div', { class: 'wb-slot' });
-  const allTabs = [...WORKBENCH_TABS, { id: 'openapi', label: 'Tüm OpenAPI Gezgini' }];
+  const allTabs = [{ id: 'labs', label: 'Etkileşimli Laboratuvarlar' }, ...WORKBENCH_TABS, { id: 'openapi', label: 'Tüm OpenAPI Gezgini' }];
 
   const draw = () => {
     const needle = filter.value.trim().toLowerCase();
@@ -201,7 +202,8 @@ export async function renderHub(root, ctx) {
       class: `wb-tab${t.id === activeTab ? ' active' : ''}`,
       onClick: () => { activeTab = t.id; draw(); },
     }, t.label)));
-    if (activeTab === 'openapi') bodySlot.replaceChildren(renderOpenApiTab(groups, needle));
+    if (activeTab === 'labs') bodySlot.replaceChildren(renderInteractiveLabsTab());
+    else if (activeTab === 'openapi') bodySlot.replaceChildren(renderOpenApiTab(groups, needle));
     else {
       const tab = WORKBENCH_TABS.find((t) => t.id === activeTab) || WORKBENCH_TABS[0];
       bodySlot.replaceChildren(renderWorkbenchTab(tab, needle, readToken));

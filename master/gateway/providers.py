@@ -212,7 +212,7 @@ class AgentProvider:
         prompt_blob = "\n\n".join(f"[{m.get('role', 'user')}] {m.get('content', '')}" for m in messages)
         pid = db.create_project("gateway-agent-dispatch", prompt_blob[:1000], None)
         with db.connect() as conn:
-            tid = int(
+            tid = (
                 conn.execute(
                     "INSERT INTO tasks (project_id, key, stage, type, title, description, details, status) "
                     "VALUES (?, 'GW1', 1, 'backend', 'Gateway Chat Dispatch', ?, ?, 'planned')",

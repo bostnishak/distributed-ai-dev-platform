@@ -282,7 +282,7 @@ def create_eval_session() -> int:
             "INSERT INTO eval_sessions (started_at, status) VALUES (?, 'running')",
             (utc_now(),),
         )
-        return int(cursor.lastrowid or 0)
+        return (cursor.lastrowid or 0)
 
 
 def finish_eval_session(session_id: int) -> None:
@@ -326,7 +326,7 @@ def create_project(name: str, document: str, source_filename: str | None) -> int
             "VALUES (?, ?, ?, 'analyzing', ?, ?)",
             (name, source_filename, document, now, now),
         )
-        return int(cursor.lastrowid or 0)
+        return (cursor.lastrowid or 0)
 
 
 def get_project(project_id: int) -> dict | None:
@@ -405,7 +405,7 @@ def save_decomposition(
                     task["status"], task.get("performed_by"),
                 ),
             )
-            ids_by_key[task["key"]] = int(cursor.lastrowid or 0)
+            ids_by_key[task["key"]] = (cursor.lastrowid or 0)
         for task in tasks:
             for dep_key in task["depends_on"]:
                 conn.execute(

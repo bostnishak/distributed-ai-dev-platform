@@ -47,8 +47,8 @@ def query(
             q.project_id, q.project_id,
             q.since, q.since,
             q.until, q.until,
-            max(1, min(int(q.limit), MAX_PAGE)),
-            max(0, int(q.offset)),
+            max(1, min(q.limit, MAX_PAGE)),
+            max(0, q.offset),
         ),
     ).fetchall()
     result = []

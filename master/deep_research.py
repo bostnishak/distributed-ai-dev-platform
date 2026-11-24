@@ -138,7 +138,7 @@ def _resolve_colors(pal: dict[str, str]) -> _DeckColors:
         accent2=_rgb(_safe_hex(pal.get("accent2"), "38BDF8")),
         text=_rgb(_safe_hex(pal.get("text"), "F8FAFC")),
         muted=_rgb(_safe_hex(pal.get("muted"), "CBD5E1")),
-        transition=str(pal.get("transition") or "fade"),
+        transition=(pal.get("transition") or "fade"),
     )
 
 

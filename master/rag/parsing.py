@@ -166,7 +166,7 @@ def _parse_pdf(path: Path, title: str) -> ParsedDocument:
     doc = pymupdf.open(str(path))
     try:
         for idx, ch in enumerate(chunks, start=1):
-            md = str(ch.get("text") or "").strip() if isinstance(ch, dict) else str(ch).strip()
+            md = str(ch.get("text") or "").strip() if isinstance(ch, dict) else ch.strip()
             is_ocr = False
             ocr_conf = 1.0
             p_warns: list[str] = []

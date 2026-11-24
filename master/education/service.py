@@ -33,13 +33,13 @@ def init_education_db() -> None:
 
 def sm2_schedule(quality: int, repetitions: int, interval_days: int, ease_factor: float) -> tuple[int, int, float]:
     """Exact SuperMemo-2 (SM-2) spaced repetition update for recall quality 0..5."""
-    q = max(0, min(5, int(quality)))
+    q = max(0, min(5, quality))
     ef = max(1.3, ease_factor + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02)))
     if q < 3:
         return 0, 1, round(ef, 3)
     new_reps = repetitions + 1
     new_interval = 1 if new_reps == 1 else (6 if new_reps == 2 else round(interval_days * ef))
-    return new_reps, max(1, int(new_interval)), round(ef, 3)
+    return new_reps, max(1, new_interval), round(ef, 3)
 
 
 def create_flashcard(user_id: str, topic: str, front: str, back: str) -> dict[str, Any]:

@@ -16,8 +16,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-import fitz  # PyMuPDF
 import openpyxl
+import pymupdf as fitz  # PyMuPDF
 from openpyxl.styles import Alignment, Font, PatternFill
 
 import config

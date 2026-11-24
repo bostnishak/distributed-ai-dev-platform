@@ -42,7 +42,7 @@ def _collect_column_values(
     for row in rows:
         for k in row:
             if k not in all_cols:
-                all_cols.append(str(k))
+                all_cols.append(k)
     missing_counts: dict[str, int] = {col: 0 for col in all_cols}
     numeric_values: dict[str, list[tuple[int, float]]] = {col: [] for col in all_cols}
     raw_values: dict[str, list[str]] = {col: [] for col in all_cols}

@@ -145,9 +145,9 @@ class LLMClient:
     ) -> dict[str, Any]:
         base = dict(DECODING_PROFILES.get(profile, DECODING_PROFILES["analytic"]))
         base["num_ctx"] = num_ctx
-        base["num_predict"] = int(num_predict or config.ASSISTANT_NUM_PREDICT)
+        base["num_predict"] = (num_predict or config.ASSISTANT_NUM_PREDICT)
         if seed is not None:
-            base["seed"] = int(seed)
+            base["seed"] = seed
         return base
 
     def _prepare_chat(self, messages: list[dict[str, Any]], call: ChatCallOptions) -> _PreparedChat:
@@ -161,7 +161,7 @@ class LLMClient:
             chosen_prov = next(iter(self.providers))
         fitted_msgs, ctx_info = gw_registry.fit_messages_to_context(messages, sel.ctx_max)
         num_ctx = call.num_ctx if call.num_ctx and call.num_ctx > 0 else gw_registry.choose_dynamic_num_ctx(ctx_info["ctx_used"], sel.ctx_max)
-        decoding_opts = self._build_options(prof, int(num_ctx), num_predict=call.num_predict, seed=call.seed)
+        decoding_opts = self._build_options(prof, num_ctx, num_predict=call.num_predict, seed=call.seed)
         cache_key = ""
         if call.use_cache and not call.private_user_data and not call.tools:
             cache_key = self._cache_key(chosen_model, prof, {"msgs": fitted_msgs, "schema": call.format_schema})

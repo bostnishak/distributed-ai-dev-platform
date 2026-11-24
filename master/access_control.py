@@ -44,7 +44,7 @@ def require_local_or_admin(request: Request) -> None:
         AuditTrail().append_event(
             actor=host or "unknown",
             action="ACCESS_DENIED",
-            payload={"path": str(request.url.path), "method": request.method},
+            payload={"path": request.url.path, "method": request.method},
         )
     except (ImportError, OSError, ValueError, TypeError, RuntimeError) as _exc:
         import logging

@@ -202,7 +202,7 @@ def generate_cmm_wear_offset_gcode(
     tolerance_minus = float(extra.get("tolerance_minus", -0.025))
 
     ctrl = (controller or "fanuc").strip().lower()
-    t_no = max(int(tool_no), 1)
+    t_no = max(tool_no, 1)
     deviation = round(float(measured_mean) - float(nominal), 4)
     compensation = round(-deviation, 4)
 

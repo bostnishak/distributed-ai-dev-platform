@@ -75,10 +75,10 @@ async def openai_embeddings(body: OpenAIEmbeddingsRequest):
     """OpenAI-compatible /v1/embeddings endpoint returning unit-normalized local vectors."""
     inputs = [body.input] if isinstance(body.input, str) else list(body.input)
     data = [
-        {"object": "embedding", "index": i, "embedding": _deterministic_embedding(str(txt), dims=64)}
+        {"object": "embedding", "index": i, "embedding": _deterministic_embedding(txt, dims=64)}
         for i, txt in enumerate(inputs[:64])
     ]
-    tok_count = sum(max(1, len(str(t)) // 4) for t in inputs[:64])
+    tok_count = sum(max(1, len(t) // 4) for t in inputs[:64])
     return {
         "object": "list",
         "model": body.model,

@@ -105,7 +105,7 @@ def require_agent_auth(
             AuditTrail().append_event(
                 actor=str(agent_row["agent_id"]),
                 action="AGENT_REVOKED_KEY_REJECTED",
-                payload={"path": str(request.url.path)},
+                payload={"path": request.url.path},
             )
             raise HTTPException(status_code=401, detail="Bu ajan anahtarı iptal edilmiş.")
         if not agent_row.get("approved", 1):

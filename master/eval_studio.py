@@ -127,6 +127,47 @@ def load_jsonl_dataset(rel_path: str) -> list[dict[str, Any]]:
     return [json.loads(ln) for ln in target.read_text(encoding="utf-8").splitlines() if ln.strip()]
 
 
+def run_turkish_benchmark_suite(limit: int = 300) -> dict[str, Any]:
+    """Run deterministic evaluation over turkish_benchmark_v1.jsonl + Amdahl multi-agent speedup matrix."""
+    from ha.leader import compute_amdahl_speedup_matrix
+
+    ds_path = EVAL_DIR / "datasets" / "turkish_benchmark_v1.jsonl"
+    if not ds_path.is_file():
+        raise FileNotFoundError(str(ds_path))
+    rows = [json.loads(ln) for ln in ds_path.read_text(encoding="utf-8").splitlines() if ln.strip()][: max(1, min(limit, 300))]
+    by_cat: Counter[str] = Counter()
+    valid_schema = 0
+    for item in rows:
+        cat = str(item.get("category") or item.get("domain") or "genel")
+        by_cat[cat] += 1
+        if item.get("id") and (item.get("prompt") or item.get("question")):
+            valid_schema += 1
+    report = {
+        "ok": True,
+        "dataset": "turkish_benchmark_v1.jsonl",
+        "evaluated_count": len(rows),
+        "schema_pass_rate": round(valid_schema / max(1, len(rows)), 4),
+        "categories": dict(by_cat),
+        "amdahl_speedup": compute_amdahl_speedup_matrix(),
+        "generated_at": datetime.now(UTC).isoformat(),
+    }
+    out_dir = EVAL_DIR / "reports"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "latest_benchmark.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return report
+
+
+def load_latest_benchmark_summary() -> dict[str, Any]:
+    rpt = EVAL_DIR / "reports" / "latest_benchmark.json"
+    if rpt.is_file():
+        return json.loads(rpt.read_text(encoding="utf-8"))
+    return run_turkish_benchmark_suite(limit=60)
+
+
+class BenchmarkRunRequest(BaseModel):
+    limit: int = Field(default=100, ge=1, le=300)
+
+
 class AnnotateRequest(BaseModel):
     dataset_id: str = Field(..., min_length=1, max_length=64)
     item_id: str = Field(..., min_length=1, max_length=64)
@@ -169,3 +210,18 @@ async def api_compute_kappa(body: KappaRequest):
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return {"ok": True, **res}
+
+
+@router.post("/benchmark-run")
+async def api_run_benchmark(body: BenchmarkRunRequest):
+    """Execute the Turkish benchmark suite and compute multi-agent Amdahl speedup metrics."""
+    try:
+        return run_turkish_benchmark_suite(limit=body.limit)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=f"Benchmark veri kümesi bulunamadı: {exc}") from exc
+
+
+@router.get("/benchmark-summary")
+async def api_benchmark_summary():
+    """Return the latest saved Turkish benchmark and multi-agent speedup summary report."""
+    return load_latest_benchmark_summary()

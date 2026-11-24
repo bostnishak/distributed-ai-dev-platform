@@ -284,8 +284,8 @@ def get_local_hardware_telemetry(query_ollama: bool = True) -> dict[str, Any]:
     return {
         "timestamp": datetime.now(UTC).isoformat(),
         "cpu_percent": round(cpu_percent, 2),
-        "cpu_cores_physical": int(cpu_count_physical),
-        "cpu_cores_logical": int(cpu_count_logical),
+        "cpu_cores_physical": cpu_count_physical,
+        "cpu_cores_logical": cpu_count_logical,
         "ram_total_gb": ram_total_gb,
         "ram_used_gb": ram_used_gb,
         "ram_free_gb": ram_free_gb,
@@ -315,7 +315,7 @@ def save_task_checkpoint(task_id: str, step: int, state: dict[str, Any]) -> dict
     safe_id = _sanitize_task_id(task_id)
     if not isinstance(state, dict):
         raise TypeError("state must be a dictionary")
-    step_num = int(step)
+    step_num = step
     payload: dict[str, Any] = {
         "task_id": safe_id,
         "step": step_num,

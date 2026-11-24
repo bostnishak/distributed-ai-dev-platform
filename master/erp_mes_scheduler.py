@@ -285,7 +285,7 @@ def schedule_cnc_job_shop(
     Earliest Due Date (EDD) + Shortest Processing Time (SPT) dispatching heuristic.
     Returns scheduled start/end minutes, makespan, machine utilization %, and Gantt chart bars.
     """
-    avail_machines = [str(m).strip() for m in (machines or []) if str(m).strip()]
+    avail_machines = [m.strip() for m in (machines or []) if m.strip()]
     if not avail_machines:
         avail_machines = ["CNC-TURN-01", "CNC-MILL-01", "CNC-5AX-01"]
 

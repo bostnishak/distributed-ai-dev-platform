@@ -54,7 +54,7 @@ def full_scans(conn: sqlite3.Connection, sql: str, params: tuple) -> list[str]:
 
 def paginate(conn: sqlite3.Connection, sql: str, params: tuple = (), page: int = 1, size: int = 50) -> dict:
     """Offset pagination with a hard size cap; ``sql`` must already have a deterministic ORDER BY."""
-    size = max(1, min(int(size), 200))
-    page = max(1, int(page))
+    size = max(1, min(size, 200))
+    page = max(1, page)
     rows = conn.execute(f"{sql} LIMIT ? OFFSET ?", (*params, size + 1, (page - 1) * size)).fetchall()
     return {"rows": rows[:size], "page": page, "size": size, "has_more": len(rows) > size}

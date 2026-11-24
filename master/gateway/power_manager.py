@@ -66,7 +66,7 @@ def compute_vram_execution_plan(
     """GW-06 / OPS-24: Single-node sequential vs multi-node parallel VRAM plan & Ollama keep_alive policy."""
     models = [m.strip() for m in (requested_models or []) if m and m.strip()]
     total_needed_gb = round(sum(estimate_model_vram_gb(m) for m in models), 2)
-    agents = max(1, int(online_agents))
+    agents = max(1, online_agents)
     vram = max(2.0, float(available_vram_gb))
 
     if agents >= len(models) and len(models) > 1:

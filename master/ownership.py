@@ -101,7 +101,7 @@ def scoped_select(
     owner_col = sql_safe.safe_ident(OWNED[table])
     sql = sql_safe.build_select(table, columns, where=f"{owner_col} = ? AND ({where})", order_by=order_by or "")
     if limit is not None:
-        sql += f" LIMIT {int(limit)} OFFSET {int(offset)}"
+        sql += f" LIMIT {limit} OFFSET {offset}"
     return conn.execute(sql, (owner, *params)).fetchall()
 
 

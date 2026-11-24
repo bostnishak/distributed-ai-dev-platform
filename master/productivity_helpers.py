@@ -127,7 +127,7 @@ def compute_pivot(rows: list[dict[str, Any]], row_key: str, col_key: str, value_
 
 def render_dashboard_html(rows: list[dict[str, Any]]) -> str:
     cols = list(rows[0].keys()) if rows else []
-    head_html = "".join(f"<th>{html.escape(str(c))}</th>" for c in cols)
+    head_html = "".join(f"<th>{html.escape(c)}</th>" for c in cols)
     rows_html = "".join(
         "<tr>" + "".join(f"<td>{html.escape(str(r.get(c, '')))}</td>" for c in cols) + "</tr>"
         for r in rows[:100]

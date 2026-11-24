@@ -58,7 +58,7 @@ def _sentence_overlap(sentence: str, src_text: str) -> float:
 
 def verify_numeric_and_citations(answer: str, sources: list[dict[str, str]]) -> dict[str, Any]:
     """Verify sentence-level citation mapping and numeric/unit consistency against source passages."""
-    src_map = {str(s.get("id") or f"S{i + 1}"): str(s.get("text") or s.get("content") or "") for i, s in enumerate(sources)}
+    src_map = {(s.get("id") or f"S{i + 1}"): (s.get("text") or s.get("content") or "") for i, s in enumerate(sources)}
     all_source_quants = [q for txt in src_map.values() for q in extract_normalized_quantities(txt)]
 
     sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", (answer or "").strip()) if s.strip()]

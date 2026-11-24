@@ -262,7 +262,7 @@ async def stage_execute(
     if ctx.decision is None or ctx.contract is None or ctx.plan is None:
         raise RuntimeError("Orchestrator stage_execute requires route and plan stages to complete first.")
 
-    mem_texts = [m["fact"] if isinstance(m, dict) else str(m) for m in ctx.filtered_memories]
+    mem_texts = [m["fact"] if isinstance(m, dict) else m for m in ctx.filtered_memories]
     sys_prompt, _layers = build_layered_system_prompt(
         mode_name=ctx.contract.mode,
         mode_rules=f"Yanıt dili: {ctx.contract.language}. Biçim yönergeleri: {', '.join(ctx.contract.format_directives) or 'yok'}.",
@@ -287,7 +287,7 @@ async def stage_execute(
 
     executor = DAGExecutor()
     ctx.step_outcomes = await executor.execute(ctx.plan, registry, _run_step, on_event=_on_dag_evt)
-    parts = [str(o.output) for o in ctx.step_outcomes.values() if o.status == "ok" and isinstance(o.output, str)]
+    parts = [o.output for o in ctx.step_outcomes.values() if o.status == "ok" and isinstance(o.output, str)]
     ctx.raw_response = "\n\n".join(parts).strip()
 
 

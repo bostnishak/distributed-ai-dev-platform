@@ -307,7 +307,7 @@ def _month_start() -> datetime:
 def usage_summary(user_id: str, days: int = 30) -> dict[str, Any]:
     init_db()
     uid = valid_user_id(user_id)
-    days = max(1, min(int(days), 365))
+    days = max(1, min(days, 365))
     today = datetime.now(UTC).date()
     start = today - timedelta(days=days - 1)
     cutoff = datetime(start.year, start.month, start.day, tzinfo=UTC).isoformat()
@@ -493,7 +493,7 @@ def upsert_saved_chat(
     if not cid:
         raise ValueError("Gecersiz sohbet kimligi.")
     clean_title = (title or "Yeni sohbet").strip()[:80] or "Yeni sohbet"
-    ts = int(updated_at or int(datetime.now(UTC).timestamp() * 1000))
+    ts = (updated_at or int(datetime.now(UTC).timestamp() * 1000))
     payload = json.dumps(messages or [], ensure_ascii=False)
     with _connect() as conn:
         conn.execute(
@@ -525,7 +525,7 @@ def delete_fact(user_id: str, fact_id: int) -> bool:
     conn = memory_engine._connect()
     try:
         with conn:
-            cur = conn.execute("DELETE FROM semantic_memories WHERE id = ? AND user_id = ?", (int(fact_id), uid))
+            cur = conn.execute("DELETE FROM semantic_memories WHERE id = ? AND user_id = ?", (fact_id, uid))
         return cur.rowcount > 0
     finally:
         conn.close()

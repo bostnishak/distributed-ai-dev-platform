@@ -45,7 +45,7 @@ _SENSITIVE_KEYS = frozenset({
 
 def redact_sensitive_text(text: str) -> str:
     """Mask secrets, tokens, and PII patterns in arbitrary text."""
-    out = str(text or "")
+    out = (text or "")
     for pat, repl in _REDACT_PATTERNS:
         out = pat.sub(repl, out)
     return out

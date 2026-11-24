@@ -57,7 +57,7 @@ def set_user_quota(
         conn.execute(
             "INSERT OR REPLACE INTO user_quotas (user_id, daily_token_limit, daily_energy_wh_limit, hard_enforce, updated_at) "
             "VALUES (?, ?, ?, ?, ?)",
-            (uid, int(daily_token_limit), float(daily_energy_wh_limit), 1 if hard_enforce else 0, now),
+            (uid, daily_token_limit, float(daily_energy_wh_limit), 1 if hard_enforce else 0, now),
         )
     return {
         "ok": True,
@@ -134,7 +134,7 @@ def record_usage_entry(user_id: str, model: str, tokens_in: int, tokens_out: int
         conn.execute(
             "INSERT INTO accounting_ledger (user_id, model, tokens_in, tokens_out, latency_ms, energy_wh, day_utc, created_at) "
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (uid, model.strip()[:80], int(tokens_in), int(tokens_out), int(latency_ms), wh, day, now.isoformat()),
+            (uid, model.strip()[:80], tokens_in, tokens_out, latency_ms, wh, day, now.isoformat()),
         )
     return {"ok": True, "user_id": uid, "day_utc": day, "energy_wh": wh, "tokens_total_today": projected_tokens}
 

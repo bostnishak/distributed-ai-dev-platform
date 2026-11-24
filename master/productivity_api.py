@@ -222,7 +222,7 @@ async def api_set_priority(task_id: int, priority: int = 1):
     """Update task scheduling priority (set_priority; AJN-04)."""
     import db
 
-    prio = max(1, min(5, int(priority)))
+    prio = max(1, min(5, priority))
     with db.connect() as conn:
         cols = {r[1] for r in conn.execute("PRAGMA table_info(tasks)").fetchall()}
         if "priority" not in cols:
@@ -278,7 +278,7 @@ async def api_research_context(query: str = ""):
         "current_date": today_iso,
         "today_iso": today_iso,
         "research_history": _RESEARCH_HISTORY[-25:],
-        "archive_page_count": count_archived_pages() + len(_ARCHIVED_PAGES),
+        "archive_page_count": count_archived_pages(),
         "download_source_endpoint": "/api/productivity/research/download-source",
     }
 
@@ -289,9 +289,7 @@ async def api_download_and_index_source(body: SourceDownloadBody):
     from rag.crawler import fetch_and_index_source
 
     try:
-        res = await fetch_and_index_source(body.url, body.model_dump())
-        _ARCHIVED_PAGES[res["archive"]["url_hash"]] = {"url": body.url, "title": body.title or body.url}
-        return res
+        return await fetch_and_index_source(body.url, body.model_dump())
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -389,18 +387,46 @@ async def api_create_survey(body: SurveyBody):
 
 @router.post("/agents/custom", dependencies=_ADMIN_OR_LOCAL)
 async def api_create_custom_agent(body: CustomAgentBody):
-    """Create a user-defined custom assistant profile (AJN-01)."""
-    aid = f"asst_{uuid.uuid4().hex[:8]}"
-    rec = {"id": aid, "name": body.name, "instructions": body.instructions, "model": body.model, "tools": body.tools}
-    _CUSTOM_AGENTS[aid] = rec
-    return rec
+    """Create a user-defined custom assistant profile persisted in SQLite custom_agents (AJN-01)."""
+    from custom_agents import upsert_custom_agent
+
+    saved = upsert_custom_agent(
+        {
+            "user_id": "default",
+            "name": body.name,
+            "instructions": body.instructions,
+            "model_override": body.model,
+            "allowed_tools": body.tools,
+        }
+    )
+    return {
+        "id": saved["agent_id"],
+        "name": body.name,
+        "instructions": body.instructions,
+        "model": body.model,
+        "tools": body.tools,
+        "version": saved["version"],
+    }
 
 
 @router.get("/agents/custom")
 async def api_list_custom_agents():
-    """List custom assistants, tool_gallery, benchmarkChart summary, and drained agents (AJN-01..07)."""
+    """List SQLite custom assistants, tool_gallery, benchmarkChart summary, and drained agents (AJN-01..07)."""
+    from custom_agents import list_custom_agents
+
+    agents = [
+        {
+            "id": a["agent_id"],
+            "name": a["name"],
+            "instructions": a["instructions"],
+            "model": a.get("model_override") or "qwen3.5:4b",
+            "tools": a.get("allowed_tools") or [],
+            "version": a.get("current_version", 1),
+        }
+        for a in list_custom_agents("default")
+    ]
     return {
-        "custom_agents": list(_CUSTOM_AGENTS.values()),
+        "custom_agents": agents,
         "drained_agents": sorted(_DRAINED_AGENTS),
         "tool_gallery": ["calculator", "rag_search", "python_sandbox", "svg_chart", "ics_calendar", "regex_tester"],
         "benchmarkChart": {"series": []},

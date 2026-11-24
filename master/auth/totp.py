@@ -31,7 +31,7 @@ def totp_code(secret_b32: str, *, for_time: int | None = None, step: int = 30, d
 
 def verify_totp(secret_b32: str, code: str, *, window: int = 1, now: int | None = None) -> bool:
     """Verify a 6-digit TOTP code within +-window time steps."""
-    clean = re.sub(r"\s+", "", str(code or ""))
+    clean = re.sub(r"\s+", "", (code or ""))
     if not clean.isdigit() or len(clean) != 6:
         return False
     base_ts = int(now if now is not None else time.time())

@@ -255,7 +255,7 @@ def convert_clean_audio_wav(
         if peak > 0:
             gain = 29000.0 / peak
             samples = [int(max(-32768, min(32767, s * gain))) for s in samples]
-    out_rate = max(8000, min(48000, int(target_rate)))
+    out_rate = max(8000, min(48000, target_rate))
     if out_rate != framerate and samples and out_channels == 1:
         ratio = framerate / out_rate
         new_len = max(1, int(len(samples) / ratio))
@@ -293,8 +293,8 @@ def generate_slideshow_video(
     """Compose an animated GIF slideshow offline via Pillow (MED-04)."""
     from PIL import Image, ImageDraw
 
-    w = max(160, min(1280, int(width)))
-    h = max(120, min(720, int(height)))
+    w = max(160, min(1280, width))
+    h = max(120, min(720, height))
     items = slides[:30] or [{"title": "DADP Sunum", "body": "Yerel video kare üretimi", "bg": "#0f172a"}]
     frames: list[Any] = []
     palette = ("#0f172a", "#1e293b", "#115e59", "#312e81")
@@ -315,7 +315,7 @@ def generate_slideshow_video(
         format="GIF",
         save_all=True,
         append_images=frames[1:],
-        duration=max(150, min(5000, int(frame_ms))),
+        duration=max(150, min(5000, frame_ms)),
         loop=0,
     )
     raw = buf.getvalue()

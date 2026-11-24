@@ -90,7 +90,7 @@ class RBACManager:
     def __init__(self, secret_key: str | None = None, iterations: int = 120_000) -> None:
         raw_secret = secret_key or config.AGENT_TOKEN or "cm6453-enterprise-local-hmac-secret-key"
         self._secret = raw_secret.encode("utf-8")
-        self._iterations = max(int(iterations), 10_000)
+        self._iterations = max(iterations, 10_000)
         self._users: dict[str, dict[str, Any]] = {}
 
     def hash_password(self, password: str, salt: bytes | None = None) -> str:
@@ -140,7 +140,7 @@ class RBACManager:
             "sub": username.strip(),
             "role": r_norm,
             "iat": int(time.time()),
-            "exp": int(time.time()) + int(ttl_seconds),
+            "exp": int(time.time()) + ttl_seconds,
         }
         payload_bytes = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
         payload_b64 = base64.urlsafe_b64encode(payload_bytes).decode("ascii").rstrip("=")

@@ -126,11 +126,11 @@ def record_cmm_lot_measurements(
             """,
             (
                 lot_id,
-                str(cnc_job_id).strip(),
-                str(part_number).strip(),
-                str(lot_number).strip(),
-                str(machine_id).strip(),
-                str(operator_name).strip(),
+                cnc_job_id.strip(),
+                part_number.strip(),
+                lot_number.strip(),
+                machine_id.strip(),
+                operator_name.strip(),
                 n,
                 fpy_percent,
                 round(cpk, 3),
@@ -147,7 +147,7 @@ def record_cmm_lot_measurements(
                 (lot_id, balloon_no, serial_no, measured_value, deviation, is_ok, measured_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
-                (lot_id, int(balloon_no), idx, val, dev, is_ok, now_iso),
+                (lot_id, balloon_no, idx, val, dev, is_ok, now_iso),
             )
 
     return {

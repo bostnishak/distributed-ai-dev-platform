@@ -117,7 +117,7 @@ def evaluate_model_gate(
     losses = sum(1 for d in diffs if d < -1e-9)
     ties = n - wins - losses
 
-    promote = bool(delta >= min_delta and p_val <= alpha_level and losses <= wins)
+    promote = (delta >= min_delta and p_val <= alpha_level and losses <= wins)
 
     return {
         "promote": promote,
@@ -161,7 +161,7 @@ def get_llmops_stats(min_pairs_threshold: int = NIGHTLY_QLORA_MIN_PAIRS) -> dict
             if ts > latest_timestamp:
                 latest_timestamp = ts
 
-    threshold = max(1, int(min_pairs_threshold))
+    threshold = max(1, min_pairs_threshold)
     ready_domains = sorted(dom for dom, count in by_domain.items() if count >= threshold)
 
     return {
