@@ -495,6 +495,20 @@ def test_hal15_chat_stream_abstains_without_calling_the_model():
     assert "doğrulayamadım" in r.text and "abstention-policy" in r.text
 
 
+def test_hal15_private_looking_question_is_not_refused_when_the_chat_history_holds_the_answer():
+    import json
+
+    from fastapi.testclient import TestClient
+
+    import app as master_app
+    from assistant import _history_has_messages
+
+    history = json.dumps([{"role": "user", "text": "Merhaba, benim adım Ayşe."}, {"role": "assistant", "text": "Merhaba Ayşe!"}])
+    assert _history_has_messages(history) and not _history_has_messages("[]") and not _history_has_messages("not json")
+    r = TestClient(master_app.app).post("/api/assistant/chat/stream", data={"prompt": "Adım ne demiştim?", "history": history})
+    assert "abstention-policy" not in r.text
+
+
 def test_hal15_hal16_rules_on_the_held_out_set():
     """eval/heldout/abstention_heldout.jsonl: phrasing differs from the golden set; false alarms are as costly as misses."""
     import json

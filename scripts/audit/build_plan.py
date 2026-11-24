@@ -152,7 +152,7 @@ def battery_items():
     for row in load("battery.json"):
         if row["ok"]:
             continue
-        sorun = f"`{row['id']}` ({row['cat']}) gerçek sohbet isteğinde başarısız: {row['why']}. Yanıt başı: «{row['text'][:140].strip()}»."
+        sorun = f"`{row['id']}` ({row['cat']}) gerçek sohbet isteğinde başarısız: {' '.join(row['why'].split())}. Yanıt başı: «{' '.join(row['text'][:140].split())}»."
         out.append(item("P1", "M", "F205", f"{row['cat']}: {row['id']} isteği başarısız", sorun, "Kök nedeni bul (yönlendirme, istem, araç, doğrulayıcı), düzelt ve bu isteği eval kümesine kalıcı olarak ekle.", f"`python scripts/audit/battery.py {row['id']}` bu istek için OK verir; eval kümesinde regresyon testi var."))
     return out
 

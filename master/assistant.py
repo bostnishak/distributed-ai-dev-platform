@@ -1148,6 +1148,14 @@ PROMPT_CONVERSION_SYSTEM_INSTRUCTION = (
 )
 
 
+def _history_has_messages(history: str) -> bool:
+    try:
+        items = json.loads(history) if history else []
+    except ValueError:
+        return False
+    return isinstance(items, list) and any(isinstance(i, dict) and i.get("text") for i in items)
+
+
 async def _chat_stream_impl(
     prompt: str,
     file: UploadFile | None,
@@ -1163,6 +1171,10 @@ async def _chat_stream_impl(
         from hallucination.verifier import detect_unanswerable
 
         gap = detect_unanswerable(prompt)
+        # A "private" question can be answerable from this very conversation ("Adım ne demiştim?"), so only
+        # refuse it up front when there is no history to look in.
+        if gap["unanswerable"] and gap["reason"] == "private_data" and _history_has_messages(history):
+            gap = {"unanswerable": False}
         if gap["unanswerable"]:
 
             async def _abstain_gen():

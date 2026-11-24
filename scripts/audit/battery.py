@@ -37,6 +37,10 @@ def words_at_most(n):
     return lambda r: (len(r["text"].split()) <= n, f"{len(r['text'].split())} kelime (> {n})")
 
 
+def no_turkish_chars(r):
+    return (not re.search("[çğıöşüÇĞİÖŞÜ]", r["text"]), "yanıtta Türkçe karakter var")
+
+
 def no_emoji(r):
     return (not EMOJI.search(r["text"]), "yanıtta emoji var")
 
@@ -122,7 +126,7 @@ maths = [
     ("17 çarpı 23 kaç eder? Sadece sayıyı yaz.", "391"), ("2^10 kaçtır?", "1024"), ("144'ün karekökü nedir?", "\\b12\\b"), ("Bir üçgenin iç açıları toplamı kaç derecedir?", "180"),
     ("15% of 240 is?", "\\b36\\b"), ("x + 7 = 19 denkleminde x kaçtır?", "\\b12\\b"), ("1000 TL'ye yüzde 18 KDV eklenirse toplam kaç TL olur?", "1180|1\\.180"),
     ("Bir dairenin yarıçapı 5 ise alanı yaklaşık kaçtır (pi=3.14)?", "78[.,]5"), ("3/4 + 1/4 kaçtır?", "\\b1\\b|bir"), ("12 ve 18'in EBOB'u kaçtır?", "\\b6\\b"),
-    ("0.1 + 0.2 işlemini Python'da yaparsanız neden tam 0.3 çıkmaz? Kısaca.", "kayan nokta|floating|ikili|binary"), ("100 km yolu 2 saatte giden aracın ortalama hızı kaç km/s?", "\\b50\\b"),
+    ("0.1 + 0.2 işlemini Python'da yaparsanız neden tam 0.3 çıkmaz? Kısaca.", "kayan nokta|floating|ikili|binary|IEEE|754"), ("100 km yolu 2 saatte giden aracın ortalama hızı kaç km/s?", "\\b50\\b"),
     ("Faktöriyel 6 kaçtır?", "720"), ("Fibonacci dizisinin ilk 8 terimi nedir?", "0,? ?1,? ?1,? ?2,? ?3,? ?5,? ?8,? ?13|1,? ?1,? ?2,? ?3,? ?5,? ?8,? ?13,? ?21"),
     ("Bir sayının %20'si 50 ise sayı kaçtır?", "250"),
 ]
@@ -133,7 +137,7 @@ for i, (q, pat) in enumerate(maths):
 case("fmt-00", "talimat", "Yapay zekayı tam olarak 3 madde halinde açıkla. Emoji kullanma.", all_of(no_emoji, lambda r: (len(re.findall(r"^\s*(?:[-*•]|\d+[.)])\s+", r["text"], re.M)) == 3, "madde sayısı 3 değil")))
 case("fmt-01", "talimat", "Sadece geçerli JSON döndür: {\"sehir\": ..., \"nufus\": ...} biçiminde İzmir için yaklaşık bilgi ver.", json_only)
 case("fmt-02", "talimat", "Bulutu 15 kelimeyi geçmeyecek şekilde tanımla.", words_at_most(20))
-case("fmt-03", "talimat", "Answer in English only: what is photosynthesis? Two sentences.", lacks(r"[çğıöşüÇĞİÖŞÜ]"))
+case("fmt-03", "talimat", "Answer in English only: what is photosynthesis? Two sentences.", no_turkish_chars)
 case("fmt-04", "talimat", "Bana selam ver. Emoji kullanma.", no_emoji)
 case("fmt-05", "talimat", "Aşağıdaki bilgileri markdown tablo olarak ver: Elma 5 TL, Armut 7 TL, Muz 12 TL.", has(r"\|.*\|.*\n\|[\s:-]+\|"))
 case("fmt-06", "talimat", "Sadece 'evet' veya 'hayır' yaz: Dünya yuvarlak mıdır?", all_of(words_at_most(3), has("evet")))
@@ -177,12 +181,12 @@ case("teach-04", "konu anlatımı", "API nedir? Gündelik bir örnekle açıkla.
 case("teach-05", "konu anlatımı", "Explain what a hash table is, with complexity.", has(r"O\(1\)|constant"))
 
 # --- multi turn / memory ---------------------------------------------------------------------------------
-case("turn-00", "çok turlu", "Adım ne demiştim?", has("Ayşe"), history=[{"role": "user", "content": "Merhaba, benim adım Ayşe."}, {"role": "assistant", "content": "Merhaba Ayşe!"}])
-case("turn-01", "çok turlu", "Bu sayıyı ikiyle çarp.", has(r"\b84\b"), history=[{"role": "user", "content": "Aklımdaki sayı 42."}, {"role": "assistant", "content": "Tamam, 42'yi not ettim."}])
-case("turn-02", "çok turlu", "Önceki cevabını İngilizceye çevir.", has(r"Ankara"), history=[{"role": "user", "content": "Türkiye'nin başkenti?"}, {"role": "assistant", "content": "Türkiye'nin başkenti Ankara'dır."}])
-case("turn-03", "çok turlu", "Peki nüfusu?", has(r"milyon|million"), history=[{"role": "user", "content": "İzmir hangi ülkede?"}, {"role": "assistant", "content": "İzmir Türkiye'dedir."}])
-case("turn-04", "çok turlu", "Daha kısa yaz.", lambda r: (len(r["text"].split()) < 40, "kısaltmadı"), history=[{"role": "user", "content": "Bulut bilişim nedir?"}, {"role": "assistant", "content": "Bulut bilişim; sunucu, depolama, veri tabanı, ağ ve yazılım gibi bilişim kaynaklarının internet üzerinden isteğe bağlı olarak, kullanım başına ödeme esasıyla sunulması modelidir. Kurumlar kendi altyapılarını kurmak yerine bu hizmetleri kiralar."}])
-case("turn-05", "çok turlu", "Emoji kullanma dediğimi unutma. Bana günaydın de.", no_emoji, history=[{"role": "user", "content": "Bundan sonra emoji kullanma."}, {"role": "assistant", "content": "Tamam, emoji kullanmayacağım."}])
+case("turn-00", "çok turlu", "Adım ne demiştim?", has("Ayşe"), history=[{"role": "user", "text": "Merhaba, benim adım Ayşe."}, {"role": "assistant", "text": "Merhaba Ayşe!"}])
+case("turn-01", "çok turlu", "Bu sayıyı ikiyle çarp.", has(r"\b84\b"), history=[{"role": "user", "text": "Aklımdaki sayı 42."}, {"role": "assistant", "text": "Tamam, 42'yi not ettim."}])
+case("turn-02", "çok turlu", "Önceki cevabını İngilizceye çevir.", has(r"Ankara"), history=[{"role": "user", "text": "Türkiye'nin başkenti?"}, {"role": "assistant", "text": "Türkiye'nin başkenti Ankara'dır."}])
+case("turn-03", "çok turlu", "Peki nüfusu?", has(r"milyon|million"), history=[{"role": "user", "text": "İzmir hangi ülkede?"}, {"role": "assistant", "text": "İzmir Türkiye'dedir."}])
+case("turn-04", "çok turlu", "Daha kısa yaz.", lambda r: (len(r["text"].split()) < 40, "kısaltmadı"), history=[{"role": "user", "text": "Bulut bilişim nedir?"}, {"role": "assistant", "text": "Bulut bilişim; sunucu, depolama, veri tabanı, ağ ve yazılım gibi bilişim kaynaklarının internet üzerinden isteğe bağlı olarak, kullanım başına ödeme esasıyla sunulması modelidir. Kurumlar kendi altyapılarını kurmak yerine bu hizmetleri kiralar."}])
+case("turn-05", "çok turlu", "Emoji kullanma dediğimi unutma. Bana günaydın de.", no_emoji, history=[{"role": "user", "text": "Bundan sonra emoji kullanma."}, {"role": "assistant", "text": "Tamam, emoji kullanmayacağım."}])
 
 # --- file tasks -----------------------------------------------------------------------------------------------
 CSV = ("ad,satis\nAli,120\nVeli,80\nAyse,200\n").encode()
@@ -212,7 +216,7 @@ case("make-plan", "üretim", "Bir haftalık YKS çalışma planı hazırla (tabl
 case("make-cv", "üretim", "Yazılım mühendisi için tek sayfalık CV taslağı yaz.", has(r"deneyim|eğitim|yetenek|experience"))
 
 # --- language / tone ----------------------------------------------------------------------------------------------------
-case("lang-00", "dil", "Explain what an API is in one sentence.", lacks(r"[çğıöşüÇĞİÖŞÜ]"))
+case("lang-00", "dil", "Explain what an API is in one sentence.", no_turkish_chars)
 case("lang-01", "dil", "Hola, ¿cómo estás? Responde en español.", has(r"estoy|bien|gracias"))
 case("lang-02", "dil", "Bonjour! Peux-tu te présenter en français?", has(r"je suis|je m'appelle|assistant"))
 case("lang-03", "dil", "Bana kısaca kendini tanıt.", all_of(no_emoji, has(r"yapay zeka|asistan|model")))

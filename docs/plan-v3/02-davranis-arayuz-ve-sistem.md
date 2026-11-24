@@ -1,5 +1,85 @@
 # Parça 2 — Gerçek istek başarısızlıkları, arayüz taraması ve sistem bulguları
 
+## DAV · Gerçek sohbet isteğinde başarısız davranışlar
+
+#### DAV-01 · talimat: fmt-02 isteği başarısız
+- **Sorun:** [DOĞRULANDI: F205] `fmt-02` (talimat) gerçek sohbet isteğinde başarısız: 37 kelime (> 20). Yanıt başı: «Bulut, uzay boşluğunda yer alan ve atmosferin dışındaki ortamı kapsayan devasa bir gaz küresidir. Yerçekimi etkisiyle birlikte yıldızlar, ge».
+- **Değişiklik:** Kök nedeni bul (yönlendirme, istem, araç, doğrulayıcı), düzelt ve bu isteği eval kümesine kalıcı olarak ekle.
+- **Kabul:** `python scripts/audit/battery.py fmt-02` bu istek için OK verir; eval kümesinde regresyon testi var.
+- **Meta:** P1 · M · Bağ: - · Durum: açık
+
+#### DAV-02 · talimat: fmt-13 isteği başarısız
+- **Sorun:** [DOĞRULANDI: F205] `fmt-13` (talimat) gerçek sohbet isteğinde başarısız: istenmeyen desen var: deniz. Yanıt başı: «Deniz feneri uzakta yanar, Gemi izleri sulara karışır, Rüzgar eserken gemiler durur.».
+- **Değişiklik:** Kök nedeni bul (yönlendirme, istem, araç, doğrulayıcı), düzelt ve bu isteği eval kümesine kalıcı olarak ekle.
+- **Kabul:** `python scripts/audit/battery.py fmt-13` bu istek için OK verir; eval kümesinde regresyon testi var.
+- **Meta:** P1 · M · Bağ: - · Durum: açık
+
+#### DAV-03 · kod: code-10 isteği başarısız
+- **Sorun:** [DOĞRULANDI: F205] `code-10` (kod) gerçek sohbet isteğinde başarısız: koddan başka 43 kelime var. Yanıt başı: «```python for i in range(1, 11): print(i) ``` Bu kod, `range` fonksiyonunu kullanarak 1'den 10'a kadar olan sayıları sırayla ekrana yaz».
+- **Değişiklik:** Kök nedeni bul (yönlendirme, istem, araç, doğrulayıcı), düzelt ve bu isteği eval kümesine kalıcı olarak ekle.
+- **Kabul:** `python scripts/audit/battery.py code-10` bu istek için OK verir; eval kümesinde regresyon testi var.
+- **Meta:** P1 · M · Bağ: - · Durum: açık
+
+#### DAV-04 · kod: code-14 isteği başarısız
+- **Sorun:** [DOĞRULANDI: F205] `code-14` (kod) gerçek sohbet isteğinde başarısız: beklenen desen yok: sözdizimi|syntax|eksik|operand|ikinci|tamam. Yanıt başı: «Bu kodda hata var. Fonksiyonunun sonuna bir değer döndürmeyi unuttuğunuz için hata veriyor. Örneğin, `return x + 5` veya başka bir değer dön».
+- **Değişiklik:** Kök nedeni bul (yönlendirme, istem, araç, doğrulayıcı), düzelt ve bu isteği eval kümesine kalıcı olarak ekle.
+- **Kabul:** `python scripts/audit/battery.py code-14` bu istek için OK verir; eval kümesinde regresyon testi var.
+- **Meta:** P1 · M · Bağ: - · Durum: açık
+
+#### DAV-05 · kod: code-19 isteği başarısız
+- **Sorun:** [DOĞRULANDI: F205] `code-19` (kod) gerçek sohbet isteğinde başarısız: Temp\tmpq4czqr71\t.py", line 21, in <module> assert count_vowels('merhaba')==3 and count_vowels('Ã¶ÄŸrenci')==3 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ AssertionError. Yanıt başı: «Tabii ki, audit! İşte `count_vowels(s)` fonksiyonu: ```python def count_vowels(s): """ Verilen metindeki sesli harf sayısını döndür».
+- **Değişiklik:** Kök nedeni bul (yönlendirme, istem, araç, doğrulayıcı), düzelt ve bu isteği eval kümesine kalıcı olarak ekle.
+- **Kabul:** `python scripts/audit/battery.py code-19` bu istek için OK verir; eval kümesinde regresyon testi var.
+- **Meta:** P1 · M · Bağ: - · Durum: açık
+
+#### DAV-06 · dosya: file-04 isteği başarısız
+- **Sorun:** [DOĞRULANDI: F205] `file-04` (dosya) gerçek sohbet isteğinde başarısız: soru yalnızca bütçeyi soruyordu ama yanıt istenmeyen 'Deterministik Dosya Denetim Raporu' bloğuyla başlıyor. Yanıt başı: «### Deterministik Dosya Denetim Raporu (not.txt) - **Durum:** Temiz (0 kritik/yuksek hata) | **Boyut:** 65 bayt - Sozdizimi, JSON/HTML yapis».
+- **Değişiklik:** Kök nedeni bul (yönlendirme, istem, araç, doğrulayıcı), düzelt ve bu isteği eval kümesine kalıcı olarak ekle.
+- **Kabul:** `python scripts/audit/battery.py file-04` bu istek için OK verir; eval kümesinde regresyon testi var.
+- **Meta:** P1 · M · Bağ: - · Durum: açık
+
+#### DAV-07 · üretim: make-doc isteği başarısız
+- **Sorun:** [DOĞRULANDI: F205] `make-doc` (üretim) gerçek sohbet isteğinde başarısız: docx çıktısı yok. Yanıt başı: «Audit, aşağıda yer alan motivasyon mektubunu bulabilirsiniz. Bu metin, genel iş başvuruları için profesyonel bir şablondur; parantez içindek».
+- **Değişiklik:** Kök nedeni bul (yönlendirme, istem, araç, doğrulayıcı), düzelt ve bu isteği eval kümesine kalıcı olarak ekle.
+- **Kabul:** `python scripts/audit/battery.py make-doc` bu istek için OK verir; eval kümesinde regresyon testi var.
+- **Meta:** P1 · M · Bağ: - · Durum: açık
+
+#### DAV-08 · üretim: make-project isteği başarısız
+- **Sorun:** [DOĞRULANDI: F205] `make-project` (üretim) gerçek sohbet isteğinde başarısız: hata: {'type': 'error', 'content': "[WinError 183] Halen varolan bir dosya oluşturulamaz: 'C:\\\\Users\\\\bosta\\\\OneDrive\\\\Desktop\\\\projects\\\\Okul projeleri\\\\Distributed AI Software Development Platform CM6453\\\\.audit_tmp\\\\data\\\\workspaces\\\\not-kaydetme-uygulamasi-1124050347\\\\app'"}. Yanıt başı: «Mimari plan hazırlanıyor (qwen2.5-coder:7b)... ### Proje Planı: **Not Kaydetme Uygulaması** (16 dosya) - `main.py` - Uygulamanın ana giriş».
+- **Değişiklik:** Kök nedeni bul (yönlendirme, istem, araç, doğrulayıcı), düzelt ve bu isteği eval kümesine kalıcı olarak ekle.
+- **Kabul:** `python scripts/audit/battery.py make-project` bu istek için OK verir; eval kümesinde regresyon testi var.
+- **Meta:** P1 · M · Bağ: - · Durum: açık
+
+#### DAV-09 · üretim: make-research isteği başarısız
+- **Sorun:** [DOĞRULANDI: F205] `make-research` (üretim) gerçek sohbet isteğinde başarısız: kaynak/atıf yok. Yanıt başı: «Kuantum bilgisayarları konu alan kapsamlı ve kanıt dayalı bir özet aşağıdadır: **Temel Prensip:** Klasik bilgisayarlar, bilgiyi 0 veya 1 de».
+- **Değişiklik:** Kök nedeni bul (yönlendirme, istem, araç, doğrulayıcı), düzelt ve bu isteği eval kümesine kalıcı olarak ekle.
+- **Kabul:** `python scripts/audit/battery.py make-research` bu istek için OK verir; eval kümesinde regresyon testi var.
+- **Meta:** P1 · M · Bağ: - · Durum: açık
+
+#### DAV-10 · üretim: make-chart isteği başarısız
+- **Sorun:** [DOĞRULANDI: F205] `make-chart` (üretim) gerçek sohbet isteğinde başarısız: grafik çıktısı yok. Yanıt başı: «Verilen verilere dayanarak aşağıda Python kütüphanesi (matplotlib) kullanılarak oluşturulmuş çubuk grafiği kodu yer almaktadır. Bu kodu çalı».
+- **Değişiklik:** Kök nedeni bul (yönlendirme, istem, araç, doğrulayıcı), düzelt ve bu isteği eval kümesine kalıcı olarak ekle.
+- **Kabul:** `python scripts/audit/battery.py make-chart` bu istek için OK verir; eval kümesinde regresyon testi var.
+- **Meta:** P1 · M · Bağ: - · Durum: açık
+
+#### DAV-11 · üretim: make-image isteği başarısız
+- **Sorun:** [DOĞRULANDI: F205] `make-image` (üretim) gerçek sohbet isteğinde başarısız: görsel üretilmedi. Yanıt başı: «Deniz kıyısında, gün batımı sahnelerini betimleyen detaylı bir görsel taslak aşağıda sunulmaktadır: ```python import matplotlib.pyplot as p».
+- **Değişiklik:** Kök nedeni bul (yönlendirme, istem, araç, doğrulayıcı), düzelt ve bu isteği eval kümesine kalıcı olarak ekle.
+- **Kabul:** `python scripts/audit/battery.py make-image` bu istek için OK verir; eval kümesinde regresyon testi var.
+- **Meta:** P1 · M · Bağ: - · Durum: açık
+
+#### DAV-12 · araç: tool-03 isteği başarısız
+- **Sorun:** [DOĞRULANDI: F205] `tool-03` (araç) gerçek sohbet isteğinde başarısız: beklenen desen yok: 83[ .,]?810[ .,]?205. Yanıt başı: «12345 ile 6789'un çarpımı aşağıdadır: ```python sonuc = 12345 * 6789 print(sonuc) # Çıkan sonuç: 83800205 ```».
+- **Değişiklik:** Kök nedeni bul (yönlendirme, istem, araç, doğrulayıcı), düzelt ve bu isteği eval kümesine kalıcı olarak ekle.
+- **Kabul:** `python scripts/audit/battery.py tool-03` bu istek için OK verir; eval kümesinde regresyon testi var.
+- **Meta:** P1 · M · Bağ: - · Durum: açık
+
+#### DAV-13 · araç: tool-07 isteği başarısız
+- **Sorun:** [DOĞRULANDI: F205] `tool-07` (araç) gerçek sohbet isteğinde başarısız: beklenen desen yok: 31[ .,]?556[ .,]?926. Yanıt başı: «Verilen süre bir yılı ifade eder ve toplam saniye sayısını hesaplamak için her zaman birimini saniyeye çevirmemiz gerekir. Hesaplama adımlar».
+- **Değişiklik:** Kök nedeni bul (yönlendirme, istem, araç, doğrulayıcı), düzelt ve bu isteği eval kümesine kalıcı olarak ekle.
+- **Kabul:** `python scripts/audit/battery.py tool-07` bu istek için OK verir; eval kümesinde regresyon testi var.
+- **Meta:** P1 · M · Bağ: - · Durum: açık
+
 ## ARY · Tarayıcı taraması: arayüz ve erişilebilirlik
 
 #### ARY-01 · Tüm sayfaların başlığı aynı
