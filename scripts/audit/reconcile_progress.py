@@ -45,6 +45,7 @@ DOWNGRADE = {
 }
 
 NEW_EVIDENCE = {
+    "GUV-01": (["master/tests/test_cronjobs_and_kvstore.py"], "TOTP artik giriste zorunlu: kayit, onay, kapatma ve yanlis kod reddi test edildi."),
     "AJN-02": (["master/tests/test_cronjobs_and_kvstore.py"], "Cron ifadesi dogrulanir, gorevler dakikada bir gercekten calisir, sonuc kaydedilir, yeniden baslatmada kalir."),
     "AJN-05": (["master/tests/test_cronjobs_and_kvstore.py"], "Bakim modundaki ajan bekleyen is olsa da yeni gorev almaz."),
     "ARS-05": (["master/tests/test_cronjobs_and_kvstore.py"], "Sorgu master modeliyle gercekten cevriliyor (onceden sabit ek metin)."),

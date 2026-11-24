@@ -2,94 +2,70 @@
 import { uiPrompt } from './ui_dialog.js';
 import { api, formatDateTime, h } from './util.js';
 
+async function loadMemoryFacts(factsBox, ctx) {
+  const { activeUserId, setStatus, setMemoryCount, renderCard } = ctx;
+  const { memories } = await api(`/api/user/${activeUserId}/memories`);
+  setMemoryCount(memories.length);
+  renderCard();
+  factsBox.replaceChildren(...(memories.length ? memories.map((m) => h('div', { class: 'sp-list-item' },
+    h('div', { class: 'sp-list-main' }, h('div', { class: 'sp-list-title' }, h('span', { class: 'sp-tag' }, m.category), m.fact_value), h('div', { class: 'sp-list-sub' }, formatDateTime(m.updated_at))),
+    h('button', {
+      type: 'button', class: 'sp-btn danger sm',
+      onClick: async () => {
+        try { await api(`/api/user/${activeUserId}/memories/${m.id}`, { method: 'DELETE' }); setStatus('Bilgi unutuldu', true); loadMemoryFacts(factsBox, ctx); }
+        catch (err) { setStatus(`Silinemedi: ${err.message}`); }
+      },
+    }, 'Unut'))) : [h('div', { class: 'sp-empty' }, 'Henüz öğrenilmiş bilgi yok. Sohbet ettikçe tercihleriniz burada birikir.')]));
+}
+
 export async function renderSectionMemory(body, ctx) {
-  const { activeUserId, profile, setStatus, setMemoryCount, renderCard, closePanel, group, groupTitle, toggleRow, savePatch } = ctx;
+  const { activeUserId, profile, setStatus, closePanel, group, groupTitle, toggleRow, savePatch } = ctx;
   const s = profile.settings;
   const factsBox = h('div');
   const convBox = h('div');
   const searchOut = h('div');
-
-  async function renderFacts() {
-    const { memories } = await api(`/api/user/${activeUserId}/memories`);
-    setMemoryCount(memories.length);
-    renderCard();
-    factsBox.replaceChildren(...(memories.length ? memories.map((m) => h('div', { class: 'sp-list-item' },
-      h('div', { class: 'sp-list-main' }, h('div', { class: 'sp-list-title' }, h('span', { class: 'sp-tag' }, m.category), m.fact_value), h('div', { class: 'sp-list-sub' }, formatDateTime(m.updated_at))),
-      h('button', {
-        type: 'button',
-        class: 'sp-btn danger sm',
-        onClick: async () => {
-          try {
-            await api(`/api/user/${activeUserId}/memories/${m.id}`, { method: 'DELETE' });
-            setStatus('Bilgi unutuldu', true);
-            renderFacts();
-          } catch (err) { setStatus(`Silinemedi: ${err.message}`); }
-        },
-      }, 'Unut'))) : [h('div', { class: 'sp-empty' }, 'Henüz öğrenilmiş bilgi yok. Sohbet ettikçe tercihleriniz ve proje bilgileriniz burada birikir.')]));
-  }
-
-  async function renderConvs() {
+  const renderConvs = async () => {
     const { conversations } = await api(`/api/user/${activeUserId}/conversations`);
     convBox.replaceChildren(...(conversations.length ? conversations.slice(0, 12).map((c) => h('div', {
-      class: 'sp-list-item',
-      style: { cursor: 'pointer' },
-      title: 'Bu sohbeti aç',
-      onClick: () => {
-        closePanel();
-        document.dispatchEvent(new CustomEvent('open-saved-chat', { detail: { chatId: c.id } }));
-      },
-    },
-    h('div', { class: 'sp-list-main' }, h('div', { class: 'sp-list-title' }, c.title), h('div', { class: 'sp-list-sub' }, `${c.message_count} mesaj · ${formatDateTime(c.updated_at)}`)))) : [h('div', { class: 'sp-empty' }, 'Kayıtlı sohbet yok.')]));
-  }
-
-  const addInput = h('input', { class: 'sp-input', type: 'text', maxlength: 300, placeholder: 'Asistanın hatırlamasını istediğiniz bilgi (ör. Yanıtlarda kısa özet ve tablo tercih ederim)' });
+      class: 'sp-list-item', style: { cursor: 'pointer' }, title: 'Bu sohbeti aç',
+      onClick: () => { closePanel(); document.dispatchEvent(new CustomEvent('open-saved-chat', { detail: { chatId: c.id } })); },
+    }, h('div', { class: 'sp-list-main' }, h('div', { class: 'sp-list-title' }, c.title), h('div', { class: 'sp-list-sub' }, `${c.message_count} mesaj · ${formatDateTime(c.updated_at)}`)))) : [h('div', { class: 'sp-empty' }, 'Kayıtlı sohbet yok.')]));
+  };
+  const addInput = h('input', { class: 'sp-input', type: 'text', maxlength: 300, placeholder: 'Asistanın hatırlamasını istediğiniz bilgi' });
   const addBtn = h('button', {
-    type: 'button',
-    class: 'sp-btn primary',
+    type: 'button', class: 'sp-btn primary',
     onClick: async () => {
       if (!addInput.value.trim()) { setStatus('Hatırlanacak bilgi boş olamaz.'); return; }
       try {
         await api(`/api/user/${activeUserId}/memories`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ category: 'preference', fact_value: addInput.value }) });
-        addInput.value = '';
-        setStatus('Hafızaya kaydedildi', true);
-        renderFacts();
+        addInput.value = ''; setStatus('Hafızaya kaydedildi', true); loadMemoryFacts(factsBox, ctx);
       } catch (err) { setStatus(`Kaydedilemedi: ${err.message}`); }
     },
   }, 'Hatırla');
-
-  const searchInput = h('input', { class: 'sp-input', type: 'text', placeholder: 'Geçmiş sohbetlerde ara (ör. proje planı, bütçe tablosu)' });
-  async function doSearch() {
-    if (!searchInput.value.trim()) { searchOut.replaceChildren(); return; }
-    try {
-      const { results } = await api(`/api/user/${activeUserId}/history/search?q=${encodeURIComponent(searchInput.value)}`);
-      searchOut.replaceChildren(...(results.length ? results.map((r) => h('div', {
-        class: 'sp-list-item',
-        style: { cursor: 'pointer' },
-        title: 'Bu sohbeti aç',
-        onClick: () => {
-          closePanel();
-          document.dispatchEvent(new CustomEvent('open-saved-chat', { detail: { chatId: r.conversation_id } }));
-        },
-      },
-      h('div', { class: 'sp-list-main' }, h('div', { class: 'sp-list-title' }, r.title), h('div', { class: 'sp-list-sub' }, `${r.role === 'user' ? 'Siz' : 'Asistan'}: ${r.snippet}`)))) : [h('div', { class: 'sp-empty' }, 'Eşleşen kayıt bulunamadı.')]));
-    } catch (err) { searchOut.replaceChildren(h('div', { class: 'sp-empty' }, `Arama hatası: ${err.message}`)); }
-  }
+  const searchInput = h('input', { class: 'sp-input', type: 'text', placeholder: 'Geçmiş sohbetlerde ara' });
   let searchTimer = null;
-  searchInput.addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(doSearch, 350); });
-
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(async () => {
+      if (!searchInput.value.trim()) { searchOut.replaceChildren(); return; }
+      try {
+        const { results } = await api(`/api/user/${activeUserId}/history/search?q=${encodeURIComponent(searchInput.value)}`);
+        searchOut.replaceChildren(...(results.length ? results.map((r) => h('div', {
+          class: 'sp-list-item', style: { cursor: 'pointer' }, title: 'Bu sohbeti aç',
+          onClick: () => { closePanel(); document.dispatchEvent(new CustomEvent('open-saved-chat', { detail: { chatId: r.conversation_id } })); },
+        }, h('div', { class: 'sp-list-main' }, h('div', { class: 'sp-list-title' }, r.title), h('div', { class: 'sp-list-sub' }, `${r.role === 'user' ? 'Siz' : 'Asistan'}: ${r.snippet}`)))) : [h('div', { class: 'sp-empty' }, 'Eşleşen kayıt bulunamadı.')]));
+      } catch (err) { searchOut.replaceChildren(h('div', { class: 'sp-empty' }, `Arama hatası: ${err.message}`)); }
+    }, 350);
+  });
   body.replaceChildren(
     group(
-      toggleRow('Diğer sohbetlerden bilgi al', 'Yeni bir soruda ilgili eski sohbetleriniz taranır ve bulunan bilgiler asistanın bağlamına eklenir.', s.cross_chat_memory, (v) => savePatch({ settings: { cross_chat_memory: v } }, true)),
-      toggleRow('Tercihleri otomatik öğren', 'Mesajlarınızdan standart, malzeme, teknoloji ve ad gibi kalıcı bilgiler çıkarılır.', s.auto_learn_facts, (v) => savePatch({ settings: { auto_learn_facts: v } }, true))),
-    groupTitle('Öğrenilen bilgiler'),
-    group(factsBox),
+      toggleRow('Diğer sohbetlerden bilgi al', 'İlgili eski sohbetleriniz taranıp bağlama eklenir.', s.cross_chat_memory, (v) => savePatch({ settings: { cross_chat_memory: v } }, true)),
+      toggleRow('Tercihleri otomatik öğren', 'Mesajlarınızdan kalıcı tercihler çıkarılır.', s.auto_learn_facts, (v) => savePatch({ settings: { auto_learn_facts: v } }, true))),
+    groupTitle('Öğrenilen bilgiler'), group(factsBox),
     h('div', { class: 'sp-inline', style: { marginBottom: '8px' } }, addInput, addBtn),
-    groupTitle('Sohbet geçmişinde ara'),
-    searchInput, searchOut,
-    groupTitle('Son sohbetler'),
-    group(convBox));
+    groupTitle('Sohbet geçmişinde ara'), searchInput, searchOut, groupTitle('Son sohbetler'), group(convBox));
   addInput.style.flex = '1';
-  await Promise.all([renderFacts(), renderConvs()]);
+  await Promise.all([loadMemoryFacts(factsBox, ctx), renderConvs()]);
 }
 
 export function renderSectionData(body, ctx) {

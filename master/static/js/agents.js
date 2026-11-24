@@ -123,6 +123,41 @@ async function agentCard(agent) {
     evalBtn);
 }
 
+function startAgentsLivePoll(root, ctx, liveIndicator) {
+  if (!ctx) return;
+  ctx.poll(async () => {
+    const fresh = await api('/api/agents');
+    for (const a of fresh) {
+      const card = root.querySelector(`[data-agent-id="${a.agent_id}"]`);
+      if (!card) continue;
+      const badgeEl = card.querySelector('.agent-status-badge');
+      if (badgeEl) {
+        const online = a.online;
+        const busy = a.heartbeat_status === 'busy';
+        badgeEl.className = 'badge ' + (online ? (busy ? 'busy' : 'ok') : 'offline') + ' agent-status-badge';
+        badgeEl.textContent = online ? (busy ? 'Meşgul' : 'Çevrimiçi') : 'Çevrimdışı';
+      }
+      const lastSeenEl = card.querySelector('.agent-lastseen');
+      if (lastSeenEl) lastSeenEl.textContent = formatDateTime(a.last_seen_at);
+    }
+    liveIndicator.style.opacity = '0.4';
+    setTimeout(() => { liveIndicator.style.opacity = '1'; }, 300);
+  }, 10_000);
+}
+
+function buildMasterCard(status) {
+  return h('div', { class: 'card' },
+    h('h2', null, 'Master ajan'),
+    h('dl', { class: 'kv' },
+      h('dt', null, 'Model'), h('dd', null, h('span', { class: 'mono' }, status.model)),
+      h('dt', null, 'Ollama'), h('dd', null, status.reachable
+        ? h('span', { class: 'badge ok' }, 'erişilebilir') : h('span', { class: 'badge danger' }, 'erişilemiyor')),
+      h('dt', null, 'Model yüklü'), h('dd', null, status.model_available
+        ? h('span', { class: 'badge ok' }, 'evet') : h('span', { class: 'badge danger' }, 'hayır'))),
+    h('p', { class: 'muted small', style: { marginBottom: 0 } },
+      'Master, gereksinim dokümanlarını kendi bilgisayarındaki bu modelle analiz eder.'));
+}
+
 export async function renderAgents(root, ctx) {
   root.replaceChildren(h('div', { class: 'page-inner' }, loading()));
   let agents;
@@ -149,74 +184,23 @@ export async function renderAgents(root, ctx) {
     },
   }, 'Tümünü Değerlendir');
 
-  const liveIndicator = h('span', {
-    class: 'badge ok',
-    style: { fontSize: '11px', padding: '2px 7px', alignSelf: 'center' },
-  }, '● Canlı');
-
+  const liveIndicator = h('span', { class: 'badge ok', style: { fontSize: '11px', padding: '2px 7px', alignSelf: 'center' } }, '● Canlı');
   const head = h('div', { class: 'page-head' },
     h('div', null,
       h('h1', { class: 'page-title' }, 'Ajanlar'),
-      h('p', { class: 'page-lead' },
-        'Her ekip üyesinin bilgisayarında çalışan ajan, açılışta master\'a kaydolur ve modelinin ' +
-        'yeteneklerini (bağlam penceresi, görsel/düşünme desteği) ve donanımını bildirir.')),
+      h('p', { class: 'page-lead' }, 'Her ekip üyesinin bilgisayarında çalışan ajan, açılışta master\'a kaydolur ve yeteneklerini bildirir.')),
     h('div', { style: { display: 'flex', gap: '8px', alignItems: 'center' } },
-      evalAllBtn,
-      h('button', { class: 'btn', onclick: () => renderAgents(root, ctx) }, '↻ Yenile'),
-      liveIndicator));
+      evalAllBtn, h('button', { class: 'btn', onclick: () => renderAgents(root, ctx) }, '↻ Yenile'), liveIndicator));
 
-  const masterCard = h('div', { class: 'card' },
-    h('h2', null, 'Master ajan'),
-    h('dl', { class: 'kv' },
-      h('dt', null, 'Model'), h('dd', null, h('span', { class: 'mono' }, status.model)),
-      h('dt', null, 'Ollama'), h('dd', null, status.reachable
-        ? h('span', { class: 'badge ok' }, 'erişilebilir') : h('span', { class: 'badge danger' }, 'erişilemiyor')),
-      h('dt', null, 'Model yüklü'), h('dd', null, status.model_available
-        ? h('span', { class: 'badge ok' }, 'evet') : h('span', { class: 'badge danger' }, 'hayır'))),
-    h('p', { class: 'muted small', style: { marginBottom: 0 } },
-      'Master, gereksinim dokümanlarını kendi bilgisayarındaki bu modelle analiz eder.'));
-
-  // Render agent cards (async — each fetches its own scores)
   const cardContainer = h('div', { class: 'agent-grid' });
-  const listSection = agents.length
-    ? cardContainer
-    : h('div', { class: 'card' },
-      h('p', { style: { marginTop: 0 } }, 'Henüz kayıtlı ajan yok.'),
-      h('ul', { class: 'plain' },
-        h('li', null, 'Staging (6 ajan master bilgisayarında): ', h('code', null, 'docker compose --profile staging up -d')),
-        h('li', null, 'Üyeler kendi bilgisayarında: ', h('code', null, 'agent-node/README.md'), ' adımları')));
+  const listSection = agents.length ? cardContainer : h('div', { class: 'card' },
+    h('p', { style: { marginTop: 0 } }, 'Henüz kayıtlı ajan yok.'),
+    h('ul', { class: 'plain' },
+      h('li', null, 'Staging: ', h('code', null, 'docker compose --profile staging up -d')),
+      h('li', null, 'Üye bilgisayarları: ', h('code', null, 'agent-node/README.md'))));
 
-  root.replaceChildren(h('div', { class: 'page-inner' }, head, masterCard,
+  root.replaceChildren(h('div', { class: 'page-inner' }, head, buildMasterCard(status),
     h('h2', { style: { fontSize: '16px', margin: '6px 0 12px' } }, `Kayıtlı ajanlar (${agents.length})`), listSection));
-
-  if (agents.length) {
-    for (const agent of agents) {
-      const card = await agentCard(agent);
-      cardContainer.appendChild(card);
-    }
-  }
-
-  // Live status poll: re-fetch agents every 10 s and update only the status badge
-  // and last_seen_at text — no full re-render needed.
-  if (ctx) {
-    ctx.poll(async () => {
-      const fresh = await api('/api/agents');
-      for (const a of fresh) {
-        const card = root.querySelector(`[data-agent-id="${a.agent_id}"]`);
-        if (!card) continue;
-        const badgeEl = card.querySelector('.agent-status-badge');
-        if (badgeEl) {
-          const online = a.online;
-          const busy = a.heartbeat_status === 'busy';
-          badgeEl.className = 'badge ' + (online ? (busy ? 'busy' : 'ok') : 'offline') + ' agent-status-badge';
-          badgeEl.textContent = online ? (busy ? 'Meşgul' : 'Çevrimiçi') : 'Çevrimdışı';
-        }
-        const lastSeenEl = card.querySelector('.agent-lastseen');
-        if (lastSeenEl) lastSeenEl.textContent = formatDateTime(a.last_seen_at);
-      }
-      // Pulse the live indicator briefly on each refresh
-      liveIndicator.style.opacity = '0.4';
-      setTimeout(() => { liveIndicator.style.opacity = '1'; }, 300);
-    }, 10_000);
-  }
+  for (const agent of agents) cardContainer.appendChild(await agentCard(agent));
+  startAgentsLivePoll(root, ctx, liveIndicator);
 }

@@ -61,6 +61,37 @@ export function highlightCodeHtml(code, path) {
   return html.replace(/\u0000T(\d+)\u0000/g, (_, i) => tokens[Number(i)]);
 }
 
+function wireTerminalActions(wsId, termDrawer, termOut, termToggleBtn, gitWsBtn, searchWsBtn) {
+  gitWsBtn.addEventListener('click', async () => {
+    termDrawer.hidden = false;
+    termToggleBtn.classList.add('primary');
+    await safeFetchJson(`/api/studio/workspaces/${wsId}/git`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'commit', message: 'IDE otomatik kayıt' }),
+    });
+    const res = await safeFetchJson(`/api/studio/workspaces/${wsId}/git`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'status' }),
+    });
+    termOut.textContent = res.ok && res.data ? (res.data.output || 'Git hazır.') : `Git hatası: ${res.error || res.status}`;
+  });
+
+  searchWsBtn.addEventListener('click', async () => {
+    const q = await uiPrompt('Proje dosyalarında ara (Ctrl+Shift+F):', '', 'Proje İçi Arama');
+    if (!q || !q.trim()) return;
+    termDrawer.hidden = false;
+    termToggleBtn.classList.add('primary');
+    const res = await safeFetchJson(`/api/studio/workspaces/${wsId}/search?q=${encodeURIComponent(q.trim())}`);
+    if (!res.ok) { termOut.textContent = `Arama hatası: ${res.error || res.status}`; return; }
+    const list = (res.data && res.data.matches) || [];
+    termOut.textContent = list.length
+      ? `--- ARAMA SONUÇLARI ("${q}") ---\n` + list.map((m) => `${m.path}:${m.line}  ${m.snippet}`).join('\n')
+      : `"${q}" için eşleşme bulunamadı.`;
+  });
+}
+
 export function createTerminalDrawer(wsId, termToggleBtn, gitWsBtn, searchWsBtn) {
   const termDrawer = document.createElement('div');
   termDrawer.className = 'ide-term-drawer';
@@ -109,36 +140,7 @@ export function createTerminalDrawer(wsId, termToggleBtn, gitWsBtn, searchWsBtn)
     termToggleBtn.classList.toggle('primary', !termDrawer.hidden);
     if (!termDrawer.hidden) termIn.focus();
   });
-
-  gitWsBtn.addEventListener('click', async () => {
-    termDrawer.hidden = false;
-    termToggleBtn.classList.add('primary');
-    await safeFetchJson(`/api/studio/workspaces/${wsId}/git`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'commit', message: 'IDE otomatik kayıt' }),
-    });
-    const res = await safeFetchJson(`/api/studio/workspaces/${wsId}/git`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'status' }),
-    });
-    termOut.textContent = res.ok && res.data ? (res.data.output || 'Git hazır.') : `Git hatası: ${res.error || res.status}`;
-  });
-
-  searchWsBtn.addEventListener('click', async () => {
-    const q = await uiPrompt('Proje dosyalarında ara (Ctrl+Shift+F):', '', 'Proje İçi Arama');
-    if (!q || !q.trim()) return;
-    termDrawer.hidden = false;
-    termToggleBtn.classList.add('primary');
-    const res = await safeFetchJson(`/api/studio/workspaces/${wsId}/search?q=${encodeURIComponent(q.trim())}`);
-    if (!res.ok) { termOut.textContent = `Arama hatası: ${res.error || res.status}`; return; }
-    const list = (res.data && res.data.matches) || [];
-    termOut.textContent = list.length
-      ? `--- ARAMA SONUÇLARI ("${q}") ---\n` + list.map((m) => `${m.path}:${m.line}  ${m.snippet}`).join('\n')
-      : `"${q}" için eşleşme bulunamadı.`;
-  });
-
+  wireTerminalActions(wsId, termDrawer, termOut, termToggleBtn, gitWsBtn, searchWsBtn);
   return termDrawer;
 }
 

@@ -10,132 +10,99 @@ function escXml(str) {
     .replace(/"/g, '&quot;');
 }
 
+const CHART_PALETTE = ['#4f46e5', '#06b6d4', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#38bdf8'];
+
+function renderPieSvg(labels, values, padT, plotW, plotH) {
+  const total = Math.max(1e-9, values.reduce((a, b) => a + Math.max(0, b), 0));
+  const cx = 230; const cy = padT + plotH / 2 + 8; const r = Math.min(plotW, plotH) * 0.42;
+  let angle = -Math.PI / 2; let out = '';
+  values.forEach((v, i) => {
+    const slice = (Math.max(0, v) / total) * Math.PI * 2;
+    const x1 = cx + r * Math.cos(angle); const y1 = cy + r * Math.sin(angle);
+    const x2 = cx + r * Math.cos(angle + slice); const y2 = cy + r * Math.sin(angle + slice);
+    const col = CHART_PALETTE[i % CHART_PALETTE.length];
+    const pct = Math.round((Math.max(0, v) / total) * 100);
+    out += `<path d="M ${cx} ${cy} L ${x1.toFixed(1)} ${y1.toFixed(1)} A ${r} ${r} 0 ${slice > Math.PI ? 1 : 0} 1 ${x2.toFixed(1)} ${y2.toFixed(1)} Z" fill="${col}" stroke="#141418" stroke-width="2"><title>${escXml(labels[i])}: ${v} (%${pct})</title></path>`;
+    const ly = padT + 22 + i * 24;
+    out += `<rect x="410" y="${ly - 10}" width="12" height="12" rx="3" fill="${col}"/><text x="428" y="${ly}" fill="#e2e8f0" font-size="11.5">${escXml(labels[i]).slice(0, 22)} (${v} · %${pct})</text>`;
+    angle += slice;
+  });
+  return out;
+}
+
+function renderRadarOrGanttSvg(type, spec, labels, values, maxVal, dims) {
+  const { W, padL, padT, plotW, plotH } = dims;
+  let out = '';
+  if (type === 'radar') {
+    const cx = W / 2; const cy = padT + plotH / 2 + 10; const r = Math.min(plotW, plotH) * 0.42;
+    const n = Math.max(3, values.length);
+    for (let ring = 1; ring <= 4; ring++) out += `<circle cx="${cx}" cy="${cy}" r="${(r * ring) / 4}" fill="none" stroke="#2d2d35" stroke-width="1"/>`;
+    const pts = values.map((v, i) => {
+      const ang = -Math.PI / 2 + (i * 2 * Math.PI) / n;
+      const dist = (Math.max(0, v) / maxVal) * r;
+      out += `<line x1="${cx}" y1="${cy}" x2="${cx + r * Math.cos(ang)}" y2="${cy + r * Math.sin(ang)}" stroke="#2d2d35"/>`;
+      out += `<text x="${cx + (r + 24) * Math.cos(ang)}" y="${cy + (r + 18) * Math.sin(ang)}" text-anchor="middle" fill="#cbd5e1" font-size="10.5">${escXml(labels[i]).slice(0, 14)}</text>`;
+      return `${(cx + dist * Math.cos(ang)).toFixed(1)},${(cy + dist * Math.sin(ang)).toFixed(1)}`;
+    });
+    return out + `<polygon points="${pts.join(' ')}" fill="rgba(99,102,241,0.28)" stroke="#6366f1" stroke-width="2.5"/>`;
+  }
+  const tasks = spec.tasks || [];
+  const maxEnd = Math.max(1, ...tasks.map((t) => Number(t.end) || 10));
+  const rowH = Math.min(32, Math.floor(plotH / Math.max(1, tasks.length)));
+  tasks.forEach((t, i) => {
+    const start = Number(t.start) || 0; const end = Math.max(start + 1, Number(t.end) || start + 5);
+    const x = padL + 70 + (start / maxEnd) * (plotW - 70);
+    const w = Math.max(6, ((end - start) / maxEnd) * (plotW - 70));
+    const y = padT + i * rowH + 6;
+    out += `<text x="${padL + 62}" y="${y + 13}" text-anchor="end" fill="#cbd5e1" font-size="10.5">${escXml(t.label || t.id || `OP${i + 1}`).slice(0, 14)}</text>`;
+    out += `<rect x="${x}" y="${y}" width="${w}" height="${Math.max(12, rowH - 8)}" rx="4" fill="${CHART_PALETTE[i % CHART_PALETTE.length]}"><title>${escXml(t.label)}: ${start} - ${end} dk</title></rect>`;
+  });
+  return out;
+}
+
+function renderCartesianSvg(type, labels, values, maxVal, dims) {
+  const { W, H, padL, padR, padT, plotW, plotH } = dims;
+  let out = '';
+  for (let i = 0; i <= 4; i++) {
+    const y = padT + (plotH * i) / 4;
+    out += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="#2d2d35" stroke-width="1"/><text x="${padL - 8}" y="${y + 4}" text-anchor="end" fill="#9ca3af" font-size="10.5">${Math.round(maxVal * (1 - i / 4))}</text>`;
+  }
+  if (type === 'line' || type === 'scatter') {
+    const pts = values.map((v, i) => `${(padL + (plotW * i) / Math.max(1, values.length - 1)).toFixed(1)},${(padT + plotH - (v / maxVal) * plotH).toFixed(1)}`);
+    if (type === 'line') out += `<polyline fill="none" stroke="#6366f1" stroke-width="3" points="${pts.join(' ')}"/>`;
+    values.forEach((v, i) => {
+      const x = padL + (plotW * i) / Math.max(1, values.length - 1); const y = padT + plotH - (v / maxVal) * plotH;
+      out += `<circle cx="${x}" cy="${y}" r="5" fill="#38bdf8"><title>${escXml(labels[i])}: ${v}</title></circle><text x="${x}" y="${H - 18}" text-anchor="middle" fill="#cbd5e1" font-size="11">${escXml(labels[i]).slice(0, 12)}</text>`;
+    });
+    return out;
+  }
+  const barGap = 14; const barW = Math.max(14, (plotW - barGap * (values.length + 1)) / values.length);
+  values.forEach((v, i) => {
+    const bh = Math.max(2, (v / maxVal) * plotH); const x = padL + barGap + i * (barW + barGap); const y = padT + plotH - bh;
+    out += `<rect x="${x}" y="${y}" width="${barW}" height="${bh}" rx="4" fill="${CHART_PALETTE[i % CHART_PALETTE.length]}"><title>${escXml(labels[i])}: ${v}</title></rect>`;
+    out += `<text x="${x + barW / 2}" y="${y - 6}" text-anchor="middle" fill="#e2e8f0" font-size="10.5" font-weight="600">${v}</text><text x="${x + barW / 2}" y="${H - 18}" text-anchor="middle" fill="#cbd5e1" font-size="11">${escXml(labels[i]).slice(0, 12)}</text>`;
+  });
+  return out;
+}
+
 export function renderChartSvg(specJson) {
   let spec;
-  try {
-    spec = typeof specJson === 'string' ? JSON.parse(specJson) : specJson;
-  } catch {
-    return '';
-  }
+  try { spec = typeof specJson === 'string' ? JSON.parse(specJson) : specJson; } catch { return ''; }
   const type = (spec.type || 'bar').toLowerCase();
   const title = escXml(spec.title || 'Veri Grafiği');
   const labels = Array.isArray(spec.labels) ? spec.labels : [];
   const values = Array.isArray(spec.values) ? spec.values.map((v) => Number(v) || 0) : [];
   if (!labels.length && type !== 'gantt') return '';
-
-  const W = 680;
-  const H = 330;
-  const padL = 58;
-  const padR = 28;
-  const padT = 46;
-  const padB = 52;
-  const plotW = W - padL - padR;
-  const plotH = H - padT - padB;
+  const dims = { W: 680, H: 330, padL: 58, padR: 28, padT: 46, padB: 52, plotW: 594, plotH: 232 };
   const maxVal = Math.max(1, ...values);
-  const palette = ['#4f46e5', '#06b6d4', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#38bdf8'];
-
   let bodySvg = '';
-
-  if (type === 'pie') {
-    const total = Math.max(1e-9, values.reduce((a, b) => a + Math.max(0, b), 0));
-    const cx = 230;
-    const cy = padT + plotH / 2 + 8;
-    const r = Math.min(plotW, plotH) * 0.42;
-    let angle = -Math.PI / 2;
-    values.forEach((v, i) => {
-      const slice = (Math.max(0, v) / total) * Math.PI * 2;
-      const x1 = cx + r * Math.cos(angle);
-      const y1 = cy + r * Math.sin(angle);
-      const x2 = cx + r * Math.cos(angle + slice);
-      const y2 = cy + r * Math.sin(angle + slice);
-      const large = slice > Math.PI ? 1 : 0;
-      const col = palette[i % palette.length];
-      const pct = Math.round((Math.max(0, v) / total) * 100);
-      bodySvg += `<path d="M ${cx} ${cy} L ${x1.toFixed(1)} ${y1.toFixed(1)} A ${r} ${r} 0 ${large} 1 ${x2.toFixed(1)} ${y2.toFixed(1)} Z" fill="${col}" stroke="#141418" stroke-width="2"><title>${escXml(labels[i])}: ${v} (%${pct})</title></path>`;
-      const ly = padT + 22 + i * 24;
-      bodySvg += `<rect x="410" y="${ly - 10}" width="12" height="12" rx="3" fill="${col}"/>`;
-      bodySvg += `<text x="428" y="${ly}" fill="#e2e8f0" font-size="11.5">${escXml(labels[i]).slice(0, 22)} (${v} · %${pct})</text>`;
-      angle += slice;
-    });
-  } else if (type === 'radar') {
-    const cx = W / 2;
-    const cy = padT + plotH / 2 + 10;
-    const r = Math.min(plotW, plotH) * 0.42;
-    const n = Math.max(3, values.length);
-    for (let ring = 1; ring <= 4; ring++) {
-      const rr = (r * ring) / 4;
-      bodySvg += `<circle cx="${cx}" cy="${cy}" r="${rr}" fill="none" stroke="#2d2d35" stroke-width="1"/>`;
-    }
-    const pts = values.map((v, i) => {
-      const ang = -Math.PI / 2 + (i * 2 * Math.PI) / n;
-      const dist = (Math.max(0, v) / maxVal) * r;
-      const x = cx + dist * Math.cos(ang);
-      const y = cy + dist * Math.sin(ang);
-      const lx = cx + (r + 24) * Math.cos(ang);
-      const ly = cy + (r + 18) * Math.sin(ang);
-      bodySvg += `<line x1="${cx}" y1="${cy}" x2="${cx + r * Math.cos(ang)}" y2="${cy + r * Math.sin(ang)}" stroke="#2d2d35"/>`;
-      bodySvg += `<text x="${lx}" y="${ly}" text-anchor="middle" fill="#cbd5e1" font-size="10.5">${escXml(labels[i]).slice(0, 14)}</text>`;
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    });
-    bodySvg += `<polygon points="${pts.join(' ')}" fill="rgba(99,102,241,0.28)" stroke="#6366f1" stroke-width="2.5"/>`;
-  } else if (type === 'gantt' && Array.isArray(spec.tasks)) {
-    const tasks = spec.tasks;
-    const maxEnd = Math.max(1, ...tasks.map((t) => Number(t.end) || 10));
-    const rowH = Math.min(32, Math.floor(plotH / Math.max(1, tasks.length)));
-    tasks.forEach((t, i) => {
-      const start = Number(t.start) || 0;
-      const end = Math.max(start + 1, Number(t.end) || start + 5);
-      const x = padL + 70 + (start / maxEnd) * (plotW - 70);
-      const w = Math.max(6, ((end - start) / maxEnd) * (plotW - 70));
-      const y = padT + i * rowH + 6;
-      const col = palette[i % palette.length];
-      bodySvg += `<text x="${padL + 62}" y="${y + 13}" text-anchor="end" fill="#cbd5e1" font-size="10.5">${escXml(t.label || t.id || `OP${i + 1}`).slice(0, 14)}</text>`;
-      bodySvg += `<rect x="${x}" y="${y}" width="${w}" height="${Math.max(12, rowH - 8)}" rx="4" fill="${col}"><title>${escXml(t.label)}: ${start} - ${end} dk</title></rect>`;
-    });
-  } else {
-    for (let i = 0; i <= 4; i++) {
-      const y = padT + (plotH * i) / 4;
-      const vLabel = Math.round(maxVal * (1 - i / 4));
-      bodySvg += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="#2d2d35" stroke-width="1"/>`;
-      bodySvg += `<text x="${padL - 8}" y="${y + 4}" text-anchor="end" fill="#9ca3af" font-size="10.5">${vLabel}</text>`;
-    }
-
-    if (type === 'line' || type === 'scatter') {
-      const pts = values.map((v, i) => {
-        const x = padL + (plotW * i) / Math.max(1, values.length - 1);
-        const y = padT + plotH - (v / maxVal) * plotH;
-        return `${x.toFixed(1)},${y.toFixed(1)}`;
-      });
-      if (type === 'line') {
-        bodySvg += `<polyline fill="none" stroke="#6366f1" stroke-width="3" points="${pts.join(' ')}"/>`;
-      }
-      values.forEach((v, i) => {
-        const x = padL + (plotW * i) / Math.max(1, values.length - 1);
-        const y = padT + plotH - (v / maxVal) * plotH;
-        bodySvg += `<circle cx="${x}" cy="${y}" r="5" fill="#38bdf8"><title>${escXml(labels[i])}: ${v}</title></circle>`;
-        bodySvg += `<text x="${x}" y="${H - 18}" text-anchor="middle" fill="#cbd5e1" font-size="11">${escXml(labels[i]).slice(0, 12)}</text>`;
-      });
-    } else {
-      const barGap = 14;
-      const barW = Math.max(14, (plotW - barGap * (values.length + 1)) / values.length);
-      values.forEach((v, i) => {
-        const bh = Math.max(2, (v / maxVal) * plotH);
-        const x = padL + barGap + i * (barW + barGap);
-        const y = padT + plotH - bh;
-        const col = palette[i % palette.length];
-        bodySvg += `<rect x="${x}" y="${y}" width="${barW}" height="${bh}" rx="4" fill="${col}"><title>${escXml(labels[i])}: ${v}</title></rect>`;
-        bodySvg += `<text x="${x + barW / 2}" y="${y - 6}" text-anchor="middle" fill="#e2e8f0" font-size="10.5" font-weight="600">${v}</text>`;
-        bodySvg += `<text x="${x + barW / 2}" y="${H - 18}" text-anchor="middle" fill="#cbd5e1" font-size="11">${escXml(labels[i]).slice(0, 12)}</text>`;
-      });
-    }
-  }
-
+  if (type === 'pie') bodySvg = renderPieSvg(labels, values, dims.padT, dims.plotW, dims.plotH);
+  else if (type === 'radar' || (type === 'gantt' && Array.isArray(spec.tasks))) bodySvg = renderRadarOrGanttSvg(type, spec, labels, values, maxVal, dims);
+  else bodySvg = renderCartesianSvg(type, labels, values, maxVal, dims);
   const csvRows = ['Etiket,Deger', ...labels.map((l, idx) => `"${String(l).replace(/"/g, '""')}",${values[idx] ?? 0}`)].join('\n');
   const csvUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvRows);
-
-  return `<div class="svg-diagram"><svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" style="background:#141418;border-radius:10px;border:1px solid #2b2b33;font-family:Segoe UI,sans-serif;">
-    <text x="${padL}" y="26" fill="#f8fafc" font-size="13.5" font-weight="700">${title}</text>
-    ${bodySvg}
+  return `<div class="svg-diagram"><svg viewBox="0 0 ${dims.W} ${dims.H}" width="100%" height="${dims.H}" style="background:#141418;border-radius:10px;border:1px solid #2b2b33;font-family:Segoe UI,sans-serif;">
+    <text x="${dims.padL}" y="26" fill="#f8fafc" font-size="13.5" font-weight="700">${title}</text>${bodySvg}
   </svg><div style="display:flex;gap:10px;margin-top:4px;font-size:11px;"><a href="${csvUri}" download="grafik_veri.csv" class="download-link">CSV İndir</a></div></div>`;
 }
 
