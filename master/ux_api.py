@@ -68,7 +68,7 @@ def build_health_wizard_report(
     ocr_ok = importlib.util.find_spec("pytesseract") is not None
     try:
         agents = db.list_agents() if hasattr(db, "list_agents") else []
-    except Exception:
+    except (sqlite3.Error, OSError, ValueError, RuntimeError, AttributeError):
         agents = []
     checks = [
         {

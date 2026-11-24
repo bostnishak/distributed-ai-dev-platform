@@ -8,8 +8,12 @@ piece makes the whole service "down" (HTTP 503); a missing optional one makes it
 from __future__ import annotations
 
 import shutil
+import sqlite3
+import subprocess
 import time
 from pathlib import Path
+
+import httpx
 
 import config
 import dbconn
@@ -37,7 +41,7 @@ def database() -> dict:
             conn.execute("ROLLBACK")
         finally:
             conn.close()
-    except Exception as exc:
+    except (sqlite3.Error, OSError, ValueError, RuntimeError) as exc:
         return _result("down", f"yazılamıyor: {exc}", "database-locked")
     return _result("ok", f"yazılabilir ({(time.perf_counter() - started) * 1000:.0f} ms)")
 
@@ -60,7 +64,7 @@ async def ollama() -> dict:
 
     try:
         state = await llm.status()
-    except Exception as exc:
+    except (httpx.HTTPError, OSError, RuntimeError, ValueError, TypeError, KeyError, ImportError) as exc:
         return _result("degraded", f"Ollama durumu alınamadı: {exc}", "ollama-down")
     if not state.get("reachable"):
         return _result("degraded", "Ollama'ya ulaşılamıyor", "ollama-down")
@@ -83,7 +87,7 @@ def sandbox_state() -> dict:
         import sandbox
 
         state = sandbox.status()
-    except Exception as exc:
+    except (ImportError, subprocess.SubprocessError, OSError, RuntimeError, ValueError, KeyError, AttributeError) as exc:
         return _result("degraded", f"sandbox denetlenemedi: {exc}")
     return _result("ok" if state["available"] else "degraded", state["reason"])
 

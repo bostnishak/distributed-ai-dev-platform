@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import sqlite3
 from typing import Any
 
 from fastapi import APIRouter, Depends, Response
@@ -60,7 +61,7 @@ async def api_agents_sse_stream():
     async def _gen():
         try:
             agents = db.list_agents() if hasattr(db, "list_agents") else []
-        except Exception:
+        except (sqlite3.Error, OSError, RuntimeError, ValueError):
             agents = []
         payload = {"type": "agents_snapshot", "count": len(agents), "agents": agents}
         yield f"event: agents_snapshot\ndata: {json.dumps(payload, ensure_ascii=False)}\n\n"

@@ -147,7 +147,7 @@ def get_llmops_stats(min_pairs_threshold: int = NIGHTLY_QLORA_MIN_PAIRS) -> dict
                 continue
             try:
                 item = json.loads(line)
-            except Exception as _exc:
+            except (json.JSONDecodeError, TypeError) as _exc:
                 import logging
 
                 logging.getLogger(__name__).debug("Recoverable error skipped in loop: %s", _exc)

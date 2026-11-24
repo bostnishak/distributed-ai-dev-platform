@@ -168,7 +168,18 @@ async def api_grade_submission(body: GradeSubmissionRequest):
         try:
             got = fn(*args)
             ok = got == expected
-        except Exception as exc:
+        except (
+            ArithmeticError,
+            LookupError,
+            TypeError,
+            ValueError,
+            NameError,
+            AttributeError,
+            RuntimeError,
+            AssertionError,
+            StopIteration,
+            MemoryError,
+        ) as exc:
             got, ok = f"Hata: {exc}", False
         if ok:
             passed += 1

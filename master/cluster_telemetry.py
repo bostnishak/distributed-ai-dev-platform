@@ -67,7 +67,7 @@ class ThompsonBanditRouter:
                 self._state = raw
             else:
                 self._state = {}
-        except Exception:
+        except (OSError, ValueError, TypeError):
             self._state = {}
 
     def _save(self) -> None:
@@ -214,7 +214,7 @@ def _query_ollama_warm_models(timeout_sec: float = 0.75) -> list[dict[str, Any]]
                     }
                 )
             return warm
-    except Exception:
+    except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError):
         return []
 
 
@@ -296,6 +296,6 @@ def load_task_checkpoint(task_id: str) -> dict[str, Any] | None:
         data = json.loads(cp_path.read_text(encoding="utf-8"))
         if isinstance(data, dict) and "step" in data and "state" in data:
             return data
-    except Exception:
+    except (OSError, ValueError, TypeError):
         return None
     return None

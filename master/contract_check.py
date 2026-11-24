@@ -45,7 +45,9 @@ def _extract_backend_routes(app) -> set[str]:
     routes: set[str] = set()
     openapi = getattr(app, "openapi", None)
     if callable(openapi):
-        for path in (openapi().get("paths") or {}):
+        schema = openapi()
+        paths = schema.get("paths") if isinstance(schema, dict) else None
+        for path in (paths or {}):
             if path.startswith("/api/"):
                 routes.add(_normalize_path(path))
     for route in app.routes:

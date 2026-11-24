@@ -122,8 +122,73 @@ export function renderSectionData(body, ctx) {
       wipe('all', 'Hepsi', 'Yukarıdakilerin tamamını fiziksel olarak temizler. Profil ve ayarlar kalır.')));
 }
 
+function buildMcpToolButtons(c, outPre, setStatus) {
+  if (!c.tools || !c.tools.length) return null;
+  return h('div', { style: { marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '6px' } },
+    ...c.tools.map((t) => h('button', {
+      type: 'button',
+      class: 'sp-btn sm',
+      title: t.description || t.name,
+      onClick: async () => {
+        const rawArgs = await uiPrompt(`"${t.name}" aracı için JSON argümanları (boş bırakabilirsiniz):`, '{}', 'MCP Araç Argümanı');
+        if (rawArgs === null) return;
+        let parsed = {};
+        try { parsed = rawArgs.trim() ? JSON.parse(rawArgs) : {}; } catch { setStatus('Geçersiz JSON argümanı.'); return; }
+        setStatus(`${t.name} çalıştırılıyor...`);
+        try {
+          const res = await api(`/api/mcp/connectors/${c.id}/call`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tool_name: t.name, arguments: parsed }),
+          });
+          outPre.hidden = false;
+          outPre.textContent = JSON.stringify(res, null, 2);
+          setStatus(`${t.name} tamamlandı`, true);
+        } catch (err) {
+          outPre.hidden = false;
+          outPre.textContent = String(err.message);
+          setStatus('MCP çağrısı başarısız');
+        }
+      },
+    }, `Çalıştır: ${t.name}`)));
+}
+
+function buildMcpConnectorItem(c, outPre, ctx, renderConnectors) {
+  const { setStatus, confirmButton } = ctx;
+  const toolsRow = buildMcpToolButtons(c, outPre, setStatus);
+  return h('div', { class: 'sp-list-item', style: { flexDirection: 'column', alignItems: 'stretch' } },
+    h('div', { style: { display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'space-between', flexWrap: 'wrap' } },
+      h('div', { class: 'sp-list-main' },
+        h('div', { class: 'sp-list-title' }, c.name, h('span', { class: 'sp-tag', style: { marginLeft: '8px' } }, c.enabled ? 'Aktif' : 'Pasif')),
+        h('div', { class: 'sp-list-sub' }, `${c.url} · ${c.last_status}${c.has_api_key ? ` · Anahtar: ${c.api_key_masked}` : ''}`)),
+      h('div', { class: 'sp-inline' },
+        h('button', {
+          type: 'button', class: 'sp-btn sm primary',
+          onClick: async () => {
+            setStatus(`${c.name} keşfediliyor...`);
+            const res = await api(`/api/mcp/connectors/${c.id}/discover`, { method: 'POST' });
+            setStatus(res.ok ? 'Araçlar keşfedildi' : (res.error || 'Bağlantı hatası'), Boolean(res.ok));
+            renderConnectors();
+          },
+        }, 'Araçları Keşfet'),
+        h('button', {
+          type: 'button', class: 'sp-btn sm',
+          onClick: async () => {
+            await api(`/api/mcp/connectors/${c.id}`, {
+              method: 'PUT', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ enabled: !c.enabled }),
+            });
+            renderConnectors();
+          },
+        }, c.enabled ? 'Pasifleştir' : 'Aktifleştir'),
+        confirmButton('Sil', async () => {
+          await api(`/api/mcp/connectors/${c.id}`, { method: 'DELETE' });
+          renderConnectors();
+        }))),
+    toolsRow);
+}
+
 export async function renderSectionMcp(body, ctx) {
-  const { setStatus, group, groupTitle, confirmButton } = ctx;
+  const { setStatus, group, groupTitle } = ctx;
   const listBox = h('div');
   const outPre = h('pre', { class: 'sp-preview-pre', hidden: true });
 
@@ -133,67 +198,7 @@ export async function renderSectionMcp(body, ctx) {
       listBox.replaceChildren(h('div', { class: 'sp-empty' }, 'Henüz harici MCP bağlayıcısı eklenmedi. Yukarıdaki formdan herhangi bir MCP sunucu URL\'si ve API anahtarı ile bağlanabilirsiniz.'));
       return;
     }
-    listBox.replaceChildren(...connectors.map((c) => {
-      const toolsRow = c.tools && c.tools.length
-        ? h('div', { style: { marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '6px' } },
-          ...c.tools.map((t) => h('button', {
-            type: 'button',
-            class: 'sp-btn sm',
-            title: t.description || t.name,
-            onClick: async () => {
-              const rawArgs = await uiPrompt(`"${t.name}" aracı için JSON argümanları (boş bırakabilirsiniz):`, '{}', 'MCP Araç Argümanı');
-              if (rawArgs === null) return;
-              let parsed = {};
-              try { parsed = rawArgs.trim() ? JSON.parse(rawArgs) : {}; } catch { setStatus('Geçersiz JSON argümanı.'); return; }
-              setStatus(`${t.name} çalıştırılıyor...`);
-              try {
-                const res = await api(`/api/mcp/connectors/${c.id}/call`, {
-                  method: 'POST', headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ tool_name: t.name, arguments: parsed }),
-                });
-                outPre.hidden = false;
-                outPre.textContent = JSON.stringify(res, null, 2);
-                setStatus(`${t.name} tamamlandı`, true);
-              } catch (err) {
-                outPre.hidden = false;
-                outPre.textContent = String(err.message);
-                setStatus('MCP çağrısı başarısız');
-              }
-            },
-          }, `Çalıştır: ${t.name}`)))
-        : null;
-
-      return h('div', { class: 'sp-list-item', style: { flexDirection: 'column', alignItems: 'stretch' } },
-        h('div', { style: { display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'space-between', flexWrap: 'wrap' } },
-          h('div', { class: 'sp-list-main' },
-            h('div', { class: 'sp-list-title' }, c.name, h('span', { class: 'sp-tag', style: { marginLeft: '8px' } }, c.enabled ? 'Aktif' : 'Pasif')),
-            h('div', { class: 'sp-list-sub' }, `${c.url} · ${c.last_status}${c.has_api_key ? ` · Anahtar: ${c.api_key_masked}` : ''}`)),
-          h('div', { class: 'sp-inline' },
-            h('button', {
-              type: 'button', class: 'sp-btn sm primary',
-              onClick: async () => {
-                setStatus(`${c.name} keşfediliyor...`);
-                const res = await api(`/api/mcp/connectors/${c.id}/discover`, { method: 'POST' });
-                setStatus(res.ok ? 'Araçlar keşfedildi' : (res.error || 'Bağlantı hatası'), Boolean(res.ok));
-                renderConnectors();
-              },
-            }, 'Araçları Keşfet'),
-            h('button', {
-              type: 'button', class: 'sp-btn sm',
-              onClick: async () => {
-                await api(`/api/mcp/connectors/${c.id}`, {
-                  method: 'PUT', headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ enabled: !c.enabled }),
-                });
-                renderConnectors();
-              },
-            }, c.enabled ? 'Pasifleştir' : 'Aktifleştir'),
-            confirmButton('Sil', async () => {
-              await api(`/api/mcp/connectors/${c.id}`, { method: 'DELETE' });
-              renderConnectors();
-            }))),
-        toolsRow);
-    }));
+    listBox.replaceChildren(...connectors.map((c) => buildMcpConnectorItem(c, outPre, ctx, renderConnectors)));
   }
 
   const nameIn = h('input', { class: 'sp-input', type: 'text', placeholder: 'Bağlayıcı adı (ör. GitHub MCP, Notion, Özel API)' });

@@ -413,7 +413,17 @@ async def map_reduce_distributed(
             try:
                 out = await map_fn(idx, shards[idx])
                 return idx, True, out
-            except Exception as exc:
+            except (
+                OSError,
+                RuntimeError,
+                ValueError,
+                TypeError,
+                LookupError,
+                ArithmeticError,
+                AttributeError,
+                sqlite3.Error,
+                subprocess.SubprocessError,
+            ) as exc:
                 return idx, False, str(exc)
 
         wave = await asyncio.gather(*(_run(i) for i in failed_indices))

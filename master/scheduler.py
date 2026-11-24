@@ -7,6 +7,7 @@ a restart).
 
 import asyncio
 import logging
+import sqlite3
 
 import db
 
@@ -32,7 +33,7 @@ async def _dag_loop() -> None:
             released = db.release_all_ready_tasks()
             if released:
                 log.info("DAG scheduler background pass: released %d task(s).", released)
-        except Exception as exc:
+        except (sqlite3.Error, OSError, RuntimeError, ValueError, TypeError, KeyError) as exc:
             log.warning("DAG scheduler error: %s", exc)
         await asyncio.sleep(60)
 

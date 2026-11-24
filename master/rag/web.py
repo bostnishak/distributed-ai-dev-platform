@@ -265,7 +265,7 @@ async def web_search(
                             published_date=str(it.get("publishedDate") or ""),
                         )
                     )
-        except Exception as exc:
+        except (httpx.HTTPError, OSError, ValueError, TypeError, LookupError) as exc:
             return WebSearchResult(
                 status="offline",
                 query=query,
@@ -325,7 +325,7 @@ async def resolve_doi(doi: str, *, fetch_json=None) -> dict[str, Any]:
             "apa": format_citation(authors, year, title, clean, style="apa"),
             "ieee": format_citation(authors, year, title, clean, style="ieee"),
         }
-    except Exception as exc:
+    except (httpx.HTTPError, OSError, RuntimeError, ValueError, TypeError, LookupError) as exc:
         return {"verified": False, "doi": clean, "error": f"DOI doğrulama hatası: {exc}"}
 
 
@@ -365,6 +365,6 @@ async def verify_entity(name: str, *, lookup_fn=None) -> dict[str, Any]:
                     "source": (d.get("content_urls") or {}).get("desktop", {}).get("page", ""),
                     "summary": str(d.get("extract") or "")[:300],
                 }
-    except Exception as exc:
+    except (httpx.HTTPError, OSError, ValueError, TypeError, LookupError, AttributeError) as exc:
         logging.getLogger(__name__).debug("Entity lookup skipped for %s: %s", clean, exc)
     return {"verified": False, "entity": clean, "warning": f"'{clean}' varlığı doğrulanamadı (bulunamadı)."}

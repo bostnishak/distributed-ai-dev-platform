@@ -500,7 +500,7 @@ def cross_chat_snippets(
                     results.append(d)
                     if len(results) >= cap:
                         break
-        except Exception as _exc:
+        except (sqlite3.Error, OSError, ValueError, KeyError, TypeError) as _exc:
             import logging
 
             logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
@@ -910,7 +910,7 @@ def wipe_data(user_id: str, scope: str) -> dict[str, int]:
             action="USER_DATA_WIPED",
             payload={"user_id": uid, "scope": scope, "removed": removed},
         )
-    except Exception as _exc:
+    except (ImportError, OSError, ValueError, TypeError, RuntimeError) as _exc:
         import logging
 
         logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)

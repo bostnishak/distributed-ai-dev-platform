@@ -1,5 +1,5 @@
-// Assistant tab: modularized core chat controller (UX-02 <= 500 lines).
-import { createMessageActions, MODEL_LABELS, renderHeroCards } from './assistant_hero.js';
+// Assistant tab: modularized core chat controller (UX-02 <= 400 lines).
+import { createMessageActions, renderHeroCards } from './assistant_hero.js';
 import {
   loadChats,
   persistChatRecord,
@@ -9,18 +9,19 @@ import {
   syncChatsWithServer,
 } from './assistant_history.js';
 import { buildInlineWorkspaceCard } from './assistant_ide_card.js';
+import { runAssistantStream } from './assistant_stream.js';
 import {
   handleRunCodeClick,
   initVoiceRecognition,
   showRunButtonsIfEnabled,
 } from './assistant_voice.js';
-import { escapeHtml, renderMarkdown } from './markdown.js';
+import { renderMarkdown } from './markdown.js';
+import { buildBranchLink, buildExtraActions, regenerateLast, requestNotifyPermission } from './message_tools.js';
 import { getActiveUserId, getPrefs } from './personal.js';
-import { buildBranchLink, buildExtraActions, notifyAnswerReady, regenerateLast, requestNotifyPermission } from './message_tools.js';
-import { appendSanitizedHtml, setSanitizedHtml } from './sanitizer.js';
-import { bindGlobalEvent, safeFetch, startManagedInterval, storageRemove, storageSet } from './storage.js';
+import { setSanitizedHtml } from './sanitizer.js';
+import { bindGlobalEvent, storageRemove, storageSet } from './storage.js';
 import { closeSidebar } from './util.js';
-import { parseSlashAndMentions, renderConfidenceBadgeHtml } from './ux_shell.js';
+import { parseSlashAndMentions } from './ux_shell.js';
 
 let els;
 let selectedFile = null;
@@ -123,9 +124,7 @@ function openChat(id) {
 }
 
 function startNewChat(clearLastActive = false) {
-  if (clearLastActive) {
-    try { localStorage.removeItem(storageKeys().lastChatKey); } catch { /* ignore */ }
-  }
+  if (clearLastActive) storageRemove(storageKeys().lastChatKey);
   state.currentChatId = 'chat_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
   state.currentMessages = [];
   els.messages.replaceChildren();
@@ -232,182 +231,37 @@ async function sendMessage(overridePrompt = null) {
     els.fileChip.classList.remove('active');
   }
 
-  const controller = new AbortController();
-  const row = document.createElement('div');
-  row.className = 'msg-row assistant';
-  const wrap = document.createElement('div');
-  wrap.className = 'msg-wrap';
-  const streamBar = document.createElement('div');
-  streamBar.className = 'sp-stream-bar';
-  streamBar.hidden = true;
-  setSanitizedHtml(streamBar, '<span class="sp-think-ring sm"></span><span class="sp-stream-text">Yanıt yazılıyor...</span>');
+  await runAssistantStream({
+    prompt,
+    historySnapshot,
+    fileToSend,
+    targetChatId,
+    els,
+    state,
+    scrollToBottomIfPinned,
+    syncSendBtnState,
+    renderChatList,
+    addAssistantMessage,
+    appendAssistantMessageToChat,
+    messageBar,
+  });
+}
 
-  const bubble = document.createElement('div');
-  bubble.className = 'msg assistant thinking';
-  const stages = fileToSend
-    ? ['Dosya okunuyor ve denetleniyor', 'Bağlam ve hafıza taranıyor', 'Düşünüyor ve analiz ediyor', 'Yanıt hazırlanıyor']
-    : ['Düşünüyor', 'Hafıza ve sohbetler taranıyor', 'Yanıt hazırlanıyor'];
-  setSanitizedHtml(bubble, `<div class="sp-think-head"><span class="sp-think-ring"></span><span class="sp-think-label">${stages[0]}<span class="sp-think-dots"><i></i><i></i><i></i></span></span><span class="sp-think-timer">0 sn</span></div><div class="sp-think-skel"><span></span><span></span><span></span></div>`);
-
-  const thinkLabelEl = bubble.querySelector('.sp-think-label');
-  const thinkTimerEl = bubble.querySelector('.sp-think-timer');
-  const streamTextEl = streamBar.querySelector('.sp-stream-text');
-  const startedAt = performance.now();
-  let stageIdx = 0;
-  let streaming = false;
-  const thinkTicker = startManagedInterval(() => {
-    const sec = (performance.now() - startedAt) / 1000;
-    const secStr = `${Math.floor(sec)} sn`;
-    if (!streaming) {
-      if (thinkTimerEl) thinkTimerEl.textContent = secStr;
-      const nextIdx = Math.min(stages.length - 1, Math.floor(sec / 2.2));
-      if (nextIdx !== stageIdx && thinkLabelEl) {
-        stageIdx = nextIdx;
-        setSanitizedHtml(thinkLabelEl, `${stages[stageIdx]}<span class="sp-think-dots"><i></i><i></i><i></i></span>`);
-      }
-    } else if (streamTextEl) streamTextEl.textContent = `Yanıt yazılıyor · ${secStr}`;
-  }, 250);
-
-  wrap.append(streamBar, bubble);
-  row.appendChild(wrap);
-  els.messages.appendChild(row);
-  scrollToBottomIfPinned(true);
-
-  state.activeStreams.set(targetChatId, { controller, row, thinkTicker });
-  syncSendBtnState();
-  renderChatList();
-
-  let fullText = '';
-  let usedModel = '';
-  let builtWorkspace = null;
-  let usageInfo = null;
-  let verificationInfo = null;
-  let latencyMs = 0;
-  let councilTrace = null;
-  const reqStartMs = performance.now();
-  let ttftMs = 0;
-
-  try {
-    const formData = new FormData();
-    formData.append('prompt', prompt);
-    formData.append('history', JSON.stringify(historySnapshot));
-    formData.append('user_id', getActiveUserId());
-    formData.append('conversation_id', targetChatId || '');
-    if (fileToSend) formData.append('file', fileToSend);
-
-    const resp = await safeFetch('/api/assistant/chat/stream', { method: 'POST', body: formData, signal: controller.signal });
-    if (!resp.ok) {
-      const data = await resp.json().catch(() => ({}));
-      const errText = data.detail || 'Bilinmeyen hata';
-      row.remove();
-      if (state.currentChatId === targetChatId) addAssistantMessage(errText, null, true, false, false);
-      appendAssistantMessageToChat(targetChatId, { role: 'assistant', text: errText, modelBadge: null, isError: true });
-      return;
-    }
-
-    const reader = resp.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop();
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        let evt;
-        try { evt = JSON.parse(line.slice(6)); } catch { continue; }
-        if (evt.type === 'token') {
-          if (!streaming) {
-            streaming = true;
-            ttftMs = Math.max(1, Math.round(performance.now() - reqStartMs));
-            bubble.classList.remove('thinking');
-            bubble.classList.add('streaming');
-            bubble.textContent = '';
-            streamBar.hidden = false;
-          }
-          fullText += evt.content;
-          setSanitizedHtml(bubble, renderMarkdown(fullText));
-          if (state.currentChatId === targetChatId) scrollToBottomIfPinned(false);
-        } else if (evt.type === 'council') councilTrace = evt.council;
-        else if (evt.type === 'workspace') builtWorkspace = { workspace: evt.workspace, tree: evt.tree };
-        else if (evt.type === 'done') {
-          usedModel = evt.model || '';
-          usageInfo = evt.usage || null;
-          latencyMs = evt.latency_ms || 0;
-          verificationInfo = evt.verification || null;
-        } else if (evt.type === 'error') {
-          const errText = 'Model hatası: ' + evt.content;
-          row.remove();
-          if (state.currentChatId === targetChatId) addAssistantMessage(errText, null, true, false, false);
-          appendAssistantMessageToChat(targetChatId, { role: 'assistant', text: errText, modelBadge: null, isError: true });
-          return;
-        }
-      }
-    }
-
-    if (fullText || builtWorkspace) {
-      setSanitizedHtml(bubble, renderMarkdown(fullText));
-      if (builtWorkspace) wrap.appendChild(buildInlineWorkspaceCard(builtWorkspace.workspace, builtWorkspace.tree));
-      const label = MODEL_LABELS[usedModel] || usedModel;
-      if (label && getPrefs().show_model_badge) {
-        const badgeRow = document.createElement('div');
-        badgeRow.className = 'badge-row';
-        const badge = document.createElement('span');
-        badge.className = 'badge';
-        badge.textContent = label;
-        badgeRow.appendChild(badge);
-        if (verificationInfo) {
-          appendSanitizedHtml(badgeRow, ' ' + renderConfidenceBadgeHtml(verificationInfo.confidence_label, verificationInfo.confidence_score, 'tr'));
-        }
-        wrap.insertBefore(badgeRow, bubble);
-      }
-      if (councilTrace) {
-        const det = document.createElement('details');
-        det.className = 'sp-card';
-        det.style.marginBottom = '6px';
-        setSanitizedHtml(det, `<summary>Ajan Konseyi Düşünce Zinciri ve Hakem Sentezi</summary><pre class="sp-preview-pre">${escapeHtml(JSON.stringify(councilTrace, null, 2))}</pre>`);
-        wrap.insertBefore(det, bubble);
-      }
-      if (usageInfo && getPrefs().show_token_counter) {
-        const meta = document.createElement('div');
-        meta.className = 'sp-meta';
-        const approx = usageInfo.estimated ? '~' : '';
-        const total = (usageInfo.prompt_tokens || 0) + (usageInfo.completion_tokens || 0);
-        const parts = [`${approx}${total.toLocaleString('tr-TR')} token`];
-        if (ttftMs) parts.push(`TTFT ${ttftMs} ms`);
-        if (latencyMs) parts.push(`${Math.floor(latencyMs / 1000)} sn`);
-        for (const p of parts) { const s = document.createElement('span'); s.textContent = p; meta.appendChild(s); }
-        wrap.appendChild(meta);
-      }
-      wrap.appendChild(messageBar(fullText));
-      appendAssistantMessageToChat(targetChatId, { role: 'assistant', text: fullText, modelBadge: label, isError: false, workspace: builtWorkspace });
-    }
-  } catch (err) {
-    if (err && err.name === 'AbortError') {
-      fullText += '\n\n*[Yanıt kullanıcı tarafından durduruldu]*';
-      bubble.classList.remove('thinking');
-      setSanitizedHtml(bubble, renderMarkdown(fullText));
-      wrap.appendChild(messageBar(fullText));
-      appendAssistantMessageToChat(targetChatId, { role: 'assistant', text: fullText, modelBadge: MODEL_LABELS[usedModel] || usedModel, isError: false });
-    } else {
-      const errText = 'Bağlantı hatası: ' + err.message;
-      row.remove();
-      if (state.currentChatId === targetChatId) addAssistantMessage(errText, null, true, false, false);
-      appendAssistantMessageToChat(targetChatId, { role: 'assistant', text: errText, modelBadge: null, isError: true });
-    }
-  } finally {
-    if (typeof thinkTicker === 'function') thinkTicker();
-    bubble.classList.remove('thinking', 'streaming');
-    streamBar.remove();
-    state.activeStreams.delete(targetChatId);
-    syncSendBtnState();
-    renderChatList();
-    if (state.currentChatId === targetChatId) els.promptInput.focus();
-    document.dispatchEvent(new CustomEvent('usage-updated'));
-    notifyAnswerReady(fullText || 'Yanıt tamamlandı');
+async function handleMessagesClick(e) {
+  const copyBtn = e.target.closest('.sp-code-copy');
+  if (copyBtn) {
+    const codeEl = copyBtn.closest('.code-block')?.querySelector('pre code');
+    if (!codeEl) return;
+    try {
+      await navigator.clipboard.writeText(codeEl.textContent || '');
+      copyBtn.textContent = 'Kopyalandı';
+      copyBtn.classList.add('copied');
+      const COPY_MS = 1600;
+      setTimeout(() => { copyBtn.textContent = 'Kopyala'; copyBtn.classList.remove('copied'); }, COPY_MS);
+    } catch { copyBtn.textContent = 'Kopyalanamadı'; }
+    return;
   }
+  handleRunCodeClick(e);
 }
 
 export function initAssistant() {
@@ -456,21 +310,7 @@ export function initAssistant() {
     if (dist > 64) userScrolledUp = true; else if (dist <= 36) userScrolledUp = false;
   }, { passive: true });
   els.messages.addEventListener('wheel', (e) => { if (e.deltaY < 0) userScrolledUp = true; }, { passive: true });
-  els.messages.addEventListener('click', async (e) => {
-    const copyBtn = e.target.closest('.sp-code-copy');
-    if (copyBtn) {
-      const codeEl = copyBtn.closest('.code-block')?.querySelector('pre code');
-      if (!codeEl) return;
-      try {
-        await navigator.clipboard.writeText(codeEl.textContent || '');
-        copyBtn.textContent = 'Kopyalandı'; copyBtn.classList.add('copied');
-        const COPY_MS = 1600;
-        setTimeout(() => { copyBtn.textContent = 'Kopyala'; copyBtn.classList.remove('copied'); }, COPY_MS);
-      } catch { copyBtn.textContent = 'Kopyalanamadı'; }
-      return;
-    }
-    handleRunCodeClick(e);
-  });
+  els.messages.addEventListener('click', handleMessagesClick);
   initVoiceRecognition(els, syncSendBtnState);
   showRunButtonsIfEnabled();
 

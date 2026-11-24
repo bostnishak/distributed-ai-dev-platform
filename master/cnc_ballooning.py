@@ -814,7 +814,7 @@ async def _pick_vision_model(preferred: str | None = None) -> str:
             for cand in candidates:
                 if cand in installed or cand in installed_base:
                     return cand
-    except Exception as _exc:
+    except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError) as _exc:
         import logging
 
         logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
@@ -892,7 +892,7 @@ async def _analyze_image_with_vlm(
             max_retries=0,
         )
         content = gw_res.content
-    except Exception:
+    except (httpx.HTTPError, OSError, RuntimeError, ValueError, TypeError, KeyError, ImportError, AttributeError):
         return items, meta, model
 
     # Parse JSON block from model output
@@ -1133,7 +1133,7 @@ def _extract_largest_zip_image(raw: bytes, prefix: str) -> Image.Image | None:
                     if area > best_area:
                         best_area = area
                         best_img = im
-                except Exception as _exc:
+                except (OSError, ValueError, TypeError, KeyError, RuntimeError, zipfile.BadZipFile, SyntaxError) as _exc:
                     import logging
 
                     logging.getLogger(__name__).debug("Recoverable error skipped in loop: %s", _exc)

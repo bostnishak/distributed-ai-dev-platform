@@ -214,7 +214,7 @@ def _unparse_annotation(node: ast.AST | None) -> str:
         return ""
     try:
         return ast.unparse(node)
-    except Exception:
+    except (ValueError, TypeError, AttributeError, RuntimeError):
         return ""
 
 

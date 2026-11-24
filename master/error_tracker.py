@@ -33,7 +33,7 @@ def _mask(text: str) -> str:
         import log_sanitizer
 
         return log_sanitizer.redact_sensitive_text(text)
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ValueError, RuntimeError):
         return text
 
 

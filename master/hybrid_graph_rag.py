@@ -20,6 +20,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+import httpx
 import numpy as np
 from PIL import Image
 
@@ -185,7 +186,7 @@ def compute_image_fingerprint(raw_bytes: bytes) -> list[float]:
         with Image.open(io.BytesIO(raw_bytes)) as img:
             gray = img.convert("L").resize((64, 64), Image.Resampling.BILINEAR)
             arr = np.asarray(gray, dtype=np.float32) / 255.0
-    except Exception:
+    except (OSError, ValueError, TypeError, RuntimeError, SyntaxError):
         # Deterministic byte-distribution fallback if caller passes raw synthetic bytes
         digest = hashlib.sha512(raw_bytes).digest()
         fallback = [((b / 127.5) - 1.0) for b in digest[:IMAGE_FINGERPRINT_DIM]]
@@ -295,7 +296,7 @@ class HybridGraphRAG:
                 emb = prov.embed_sync("bge-m3:latest", text, timeout_s=1.2)
                 if len(emb) >= 64:
                     return emb
-            except Exception as _exc:
+            except (httpx.HTTPError, OSError, RuntimeError, ValueError, TypeError, KeyError, ImportError) as _exc:
                 import logging
 
                 logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)

@@ -508,7 +508,16 @@ class LLMClient:
                             )
                         except asyncio.CancelledError:
                             raise
-                        except Exception as exc:
+                        except (
+                            httpx.HTTPError,
+                            OSError,
+                            RuntimeError,
+                            ValueError,
+                            TypeError,
+                            LookupError,
+                            AttributeError,
+                            sqlite3.Error,
+                        ) as exc:
                             last_err = classify_error(exc)
                             self.breaker.record_failure(cb_key)
                             if isinstance(last_err, (ModelNotFoundError, OOMError)):
@@ -839,7 +848,7 @@ class LLMClient:
                 running = await self.providers["ollama"].list_running()
                 warm_models = [str(m.get("name") or "") for m in running]
                 ollama_ok = True
-            except Exception as exc:
+            except (httpx.HTTPError, OSError, RuntimeError, ValueError, TypeError, AttributeError) as exc:
                 reason = f"Ollama erişilemiyor: {exc}"
 
         cutoff = datetime.fromtimestamp(time.time() - 300, tz=UTC).isoformat()
@@ -883,7 +892,7 @@ async def api_gateway_models():
     if "ollama" in default_client.providers and isinstance(default_client.providers["ollama"], OllamaProvider):
         try:
             await gw_registry.sync_from_ollama(default_client.providers["ollama"])
-        except Exception as exc:
+        except (httpx.HTTPError, OSError, RuntimeError, ValueError, TypeError, sqlite3.Error) as exc:
             logging.getLogger(__name__).debug("Ollama model sync skipped: %s", exc)
     models = gw_registry.list_models()
     _MODELS_CACHE["ts"] = now

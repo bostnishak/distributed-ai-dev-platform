@@ -16,6 +16,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+import httpx
 import numpy as np
 
 import config
@@ -309,7 +310,7 @@ class RAGStore:
                 self.embedding_status = "ready"
                 self.embedding_reason = ""
                 return (arr / norm if norm > 0 else arr), self.EMBED_MODEL, int(arr.shape[0])
-        except Exception as exc:
+        except (httpx.HTTPError, OSError, RuntimeError, ValueError, TypeError, AttributeError) as exc:
             logging.getLogger(__name__).debug("Ollama embedding fallback triggered: %s", exc)
 
         if self.allow_test_embeddings:

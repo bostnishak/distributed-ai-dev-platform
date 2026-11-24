@@ -50,7 +50,7 @@ def _sandbox_image_present() -> bool:
             check=False,
         )
         return proc.returncode == 0
-    except Exception:
+    except (OSError, subprocess.SubprocessError, ValueError):
         return False
 
 
@@ -71,7 +71,7 @@ def docker_daemon_ready() -> tuple[bool, str]:
                 return False, f"Docker {proc.stdout.strip()} aktif ancak `{SANDBOX_IMAGE}` imajı derlenmedi (`docker build -t {SANDBOX_IMAGE} docker/sandbox`)."
             return True, f"Docker {proc.stdout.strip()} aktif"
         return False, "Docker daemon çalışmıyor — güvenli konteyner sandbox kapalı."
-    except Exception as exc:
+    except (OSError, subprocess.SubprocessError, ValueError) as exc:
         return False, f"Docker erişilemiyor ({exc}) — güvenli konteyner sandbox kapalı."
 
 
@@ -190,7 +190,7 @@ def _exec_container(args: list[str], timeout_s: int = TIMEOUT_SECONDS) -> dict[s
             "timed_out": True,
             "docker_available": True,
         }
-    except Exception as exc:
+    except (OSError, subprocess.SubprocessError, ValueError) as exc:
         return {
             "ok": False,
             "exit_code": -1,

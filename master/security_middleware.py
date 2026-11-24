@@ -58,7 +58,7 @@ def _is_same_origin(origin: str, request: Request) -> bool:
         if not origin_host or not req_host:
             return False
         return origin_host == req_host
-    except Exception:
+    except (ValueError, TypeError, AttributeError):
         return False
 
 

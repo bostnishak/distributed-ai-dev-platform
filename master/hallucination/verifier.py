@@ -355,7 +355,7 @@ def audit_python_code_apis(code: str) -> dict[str, Any]:
                     for alias in node.names:
                         if alias.name != "*" and not hasattr(mod, alias.name):
                             missing_attrs.append(f"{node.module}.{alias.name}")
-                except Exception as exc:
+                except (ImportError, OSError, RuntimeError, ValueError, TypeError, AttributeError, SyntaxError) as exc:
                     logging.getLogger(__name__).debug("AST import audit skipped for %s: %s", node.module, exc)
         elif isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
             mod_name = imported_modules.get(node.func.value.id)
@@ -377,7 +377,7 @@ def audit_python_code_apis(code: str) -> dict[str, Any]:
                                             missing_attrs.append(f"{mod_name}.{node.func.attr}(bilinmeyen parametre: {kw})")
                             except (TypeError, ValueError) as exc:
                                 logging.getLogger(__name__).debug("signature inspect skipped: %s", exc)
-                except Exception as exc:
+                except (ImportError, OSError, RuntimeError, ValueError, TypeError, AttributeError, SyntaxError) as exc:
                     logging.getLogger(__name__).debug("AST attr audit skipped for %s: %s", mod_name, exc)
 
     return {

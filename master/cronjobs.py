@@ -7,9 +7,12 @@ cron expression matches the current minute, at most once per minute.
 
 import asyncio
 import logging
+import sqlite3
 import uuid
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
+
+import httpx
 
 from kvstore import PersistentDict
 
@@ -108,7 +111,18 @@ async def run_due(runner: Runner, now: datetime | None = None) -> list[dict]:
         run = {"id": f"run_{uuid.uuid4().hex[:8]}", "job_id": job["id"], "started_at": stamp, "status": "ok", "output": ""}
         try:
             run["output"] = (await runner(job["prompt"]))[:MAX_RUN_OUTPUT]
-        except Exception as exc:
+        except (
+            OSError,
+            RuntimeError,
+            ValueError,
+            TypeError,
+            LookupError,
+            AttributeError,
+            ArithmeticError,
+            ImportError,
+            httpx.HTTPError,
+            sqlite3.Error,
+        ) as exc:
             run["status"] = "error"
             run["output"] = f"{type(exc).__name__}: {exc}"[:MAX_RUN_OUTPUT]
             log.warning("Scheduled job %s failed: %s", job["id"], exc)

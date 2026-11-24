@@ -7,6 +7,7 @@ callers are always refused.
 """
 
 import hmac
+import sqlite3
 
 from fastapi import HTTPException, Request
 
@@ -22,7 +23,7 @@ def _session_is_admin(request: Request) -> bool:
         from auth import service
 
         user = service.get_session_user(request.cookies.get(service.SESSION_COOKIE_NAME))
-    except Exception:  # an unreadable auth store must never grant access
+    except (ImportError, sqlite3.Error, OSError, ValueError, KeyError, RuntimeError, AttributeError):  # an unreadable auth store must never grant access
         return False
     return bool(user and user.get("role") == "admin")
 
@@ -45,7 +46,7 @@ def require_local_or_admin(request: Request) -> None:
             action="ACCESS_DENIED",
             payload={"path": str(request.url.path), "method": request.method},
         )
-    except Exception as _exc:
+    except (ImportError, OSError, ValueError, TypeError, RuntimeError) as _exc:
         import logging
 
         logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)

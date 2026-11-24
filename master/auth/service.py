@@ -91,9 +91,12 @@ def verify_password(password: str, stored_hash: str) -> bool:
     if stored_hash.startswith("$argon2"):
         try:
             from argon2 import PasswordHasher  # type: ignore[import-not-found]
-
+            from argon2.exceptions import Argon2Error  # type: ignore[import-not-found]
+        except ImportError:
+            return False
+        try:
             return bool(PasswordHasher().verify(stored_hash, password))
-        except Exception:
+        except (Argon2Error, ValueError, TypeError):
             return False
     if stored_hash.startswith("pbkdf2_sha256$"):
         try:
@@ -102,7 +105,7 @@ def verify_password(password: str, stored_hash: str) -> bool:
             expected = base64.b64decode(dk_b64)
             actual = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, int(iters_s))
             return hmac.compare_digest(actual, expected)
-        except Exception:
+        except (ValueError, TypeError, OverflowError):
             return False
     return False
 

@@ -248,7 +248,17 @@ class AttachmentPipeline:
                 if inspect.isawaitable(res):
                     res = await asyncio.wait_for(res, timeout=timeout_s)
                 outcomes.append(AttachmentOutcome(fname, mime, "ok", context=str(res)))
-            except Exception as exc:
+            except (
+                OSError,
+                RuntimeError,
+                ValueError,
+                TypeError,
+                LookupError,
+                AttributeError,
+                ImportError,
+                ArithmeticError,
+                sqlite3.Error,
+            ) as exc:
                 outcomes.append(AttachmentOutcome(fname, mime, "error", error=f"Ek işlenemedi ({fname}): {exc}"))
         return outcomes
 

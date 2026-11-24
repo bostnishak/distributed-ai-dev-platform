@@ -112,7 +112,7 @@ class RBACManager:
             expected = bytes.fromhex(hash_hex)
             candidate = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt_bytes, iters)
             return hmac.compare_digest(candidate, expected)
-        except Exception:
+        except (ValueError, TypeError, AttributeError):
             return False
 
     def register_user(self, username: str, password: str, role: str) -> dict[str, Any]:

@@ -287,7 +287,7 @@ async def discover_connector_tools(connector_id: str) -> dict[str, Any]:
                 )
                 updated = conn.execute("SELECT * FROM mcp_connectors WHERE id = ?", (connector_id,)).fetchone()
             return {"ok": True, "connector": _row_to_public(updated)}
-    except Exception as exc:
+    except (httpx.HTTPError, sqlite3.Error, OSError, ValueError, TypeError, KeyError, RuntimeError) as exc:
         err_status = f"Bağlantı hatası: {str(exc)[:140]}"
         with _connect() as conn:
             conn.execute(

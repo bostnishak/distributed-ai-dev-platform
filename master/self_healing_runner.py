@@ -333,7 +333,7 @@ def run_workspace_smoke_check(ws_dir: Path) -> dict[str, Any]:
                         "message": err_msg,
                     }
                 )
-        except Exception as exc:
+        except (subprocess.SubprocessError, OSError, ValueError) as exc:
             errors.append(
                 {
                     "type": "py_compile_exception",

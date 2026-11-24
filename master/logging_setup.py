@@ -75,6 +75,6 @@ def _redaction_filter() -> logging.Filter | None:
         import log_sanitizer
 
         return log_sanitizer.SecretAndPIIRedactingFilter()
-    except Exception:  # the masking module is optional; losing it must not stop logging
+    except (ImportError, AttributeError, TypeError, ValueError, RuntimeError):  # the masking module is optional; losing it must not stop logging
         logging.getLogger(__name__).warning("günlük maskeleme filtresi yüklenemedi")
         return None

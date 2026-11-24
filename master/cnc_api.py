@@ -74,7 +74,7 @@ async def list_cnc_jobs():
                     "metadata": data.get("metadata", {}),
                     "balloon_count": len(data.get("balloons", [])),
                 })
-            except Exception as _exc:
+            except (OSError, ValueError, KeyError, TypeError) as _exc:
                 import logging
 
                 logging.getLogger(__name__).debug("Recoverable error skipped in loop: %s", _exc)

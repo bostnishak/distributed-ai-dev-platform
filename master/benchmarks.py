@@ -384,7 +384,21 @@ def _score_coding(benchmark: dict, response: str, max_score: float, details: dic
     namespace: dict = {}
     try:
         exec(code, namespace)
-    except Exception as exc:
+    except (
+        SyntaxError,
+        NameError,
+        TypeError,
+        ValueError,
+        ArithmeticError,
+        LookupError,
+        AttributeError,
+        RuntimeError,
+        ImportError,
+        OSError,
+        AssertionError,
+        StopIteration,
+        MemoryError,
+    ) as exc:
         details["error"] = f"Code failed to execute: {exc}"
         return 0.0, details
 
@@ -396,7 +410,20 @@ def _score_coding(benchmark: dict, response: str, max_score: float, details: dic
     except AssertionError as exc:
         details["error"] = f"Test assertion failed: {exc}"
         return 0.0, details
-    except Exception as exc:
+    except (
+        SyntaxError,
+        NameError,
+        TypeError,
+        ValueError,
+        ArithmeticError,
+        LookupError,
+        AttributeError,
+        RuntimeError,
+        ImportError,
+        OSError,
+        StopIteration,
+        MemoryError,
+    ) as exc:
         details["error"] = f"Test execution error: {exc}"
         return 0.0, details
 

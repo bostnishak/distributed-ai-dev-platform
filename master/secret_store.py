@@ -18,6 +18,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from cryptography.fernet import Fernet, InvalidToken
+from keyring.errors import KeyringError
 
 import config
 import dbconn
@@ -42,7 +43,7 @@ def _normalize_fernet_key(raw: str) -> bytes:
         if len(decoded) == 32:
             Fernet(candidate)
             return candidate
-    except Exception as _exc:
+    except (ValueError, TypeError) as _exc:
         import logging
 
         logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
@@ -66,7 +67,7 @@ def _get_master_key_bytes() -> bytes:
         generated = Fernet.generate_key().decode("ascii")
         keyring.set_password(KEYRING_SERVICE, KEYRING_ACCOUNT, generated)
         return generated.encode("ascii")
-    except Exception as _exc:
+    except (ImportError, KeyringError, RuntimeError, OSError, ValueError, TypeError) as _exc:
         import logging
 
         logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
@@ -183,7 +184,7 @@ def rotate_master_key(new_secret_key: str, old_secret_key: str | None = None) ->
         import keyring
 
         keyring.set_password(KEYRING_SERVICE, KEYRING_ACCOUNT, config.SECRET_KEY)
-    except Exception:
+    except (ImportError, KeyringError, RuntimeError, OSError, ValueError, TypeError):
         kf = _local_key_file()
         if kf.is_file():
             kf.write_text(config.SECRET_KEY, encoding="utf-8")

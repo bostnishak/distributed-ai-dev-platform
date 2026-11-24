@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import html
 import re
+import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -112,7 +113,7 @@ def run_ocr_on_image_bytes(image_bytes: bytes) -> tuple[str, float, list[str]]:
         avg_conf = round(sum(confs) / len(confs), 3) if confs else 0.0
         warnings = ["Düşük OCR güveni: taranmış sayfa bulanık olabilir."] if avg_conf < 0.75 else []
         return " ".join(words), avg_conf, warnings
-    except Exception as exc:
+    except (ImportError, OSError, RuntimeError, ValueError, TypeError, AttributeError, LookupError, subprocess.SubprocessError) as exc:
         return (
             "",
             0.0,
@@ -223,7 +224,7 @@ def recognize_handwriting_image_bytes(
             "preprocessed": preprocessed_meta,
             "warnings": warnings,
         }
-    except Exception as exc:
+    except (ImportError, OSError, RuntimeError, ValueError, TypeError, AttributeError, LookupError, subprocess.SubprocessError) as exc:
         return {
             "engine": "preprocessed-offline",
             "text": "",

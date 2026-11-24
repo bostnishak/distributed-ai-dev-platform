@@ -10,8 +10,11 @@ import zipfile
 
 import pymupdf as fitz
 from docx import Document
+from docx.opc.exceptions import OpcError
 from openpyxl import load_workbook
+from openpyxl.utils.exceptions import InvalidFileException
 from pypdf import PdfReader
+from pypdf.errors import PyPdfError
 
 from safe_archive import UnsafeArchive, inspect_zip
 
@@ -41,7 +44,7 @@ def extract_pdf_text(raw: bytes) -> str:
         text = "\n".join(pages).strip()
         if text:
             return text
-    except Exception as _exc:
+    except (OSError, RuntimeError, ValueError, TypeError, AttributeError) as _exc:
         import logging
 
         logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
@@ -110,7 +113,19 @@ def extract_zip_text(raw: bytes) -> str:
                         content = _decode_bytes(file_raw)
                     if content.strip():
                         parts.append(f"=== {info.filename} ===\n{content.strip()}")
-                except Exception as _exc:
+                except (
+                    zipfile.BadZipFile,
+                    csv.Error,
+                    PyPdfError,
+                    OpcError,
+                    InvalidFileException,
+                    OSError,
+                    RuntimeError,
+                    ValueError,
+                    TypeError,
+                    KeyError,
+                    AttributeError,
+                ) as _exc:
                     import logging
 
                     logging.getLogger(__name__).debug("Recoverable error skipped in loop: %s", _exc)

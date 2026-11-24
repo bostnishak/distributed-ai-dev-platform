@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import asyncio
+import sqlite3
 import time
 import uuid
 from collections import deque
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any
+
+import httpx
 
 import db
 import selection
@@ -214,7 +217,17 @@ class DAGExecutor:
                         if on_event:
                             await on_event("step_end", {"step_id": step.step_id, "status": "ok", "latency_ms": ms})
                         return outcome
-                    except Exception as exc:
+                    except (
+                        OSError,
+                        RuntimeError,
+                        ValueError,
+                        TypeError,
+                        LookupError,
+                        ArithmeticError,
+                        AttributeError,
+                        sqlite3.Error,
+                        httpx.HTTPError,
+                    ) as exc:
                         last_err = str(exc)
                 ms = int((time.perf_counter() - t0) * 1000)
                 outcome = StepOutcome(step_id=step.step_id, status="failed", error=last_err, latency_ms=ms)
@@ -236,7 +249,7 @@ def select_online_agent(capability: str = "kod") -> dict[str, Any] | None:
     """ORC-07: Pick the highest-scoring online distributed agent using selection.py."""
     try:
         agents = db.list_agents()
-    except Exception:
+    except (sqlite3.Error, OSError, RuntimeError, ValueError):
         return None
     online = [a for a in agents if a.get("status") in {"online", "idle", "ready"}]
     if not online:
@@ -269,7 +282,7 @@ async def dispatch_to_agent_or_local(
             task_type=capability,
         )
         db.assign_task(db_task_id, str(agent["id"]), {"reason": "orchestrator_dispatch"})
-    except Exception:
+    except (sqlite3.Error, OSError, RuntimeError, ValueError, TypeError, LookupError):
         text = await local_fallback()
         return {"source": "local_gateway", "agent_id": "master", "content": text, "fallback": True}
 

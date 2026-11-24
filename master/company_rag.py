@@ -7,6 +7,8 @@ import math
 import re
 from typing import Any
 
+import httpx
+
 from rag.store import SAMPLE_KB_PATH, tr_lower
 
 
@@ -41,7 +43,7 @@ async def _embed_text(text: str) -> list[float] | None:
         emb = await gateway.default_client.embed(text, model="bge-m3:latest")
         if isinstance(emb, list) and emb:
             return emb
-    except Exception as _exc:
+    except (httpx.HTTPError, OSError, RuntimeError, ValueError, TypeError, KeyError, ImportError) as _exc:
         import logging
 
         logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)

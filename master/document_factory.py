@@ -13,6 +13,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+import httpx
 import pymupdf as fitz
 from docx import Document
 from docx.oxml import OxmlElement
@@ -164,7 +165,7 @@ async def generate_document_deliverable(prompt: str, fmt: str, context_text: str
             parsed = json.loads(cleaned_json)
             if isinstance(parsed, dict) and parsed.get("title"):
                 spec.update(parsed)
-    except Exception as _exc:
+    except (httpx.HTTPError, OSError, RuntimeError, ValueError, TypeError, KeyError, ImportError) as _exc:
         import logging
 
         logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)

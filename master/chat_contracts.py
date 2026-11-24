@@ -7,6 +7,7 @@ import html
 import logging
 import operator
 import re
+import sqlite3
 import uuid
 from dataclasses import dataclass, field
 from typing import Any
@@ -224,7 +225,7 @@ def gather_research_sources(prompt: str) -> list[dict[str, str]]:
                 snippet = str(hit.get("content") or hit.get("snippet") or "").strip()
                 if url:
                     sources.append({"id": f"S{len(sources) + 1}", "title": title, "url": url, "snippet": snippet[:400]})
-        except Exception as exc:
+        except (OSError, ValueError, TypeError, KeyError, RuntimeError) as exc:
             log.debug("SearXNG lookup skipped: %s", exc)
 
     if not sources:
@@ -244,7 +245,7 @@ def gather_research_sources(prompt: str) -> list[dict[str, str]]:
                         "snippet": str(row["title"] or "")[:400],
                     }
                 )
-        except Exception as exc:
+        except (ImportError, sqlite3.Error, OSError, ValueError, KeyError, RuntimeError, AttributeError) as exc:
             log.debug("RAG lookup skipped: %s", exc)
     return sources
 

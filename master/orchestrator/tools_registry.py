@@ -7,10 +7,14 @@ import inspect
 import json
 import math
 import operator
+import sqlite3
+import subprocess
 import time
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any
+
+import httpx
 
 import audit_log
 
@@ -167,7 +171,20 @@ class ToolRegistry:
                 payload={"tool": name, "status": "ok", "side_effect": spec.side_effect, "latency_ms": ms},
             )
             return ToolResult(tool=name, status="ok", output=res, side_effect=spec.side_effect, latency_ms=ms)
-        except Exception as exc:
+        except (
+            OSError,
+            RuntimeError,
+            ValueError,
+            TypeError,
+            LookupError,
+            ArithmeticError,
+            AttributeError,
+            ImportError,
+            SyntaxError,
+            sqlite3.Error,
+            subprocess.SubprocessError,
+            httpx.HTTPError,
+        ) as exc:
             ms = int((time.perf_counter() - t0) * 1000)
             audit_log.AuditTrail().append_event(
                 actor=actor,

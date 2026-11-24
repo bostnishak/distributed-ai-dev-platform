@@ -67,7 +67,7 @@ async def pick_best_model(task: str = "general") -> str:
                 for cand in prefs:
                     if cand in installed:
                         return cand
-    except Exception as _exc:
+    except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError) as _exc:
         import logging
 
         logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
@@ -512,7 +512,7 @@ async def _design_spec_from_llm(combined_prompt: str, seed: int) -> dict[str, st
                     default_spec["palette"] = parsed["palette"]
                 if parsed.get("layout") in LAYOUT_ORDER and seed == 0:
                     default_spec["layout"] = parsed["layout"]
-    except Exception as _exc:
+    except (httpx.HTTPError, OSError, RuntimeError, ValueError, TypeError, KeyError, ImportError) as _exc:
         import logging
 
         logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
@@ -730,7 +730,7 @@ def _save_true_color_png(spec: dict[str, str], out_png: Path) -> None:
         is_bg = np.linalg.norm(arr - bg2_rgb, axis=2) < 12.0
         arr[is_bg] = grad[is_bg]
         Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), mode="RGB").save(out_png, format="PNG")
-    except Exception:
+    except (OSError, RuntimeError, ValueError, TypeError, KeyError, IndexError):
         pal = STUDIO_PALETTES.get(spec["palette"], STUDIO_PALETTES["midnight_cyan"])
         im = Image.new("RGB", (1200, 760), _hex_to_rgb(pal["bg2"]))
         dr = ImageDraw.Draw(im)
@@ -762,7 +762,7 @@ async def generate_ai_image(prompt: str, history: list[dict[str, Any]] | None = 
                     "png_url": f"/api/assistant/media/{file_id}.png",
                     "svg_url": "",
                 }
-    except Exception as _exc:
+    except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError, IndexError) as _exc:
         import logging
 
         logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
@@ -826,7 +826,7 @@ def _decode_audio_to_float32_16k(raw_bytes: bytes, tmp_path: Path, suffix: str) 
                     x_new = np.linspace(0.0, 1.0, target_len, dtype=np.float32)
                     arr = np.interp(x_new, x_old, arr).astype(np.float32)
                 return arr, duration
-        except Exception as _exc:
+        except (wave.Error, OSError, ValueError, TypeError, ZeroDivisionError) as _exc:
             import logging
 
             logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
@@ -847,7 +847,7 @@ def _decode_audio_to_float32_16k(raw_bytes: bytes, tmp_path: Path, suffix: str) 
                 return None, 0.0
             arr = np.concatenate(chunks)
             return arr, round(len(arr) / 16000.0, 2)
-    except Exception:
+    except (ImportError, OSError, RuntimeError, ValueError, TypeError, AttributeError, KeyError):
         return None, 0.0
 
 
@@ -869,7 +869,7 @@ def transcribe_audio_bytes(filename: str, raw_bytes: bytes) -> dict[str, Any]:
             segments, _ = wmodel.transcribe(audio_np, language="tr", vad_filter=False)
             transcript = " ".join(seg.text.strip() for seg in segments).strip()
             engine = "faster-whisper-base (local)"
-        except Exception as _exc:
+        except (ImportError, OSError, RuntimeError, ValueError, TypeError, AttributeError) as _exc:
             import logging
 
             logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
@@ -894,7 +894,7 @@ def transcribe_audio_bytes(filename: str, raw_bytes: bytes) -> dict[str, Any]:
             if proc.returncode == 0 and proc.stdout.strip():
                 transcript = proc.stdout.strip()
                 engine = "windows-system-speech"
-        except Exception as _exc:
+        except (subprocess.SubprocessError, OSError, ValueError) as _exc:
             import logging
 
             logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)

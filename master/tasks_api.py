@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import sqlite3
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.responses import Response
@@ -41,7 +42,7 @@ async def _expire_leases_loop() -> None:
             expired = db.expire_stale_leases()
             if expired:
                 log.info("Expired %d stale task leases.", expired)
-        except Exception as exc:
+        except (sqlite3.Error, OSError, RuntimeError, ValueError, TypeError, KeyError) as exc:
             log.warning("Lease expiry error: %s", exc)
         await asyncio.sleep(60)
 

@@ -74,7 +74,7 @@ def test_fe_be_contract_check_zero_disconnected_routes():
 
 
 def test_agh_and_jsd_runtime_safety_rules_zero():
-    """AGH-01..30 & JSD: Zero fetch-no-catch, alert/confirm/prompt, localStorage-direct, innerHTML, or CSS !important bloat."""
+    """AGH-01..30 & JSD-01..88: scan_js.py reports literally 0 findings across all master/static JS/CSS/HTML."""
     out_file = REPO_ROOT / ".pytest_scan_js_tmp.json"
     try:
         subprocess.run(
@@ -87,18 +87,15 @@ def test_agh_and_jsd_runtime_safety_rules_zero():
     finally:
         out_file.unlink(missing_ok=True)
 
-    forbidden = {
-        "innerHTML-assignment",
-        "insertAdjacentHTML",
-        "fetch-no-catch-nearby",
-        "alert-confirm-prompt",
-        "localStorage-direct",
-        "addEventListener-on-window-document",
-        "setInterval-no-clear",
-        "magic-timeout",
-        "double-equals",
-        "hardcoded-http-url",
-        "css-size",
-    }
-    hits = [r for r in rows if r["rule"] in forbidden]
-    assert hits == [], f"Unexpected JS/CSS audit hits: {hits[:10]}"
+    assert rows == [], f"Expected 0 scan_js findings, got: {rows[:10]}"
+
+
+def test_ble001_zero_across_master():
+    """BLE-01..94: Zero blind except Exception (BLE001) findings across production master/."""
+    res = subprocess.run(
+        [sys.executable, "-m", "ruff", "check", "master", "--isolated", "--exclude", "master/tests", "--select", "BLE001,S110,S608,S607"],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+    )
+    assert res.returncode == 0, f"Ruff BLE001/S110/S608/S607 failed:\n{res.stdout}\n{res.stderr}"

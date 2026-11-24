@@ -12,6 +12,7 @@ import zipfile
 from datetime import UTC, datetime
 from typing import Literal
 
+import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
@@ -63,7 +64,7 @@ async def generate_workspace(body: GenerateRequest):
                 model_override=body.model or None,
             ):
                 yield f"data: {json.dumps(evt, ensure_ascii=False)}\n\n"
-        except Exception as exc:
+        except (httpx.HTTPError, OSError, RuntimeError, ValueError, TypeError, KeyError, AttributeError, ImportError) as exc:
             yield f"data: {json.dumps({'type': 'error', 'message': str(exc)}, ensure_ascii=False)}\n\n"
 
     return StreamingResponse(_event_stream(), media_type="text/event-stream")
@@ -86,7 +87,7 @@ async def iterate_workspace(id: str, body: IterateRequest):
                 id, body.instruction.strip(), model_override=body.model or None
             ):
                 yield f"data: {json.dumps(evt, ensure_ascii=False)}\n\n"
-        except Exception as exc:
+        except (httpx.HTTPError, OSError, RuntimeError, ValueError, TypeError, KeyError, AttributeError, ImportError) as exc:
             yield f"data: {json.dumps({'type': 'error', 'message': str(exc)}, ensure_ascii=False)}\n\n"
 
     return StreamingResponse(_event_stream(), media_type="text/event-stream")

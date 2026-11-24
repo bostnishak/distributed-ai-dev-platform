@@ -166,7 +166,7 @@ async def pick_coder_model(preferred: str | None = None) -> str:
             for cand in candidates:
                 if cand in installed:
                     return cand
-    except Exception as _exc:
+    except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError) as _exc:
         import logging
 
         logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
@@ -635,7 +635,7 @@ def list_snapshots(ws_dir: Path) -> list[dict[str, Any]]:
         if meta_f.is_file():
             try:
                 out.append(json.loads(meta_f.read_text(encoding="utf-8")))
-            except Exception as _exc:
+            except (OSError, ValueError, TypeError) as _exc:
                 import logging
 
                 logging.getLogger(__name__).debug("Recoverable error skipped in loop: %s", _exc)

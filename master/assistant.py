@@ -13,7 +13,10 @@ import logging
 import operator
 import os
 import re
+import sqlite3
+import subprocess
 import sys
+import zipfile
 from typing import Any
 
 import httpx
@@ -372,10 +375,8 @@ async def _select_grounded_model(task_type: str, has_image: bool = False) -> str
                 if r.status_code == 200:
                     _OLLAMA_TAGS_CACHE["models"] = {m.get("name", "") for m in r.json().get("models", [])}
                     _OLLAMA_TAGS_CACHE["ts"] = now
-        except Exception as _exc:
-            import logging
-
-            logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
+        except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError) as _exc:
+            log.debug("Recoverable error suppressed: %s", _exc)
     installed = _OLLAMA_TAGS_CACHE["models"]
     if has_image:
         prefs = ("qwen3.5:9b", "gemma4:e4b", "qwen3.5:4b", config.MASTER_MODEL)
@@ -771,10 +772,8 @@ async def _prepare_chat_request(
                             f"- **L2 Ridge Tahmin ({num_cols[-1]}):** R2=`{fc['metrics']['r2']:.3f}`, RMSE=`{fc['metrics']['rmse']:.2f}` -> `{preds}`"
                         )
                     extracted_text += "\n" + "\n".join(aml_lines)
-            except Exception as _exc:
-                import logging
-
-                logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
+            except (OSError, ValueError, TypeError, KeyError, ArithmeticError, IndexError, RuntimeError, ImportError) as _exc:
+                log.debug("Recoverable error suppressed: %s", _exc)
             forced_task_type = "analiz"
         elif name.endswith((".db", ".sqlite", ".sqlite3")):
             import domain_experts as de
@@ -790,7 +789,7 @@ async def _prepare_chat_request(
                     f"İlk Satırlar: {json.dumps(sql_res['rows'][:10], ensure_ascii=False)}\n"
                     f"ER Diyagramı:\n```mermaid\n{sql_res['er_diagram']}\n```"
                 )
-            except Exception as exc:
+            except (sqlite3.Error, OSError, ValueError, TypeError, KeyError, RuntimeError, ImportError) as exc:
                 extracted_text = f"[SQLite Veritabanı: {file.filename} ({exc})]"
             finally:
                 tmp_db.unlink(missing_ok=True)
@@ -798,7 +797,7 @@ async def _prepare_chat_request(
         elif name.endswith(".zip"):
             try:
                 extracted_text = extract_zip_text(raw)
-            except Exception:
+            except (zipfile.BadZipFile, OSError, ValueError, TypeError, KeyError, RuntimeError):
                 extracted_text = f"[ZIP Arşivi: {file.filename}]"
             forced_task_type = "analiz"
         elif (
@@ -822,10 +821,8 @@ async def _prepare_chat_request(
                 if chat_contracts.should_attach_file_audit(prompt, insp):
                     insp_md = fi.format_inspection_markdown(insp)
                     file_note += f"\n\n{insp_md}"
-            except Exception as _exc:
-                import logging
-
-                logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
+            except (OSError, ValueError, TypeError, KeyError, RuntimeError, SyntaxError, ImportError, AttributeError) as _exc:
+                log.debug("Recoverable error suppressed: %s", _exc)
     # Domain Experts & KVKK PII auto-enrichment
     lower_prompt = prompt.lower()
     combined_source = f"{prompt}\n{extracted_text}".strip()
@@ -1016,7 +1013,7 @@ async def _tracked_stream(source, prompt: str, user_id: str, conversation_id: st
                         {"id": f"S{i + 1}", "content": h.get("content", ""), "doc": h.get("doc_title", "")}
                         for i, h in enumerate((rag_res.hits if rag_res else []) or [])
                     ]
-                except Exception as rag_exc:
+                except (sqlite3.Error, httpx.HTTPError, OSError, ValueError, TypeError, KeyError, RuntimeError, AttributeError) as rag_exc:
                     log.debug("Live chat RAG lookup skipped: %s", rag_exc)
 
                 claims = extract_claims(answer)
@@ -1280,7 +1277,7 @@ async def _chat_stream_impl(
                     ])
                 yield f"data: {json.dumps({'type': 'token', 'content': out_md}, ensure_ascii=False)}\n\n"
                 yield f"data: {json.dumps({'type': 'done', 'model': 'file-converter', 'task_type': 'dokuman'})}\n\n"
-            except Exception as exc:
+            except (zipfile.BadZipFile, OSError, ValueError, TypeError, KeyError, RuntimeError, ImportError) as exc:
                 yield f"data: {json.dumps({'type': 'error', 'content': f'Dosya dönüştürme hatası: {exc}'}, ensure_ascii=False)}\n\n"
 
         return StreamingResponse(_conv_gen(), media_type="text/event-stream")
@@ -1337,7 +1334,7 @@ async def _chat_stream_impl(
                     md = "\n".join(lines)
                 yield f"data: {json.dumps({'type': 'token', 'content': md}, ensure_ascii=False)}\n\n"
                 yield f"data: {json.dumps({'type': 'done', 'model': 'mcp-connector', 'task_type': 'genel'})}\n\n"
-            except Exception as exc:
+            except (httpx.HTTPError, sqlite3.Error, OSError, ValueError, TypeError, KeyError, RuntimeError) as exc:
                 yield f"data: {json.dumps({'type': 'error', 'content': f'MCP hatası: {exc}'}, ensure_ascii=False)}\n\n"
 
         return StreamingResponse(_mcp_chat_gen(), media_type="text/event-stream")
@@ -1375,7 +1372,7 @@ async def _chat_stream_impl(
                     )
                 yield f"data: {json.dumps({'type': 'token', 'content': '\n'.join(lines)}, ensure_ascii=False)}\n\n"
                 yield f"data: {json.dumps({'type': 'done', 'model': 'cnc-ballooner', 'task_type': 'cnc'})}\n\n"
-            except Exception as exc:
+            except (zipfile.BadZipFile, OSError, ValueError, TypeError, KeyError, RuntimeError, ImportError) as exc:
                 yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
 
         return StreamingResponse(_rfq_gen(), media_type="text/event-stream")
@@ -1410,7 +1407,7 @@ async def _chat_stream_impl(
                     md.append("")
                 yield f"data: {json.dumps({'type': 'token', 'content': '\n'.join(md)}, ensure_ascii=False)}\n\n"
                 yield f"data: {json.dumps({'type': 'done', 'model': res['model'], 'task_type': 'dokuman'})}\n\n"
-            except Exception as exc:
+            except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError, RuntimeError, ImportError) as exc:
                 yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
 
         return StreamingResponse(_pptx_gen(), media_type="text/event-stream")
@@ -1426,7 +1423,7 @@ async def _chat_stream_impl(
                 final_txt = c_res.get("final_answer") or c_res.get("judge_synthesis") or json.dumps(c_res, ensure_ascii=False)
                 yield f"data: {json.dumps({'type': 'token', 'content': final_txt}, ensure_ascii=False)}\n\n"
                 yield f"data: {json.dumps({'type': 'done', 'model': 'reasoning-council', 'task_type': 'genel'})}\n\n"
-            except Exception as exc:
+            except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError, RuntimeError, ImportError) as exc:
                 yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
 
         return StreamingResponse(_council_gen(), media_type="text/event-stream")
@@ -1514,7 +1511,7 @@ async def _chat_stream_impl(
                         ws_tree = wb.build_file_tree(ws_dir)
                 yield f"data: {json.dumps({'type': 'workspace', 'workspace': ws_meta, 'tree': ws_tree}, ensure_ascii=False)}\n\n"
                 yield f"data: {json.dumps({'type': 'done', 'model': 'workspace-importer', 'task_type': 'proje'})}\n\n"
-            except Exception as exc:
+            except (zipfile.BadZipFile, subprocess.SubprocessError, OSError, ValueError, TypeError, KeyError, RuntimeError) as exc:
                 yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
 
         return StreamingResponse(_zip_gen(), media_type="text/event-stream")
@@ -1536,7 +1533,7 @@ async def _chat_stream_impl(
                 yield f"data: {json.dumps({'type': 'artifact', 'kind': 'chart', 'format': 'svg', 'url': res['svg_url']}, ensure_ascii=False)}\n\n"
                 yield f"data: {json.dumps({'type': 'token', 'content': md}, ensure_ascii=False)}\n\n"
                 yield f"data: {json.dumps({'type': 'done', 'model': 'chart-svg', 'task_type': 'grafik'})}\n\n"
-            except Exception as exc:
+            except (OSError, ValueError, TypeError, KeyError, ArithmeticError, RuntimeError) as exc:
                 yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
 
         return StreamingResponse(_chart_gen(), media_type="text/event-stream")
@@ -1546,7 +1543,7 @@ async def _chat_stream_impl(
             hist_for_img = json.loads(history) if history else []
             if not isinstance(hist_for_img, list):
                 hist_for_img = []
-        except Exception:
+        except (json.JSONDecodeError, TypeError):
             hist_for_img = []
 
         async def _img_gen():
@@ -1569,7 +1566,7 @@ async def _chat_stream_impl(
                 yield f"data: {json.dumps({'type': 'artifact', 'kind': 'image', 'format': 'png', 'url': res['png_url'], 'svg_url': res.get('svg_url')}, ensure_ascii=False)}\n\n"
                 yield f"data: {json.dumps({'type': 'token', 'content': '\n'.join(md_lines)}, ensure_ascii=False)}\n\n"
                 yield f"data: {json.dumps({'type': 'done', 'model': res['engine'], 'task_type': 'gorsel'})}\n\n"
-            except Exception as exc:
+            except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError, RuntimeError, ImportError) as exc:
                 yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
 
         return StreamingResponse(_img_gen(), media_type="text/event-stream")
@@ -1598,7 +1595,7 @@ async def _chat_stream_impl(
                 yield f"data: {json.dumps({'type': 'artifact', 'kind': 'document', 'format': doc_fmt, 'url': res['url']}, ensure_ascii=False)}\n\n"
                 yield f"data: {json.dumps({'type': 'token', 'content': '\n'.join(md)}, ensure_ascii=False)}\n\n"
                 yield f"data: {json.dumps({'type': 'done', 'model': res['model'], 'task_type': 'dokuman'})}\n\n"
-            except Exception as exc:
+            except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError, RuntimeError, ImportError) as exc:
                 yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
 
         return StreamingResponse(_doc_gen(), media_type="text/event-stream")
@@ -1656,7 +1653,7 @@ async def _chat_stream_impl(
                     ws_meta["exe_name"] = exe_files[0].name if exe_files else ""
                     yield f"data: {json.dumps({'type': 'workspace', 'workspace': ws_meta, 'tree': ws_tree or wb.build_file_tree(ws_dir)}, ensure_ascii=False)}\n\n"
                 yield f"data: {json.dumps({'type': 'done', 'model': used_model, 'task_type': 'proje'})}\n\n"
-            except Exception as exc:
+            except (httpx.HTTPError, subprocess.SubprocessError, OSError, ValueError, TypeError, KeyError, RuntimeError, ImportError) as exc:
                 yield f"data: {json.dumps({'type': 'error', 'content': str(exc)}, ensure_ascii=False)}\n\n"
 
         return StreamingResponse(_project_gen(), media_type="text/event-stream")
@@ -1734,10 +1731,8 @@ async def _chat_stream_impl(
             for h_msg in hist_items[-hist_window:]:
                 if isinstance(h_msg, dict) and h_msg.get("role") in ("user", "assistant") and h_msg.get("text"):
                     messages.append({"role": h_msg["role"], "content": str(h_msg["text"])[:3000]})
-    except Exception as _exc:
-        import logging
-
-        logging.getLogger(__name__).debug("Recoverable error suppressed: %s", _exc)
+    except (json.JSONDecodeError, TypeError) as _exc:
+        log.debug("Recoverable error suppressed: %s", _exc)
     if not is_prompt_conv:
         messages = mem.compact_conversation_context(messages)
 
@@ -1812,7 +1807,7 @@ async def _chat_stream_impl(
                             "estimated": False,
                         }
                     yield f"data: {json.dumps(done_evt)}\n\n"
-        except Exception as exc:
+        except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError, RuntimeError, AttributeError, ImportError) as exc:
             yield f"data: {json.dumps({'type': 'error', 'content': str(exc)})}\n\n"
 
     return StreamingResponse(_stream_gen(), media_type="text/event-stream")

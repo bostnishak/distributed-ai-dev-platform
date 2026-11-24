@@ -1,245 +1,105 @@
 // AI Project Studio / Workspace Builder (VS Code / Antigravity-style Explorer + Editor + Live Preview + EXE Builder).
 import { safeFetch } from './storage.js';
+import {
+  buildStudioPanes,
+  buildStudioTopbar,
+  collectStudioFiles,
+  consumeStudioStream,
+  formatSize,
+  renderStudioTreeNodes,
+} from './studio_parts.js';
 import { uiPrompt } from './ui_dialog.js';
 import { api, h } from './util.js';
 
-let activeWsId = null;
-let activeWsMeta = null;
-let activeTree = [];
-let activeFilePath = null;
-let previewMode = false;
-const collapsedDirs = new Set();
+const studioState = {
+  activeWsId: null,
+  activeWsMeta: null,
+  activeTree: [],
+  activeFilePath: null,
+  previewMode: false,
+  collapsedDirs: new Set(),
+};
 
-function fileIcon(name, isDir) {
-  if (isDir) return '[DIR]';
-  const ext = (name.split('.').pop() || '').toLowerCase();
-  const map = {
-    py: 'PY', html: 'WEB', htm: 'WEB', css: 'CSS', js: '!', ts: 'TS',
-    json: 'JSON', md: '', txt: '', exe: 'CFG', yml: 'CFG', yaml: 'CFG',
-    sql: '', svg: '', png: '', jpg: '',
-  };
-  return map[ext] || '';
+function updateStudioToolbar(ui) {
+  const hasWs = Boolean(studioState.activeWsId && studioState.activeWsMeta);
+  ui.iterBtn.disabled = !hasWs;
+  ui.newFileBtn.disabled = !hasWs;
+  ui.downloadZipLink.hidden = !hasWs;
+  if (hasWs) ui.downloadZipLink.href = `/api/studio/workspaces/${studioState.activeWsId}/download.zip`;
+
+  const hasWeb = Boolean(studioState.activeWsMeta?.has_web_preview);
+  ui.previewBtn.hidden = !hasWeb;
+  ui.previewBtn.textContent = studioState.previewMode ? 'Koda Dön' : '▶ Canlı Önizleme';
+
+  const hasPy = studioState.activeTree.some((n) => n.name.endsWith('.py'))
+    || studioState.activeWsMeta?.project_type === 'game'
+    || studioState.activeWsMeta?.project_type === 'desktop';
+  ui.buildExeBtn.hidden = !hasPy;
+
+  const hasExe = Boolean(studioState.activeWsMeta?.has_exe);
+  ui.downloadExeLink.hidden = !hasExe;
+  if (hasExe) {
+    ui.downloadExeLink.href = `/api/studio/workspaces/${studioState.activeWsId}/download-exe`;
+    ui.downloadExeLink.textContent = `⬇ ${studioState.activeWsMeta.exe_name || 'App.exe'} İndir`;
+  }
 }
 
-function formatSize(bytes) {
-  if (bytes === null || bytes === undefined) return '';
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+function renderExplorerView(ui, onOpenFile) {
+  ui.treeEl.replaceChildren();
+  if (!studioState.activeWsMeta) {
+    ui.treeEl.append(h('div', { class: 'studio-empty-tree' }, 'Çalışma alanı yok.'));
+    return;
+  }
+  ui.treeEl.appendChild(h('div', { class: 'studio-ws-root' }, `▾ ${studioState.activeWsMeta.name}`));
+  ui.treeEl.appendChild(renderStudioTreeNodes(
+    studioState.activeTree,
+    studioState,
+    (dirPath, isCollapsed) => {
+      if (isCollapsed) studioState.collapsedDirs.delete(dirPath);
+      else studioState.collapsedDirs.add(dirPath);
+      renderExplorerView(ui, onOpenFile);
+    },
+    onOpenFile,
+    0,
+  ));
 }
 
-export async function renderStudio(root) {
-  root.replaceChildren();
-  const shell = h('div', { class: 'studio-shell' });
-  root.appendChild(shell);
-
-  // --- Top Bar ---
-  const wsSelect = h('select', { class: 'studio-select' });
-  const newFileBtn = h('button', { type: 'button', class: 'btn studio-btn-sm' }, '＋ Dosya');
-  const saveBtn = h('button', { type: 'button', class: 'btn studio-btn-sm', disabled: true }, 'Kaydet');
-  const previewBtn = h('button', { type: 'button', class: 'btn studio-btn-sm', hidden: true }, '▶ Canlı Önizleme');
-  const buildExeBtn = h('button', { type: 'button', class: 'btn btn-primary studio-btn-sm', hidden: true }, '.EXE Oluştur');
-  const downloadExeLink = h('a', { class: 'btn studio-btn-exe studio-btn-sm', hidden: true, download: '' }, '⬇ .EXE İndir');
-  const downloadZipLink = h('a', { class: 'btn studio-btn-sm', hidden: true, download: '' }, '⬇ ZIP İndir');
-  const breadcrumb = h('span', { class: 'studio-breadcrumb' }, 'Bir çalışma alanı seçin veya yeni proje oluşturun');
-
-  const topbar = h('div', { class: 'studio-topbar' },
-    h('div', { class: 'studio-topbar-left' },
-      h('span', { class: 'studio-brand' }, '</> Kod Stüdyosu'),
-      wsSelect,
-      newFileBtn,
-    ),
-    h('div', { class: 'studio-topbar-right' },
-      saveBtn, previewBtn, buildExeBtn, downloadExeLink, downloadZipLink,
-    ),
-  );
-
-  // --- 3-Pane IDE Body ---
-  const explorerPane = h('aside', { class: 'studio-explorer' },
-    h('div', { class: 'studio-pane-title' }, 'EXPLORER'),
-    h('div', { class: 'studio-tree', id: 'studioTree' }),
-  );
-  const treeEl = explorerPane.querySelector('#studioTree');
-
-  const codeArea = h('textarea', {
-    class: 'studio-editor',
-    spellcheck: 'false',
-    placeholder: 'Soldaki dosya gezgininden bir dosya seçin veya sağdaki AI panelinden eksiksiz bir proje oluşturun...',
-  });
-  const previewFrame = h('iframe', { class: 'studio-preview-frame', hidden: true, sandbox: 'allow-scripts allow-same-origin allow-forms allow-modals' });
-
-  const centerPane = h('section', { class: 'studio-center' },
-    h('div', { class: 'studio-editor-bar' }, breadcrumb),
-    codeArea,
-    previewFrame,
-  );
-
-  // --- Right AI Prompt & Build Console Pane ---
-  const typeSelect = h('select', { class: 'studio-select', style: { width: '100%' } },
-    h('option', { value: 'auto' }, 'Proje Türü: Otomatik Algıla'),
-    h('option', { value: 'web' }, 'Web Sitesi / E-Ticaret (HTML/CSS/JS)'),
-    h('option', { value: 'game' }, 'Python Oyunu (.EXE Derlenebilir)'),
-    h('option', { value: 'desktop' }, 'Masaüstü Uygulaması (.EXE)'),
-    h('option', { value: 'cli' }, 'Python Otomasyon / CLI Aracı'),
-  );
-  const promptBox = h('textarea', {
-    class: 'studio-prompt',
-    rows: 6,
-    placeholder: 'Kapsamlı proje isteğini yaz...\nÖrnek: "CNC yedek parçaları satan modern koyu temalı bir e-ticaret sitesi yap. Kategori filtresi, arama, ürün kartları, canlı sepet çekmecesi ve sipariş özeti olsun."\nveya: "Python ile oynanabilir bir uzay gemisi arcade oyunu yap, skor, seviye ve can sistemi olsun."',
-  });
-  const genBtn = h('button', { type: 'button', class: 'btn btn-primary', style: { flex: 1 } }, 'Yeni Proje Oluştur');
-  const iterBtn = h('button', { type: 'button', class: 'btn', style: { flex: 1 }, disabled: true }, 'Mevcut Projeyi Geliştir');
-  const consoleLog = h('div', { class: 'studio-console' }, 'Hazır. Bir proje seçin veya AI ile sıfırdan oluşturun.');
-
-  const quickPresets = h('div', { class: 'studio-presets' },
-    h('button', {
-      type: 'button', class: 'studio-preset-chip',
-      onClick: () => {
-        typeSelect.value = 'web';
-        promptBox.value = 'Modern, profesyonel bir e-ticaret sitesi oluştur: ürün kataloğu, kategori filtreleme, anlık arama, sepet çekmecesi (ekle/çıkar/adet güncelle), indirim kuponu ve ödeme özeti modalı olsun.';
-      },
-    }, ' E-Ticaret Promptu'),
-    h('button', {
-      type: 'button', class: 'studio-preset-chip',
-      onClick: () => {
-        typeSelect.value = 'game';
-        promptBox.value = 'Python tkinter Canvas ile neon temalı, akıcı oynanabilir bir Arcade Yılan / Uzay Oyunu yap. Başlangıç ekranı, skor, en yüksek skor, hızlanan seviyeler, duraklatma (P) ve yeniden başlatma olsun. PyInstaller ile .exe derlemeye uygun modüler dosya yapısında olsun.';
-      },
-    }, ' Oyun (.EXE) Promptu'),
-  );
-
-  const aiPane = h('aside', { class: 'studio-ai-pane' },
-    h('div', { class: 'studio-pane-title' }, 'AI PROJE OLUŞTURUCU'),
-    h('div', { class: 'studio-ai-body' },
-      typeSelect,
-      quickPresets,
-      promptBox,
-      h('div', { class: 'studio-ai-actions' }, genBtn, iterBtn),
-      h('div', { class: 'studio-pane-title', style: { marginTop: '12px', padding: '6px 0' } }, 'DERLEME & OLUŞTURMA GÜNLÜĞÜ'),
-      consoleLog,
-    ),
-  );
-
-  const bodyGrid = h('div', { class: 'studio-body' }, explorerPane, centerPane, aiPane);
-  shell.append(topbar, bodyGrid);
-
-  function appendLog(line, kind = '') {
-    const row = h('div', { class: 'studio-log-line' + (kind ? ` log-${kind}` : '') }, line);
-    consoleLog.appendChild(row);
-    consoleLog.scrollTop = consoleLog.scrollHeight;
-  }
-
-  function clearLog(msg = '') {
-    consoleLog.replaceChildren();
-    if (msg) appendLog(msg);
-  }
-
-  function updateToolbar() {
-    const hasWs = Boolean(activeWsId && activeWsMeta);
-    iterBtn.disabled = !hasWs;
-    newFileBtn.disabled = !hasWs;
-    downloadZipLink.hidden = !hasWs;
-    if (hasWs) {
-      downloadZipLink.href = `/api/studio/workspaces/${activeWsId}/download.zip`;
-    }
-    const hasWeb = Boolean(activeWsMeta?.has_web_preview);
-    previewBtn.hidden = !hasWeb;
-    previewBtn.textContent = previewMode ? 'Koda Dön' : '▶ Canlı Önizleme';
-
-    const hasPy = activeTree.some((n) => n.name.endsWith('.py')) || activeWsMeta?.project_type === 'game' || activeWsMeta?.project_type === 'desktop';
-    buildExeBtn.hidden = !hasPy;
-
-    const hasExe = Boolean(activeWsMeta?.has_exe);
-    downloadExeLink.hidden = !hasExe;
-    if (hasExe) {
-      downloadExeLink.href = `/api/studio/workspaces/${activeWsId}/download-exe`;
-      downloadExeLink.textContent = `⬇ ${activeWsMeta.exe_name || 'App.exe'} İndir`;
-    }
-  }
-
-  function renderTreeNodes(nodes, depth = 0) {
-    const frag = document.createDocumentFragment();
-    for (const node of nodes) {
-      const isDir = node.type === 'dir';
-      const isCollapsed = collapsedDirs.has(node.path);
-      const item = h('div', {
-        class: 'studio-tree-item' + (node.path === activeFilePath ? ' active' : ''),
-        style: { paddingLeft: `${10 + depth * 14}px` },
-        onClick: () => {
-          if (isDir) {
-            if (isCollapsed) collapsedDirs.delete(node.path);
-            else collapsedDirs.add(node.path);
-            renderExplorer();
-          } else {
-            openFile(node.path);
-          }
-        },
-      },
-        h('span', { class: 'tree-chevron' }, isDir ? (isCollapsed ? '▸' : '▾') : ''),
-        h('span', { class: 'tree-icon' }, fileIcon(node.name, isDir)),
-        h('span', { class: 'tree-name' }, node.name),
-        !isDir ? h('span', { class: 'tree-size' }, formatSize(node.size)) : null,
-      );
-      frag.appendChild(item);
-      if (isDir && !isCollapsed && node.children?.length) {
-        frag.appendChild(renderTreeNodes(node.children, depth + 1));
-      }
-    }
-    return frag;
-  }
-
-  function renderExplorer() {
-    treeEl.replaceChildren();
-    if (!activeWsMeta) {
-      treeEl.append(h('div', { class: 'studio-empty-tree' }, 'Çalışma alanı yok.'));
-      return;
-    }
-    const header = h('div', { class: 'studio-ws-root' }, `▾ ${activeWsMeta.name}`);
-    treeEl.appendChild(header);
-    treeEl.appendChild(renderTreeNodes(activeTree, 0));
-  }
+function createWorkspaceController(ui, log) {
+  const renderExplorer = () => renderExplorerView(ui, openFile);
 
   async function openFile(relPath) {
-    if (!activeWsId) return;
-    previewMode = false;
-    previewFrame.hidden = true;
-    codeArea.hidden = false;
+    if (!studioState.activeWsId) return;
+    studioState.previewMode = false;
+    ui.previewFrame.hidden = true;
+    ui.codeArea.hidden = false;
     try {
-      const data = await api(`/api/studio/workspaces/${activeWsId}/file?path=${encodeURIComponent(relPath)}`);
-      activeFilePath = relPath;
-      codeArea.value = data.content || '';
-      codeArea.readOnly = Boolean(data.binary);
-      saveBtn.disabled = Boolean(data.binary);
-      breadcrumb.textContent = `${activeWsMeta?.name || activeWsId} / ${relPath} (${formatSize(data.size)})`;
+      const data = await api(`/api/studio/workspaces/${studioState.activeWsId}/file?path=${encodeURIComponent(relPath)}`);
+      studioState.activeFilePath = relPath;
+      ui.codeArea.value = data.content || '';
+      ui.codeArea.readOnly = Boolean(data.binary);
+      ui.saveBtn.disabled = Boolean(data.binary);
+      ui.breadcrumb.textContent = `${studioState.activeWsMeta?.name || studioState.activeWsId} / ${relPath} (${formatSize(data.size)})`;
       renderExplorer();
-      updateToolbar();
+      updateStudioToolbar(ui);
     } catch (err) {
-      appendLog('Dosya açılamadı: ' + err.message, 'err');
+      log.appendLog('Dosya açılamadı: ' + err.message, 'err');
     }
   }
 
   async function loadWorkspace(wsId) {
-    activeWsId = wsId;
-    activeFilePath = null;
-    previewMode = false;
-    previewFrame.hidden = true;
-    codeArea.hidden = false;
+    studioState.activeWsId = wsId;
+    studioState.activeFilePath = null;
+    studioState.previewMode = false;
+    ui.previewFrame.hidden = true;
+    ui.codeArea.hidden = false;
     const data = await api(`/api/studio/workspaces/${wsId}/tree`);
-    activeWsMeta = data.workspace;
-    activeTree = data.tree || [];
+    studioState.activeWsMeta = data.workspace;
+    studioState.activeTree = data.tree || [];
     renderExplorer();
-    updateToolbar();
+    updateStudioToolbar(ui);
 
-    // Auto-open entry point or first text file
-    const ep = activeWsMeta.entry_point;
-    const flatFiles = [];
-    const collect = (nodes) => {
-      for (const n of nodes) {
-        if (n.type === 'file' && !n.name.endsWith('.exe')) flatFiles.push(n.path);
-        else if (n.children) collect(n.children);
-      }
-    };
-    collect(activeTree);
+    const ep = studioState.activeWsMeta.entry_point;
+    const flatFiles = collectStudioFiles(studioState.activeTree);
     const firstFile = (ep && flatFiles.includes(ep)) ? ep : flatFiles[0];
     if (firstFile) await openFile(firstFile);
   }
@@ -247,196 +107,182 @@ export async function renderStudio(root) {
   async function refreshWorkspaces(selectId = null) {
     const data = await api('/api/studio/workspaces');
     const list = data.workspaces || [];
-    wsSelect.replaceChildren();
+    ui.wsSelect.replaceChildren();
     if (!list.length) {
-      wsSelect.append(h('option', { value: '' }, '— Çalışma alanı yok —'));
-      activeWsId = null;
-      activeWsMeta = null;
-      activeTree = [];
+      ui.wsSelect.append(h('option', { value: '' }, '— Çalışma alanı yok —'));
+      studioState.activeWsId = null;
+      studioState.activeWsMeta = null;
+      studioState.activeTree = [];
       renderExplorer();
-      updateToolbar();
+      updateStudioToolbar(ui);
       return;
     }
     for (const ws of list) {
       const tag = ws.has_exe ? ' [.EXE]' : (ws.has_web_preview ? ' [WEB]' : '');
-      wsSelect.append(h('option', { value: ws.id }, `${ws.name}${tag} (${ws.file_count} dosya)`));
+      ui.wsSelect.append(h('option', { value: ws.id }, `${ws.name}${tag} (${ws.file_count} dosya)`));
     }
-    const target = selectId || (activeWsId && list.some((w) => w.id === activeWsId) ? activeWsId : list[0].id);
-    wsSelect.value = target;
+    const target = selectId || (studioState.activeWsId && list.some((w) => w.id === studioState.activeWsId) ? studioState.activeWsId : list[0].id);
+    ui.wsSelect.value = target;
     await loadWorkspace(target);
   }
 
-  wsSelect.addEventListener('change', () => {
-    if (wsSelect.value) loadWorkspace(wsSelect.value);
+  return { renderExplorer, openFile, loadWorkspace, refreshWorkspaces };
+}
+
+function bindEditorEvents(ui, ctrl, log) {
+  ui.wsSelect.addEventListener('change', () => {
+    if (ui.wsSelect.value) ctrl.loadWorkspace(ui.wsSelect.value);
   });
 
-  saveBtn.addEventListener('click', async () => {
-    if (!activeWsId || !activeFilePath) return;
-    saveBtn.disabled = true;
+  ui.saveBtn.addEventListener('click', async () => {
+    if (!studioState.activeWsId || !studioState.activeFilePath) return;
+    ui.saveBtn.disabled = true;
     try {
-      await api(`/api/studio/workspaces/${activeWsId}/file`, {
+      await api(`/api/studio/workspaces/${studioState.activeWsId}/file`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path: activeFilePath, content: codeArea.value }),
+        body: JSON.stringify({ path: studioState.activeFilePath, content: ui.codeArea.value }),
       });
-      appendLog(`✓ Kaydedildi: ${activeFilePath}`, 'ok');
+      log.appendLog(`✓ Kaydedildi: ${studioState.activeFilePath}`, 'ok');
     } catch (err) {
-      appendLog(`Kaydetme hatası: ${err.message}`, 'err');
+      log.appendLog(`Kaydetme hatası: ${err.message}`, 'err');
     } finally {
-      saveBtn.disabled = false;
+      ui.saveBtn.disabled = false;
     }
   });
 
-  newFileBtn.addEventListener('click', async () => {
-    if (!activeWsId) return;
+  ui.newFileBtn.addEventListener('click', async () => {
+    if (!studioState.activeWsId) return;
     const rel = await uiPrompt('Yeni dosya yolu (ör. js/utils.js veya game/levels.py):', '', 'Yeni Dosya');
     if (!rel || !rel.trim()) return;
     try {
-      await api(`/api/studio/workspaces/${activeWsId}/file`, {
+      await api(`/api/studio/workspaces/${studioState.activeWsId}/file`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ path: rel.trim(), content: '' }),
       });
-      await loadWorkspace(activeWsId);
-      await openFile(rel.trim());
-      appendLog(`✓ Yeni dosya oluşturuldu: ${rel.trim()}`, 'ok');
+      await ctrl.loadWorkspace(studioState.activeWsId);
+      await ctrl.openFile(rel.trim());
+      log.appendLog(`✓ Yeni dosya oluşturuldu: ${rel.trim()}`, 'ok');
     } catch (err) {
-      appendLog(`Dosya oluşturulamadı: ${err.message}`, 'err');
+      log.appendLog(`Dosya oluşturulamadı: ${err.message}`, 'err');
     }
   });
 
-  previewBtn.addEventListener('click', () => {
-    if (!activeWsId) return;
-    previewMode = !previewMode;
-    codeArea.hidden = previewMode;
-    previewFrame.hidden = !previewMode;
-    if (previewMode) {
-      previewFrame.src = `/api/studio/workspaces/${activeWsId}/preview/index.html?t=${Date.now()}`;
-      breadcrumb.textContent = `▶ Canlı Önizleme — ${activeWsMeta?.name || activeWsId}`;
-    } else if (activeFilePath) {
-      breadcrumb.textContent = `${activeWsMeta?.name || activeWsId} / ${activeFilePath}`;
+  ui.previewBtn.addEventListener('click', () => {
+    if (!studioState.activeWsId) return;
+    studioState.previewMode = !studioState.previewMode;
+    ui.codeArea.hidden = studioState.previewMode;
+    ui.previewFrame.hidden = !studioState.previewMode;
+    if (studioState.previewMode) {
+      ui.previewFrame.src = `/api/studio/workspaces/${studioState.activeWsId}/preview/index.html?t=${Date.now()}`;
+      ui.breadcrumb.textContent = `▶ Canlı Önizleme — ${studioState.activeWsMeta?.name || studioState.activeWsId}`;
+    } else if (studioState.activeFilePath) {
+      ui.breadcrumb.textContent = `${studioState.activeWsMeta?.name || studioState.activeWsId} / ${studioState.activeFilePath}`;
     }
-    updateToolbar();
+    updateStudioToolbar(ui);
   });
 
-  buildExeBtn.addEventListener('click', async () => {
-    if (!activeWsId) return;
-    buildExeBtn.disabled = true;
-    buildExeBtn.textContent = '⏳ .EXE Derleniyor...';
-    clearLog('PyInstaller ile tek dosyalık Windows .EXE derlemesi başlatıldı...');
+  ui.buildExeBtn.addEventListener('click', async () => {
+    if (!studioState.activeWsId) return;
+    ui.buildExeBtn.disabled = true;
+    ui.buildExeBtn.textContent = '.EXE Derleniyor...';
+    log.clearLog('PyInstaller ile tek dosyalık Windows .EXE derlemesi başlatıldı...');
     try {
-      const res = await api(`/api/studio/workspaces/${activeWsId}/build-exe`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
+      const res = await api(`/api/studio/workspaces/${studioState.activeWsId}/build-exe`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}),
       });
       if (res.ok) {
-        appendLog(`✓ BAŞARILI: dist/${res.exe_name} (${formatSize(res.exe_size)}) oluşturuldu!`, 'ok');
-        await refreshWorkspaces(activeWsId);
+        log.appendLog(`✓ BAŞARILI: dist/${res.exe_name} (${formatSize(res.exe_size)}) oluşturuldu!`, 'ok');
+        await ctrl.refreshWorkspaces(studioState.activeWsId);
       } else {
-        appendLog(`✗ HATA: ${res.error}`, 'err');
-        if (res.logs) appendLog(res.logs.slice(-1200));
+        log.appendLog(`✗ HATA: ${res.error}`, 'err');
+        if (res.logs) log.appendLog(res.logs.slice(-1200));
       }
     } catch (err) {
-      appendLog(`✗ Derleme hatası: ${err.message}`, 'err');
+      log.appendLog(`✗ Derleme hatası: ${err.message}`, 'err');
     } finally {
-      buildExeBtn.disabled = false;
-      buildExeBtn.textContent = '.EXE Oluştur';
+      ui.buildExeBtn.disabled = false;
+      ui.buildExeBtn.textContent = '.EXE Oluştur';
     }
   });
+}
 
-  async function consumeStudioStream(resp) {
-    if (!resp.ok) {
-      const data = await resp.json().catch(() => ({}));
-      throw new Error(data.detail || `HTTP ${resp.status}`);
-    }
-    const reader = resp.body.getReader();
-    const decoder = new TextDecoder();
-    let buf = '';
-    let finalWsId = activeWsId;
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buf += decoder.decode(value, { stream: true });
-      const lines = buf.split('\n');
-      buf = lines.pop();
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        let evt;
-        try { evt = JSON.parse(line.slice(6)); } catch { continue; }
-        if (evt.type === 'status') {
-          appendLog(`⏳ ${evt.message}`);
-        } else if (evt.type === 'plan') {
-          finalWsId = evt.workspace.id;
-          appendLog(` Plan hazır: ${evt.workspace.name} (${evt.files.length} dosya)`, 'ok');
-        } else if (evt.type === 'file_start') {
-          appendLog(`✍ Yazılıyor [${evt.index}/${evt.total}]: ${evt.path}...`);
-        } else if (evt.type === 'file_done') {
-          appendLog(`✓ Oluşturuldu: ${evt.path} (${formatSize(evt.size)})`, 'ok');
-        } else if (evt.type === 'done') {
-          finalWsId = evt.workspace.id;
-          if (evt.warnings?.length) {
-            for (const w of evt.warnings) appendLog(`! ${w}`, 'err');
-          }
-          appendLog(` Proje hazır! Dosyalar soldaki Explorer ağacında.`, 'ok');
-        } else if (evt.type === 'error') {
-          appendLog(`✗ Hata: ${evt.message}`, 'err');
-        }
-      }
-    }
-    if (finalWsId) await refreshWorkspaces(finalWsId);
-  }
-
-  genBtn.addEventListener('click', async () => {
-    const promptText = promptBox.value.trim();
+function bindGenerationEvents(ui, ctrl, log) {
+  const streamHooks = { appendLog: log.appendLog, refreshWorkspaces: ctrl.refreshWorkspaces };
+  ui.genBtn.addEventListener('click', async () => {
+    const promptText = ui.promptBox.value.trim();
     if (!promptText) return;
-    genBtn.disabled = true;
-    iterBtn.disabled = true;
-    clearLog('AI Proje Oluşturucu başlatıldı...');
+    ui.genBtn.disabled = true;
+    ui.iterBtn.disabled = true;
+    log.clearLog('AI Proje Oluşturucu başlatıldı...');
     try {
       const resp = await safeFetch('/api/studio/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: promptText, project_type: typeSelect.value }),
+        body: JSON.stringify({ prompt: promptText, project_type: ui.typeSelect.value }),
       });
-      await consumeStudioStream(resp);
+      await consumeStudioStream(resp, studioState, streamHooks);
     } catch (err) {
-      appendLog(`✗ Hata: ${err.message}`, 'err');
+      log.appendLog(`✗ Hata: ${err.message}`, 'err');
     } finally {
-      genBtn.disabled = false;
-      updateToolbar();
+      ui.genBtn.disabled = false;
+      updateStudioToolbar(ui);
     }
   });
 
-  iterBtn.addEventListener('click', async () => {
-    const instr = promptBox.value.trim();
-    if (!instr || !activeWsId) return;
-    genBtn.disabled = true;
-    iterBtn.disabled = true;
-    clearLog(`Mevcut proje (${activeWsMeta?.name}) güncelleniyor...`);
+  ui.iterBtn.addEventListener('click', async () => {
+    const instr = ui.promptBox.value.trim();
+    if (!instr || !studioState.activeWsId) return;
+    ui.genBtn.disabled = true;
+    ui.iterBtn.disabled = true;
+    log.clearLog(`Mevcut proje (${studioState.activeWsMeta?.name}) güncelleniyor...`);
     try {
-      const resp = await safeFetch(`/api/studio/workspaces/${activeWsId}/iterate`, {
+      const resp = await safeFetch(`/api/studio/workspaces/${studioState.activeWsId}/iterate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ instruction: instr }),
       });
-      await consumeStudioStream(resp);
+      await consumeStudioStream(resp, studioState, streamHooks);
     } catch (err) {
-      appendLog(`✗ Hata: ${err.message}`, 'err');
+      log.appendLog(`✗ Hata: ${err.message}`, 'err');
     } finally {
-      genBtn.disabled = false;
-      updateToolbar();
+      ui.genBtn.disabled = false;
+      updateStudioToolbar(ui);
     }
   });
+}
 
-  await refreshWorkspaces();
+export async function renderStudio(root) {
+  root.replaceChildren();
+  const shell = h('div', { class: 'studio-shell' });
+  root.appendChild(shell);
 
-  // If launched from the Assistant chat with a project prompt, pre-fill and start automatically!
+  const tb = buildStudioTopbar();
+  const panes = buildStudioPanes(tb.breadcrumb);
+  shell.append(tb.topbar, panes.bodyGrid);
+
+  const ui = { ...tb, ...panes };
+  const log = {
+    appendLog: (line, kind = '') => {
+      ui.consoleLog.appendChild(h('div', { class: 'studio-log-line' + (kind ? ` log-${kind}` : '') }, line));
+      ui.consoleLog.scrollTop = ui.consoleLog.scrollHeight;
+    },
+    clearLog: (msg = '') => {
+      ui.consoleLog.replaceChildren();
+      if (msg) log.appendLog(msg);
+    },
+  };
+
+  const ctrl = createWorkspaceController(ui, log);
+  bindEditorEvents(ui, ctrl, log);
+  bindGenerationEvents(ui, ctrl, log);
+  await ctrl.refreshWorkspaces();
+
   const pending = sessionStorage.getItem('studio_pending_prompt');
   if (pending) {
     sessionStorage.removeItem('studio_pending_prompt');
-    promptBox.value = pending;
-    genBtn.click();
+    ui.promptBox.value = pending;
+    ui.genBtn.click();
   }
 }
