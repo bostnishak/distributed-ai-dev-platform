@@ -79,7 +79,11 @@ async def solve_deep(prompt: str, general_model: str) -> str:
     solution = await _chat(REASONER, ("", english_q + "\n\nGive only the verified final answer: at most 5 short numbered steps that are consistent with your own reasoning (no doubts, no corrections, no repeated cases), then a conclusion that covers every case."), (8000, 900.0), think=True)
     if not solution:
         return ""
-    return await _chat(general_model, ("Translate the solution into fluent, natural Turkish. Keep the numbered steps and every fact exactly; add nothing. Return only the Turkish text.", solution), (1400, 240.0))
+    ask = (
+        "Translate this solution into fluent Turkish. Keep every sentence's meaning exactly; do not solve, reorder or change anything; keep numbering; "
+        "use the object names of the Turkish question (\"" + prompt[:300] + "\"). Output only Turkish:\n\n" + solution
+    )
+    return await _chat(REASONER, ("", ask), (3000, 300.0)) or await _chat(general_model, ("Translate into Turkish. Return only Turkish.", solution), (1400, 240.0))
 
 
 async def solve(prompt: str) -> str:

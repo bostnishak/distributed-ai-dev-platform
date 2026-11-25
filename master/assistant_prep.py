@@ -487,6 +487,7 @@ def build_llm_stream_inputs(
     if constraints.system_notes:
         extra_blocks.append("\n".join(constraints.system_notes))
     extra_blocks.append(reply_labels.now_context())
+    extra_blocks.append(reply_labels.language_note(ctx["prompt"]))
     extra_blocks.append(reasoning_mode.guidance(ctx["prompt"]))
     mem_ctx = "\n\n".join(b for b in extra_blocks if b)
     if mem_ctx and messages:

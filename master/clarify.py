@@ -80,7 +80,8 @@ def clarifying_question(prompt: str, history: str = "", has_file: bool = False) 
     items = _history_items(history)
     if items and CLARIFY_MARKER in str(items[-1].get("text", "")):
         return None  # the user is answering our question: go ahead
-    if not items and (_DEICTIC_RE.search(text) or _PRONOUN_START_RE.search(text)):
+    inline_content = bool(re.search(r"[:\"'“‘«]\s*\S.{12,}", text))  # the text to work on is inside the message itself
+    if not items and not inline_content and (_DEICTIC_RE.search(text) or _PRONOUN_START_RE.search(text)):
         return "Neyi kastettiğini anlayamadım: \"bunu/şunu\" dediğin metin, dosya ya da konu bu sohbette yok. Üzerinde çalışmamı istediğin içeriği yapıştırır mısın ya da dosyayı yükler misin?"
     if not _CREATE_VERB_RE.search(text) or (items and _CONTINUATION_RE.search(text)):
         return None  # not a creation request, or a follow-up that leans on the conversation so far

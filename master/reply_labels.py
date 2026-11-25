@@ -55,3 +55,12 @@ def now_context() -> str:
         f"Güncel tarih ve saat (sunucu saati): {now:%d.%m.%Y} {_DAYS[now.weekday()]}, {now:%H:%M}. "
         "Tarih, gün veya saat sorulursa bunu kullan; canlı veri veya internet erişimin olmadığını unutma."
     )
+
+
+def language_note(prompt: str) -> str:
+    """English question -> English answer (the system prompt is Turkish, so small models drift into Turkish otherwise)."""
+    from orchestrator.classifier import detect_language
+
+    if detect_language(prompt) != "en":
+        return ""
+    return "LANGUAGE: the user wrote in English. Write the whole answer in English (headings, steps, notes); never reply in Turkish, and do not mention this rule."
