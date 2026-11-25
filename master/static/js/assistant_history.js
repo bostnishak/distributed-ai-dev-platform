@@ -1,6 +1,89 @@
 // UX-02 Modular Split: Chat history localStorage + SQLite persistence & sidebar chat list renderer.
 import { getActiveUserId } from './personal.js';
-import { safeFetchJson, storageGet, storageSet } from './storage.js';
+import { bindGlobalEvent, safeFetchJson, storageGet, storageSet } from './storage.js';
+
+// Pin and rename are per-browser conveniences kept beside the chats (the server only stores title/messages).
+function metaKey() { return `cm6453_chat_meta:${getActiveUserId()}`; }
+export function loadChatMeta() {
+  try { return JSON.parse(storageGet(metaKey(), '{}') || '{}'); } catch { return {}; }
+}
+function saveChatMeta(meta) { storageSet(metaKey(), JSON.stringify(meta)); }
+function patchMeta(id, patch) {
+  const meta = loadChatMeta();
+  meta[id] = { ...(meta[id] || {}), ...patch };
+  if (!meta[id].pinned && !meta[id].title) delete meta[id];
+  saveChatMeta(meta);
+}
+
+let ctxMenu = null;
+function closeCtxMenu() { if (ctxMenu) { ctxMenu.remove(); ctxMenu = null; } }
+let ctxBound = false;
+function bindCtxClose() {
+  if (ctxBound) return;
+  ctxBound = true;
+  bindGlobalEvent(document, 'click', closeCtxMenu);
+  bindGlobalEvent(document, 'keydown', (e) => { if (e.key === 'Escape') closeCtxMenu(); });
+  bindGlobalEvent(window, 'blur', closeCtxMenu);
+}
+
+function openCtxMenu(evt, id, chat, state, callbacks, startRename) {
+  evt.preventDefault();
+  closeCtxMenu();
+  bindCtxClose();
+  const pinned = Boolean(loadChatMeta()[id]?.pinned);
+  const entry = (label, fn, danger) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'ctx-item' + (danger ? ' danger' : '');
+    b.textContent = label;
+    b.addEventListener('click', (e) => { e.stopPropagation(); closeCtxMenu(); fn(); });
+    return b;
+  };
+  ctxMenu = document.createElement('div');
+  ctxMenu.className = 'chat-ctx-menu';
+  ctxMenu.setAttribute('role', 'menu');
+  ctxMenu.append(
+    entry(pinned ? 'Sabitlemeyi kaldır' : 'Sabitle', () => { patchMeta(id, { pinned: !pinned }); callbacks.renderChatList(); }),
+    entry('Yeniden adlandır', startRename),
+    entry('Sil', () => { state.pendingDeleteId = id; callbacks.renderChatList(); }, true),
+  );
+  document.body.append(ctxMenu);
+  const w = ctxMenu.offsetWidth; const h = ctxMenu.offsetHeight;
+  ctxMenu.style.left = `${Math.min(evt.clientX, window.innerWidth - w - 8)}px`;
+  ctxMenu.style.top = `${Math.min(evt.clientY, window.innerHeight - h - 8)}px`;
+  ctxMenu.querySelector('button')?.focus();
+}
+
+function renameInline(item, titleSpan, id, chat, callbacks) {
+  const input = document.createElement('input');
+  input.className = 'chat-rename-input';
+  input.value = titleSpan.textContent;
+  input.maxLength = 80;
+  let done = false;
+  const finish = (save) => {
+    if (done) return;
+    done = true;
+    const next = input.value.trim();
+    if (save && next && next !== titleSpan.textContent) {
+      patchMeta(id, { title: next });
+      const chats = loadChats();
+      if (chats[id]) {
+        chats[id].title = next;
+        saveChats(chats);
+        safeFetchJson(`/api/user/${encodeURIComponent(getActiveUserId())}/chats/${encodeURIComponent(id)}`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(chats[id]),
+        });
+      }
+    }
+    callbacks.renderChatList();
+  };
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') finish(true); else if (e.key === 'Escape') finish(false); e.stopPropagation(); });
+  input.addEventListener('blur', () => finish(true));
+  input.addEventListener('click', (e) => e.stopPropagation());
+  titleSpan.replaceWith(input);
+  input.focus();
+  input.select();
+}
 
 export function storageKeys() {
   const uid = getActiveUserId();
@@ -26,7 +109,7 @@ export function persistChatRecord(chatId, messages, currentChatId, onListChanged
   if (!chatId || !Array.isArray(messages) || messages.length === 0) return;
   const chats = loadChats();
   const firstUserMsg = messages.find((m) => m.role === 'user');
-  const title = firstUserMsg ? firstUserMsg.text.slice(0, 42) : 'Yeni sohbet';
+  const title = loadChatMeta()[chatId]?.title || (firstUserMsg ? firstUserMsg.text.slice(0, 42) : 'Yeni sohbet');
   const record = { title, updatedAt: Date.now(), messages: messages.slice() };
   chats[chatId] = record;
   saveChats(chats);
@@ -79,7 +162,8 @@ export function renderSidebarChatList(els, state, callbacks) {
   const chats = loadChats();
   els.chatList.replaceChildren();
   const q = (els.chatSearchInput ? els.chatSearchInput.value : '').trim().toLowerCase();
-  const sorted = Object.entries(chats).sort((a, b) => b[1].updatedAt - a[1].updatedAt);
+  const meta = loadChatMeta();
+  const sorted = Object.entries(chats).sort((a, b) => (Number(Boolean(meta[b[0]]?.pinned)) - Number(Boolean(meta[a[0]]?.pinned))) || (b[1].updatedAt - a[1].updatedAt));
 
   for (const [id, chat] of sorted) {
     if (q) {
@@ -118,7 +202,7 @@ export function renderSidebarChatList(els, state, callbacks) {
       }
       const titleSpan = document.createElement('span');
       titleSpan.className = 'sp-chat-title';
-      titleSpan.textContent = chat.title || 'Sohbet';
+      titleSpan.textContent = meta[id]?.title || chat.title || 'Sohbet';
       const del = document.createElement('span');
       del.className = 'del';
       del.textContent = '✕';
@@ -128,7 +212,15 @@ export function renderSidebarChatList(els, state, callbacks) {
         state.pendingDeleteId = id;
         callbacks.renderChatList();
       });
+      if (meta[id]?.pinned) {
+        const pin = document.createElement('span');
+        pin.className = 'chat-pin';
+        pin.title = 'Sabitlenmiş';
+        pin.textContent = '📌';
+        item.append(pin);
+      }
       item.append(titleSpan, del);
+      item.addEventListener('contextmenu', (e) => openCtxMenu(e, id, chat, state, callbacks, () => renameInline(item, titleSpan, id, chat, callbacks)));
       item.addEventListener('click', () => callbacks.openChat(id));
     }
     els.chatList.appendChild(item);
