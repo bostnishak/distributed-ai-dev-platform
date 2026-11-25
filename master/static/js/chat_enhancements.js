@@ -30,9 +30,8 @@ async function mountModelAndAgentPickers() {
   modelSel.addEventListener('change', () => storageSet(MODEL_KEY, modelSel.value));
   agentSel.addEventListener('change', () => storageSet(AGENT_KEY, agentSel.value));
   const popover = h('div', { id: 'chatToolbarRow', class: 'chat-options', role: 'dialog', 'aria-label': 'Sohbet seçenekleri', hidden: true },
-    h('label', { class: 'chat-options-field' }, h('span', null, 'Model'), modelSel),
-    h('label', { class: 'chat-options-field' }, h('span', null, 'Ajan'), agentSel));
-  const optionsBtn = h('button', { id: 'chatOptionsBtn', type: 'button', class: 'pill-icon-btn', title: 'Model ve ajan seç', 'aria-label': 'Model ve ajan seç', 'aria-expanded': 'false' }, pillIcon('tune'));
+    h('label', { class: 'chat-options-field' }, h('span', null, 'Model'), modelSel));
+  const optionsBtn = h('button', { id: 'chatOptionsBtn', type: 'button', class: 'pill-icon-btn', title: 'Model seç', 'aria-label': 'Model seç', 'aria-expanded': 'false' }, pillIcon('tune'));
   const setOpen = (open) => { popover.hidden = !open; optionsBtn.setAttribute('aria-expanded', String(open)); };
   optionsBtn.addEventListener('click', (e) => { e.stopPropagation(); setOpen(popover.hidden); });
   popover.addEventListener('click', (e) => e.stopPropagation());
@@ -53,7 +52,8 @@ async function mountModelAndAgentPickers() {
   }
   if (savedModel) modelSel.value = savedModel;
 
-  const savedAgent = storageGet(AGENT_KEY, '') || '';
+  storageSet(AGENT_KEY, ''); // no agent picker in the composer anymore: never apply a stale hidden choice
+  const savedAgent = '';
   const agents = (aRes.ok && aRes.data && aRes.data.agents) || [];
   for (const ag of agents) {
     const id = ag.agent_id || ag.id || '';
