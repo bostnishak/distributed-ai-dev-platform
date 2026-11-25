@@ -47,3 +47,8 @@ def test_answer_after_our_question_is_not_asked_again():
 def test_dangling_reference_in_a_new_chat_asks_what_is_meant():
     assert "kastettiğini" in clarify.clarifying_question("bunu düzelt")
     assert clarify.clarifying_question("bunu düzelt", history=json.dumps([{"role": "user", "text": "x"}])) is None
+
+
+def test_pronoun_question_in_a_new_chat_asks_what_is_meant():
+    assert "kastettiğini" in clarify.clarifying_question("peki ya onun fiyatı?")
+    assert clarify.clarifying_question("peki ya onun fiyatı?", history=json.dumps([{"role": "user", "text": "iPhone 15 nedir"}])) is None
