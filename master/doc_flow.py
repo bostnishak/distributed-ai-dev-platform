@@ -12,6 +12,7 @@ import doc_calc
 import doc_polish
 import doc_proof
 import doc_research
+import doc_sanity
 import doc_render_docx
 import doc_render_pdf
 import doc_spec
@@ -105,6 +106,8 @@ async def _attempt(prompt: str, fmt: str, ctx: tuple[str, str, list[dict[str, st
     if spec is None:
         raise RuntimeError(NO_CONTENT)
     await doc_proof.proofread(spec["blocks"], model)
+    if unsure := doc_sanity.implausible_results(spec):  # never hand over absurd figures silently
+        spec["blocks"].append({"type": "para", "text": "Not: Bu belgedeki bazı hesap sonuçları otomatik tutarlılık denetiminden geçemedi (" + unsure[0][:160] + "). Kullanmadan önce rakamları doğrulayın."})
     spec["blocks"] += doc_research.bibliography(sources)
     pages = _build_pdf_fitting(out_path, spec, fonts, prompt) if fmt == "pdf" else 0
     if fmt != "pdf":

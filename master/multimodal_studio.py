@@ -18,6 +18,7 @@ from typing import Any
 import httpx
 
 import config
+import flowchart_studio
 import poster_icons
 import poster_layout
 import poster_palettes
@@ -133,7 +134,7 @@ STUDIO_PALETTES: dict[str, dict[str, str]] = {
     "violet_aurora": {"name": "Indigo ve Aurora", "bg1": "#09071a", "bg2": "#161136", "bg3": "#0f172a", "primary": "#8b5cf6", "secondary": "#ec4899", "accent": "#c4b5fd", "text": "#f5f3ff", "muted": "#a5b4fc", "card": "#151230", "grid": "#8b5cf6"},
 }
 STUDIO_PALETTES.update(poster_palettes.EXTRA)
-ARCHETYPE_ORDER = ["hex_nexus", "orbital_ring", "prism_monolith", "wing_aero", "neural_constellation", "wave_pulse", "shield_crest", "leaf_organic"]
+ARCHETYPE_ORDER = ["hex_nexus", "orbital_ring", "prism_monolith", "wing_aero", "neural_constellation", "wave_pulse", "shield_crest", "leaf_organic", "pine_forest"]
 LAYOUT_ORDER = ["badge_showcase", "horizontal_lockup", "centered_emblem"]
 
 
@@ -161,6 +162,7 @@ def _pick_archetype_from_text(text: str, seed: int) -> str:
         return ARCHETYPE_ORDER[seed % len(ARCHETYPE_ORDER)]
     low = text.lower()
     rules = (
+        ("pine_forest", ("orman", "forest", "outdoor", "kamp", "dağ", "mountain", "ağaç", "tree")),
         ("wing_aero", ("havacılık", "havacilik", "uçak", "cnc", "otomotiv", "hız", "drone")),
         ("leaf_organic", ("doğa", "doga", "organik", "eko", "tarım", "bitki", "sağlık")),
         ("shield_crest", ("güvenlik", "guvenlik", "siber", "finans", "banka", "hukuk", "savunma")),
@@ -181,7 +183,10 @@ def _user_slogan(text: str) -> str:
 
 def _extract_quoted_brand(text: str) -> str:
     m = re.search(r'["\u201c\u201d\']([A-Za-z0-9ÇĞİÖŞÜçğıöşü\-\s]{2,26})["\u201c\u201d\']', text)
-    return m.group(1).strip().upper() if m else ""
+    if not m:
+        return ""
+    name = m.group(1).strip()
+    return poster_studio.tr_upper(name) if poster_studio.is_turkish(text) else name.upper()
 
 
 async def _llm_json_call(sys_msg: str, user_msg: str, model: str, num_predict: int = 360) -> dict[str, Any] | None:
@@ -276,6 +281,12 @@ def _emblem_svg_group(archetype: str, pal: dict[str, str], use_solid: bool = Fal
             f'<path d="M0,-74 L60,-46 L60,6 C60,44 34,68 0,80 C-34,68 -60,44 -60,6 L-60,-46 Z" fill="{p2}" opacity="0.22"/>',
             f'<path d="M-34,-8 L-6,22 L40,-28" fill="none" stroke="{p1}" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>',
             f'<path d="M-34,-8 L-6,22 L40,-28" fill="none" stroke="{acc}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>',
+        ],
+        "pine_forest": [
+            f'<circle cx="0" cy="0" r="90" fill="none" stroke="{p1}" stroke-width="3" opacity="0.32"/>',
+            f'<rect x="-8" y="52" width="16" height="30" rx="3" fill="{p2}"/>',
+            f'<polygon points="0,-82 44,-24 -44,-24" fill="{p1}"/><polygon points="0,-52 56,18 -56,18" fill="{p1}" opacity="0.92"/>',
+            f'<polygon points="0,-18 68,56 -68,56" fill="{acc}" opacity="0.95"/>',
         ],
         "leaf_organic": [
             f'<circle cx="0" cy="0" r="90" fill="none" stroke="{p1}" stroke-width="3" opacity="0.32"/>',
@@ -500,6 +511,17 @@ def _save_true_color_png(spec_or_svg: dict[str, str] | str, out_png: Path, fallb
         rasterize_svg_to_png(spec_or_svg, out_png, fallback_bg, "")
 
 
+async def _flow_spec(prompt: str) -> dict[str, Any] | None:
+    """The user's own process as steps and arrows (two tries); None when the request is not a flow or the model's flow is unusable."""
+    if not flowchart_studio.is_flow_request(prompt):
+        return None
+    model = await pick_best_model("general")
+    for _ in range(2):
+        if flow := flowchart_studio.clean(await _llm_json_call(flowchart_studio.SYSTEM, prompt, model, 900)):
+            return flow
+    return None
+
+
 async def generate_ai_image(prompt: str, history: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     """Generate multi-mode visual artwork (logo, diagram, poster, or scenic illustration) + crisp PNG."""
     file_id = f"img-gen-{datetime.now(UTC).strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:6]}"
@@ -521,9 +543,15 @@ async def generate_ai_image(prompt: str, history: list[dict[str, Any]] | None = 
         svg_text, pal_key, engine = _render_studio_svg(spec, use_solid=False), spec["palette"], f"vector-studio ({spec.get('model', 'local')})"
         meta = {"brand_name": spec["brand_name"], "tagline": spec["tagline"], "archetype": spec["archetype"], "layout": spec["layout"]}
     elif mode == "diagram_infographic":
-        spec_d = await _diagram_spec_from_llm(combined_prompt, seed)
-        svg_text, pal_key, engine = _render_diagram_svg(spec_d), spec_d["palette"], f"diagram-studio ({spec_d.get('model', 'local')})"
-        meta = {"brand_name": spec_d["title"], "tagline": spec_d["subtitle"]}
+        flow = await _flow_spec(combined_prompt)
+        if flow:
+            pal_key = _pick_palette_from_text(combined_prompt, seed)
+            svg_text, engine = flowchart_studio.render(flow, STUDIO_PALETTES[pal_key]), "flowchart-studio (local)"
+            meta = {"brand_name": flow["title"], "tagline": ""}
+        else:
+            spec_d = await _diagram_spec_from_llm(combined_prompt, seed)
+            svg_text, pal_key, engine = _render_diagram_svg(spec_d), spec_d["palette"], f"diagram-studio ({spec_d.get('model', 'local')})"
+            meta = {"brand_name": spec_d["title"], "tagline": spec_d["subtitle"]}
     elif mode == "poster_cover":
         spec_p = await _poster_spec_from_llm(combined_prompt, seed)
         svg_text, pal_key, engine = _render_poster_svg(spec_p), spec_p["palette"], f"poster-studio ({spec_p.get('model', 'local')})"

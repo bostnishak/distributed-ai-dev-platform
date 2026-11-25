@@ -64,7 +64,12 @@ def test_missing_numbers_become_questions_not_guesses():
     assert gc.build_job({"stock": {"x": 60, "y": 40, "z": 12}, "operations": [{"type": "hole"}]})[0] is None
     assert gc.build_job({"stock": {"x": 60, "y": 40, "z": 12}, "operations": []})[1]
     assert "PCD" in gc.build_job({"stock": {"x": 60, "y": 40, "z": 12}, "operations": [{"type": "holes", "pattern": "circle", "diameter": 5}]})[1]
-    assert "derinliğini" in gc.build_job({"stock": {"x": 60, "y": 40, "z": 12}, "operations": [{"type": "pocket", "width": 10, "length": 10}]})[1]
+    assert "genişlik" in gc.build_job({"stock": {"x": 60, "y": 40, "z": 12}, "operations": [{"type": "pocket", "length": 10, "depth": 2}]})[1]
+
+
+def test_missing_depth_gets_a_shallow_default_instead_of_a_question():
+    job, question = gc.build_job({"stock": {"x": 60, "y": 40, "z": 12}, "operations": [{"type": "slot", "width": 6, "length": 40}]})
+    assert job is not None and not question and job.ops[0]["depth"] == 3.0
 
 
 def test_grbl_has_no_tool_change_and_no_canned_cycles():

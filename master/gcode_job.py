@@ -70,6 +70,8 @@ def _slot(op: dict[str, Any], stock: tuple[float, ...]) -> tuple[dict[str, Any] 
 def _shape_op(kind: str, op: dict[str, Any], stock: tuple[float, ...]) -> tuple[dict[str, Any] | None, str]:
     """Operations with their own geometry: pocket, round pocket, slot, profile, engraving; positions default to the stock centre."""
     pos = {"x": _num(op.get("x")) or stock[0] / 2, "y": _num(op.get("y")) or stock[1] / 2}
+    if kind in ("pocket", "round_pocket", "slot") and _num(op.get("depth")) is None:
+        op = {**op, "depth": round(min(3.0, stock[2] / 2), 1)}  # depth not given: a shallow default (half the thickness, at most 3 mm), shown under "Varsayımlar"
     if kind == "pocket":
         return ({**op, **pos}, "") if not (q := _need(op, ("width", "length", "depth"), "Cebin genişlik, uzunluk ve derinliğini (mm) belirtir misin?")) else (None, q)
     if kind == "round_pocket":

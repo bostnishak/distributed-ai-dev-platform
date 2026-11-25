@@ -85,11 +85,11 @@ def _english_ratio(text: str) -> float:
 async def solve_deep(prompt: str, general_model: str) -> str:
     """Translate to English, let the reasoning model think (it is far stronger in English), translate the verified solution back."""
     english_q = await _chat(general_model, ("Translate the user's question into precise English. Return only the translation.", prompt), (700, 120.0))
-    solution = await _chat(REASONER, ("", english_q + "\n\nGive only the verified final answer: at most 5 short numbered steps that are consistent with your own reasoning (no doubts, no corrections, no repeated cases), then a conclusion that covers every case."), (5000, 600.0), think=True)
+    solution = await _chat(REASONER, ("", english_q + "\n\nGive only the verified final answer: at most 5 short numbered steps that are consistent with your own reasoning (no doubts, no corrections, no repeated cases), then a conclusion that covers every case."), (3500, 240.0), think=True)
     if not solution:
         return ""
     ask = "Translate this solution into Turkish. Keep every sentence's meaning exactly; do not solve, reorder or change anything. Output only Turkish:\n\n" + solution
-    turkish = await _chat(REASONER, ("", ask), (3000, 300.0))
+    turkish = await _chat(REASONER, ("", ask), (2500, 150.0))
     if _english_ratio(turkish) > 0.06:  # the reasoner drifted back into English: translate again with the general model
         turkish = await _chat(general_model, ("Translate into Turkish. Return only Turkish.", solution), (1400, 240.0))
     return turkish if _english_ratio(turkish) <= 0.06 else ""

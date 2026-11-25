@@ -42,4 +42,8 @@ def pick(text: str, seed: int, keys: list[str]) -> str:
     for key, words in _RULES:
         if has(words):
             return key
+    quoted = " ".join(_QUOTED_RE.findall((text or "").lower()))  # a brand called 'Mavi Orman' still suggests blue when nothing else names a colour
+    for key, words in _RULES[:9]:
+        if any(re.search(rf"(?<!\w){re.escape(w)}", quoted) for w in words):
+            return key
     return keys[seed % len(keys)]

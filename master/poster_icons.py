@@ -11,7 +11,7 @@ _ICONS: dict[str, str] = {
     "cup": '<path d="M18 38h46v22a22 22 0 0 1-22 22h-2a22 22 0 0 1-22-22z"/><path d="M64 44h8a10 10 0 0 1 0 20h-8"/><path d="M30 28c0-6 6-6 6-12M44 28c0-6 6-6 6-12M58 28c0-6 6-6 6-12"/><path d="M14 90h58"/>',
     "waves": '<path d="M8 36q10-12 21 0t21 0 21 0 21 0"/><path d="M8 56q10-12 21 0t21 0 21 0 21 0"/><path d="M8 76q10-12 21 0t21 0 21 0 21 0"/>',
     "mountain": '<path d="M6 82 38 26l18 30 12-16 26 42z"/><path d="M30 40l8 14 8-8"/>',
-    "tree": '<path d="M50 90V54"/><circle cx="50" cy="34" r="22"/><path d="M50 66 38 54M50 60l12-10"/>',
+    "tree": '<path d="M50 92V76"/><path d="M50 12 30 40h10L24 62h14L20 80h60L62 62h14L60 40h10Z" stroke-linejoin="round"/>',
     "sun": '<circle cx="50" cy="50" r="18"/><path d="M50 8v14M50 78v14M8 50h14M78 50h14M20 20l10 10M70 70l10 10M80 20 70 30M30 70 20 80"/>',
     "moon": '<path d="M66 14a38 38 0 1 0 22 60A32 32 0 0 1 66 14z"/>',
     "house": '<path d="M10 50 50 14l40 36"/><path d="M20 44v44h60V44"/><path d="M42 88V62h16v26"/>',
