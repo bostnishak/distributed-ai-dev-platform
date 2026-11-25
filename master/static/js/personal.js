@@ -155,7 +155,6 @@ function renderTopBar() {
   const bar = document.getElementById('assistantTopBar');
   if (!bar || !profile) return;
   const s = profile.settings || DEFAULTS;
-  const themeLabel = s.theme === 'dark' ? 'Koyu Mod' : s.theme === 'light' ? 'Açık Mod' : s.theme === 'high-contrast' ? 'Yüksek Kontrast' : 'Sistem Teması';
 
   const greet = document.getElementById('heroGreeting');
   if (greet) {
@@ -175,7 +174,7 @@ function renderTopBar() {
         icon('chart'),
         h('strong', null, `${compact(monthTokens || 0)} token`),
         h('span', { class: 'muted' }, `· ${monthMessages} mesaj`)),
-      h('button', { type: 'button', class: 'sp-pill', title: `Görünüm ve tema: ${themeLabel}`, 'aria-label': 'Görünüm ve tema', onClick: () => openPanel('appearance') },
+      h('button', { type: 'button', class: 'sp-pill', title: document.documentElement.dataset.theme === 'dark' ? 'Açık temaya geç' : 'Koyu temaya geç', 'aria-label': 'Temayı değiştir', onClick: () => { savePatch({ settings: { theme: document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark' } }); flushSave(); } },
         icon(document.documentElement.dataset.theme === 'dark' ? 'sun' : 'moon'))));
 }
 
