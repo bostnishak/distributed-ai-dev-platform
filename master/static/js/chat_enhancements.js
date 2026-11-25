@@ -32,7 +32,18 @@ async function mountModelAndAgentPickers() {
   const popover = h('div', { id: 'chatToolbarRow', class: 'chat-options', role: 'dialog', 'aria-label': 'Sohbet seçenekleri', hidden: true },
     h('label', { class: 'chat-options-field' }, h('span', null, 'Model'), modelSel));
   const optionsBtn = h('button', { id: 'chatOptionsBtn', type: 'button', class: 'pill-icon-btn', title: 'Model seç', 'aria-label': 'Model seç', 'aria-expanded': 'false' }, pillIcon('tune'));
-  const setOpen = (open) => { popover.hidden = !open; optionsBtn.setAttribute('aria-expanded', String(open)); };
+  const setOpen = (open) => {
+    popover.hidden = !open;
+    optionsBtn.setAttribute('aria-expanded', String(open));
+    if (open) {
+      const wrap = inputWrap.getBoundingClientRect();
+      const btn = optionsBtn.getBoundingClientRect();
+      const width = popover.offsetWidth || 220;
+      const left = Math.max(8, Math.min(btn.right - wrap.left - width, wrap.width - width - 8));
+      popover.style.left = `${left}px`;
+      popover.style.bottom = `${wrap.bottom - btn.top + 8}px`;
+    }
+  };
   optionsBtn.addEventListener('click', (e) => { e.stopPropagation(); setOpen(popover.hidden); });
   popover.addEventListener('click', (e) => e.stopPropagation());
   bindGlobalEvent(document, 'click', () => setOpen(false));
