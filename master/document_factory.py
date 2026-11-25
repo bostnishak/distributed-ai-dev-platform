@@ -32,6 +32,7 @@ from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
 import multimodal_studio as mms
+import office_flow
 from document_chart import _coerce_excel_cell, _row_height, chart_series, format_cell, render_bar_chart_png
 from document_chart import pdf_wrap_lines as _pdf_wrap_lines
 from document_formulas import is_rate_column, row_total_formula
@@ -194,12 +195,14 @@ async def generate_document_deliverable(prompt: str, fmt: str, context_text: str
     file_id = f"doc-{datetime.now(UTC).strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:6]}"
     target_lang = _detect_requested_language(prompt)
     lbl = _labels(target_lang)
+    if fmt in office_flow.FORMATS and not context_text.strip():
+        return await office_flow.generate(prompt, fmt, (target_lang, model), mms.media_dir() / f"{file_id}.{fmt}", (_extract_json_object, _find_unicode_fonts()))
     schema_prompt = load_prompt("b3_document_factory_schema.txt").replace("{target_lang}", target_lang)
     user_msg = f"{prompt}\n\n{lbl['source_note']}\n{context_text[:8000]}" if context_text else prompt
     if (pages := re.search(r"(\d{1,2})\s*(?:sayfa|page)", prompt, re.I)) and not context_text:
         user_msg += f"\n\n[Not: Belge yaklaşık {pages.group(1)} sayfa olmalı: toplam en az {int(pages.group(1)) * 380} kelime, bölümleri ayrıntılı ve dolu yaz.]"
     if re.search(r"(grafik|chart|diyagram)", prompt, re.I) and not context_text:
-        user_msg += "\n\n[Not: Grafik isteniyor. Tabloda 1 kategori sütunu ve en az 1 sayısal sütun olsun; sayısal sütun başlığına (örnek değerler) yaz.]"
+        user_msg += "\n\n[Not: Grafik isteniyor. Tabloda 1 kategori sütunu ve en az 1 sayısal sütun olsun; sayısal sütunun başlığına birimini yaz (ör. Gelir (TL)).]"
     spec = _build_fallback_spec(prompt, context_text, target_lang)
     try:
         import gateway

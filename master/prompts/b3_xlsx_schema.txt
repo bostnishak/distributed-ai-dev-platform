@@ -1,0 +1,30 @@
+Kullanıcının istediği Excel çalışma kitabını {target_lang} dilinde hazırla. SADECE geçerli bir JSON objesi döndür:
+{
+  "title": "Çalışma kitabının başlığı (konuya özgü)",
+  "description": "1-2 cümle: bu dosya ne işe yarar, nasıl kullanılır",
+  "sheets": [
+    {
+      "name": "Sayfa adı (en fazla 25 karakter)",
+      "headers": ["Sütun 1", "Sütun 2", "Sütun 3"],
+      "rows": [["metin", 120, 3.5]],
+      "formula_columns": [{"header": "Toplam", "formula": "={Sütun 2}*{Sütun 3}"}],
+      "summary": [{"label": "Genel Toplam", "function": "SUM", "column": "Toplam"}, {"label": "Bütçe", "value": 500000}, {"label": "Kalan", "formula": "=@Bütçe-@Genel Toplam"}, {"label": "Durum", "formula": "=IF(@Genel Toplam>@Bütçe,\"Aşıldı\",\"Bütçe içinde\")"}],
+      "chart": {"type": "bar", "title": "Grafik başlığı", "category": "Sütun 1", "values": ["Toplam"]}
+    }
+  ],
+  "comparison": {"name": "Karşılaştırma", "title": "Başlık", "column": "Toplam", "function": "SUM", "chart_title": "Grafik başlığı"}
+}
+KURALLAR:
+- İçerik tamamen kullanıcının isteğine uygun olsun. Konu belirtilmemişse tek bir somut, gündelik senaryo seç (aylık bütçe, stok takibi, ders notları, proje görev takibi, spor antrenman planı gibi) ve bütün sayfaları o senaryoya bağla; dosya Excel'i anlatmasın, kullanıma hazır bir çalışma dosyası olsun.
+- Kullanıcı "Excel'in özelliklerini kullanmış olayım" gibi bir şey isterse: 1. sayfada veri + satır formülü + özet satırı + grafik, 2. sayfada aynı senaryodan farklı bir analiz (ör. IF ile durum sütunu, ortalama/en yüksek/en düşük) olsun.
+- Sayı hücreleri tırnaksız JSON sayısı olsun (ör. 1250 veya 3.5); para birimi/birim sütun başlığında yazsın. Kullanıcı sayı verdiyse birebir kullan, vermediyse mantıklı ve birbiriyle tutarlı değerler yaz.
+- Her sayfada 6-12 dolu satır olsun; "Örnek", "Kalem 1", "(örnek değerler)" gibi yer tutucu yazma.
+- formula_columns: satır başına hesaplanır. Hücre harfi YAZMA; başka sütunlara BAŞLIK ADIYLA süslü parantez içinde başvur: {Malzeme Gideri (TL)} gibi (başlık, headers'taki ya da daha önce tanımladığın bir formül sütununun başlığıyla birebir aynı olsun). Örnek: "=({Malzeme} + {İşçilik}) * 0.20". İzinli: + - * / SUM AVERAGE MIN MAX COUNT IF ROUND ABS AND OR (ör. =IF({Not}>=50,"Geçti","Kaldı")). Metin içeren sütunlara başvurma.
+- summary: function yalnızca SUM, AVERAGE, MIN, MAX veya COUNT; column mevcut bir sütun başlığı olmalı. Birim fiyat/oran sütununu toplama.
+- chart: yalnızca kategori sütunu + sayısal sütun varsa ekle; type bar, line veya pie; category ve values mevcut başlıklardan olsun. Anlamsızsa chart'ı hiç ekleme.
+- summary satırları üç türdür: (1) function+column ile sütun özeti; (2) sabit "value" (ör. bütçe, hedef); (3) "formula": diğer summary satırlarına @Etiket ile başvuran formül (ör. "=@Bütçe-@Genel Toplam"). Bütçe/hedef karşılaştırmaları satır satır değil, MUTLAKA toplam üzerinden yapılır (satır formülünde bütçeyle kıyaslama yapma). Kullanıcı bir limit/bütçe verdiyse onu summary'ye "value" olarak koy ve "Kalan" ile "Durum" satırlarını ekle.
+- comparison: birden fazla sayfa (ör. şantiye, şube, bölüm) varsa ve kullanıcı karşılaştırma istediyse ekle; column her sayfada bulunan bir sütun başlığı olsun. Aksi halde hiç ekleme.
+- Vergi/oran hesaplarında matematiği doğru kur: KDV, matrah olan TÜM tutarların toplamı üzerinden hesaplanır (ör. =(B{r}+C{r})*0.20); KDV dahil toplam = matrah + KDV. "Aylık" denmişse satırlar aylar olsun (her ay bir satır).
+- Tarihlerde bugünün tarihini baz al: bugün {today}. Geçmiş yıllar yazma, güncel dönemi kullan.
+- Sayfa adlarında Türkçe karakter kullanabilirsin (ör. Kadıköy). Yazım hatası yapma.
+- 1-4 sayfa. Asla emoji kullanma.

@@ -19,8 +19,9 @@ from typing import Any
 
 import workspace_docker
 import workspace_node
+import workspace_web
 from process_utils import run_process
-from workspace_checks import static_problem
+from workspace_checks import extract_file, static_problem
 from workspace_contract import contract_problem
 from workspace_requirements import _PIP_NAMES, repair_project
 
@@ -125,8 +126,9 @@ def _repair_prompt(ws_dir: Path, target: Path, log: str) -> tuple[str, str]:
 
 
 def _apply_fix(target: Path, fixed: str, ws_dir: Path) -> None:
-    if fixed.strip():
-        target.write_text(re.sub(r"^```\w*\n|\n```\s*$", "", fixed.strip()), encoding="utf-8")
+    """Write the repaired file; a reply with several files or stray prose is reduced to the one block that belongs to `target`."""
+    if body := extract_file(fixed, target.suffix):
+        target.write_text(body, encoding="utf-8")
     repair_project(ws_dir)
 
 
@@ -143,6 +145,10 @@ async def smoke_and_repair(ws_dir: Path, regenerate: _Regenerate, rounds: int = 
             yield {"type": "smoke", "ok": True, "warning": f"Otomatik test çalıştırılamadı: {exc}"}
             return
         passed, target, log = _diagnose(ws_dir, ok, log, routes)
+        if passed and workspace_web.has_page(ws_dir) and workspace_docker.available():
+            result = await asyncio.to_thread(workspace_web.probe, ws_dir)  # real page load + clicks in jsdom
+            if result and (found := workspace_web.problem(ws_dir, result)):
+                passed, target, log = False, found[0], found[1]
         if passed:
             test_warning = await asyncio.to_thread(_tests_problem, ws_dir) if entry else ""
             yield {"type": "smoke", "ok": True, "warning": test_warning}

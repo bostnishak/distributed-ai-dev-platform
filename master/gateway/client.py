@@ -160,7 +160,7 @@ class LLMClient:
         if chosen_prov not in self.providers:
             chosen_prov = next(iter(self.providers))
         fitted_msgs, ctx_info = gw_registry.fit_messages_to_context(messages, sel.ctx_max)
-        num_ctx = call.num_ctx if call.num_ctx and call.num_ctx > 0 else gw_registry.choose_dynamic_num_ctx(ctx_info["ctx_used"], sel.ctx_max)
+        num_ctx = call.num_ctx if call.num_ctx and call.num_ctx > 0 else gw_registry.choose_dynamic_num_ctx(ctx_info["ctx_used"], sel.ctx_max, call.num_predict or config.ASSISTANT_NUM_PREDICT)
         decoding_opts = self._build_options(prof, num_ctx, num_predict=call.num_predict, seed=call.seed)
         cache_key = ""
         if call.use_cache and not call.private_user_data and not call.tools:

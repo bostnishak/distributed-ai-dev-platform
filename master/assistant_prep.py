@@ -17,10 +17,13 @@ import httpx
 from fastapi import Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 
+import answer_sources
 import config
 import extract as _extract_mod
+import reasoning_mode
 import reply_labels
-import wiki_ground
+import research_context
+import table_stats
 from extract import extract_csv_text, extract_docx_text, extract_pdf_text, extract_xlsx_text, extract_zip_text
 from prep_notes import split_pre_notes
 from upload_guard import PARSE_ERRORS, parse_failure, read_limited
@@ -300,7 +303,7 @@ def enrich_prompt_with_kb(prompt: str, extracted_text: str) -> str:
         trunc = f"\n[Not: Dosya uzunluğu {len(extracted_text)} karakter; ilk {limit} karakter gösteriliyor.]" if len(extracted_text) > limit else ""
         return (
             f"{prompt}\n\n--- Eklenen dosya içeriği (GERÇEK VERİ - uydurma yapma, olmayan hata ekleme) ---\n"
-            f"{extracted_text[:limit]}{trunc}"
+            f"{extracted_text[:limit]}{trunc}{table_stats.summary(extracted_text)}"
         )
     import company_rag
     import hybrid_graph_rag
@@ -378,20 +381,7 @@ def _build_research_context(prompt: str, has_file: bool, is_prompt_conv: bool) -
 
     if is_prompt_conv or has_file:
         return [], ""
-    if not chat_contracts.is_grounded_research_request(prompt, has_file):
-        return wiki_ground.lookup(prompt)
-    sources = chat_contracts.gather_research_sources(prompt)
-    if sources:
-        src_lines = [f"[{s['id']}] {s['title']} ({s['url']}): {s['snippet']}" for s in sources]
-        return sources, (
-            "ARAŞTIRMA KAYNAKLARI (yalnızca bu kaynaklara dayanarak yanıtla ve her önemli olguda [S1], [S2] atıfı ekle):\n"
-            + "\n".join(src_lines)
-        )
-    return [], (
-        "ARAŞTIRMA NOTU: Canlı web araması (SearXNG) şu an yapılandırılmamış. "
-        "Temel akademik kavramları [S1] biçiminde standart referanslara (ör. Nielsen & Chuang, NIST) bağlayarak özetle "
-        "ve yanıtın sonunda 'Kaynaklar' listesi ile 'Not: Canlı web araması kapalı olduğu için güncel veriler doğrulanmadı.' uyarısını ekle."
-    )
+    return research_context.build(prompt, chat_contracts.is_grounded_research_request(prompt, has_file))
 
 
 def _append_history_messages(messages: list[dict[str, Any]], history: str, is_prompt_conv: bool) -> None:
@@ -497,6 +487,7 @@ def build_llm_stream_inputs(
     if constraints.system_notes:
         extra_blocks.append("\n".join(constraints.system_notes))
     extra_blocks.append(reply_labels.now_context())
+    extra_blocks.append(reasoning_mode.guidance(ctx["prompt"]))
     mem_ctx = "\n\n".join(b for b in extra_blocks if b)
     if mem_ctx and messages:
         messages[0]["content"] = f"{messages[0]['content']}\n\n{mem_ctx}"
@@ -518,15 +509,7 @@ def _finalize_buffered_text(
     import chat_contracts
 
     final_text = chat_contracts.enforce_output_constraints("".join(buffered), constraints)
-    if grounded_research and "[S1]" not in final_text:
-        if research_sources:
-            ref_lines = "\n".join(f"- [{s['id']}] {s['title']} — {s['url']}" for s in research_sources)
-            return f"{final_text}\n\n### Kaynaklar\n{ref_lines}"
-        return (
-            f"{final_text}\n\n### Kaynaklar\n"
-            "- [S1] Genel kavramsal özet (Not: Canlı web araması kapalı olduğu için güncel kaynak doğrulaması yapılmadı; SEARXNG_URL ile web aramasını açabilirsiniz.)"
-        )
-    return final_text
+    return answer_sources.finalize(final_text, research_sources, grounded_research)
 
 
 def _build_done_evt(evt: dict[str, Any], model: str, task_type: str) -> dict[str, Any]:
@@ -583,11 +566,11 @@ def create_llm_stream_response(stream_cfg: dict[str, Any], strip_emojis_fn: Any)
             if stream_cfg["pre_note"]:
                 yield f"data: {json.dumps({'type': 'token', 'content': stream_cfg['pre_note']}, ensure_ascii=False)}\n\n"
             async for evt in gateway.default_client.stream(
-                stream_cfg["messages"], model=model, task_type=task_type, profile=gw_profile, user_id=user_id, timeout_s=180.0
+                stream_cfg["messages"], model=model, task_type=task_type, profile=gw_profile, user_id=user_id, timeout_s=420.0
             ):
                 for line in _handle_stream_event(evt, state, strip_emojis_fn):
                     yield line
         except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError, RuntimeError, AttributeError, ImportError) as exc:
-            yield f"data: {json.dumps({'type': 'error', 'content': str(exc)})}\n\n"
+            yield f"data: {json.dumps({'type': 'error', 'content': str(exc) or 'Yerel model zamanında cevap vermedi (meşgul olabilir); lütfen tekrar dene.'}, ensure_ascii=False)}\n\n"
 
     return StreamingResponse(_stream_gen(), media_type="text/event-stream")

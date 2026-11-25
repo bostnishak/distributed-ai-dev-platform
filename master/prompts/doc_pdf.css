@@ -1,0 +1,11 @@
+@font-face { font-family: UF; src: url(reg.ttf); }
+@font-face { font-family: UF; font-weight: bold; src: url(bold.ttf); }
+body { font-family: UF; font-size: 10.5pt; color: #1e293b; line-height: 1.35; }
+h1 { font-size: 15pt; color: #1e293b; margin-top: 14pt; margin-bottom: 4pt; }
+h2 { font-size: 12.5pt; color: #334155; margin-top: 10pt; margin-bottom: 3pt; }
+p { margin-top: 0; margin-bottom: 6pt; text-align: justify; }
+li { margin-bottom: 3pt; text-align: justify; }
+th { background-color: #4f46e5; color: #ffffff; padding: 4pt; text-align: left; font-weight: bold; }
+td { padding: 4pt; border-bottom: 1px solid #cbd5e1; }
+.cap { font-size: 9pt; color: #64748b; }
+.sig { padding-top: 34pt; text-align: center; }

@@ -25,7 +25,7 @@ _NOT_FACT_RE = re.compile(
     re.IGNORECASE,
 )
 _STOP = frozenset(
-    "yapıldı yapıldığı kuruldu doğdu öldü nedir kimdir kimdi neresi neresidir nerede nerededir ne zaman hangi yıl yılında kaç kaçtır nüfusu başkenti is was the of when where who what how many mı mi mu mü bir bu şu o ve ile".split()
+    "kaynak kaynakları bulamazsan bulursan belirt belirtir özetle anlat açıkla hakkında bilgi ver araştırma araştır yap yapar mısın hakkında kısa bir rapor hazırla olasılığı yapıldı yapıldığı kuruldu doğdu öldü nedir kimdir kimdi neresi neresidir nerede nerededir ne zaman hangi yıl yılında kaç kaçtır nüfusu başkenti is was the of when where who what how many mı mi mu mü bir bu şu o ve ile".split()
 )
 _TURKISH_RE = re.compile(r"[çğıöşüÇĞİÖŞÜ]|\b(nedir|kimdir|nerede|hangi|kaç|ne zaman|başkenti)\b", re.IGNORECASE)
 _API = "https://{lang}.wikipedia.org/w/api.php"
@@ -79,9 +79,9 @@ def _fetch(lang: str, terms: str) -> tuple[str, str, str] | None:
     return hit
 
 
-def lookup(prompt: str) -> tuple[list[dict[str, str]], str]:
+def lookup(prompt: str, *, force: bool = False) -> tuple[list[dict[str, str]], str]:
     """(sources, system note) for a factual question, or ([], "") when not applicable or nothing was found."""
-    if not looks_factual(prompt):
+    if not force and not looks_factual(prompt):
         return [], ""
     terms = _search_terms(prompt)
     langs = ("tr", "en") if _TURKISH_RE.search(prompt) else ("en", "tr")
@@ -90,9 +90,13 @@ def lookup(prompt: str) -> tuple[list[dict[str, str]], str]:
         return [], ""
     title, extract, url = hit
     source = {"id": "S1", "title": f"Vikipedi: {title}", "url": url, "snippet": extract[:400]}
-    note = (
-        f"KAYNAK [S1] (Vikipedi, \"{title}\"): {extract}\n"
+    rule = (
         "Kural: Yanıtı yalnızca bu kaynağa dayandır. Kaynak soruyu karşılamıyorsa bunu açıkça söyle; ad, sayı veya tarih uydurma. "
         "Yanıtın sonunda kaynağın adını belirt."
+        if not force
+        else "Kural: Bir araştırma istendi. Önce kaynaktaki bilgileri [S1] atfıyla düzenli başlıklar altında özetle (tanım, nasıl çalışır, türler, kullanım). "
+        "Kullanıcının sorduğu ülke/dönem/sayıya ait veri kaynakta yoksa bunu ayrı bir 'Kaynakta bulunmayanlar' bölümünde açıkça belirt ve hangi resmi kurumlardan "
+        "(ör. ilgili bakanlık, düzenleyici kurum, istatistik kurumu) doğrulanabileceğini söyle; sayı, tarih ya da kurum raporu uydurma."
     )
+    note = f"KAYNAK [S1] (Vikipedi, \"{title}\"): {extract}\n{rule}"
     return [source], note

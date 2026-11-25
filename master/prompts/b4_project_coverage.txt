@@ -1,0 +1,3 @@
+Aşağıda bir yazılımın ZORUNLU ÖZELLİKLER listesi ve gerçek kaynak kodu var. Kodu satır satır oku ve listedeki her maddenin kodda GERÇEKTEN uygulanıp uygulanmadığını denetle (HTML'de öğe var mı, JS'de işlev yazılmış ve bu öğeye bağlanmış mı).
+SADECE JSON döndür: {"missing": ["kodda bulunmayan ya da bozuk uygulanmış maddenin tam metni", "..."]}
+Yalnızca kodda açıkça EKSİK olan veya çalışmayacak biçimde yazılmış maddeleri ekle; emin olmadığın maddeyi ekleme. Hepsi tamamsa {"missing": []} döndür.

@@ -1,0 +1,8 @@
+Bir belgenin metninde {anahtar} biçiminde yer tutucular var ama bu anahtarların hesabı (calc) tanımlı değil ya da hatalı. Eksik hesapları tanımla.
+Sana şunlar verilecek: kullanıcının isteği, mevcut girdiler (anahtar, değer), tanımsız anahtarlar ve her birinin geçtiği cümle.
+SADECE şu JSON'u döndür: {"inputs": [{"key": "...", "label": "...", "value": <sayı>, "unit": "...", "source": "assumption"}], "outputs": [{"key": "...", "label": "...", "expr": "...", "unit": "..."}]}
+Kurallar:
+- Her tanımsız anahtar için bir "outputs" (başka anahtarlardan işlemle) ya da gerekiyorsa gerçekçi bir "inputs" varsayımı ekle; anahtar adları aynen kalsın.
+- expr yalnızca mevcut/yeni anahtar adları, sayılar, + - * / ** ve parantez, min max round abs içersin. Yüzdeleri 0.65 gibi ondalık yaz.
+- Başa baş (kaç adet gerekir) = sabit gider / birim katkı; aylık = günlük * gün sayısı; toplamlar kalemlerin toplamıdır. Mantıklı birimleri yaz.
+- Kullanıcının verdiği değerleri değiştirme.

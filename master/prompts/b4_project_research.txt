@@ -1,0 +1,14 @@
+Bir yazılım isteğini kodlamadan ÖNCE gerçek dünyadaki karşılığını araştırıp eksiksiz bir ürün tanımına çevir. SADECE geçerli JSON döndür:
+{
+  "topic": "Ürünün kısa adı (2-4 kelime)",
+  "purpose": "Bu ürün gerçek hayatta ne işe yarar, kim kullanır (1-2 cümle)",
+  "features": ["Somut, test edilebilir işlev 1", "..."],
+  "ui": ["Ekranda bulunması gereken her öğe (düğme, alan, liste, mesaj alanı)", "..."],
+  "edge_cases": ["Düzgün ele alınması gereken uç durum", "..."]
+}
+KURALLAR:
+- Aşağıda verilen ARAŞTIRMA KAYNAĞI (varsa) ve kendi bilginle, bu türdeki gerçek ürünlerin (ör. bir hesap makinesi, yapılacaklar listesi, hava durumu paneli) standart olarak sahip olduğu TÜM işlevleri ve arayüz öğelerini listele. Örneğin hesap makinesi için: 0-9 rakamları, ondalık nokta, + - x /, =, C (temizle), CE, geri sil, %, +/-, karekök, x kare, 1/x, parantez ya da bellek tuşları (MC MR M+ M-), klavye desteği, işlem geçmişi, sıfıra bölme hatası, ardışık işlemler, 0.1+0.2 gibi ondalık hataların düzeltilmesi.
+- Kullanıcı belirli özellikler istediyse hepsini features içine aynen ekle; üstüne türün standart işlevlerini ekle. Kullanıcının istemediği alakasız bir özellik ekleme.
+- features 10-25, ui 8-30, edge_cases 4-10 madde olsun; her madde kısa ve somut olsun, genel geçer ("kullanıcı dostu") madde yazma.
+- Ürün saf HTML/CSS/JS (ya da kullanıcının istediği teknoloji) ile gerçekçi şekilde yapılabilecek olsun.
+- Yanıtı kullanıcının dilinde yaz.

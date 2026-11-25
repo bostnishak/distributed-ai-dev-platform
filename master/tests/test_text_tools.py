@@ -28,3 +28,16 @@ def test_words_in_pasted_text():
 @pytest.mark.parametrize("p", ["print(open('x').read()) çıktısı ne?", "print(__import__('os')) çıktısı", "print(9**9**9) çıktısı", "Python nedir?", "Ankara'nın nüfusu kaç"])
 def test_unsafe_or_unrelated_returns_none(p):
     assert answer(p) is None
+
+
+@pytest.mark.parametrize("prompt,expected", [
+    ("Üç kutu var: biri sadece elma, biri sadece portakal, biri karışık içeriyor. Üçünün etiketi de yanlış. Karışık etiketli kutudan çekersem nasıl bulurum?", True),
+    ("İki zar atılıyor. Toplamın 9 olma olasılığı nedir?", True),
+    ("5 kişi bir işi 12 günde bitiriyor, 8 kişi aynı işi kaç günde bitirir?", True),
+    ("bana mantıklı bir isim öner lütfen çok güzel olsun", False),
+    ("Python ile olasılık hesaplayan kod yaz lütfen bana", False),
+])
+def test_puzzle_detection_is_precise(prompt, expected):
+    import reasoning_mode
+
+    assert reasoning_mode.needs_thinking(prompt) is expected

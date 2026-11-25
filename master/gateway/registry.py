@@ -339,9 +339,9 @@ def estimate_tokens(text_or_messages: str | list[dict[str, Any]]) -> int:
     return max(1, math.ceil(total_chars / 3.4))
 
 
-def choose_dynamic_num_ctx(used_tokens: int, model_max_ctx: int = 32768) -> int:
+def choose_dynamic_num_ctx(used_tokens: int, model_max_ctx: int = 32768, reserve: int = 0) -> int:
     """GW-06: Snap num_ctx to 4k/8k/16k/32k buckets to prevent unnecessary Ollama model reloads."""
-    needed = int(used_tokens * 1.35) + 512
+    needed = int(used_tokens * 1.35) + 512 + reserve  # `reserve` = tokens the answer may use; without it long answers are cut off at the bucket size
     cap = max(4096, (model_max_ctx or 8192))
     for bucket in _CTX_BUCKETS:
         if bucket >= needed and bucket <= cap:

@@ -18,6 +18,7 @@ from pydantic import BaseModel, Field
 
 import preview_server
 import process_utils
+import project_flow
 import sandbox
 import workspace_builder as wb
 from access_control import require_local_or_admin
@@ -58,7 +59,7 @@ async def generate_workspace(body: GenerateRequest):
 
     async def _event_stream():
         try:
-            async for evt in wb.stream_generate_project(
+            async for evt in project_flow.stream_generate(
                 body.prompt.strip(),
                 project_type=body.project_type,
                 model_override=body.model or None,

@@ -75,3 +75,15 @@ def static_problem(ws_dir: Path) -> tuple[Path, str] | None:
         if (found := check(ws_dir)) is not None:
             return found
     return None
+
+
+_FENCE_RE = re.compile(r"```[\w+-]*\n(.*?)```", re.DOTALL)
+_STARTS = {".html": ("<!doctype", "<html"), ".js": (), ".py": (), ".css": ()}
+
+
+def extract_file(reply: str, suffix: str) -> str:
+    """The file body from a model reply: the fenced block that looks like `suffix` (or the plain reply); '' when it is not a clean file."""
+    blocks = [b.strip() for b in _FENCE_RE.findall(reply)] or [reply.strip()]
+    starts = _STARTS.get(suffix, ())
+    pick = next((b for b in blocks if starts and b.lower().startswith(starts)), max(blocks, key=len) if not starts else "")
+    return "" if not pick or "```" in pick else pick

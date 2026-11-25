@@ -7,7 +7,6 @@ scene_illustration), local Diffusion (Automatic1111 / ComfyUI) auto-detection, C
 from __future__ import annotations
 
 import asyncio
-import base64
 import json
 import logging
 import re
@@ -19,6 +18,11 @@ from typing import Any
 import httpx
 
 import config
+import poster_icons
+import poster_layout
+import poster_palettes
+import poster_studio
+import sd_bridge
 from multimodal_studio_media import (
     IMAGE_EDIT_KEYWORDS,
     _decode_audio_to_float32_16k,
@@ -121,12 +125,14 @@ def classify_image_mode(prompt: str) -> str:
 STUDIO_PALETTES: dict[str, dict[str, str]] = {
     "midnight_cyan": {"name": "Gece Laciverti ve Turkuaz", "bg1": "#070b14", "bg2": "#0f172a", "bg3": "#111c33", "primary": "#06b6d4", "secondary": "#3b82f6", "accent": "#38bdf8", "text": "#f8fafc", "muted": "#94a3b8", "card": "#0f172a", "grid": "#38bdf8"},
     "obsidian_gold": {"name": "Obsidyen ve Altin", "bg1": "#0a0a0c", "bg2": "#141418", "bg3": "#1c1917", "primary": "#f59e0b", "secondary": "#d97706", "accent": "#fde68a", "text": "#fafaf9", "muted": "#a8a29e", "card": "#18181b", "grid": "#f59e0b"},
+    "mono_bw": {"name": "Siyah ve Beyaz", "bg1": "#ffffff", "bg2": "#f4f4f5", "bg3": "#e4e4e7", "primary": "#111111", "secondary": "#52525b", "accent": "#000000", "text": "#09090b", "muted": "#3f3f46", "card": "#ffffff", "grid": "#111111"},
     "azure_white": {"name": "Mavi ve Beyaz", "bg1": "#f5f9ff", "bg2": "#e6f0ff", "bg3": "#cfe0ff", "primary": "#1d4ed8", "secondary": "#3b82f6", "accent": "#60a5fa", "text": "#0b1b3a", "muted": "#475b85", "card": "#ffffff", "grid": "#1d4ed8"},
     "nordic_light": {"name": "Nordik Acik Minimal", "bg1": "#f8fafc", "bg2": "#f1f5f9", "bg3": "#e2e8f0", "primary": "#0f766e", "secondary": "#0284c7", "accent": "#14b8a6", "text": "#0f172a", "muted": "#475569", "card": "#ffffff", "grid": "#0f172a"},
     "emerald_slate": {"name": "Zumrut ve Antrasit", "bg1": "#051412", "bg2": "#0c2420", "bg3": "#0f172a", "primary": "#10b981", "secondary": "#06b6d4", "accent": "#6ee7b7", "text": "#ecfdf5", "muted": "#94a3b8", "card": "#0d2622", "grid": "#10b981"},
     "crimson_carbon": {"name": "Karbon ve Kizil", "bg1": "#0c0a0d", "bg2": "#1a1118", "bg3": "#18181b", "primary": "#ef4444", "secondary": "#f97316", "accent": "#fda4af", "text": "#fafafa", "muted": "#a1a1aa", "card": "#1c1519", "grid": "#ef4444"},
     "violet_aurora": {"name": "Indigo ve Aurora", "bg1": "#09071a", "bg2": "#161136", "bg3": "#0f172a", "primary": "#8b5cf6", "secondary": "#ec4899", "accent": "#c4b5fd", "text": "#f5f3ff", "muted": "#a5b4fc", "card": "#151230", "grid": "#8b5cf6"},
 }
+STUDIO_PALETTES.update(poster_palettes.EXTRA)
 ARCHETYPE_ORDER = ["hex_nexus", "orbital_ring", "prism_monolith", "wing_aero", "neural_constellation", "wave_pulse", "shield_crest", "leaf_organic"]
 LAYOUT_ORDER = ["badge_showcase", "horizontal_lockup", "centered_emblem"]
 
@@ -147,20 +153,7 @@ def _resolve_context_prompt(prompt: str, history: list[dict[str, Any]] | None) -
 
 
 def _pick_palette_from_text(text: str, seed: int) -> str:
-    low = text.lower()
-    rules = (
-        ("azure_white", ("mavi", "blue", "lacivert", "okyanus", "deniz")),
-        ("nordic_light", ("açık", "acik", "beyaz", "light", "temiz", "minimalist beyaz", "gündüz", "gunduz", "güneşli")),
-        ("obsidian_gold", ("altın", "altin", "gold", "lüks", "luks", "premium", "gün batımı", "sunset", "sarı", "sari")),
-        ("emerald_slate", ("yeşil", "yesil", "doğa", "doga", "ekoloji", "orman", "zümrüt", "sağlık")),
-        ("crimson_carbon", ("kırmızı", "kirmizi", "turuncu", "enerji", "spor", "otomotiv", "konser", "red")),
-        ("violet_aurora", ("mor", "violet", "yapay zeka", "uzay", "galaksi", "fütüristik", "cyberpunk", "pembe")),
-    )
-    for pal_key, words in rules:
-        if any(re.search(rf"(?<!\w){re.escape(w)}", low) for w in words):
-            return pal_key
-    keys = list(STUDIO_PALETTES)
-    return keys[seed % len(keys)]
+    return poster_palettes.pick(text, seed, list(STUDIO_PALETTES))
 
 
 def _pick_archetype_from_text(text: str, seed: int) -> str:
@@ -178,6 +171,12 @@ def _pick_archetype_from_text(text: str, seed: int) -> str:
         if any(w in low for w in words):
             return arch
     return ARCHETYPE_ORDER[seed % len(ARCHETYPE_ORDER)]
+
+
+def _user_slogan(text: str) -> str:
+    """A logo tagline only when the user wrote one (slogan 'x'); nothing is invented."""
+    m = poster_studio._SLOGAN_RE.search(text)
+    return (poster_studio.tr_upper(m.group(1).strip()) if poster_studio.is_turkish(text) else m.group(1).strip().upper())[:38] if m else ""
 
 
 def _extract_quoted_brand(text: str) -> str:
@@ -208,8 +207,8 @@ def _merge_llm_design_spec(spec: dict[str, str], parsed: dict[str, Any], quoted:
     bname, tag = str(parsed.get("brand_name") or "").strip()[:20], str(parsed.get("tagline") or "").strip()[:38]
     if bname and not any(w in bname.lower() for w in bad):
         spec["brand_name"] = quoted or bname.upper()
-    if tag and not any(w in tag.lower() for w in bad[:4]):
-        spec["tagline"] = tag.upper()
+    if tag and spec.get("tagline") and any(w in tag.lower() for w in bad[:4]):
+        spec["tagline"] = ""
     arch, pal, lay = parsed.get("archetype"), parsed.get("palette"), parsed.get("layout")
     if isinstance(arch, str) and arch in ARCHETYPE_ORDER and (seed == 0 or arch != ARCHETYPE_ORDER[(seed - 1) % len(ARCHETYPE_ORDER)]):
         spec["archetype"] = arch
@@ -221,13 +220,13 @@ def _merge_llm_design_spec(spec: dict[str, str], parsed: dict[str, Any], quoted:
 
 async def _design_spec_from_llm(combined_prompt: str, seed: int) -> dict[str, str]:
     names = ["NEXORA", "AETHERIS", "KINETIX", "VORTEXA", "LUMINEX", "SYNAPSE", "QUANTIX", "SOLARIS"]
-    tags = ["GELECEĞİN TEKNOLOJİSİ", "AKILLI ÇÖZÜM MİMARİSİ", "YENİLİKÇİ TASARIM STÜDYOSU", "HASSAS MÜHENDİSLİK"]
     quoted = _extract_quoted_brand(combined_prompt)
     spec = {
-        "brand_name": quoted or names[seed % len(names)], "tagline": tags[seed % len(tags)],
+        "brand_name": quoted or names[seed % len(names)], "tagline": _user_slogan(combined_prompt),
         "archetype": _pick_archetype_from_text(combined_prompt, seed),
         "palette": _pick_palette_from_text(combined_prompt, seed), "layout": LAYOUT_ORDER[seed % len(LAYOUT_ORDER)],
     }
+    spec["icon"], _ = poster_icons.named_icon(combined_prompt, 190, "#000", 6)
     model = await pick_best_model("general")
     sys_msg = (
         f'Brand identity director. Return ONLY JSON: {{"brand_name":"UPPER<=16","tagline":"<=32",'
@@ -297,6 +296,8 @@ def _render_studio_svg(spec: dict[str, str], use_solid: bool = False) -> str:
     pal = STUDIO_PALETTES.get(spec["palette"], STUDIO_PALETTES["midnight_cyan"])
     brand, tagline = xml_esc(spec["brand_name"]), xml_esc(spec["tagline"])
     emblem = _emblem_svg_group(spec["archetype"], pal, use_solid=use_solid)
+    if spec.get("icon"):  # the subject the user named (dentist -> tooth, bakery -> cake ...) beats a generic geometric mark
+        emblem = f'<circle r="100" fill="{pal["primary"]}" opacity="0.12"/><circle r="100" fill="none" stroke="{pal["accent"]}" stroke-width="2.5"/>' + poster_icons.draw(spec["icon"], (0, 0), 140, (pal["primary"], 6))
     grid = "".join([f'<line x1="{x}" y1="0" x2="{x}" y2="760"/>' for x in range(120, 1200, 120)] + [f'<line x1="0" y1="{y}" x2="1200" y2="{y}"/>' for y in range(95, 760, 95)])
     bg_fill, bar_fill = (pal["bg2"], pal["primary"]) if use_solid else ("url(#gBg)", "url(#gPrimary)")
 
@@ -316,7 +317,7 @@ def _render_studio_svg(spec: dict[str, str], use_solid: bool = False) -> str:
             f'<rect x="515" y="460" width="170" height="4" rx="2" fill="{bar_fill}"/><text x="600" y="502" text-anchor="middle" fill="{pal["muted"]}" font-family="{_FONT}" font-size="20" font-weight="600" letter-spacing="6">{tagline}</text>',
             f'<rect x="64" y="612" width="1072" height="92" rx="20" fill="{pal["card"]}" opacity="0.72" stroke="{pal["primary"]}" stroke-opacity="0.22" stroke-width="1.5"/>',
             f'<g transform="translate(132, 658) scale(0.28)">{emblem}</g><text x="184" y="654" fill="{pal["text"]}" font-family="{_FONT}" font-size="18" font-weight="700" letter-spacing="3">{brand}</text>',
-            f'<text x="184" y="676" fill="{pal["muted"]}" font-family="{_FONT}" font-size="12" letter-spacing="2">KURUMSAL MARKA KIMLIGI</text>',
+            f'<text x="184" y="676" fill="{pal["muted"]}" font-family="{_FONT}" font-size="12" letter-spacing="2">{xml_esc(pal["name"])}</text>',
             f'<rect x="740" y="636" width="44" height="44" rx="10" fill="{pal["primary"]}"/><text x="794" y="663" fill="{pal["muted"]}" font-family="{_FONT}" font-size="13" font-weight="600">{pal["primary"].upper()}</text>',
             f'<rect x="880" y="636" width="44" height="44" rx="10" fill="{pal["secondary"]}"/><text x="934" y="663" fill="{pal["muted"]}" font-family="{_FONT}" font-size="13" font-weight="600">{pal["secondary"].upper()}</text>',
             f'<rect x="1020" y="636" width="44" height="44" rx="10" fill="{pal["accent"]}"/>',
@@ -429,58 +430,16 @@ def _render_diagram_svg(spec: dict[str, Any]) -> str:
 
 
 async def _poster_spec_from_llm(prompt: str, seed: int) -> dict[str, Any]:
-    year_m = re.search(r"\b(20\d{2})\b", prompt)
-    spec: dict[str, Any] = {
-        "kicker": "ÖZEL ETKİNLİK · EDİTORYAL", "title": _extract_quoted_brand(prompt) or "GELECEĞİN TASARIM ZİRVESİ",
-        "subtitle": "YENİLİKÇİ FİKİRLER VE YARATICI TEKNOLOJİ BULUŞMASI",
-        "date_badge": f"15 MAYIS {year_m.group(1)}" if year_m else "2026 SEZONU",
-        "location_badge": "İSTANBUL · CANLI YAYIN", "pills": ["KEYNOTE", "ATÖLYE", "NETWORKING"],
-        "palette": _pick_palette_from_text(prompt, seed),
-    }
     model = await pick_best_model("general")
-    sys_msg = 'Return ONLY JSON for an editorial poster: {"kicker":"TAG","title":"HEADLINE<=28","subtitle":"SUB","date_badge":"DATE","location_badge":"CITY","pills":["T1","T2","T3"]}.'
-    parsed = await _llm_json_call(sys_msg, prompt, model, num_predict=280)
-    if parsed:
-        for k, lim in (("kicker", 28), ("title", 32), ("subtitle", 54), ("date_badge", 24), ("location_badge", 26)):
-            v = str(parsed.get(k) or "").strip()
-            if v:
-                spec[k] = v.upper()[:lim]
-        if isinstance(parsed.get("pills"), list):
-            pills = [str(x).strip().upper()[:16] for x in parsed["pills"][:3] if str(x).strip()]
-            if pills:
-                spec["pills"] = pills
-    spec["model"] = model
-    return spec
+
+    async def _extract(system: str, user: str) -> dict[str, Any] | None:
+        return await _llm_json_call(system, user, model, num_predict=260)
+
+    return await poster_studio.build_spec(prompt, _pick_palette_from_text(prompt, seed), _extract, model)
 
 
 def _render_poster_svg(spec: dict[str, Any]) -> str:
-    pal = STUDIO_PALETTES.get(spec["palette"], STUDIO_PALETTES["crimson_carbon"])
-    words = spec["title"].split()
-    mid = max(1, len(words) // 2)
-    l1, l2 = (xml_esc(" ".join(words[:mid])), xml_esc(" ".join(words[mid:]))) if len(words) > 2 else (xml_esc(spec["title"]), "")
-    pills_svg, px = [], 92
-    for pill in spec["pills"][:3]:
-        pw = max(116, len(pill) * 12 + 34)
-        pills_svg.append(f'<rect x="{px}" y="618" width="{pw}" height="38" rx="19" fill="{pal["primary"]}" opacity="0.22" stroke="{pal["primary"]}" stroke-width="1.5"/><text x="{px + pw // 2}" y="642" text-anchor="middle" fill="{pal["text"]}" font-family="{_FONT}" font-size="13" font-weight="700" letter-spacing="2">{xml_esc(pill)}</text>')
-        px += pw + 14
-    return "\n".join([
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" width="1200" height="760"><defs>',
-        f'<linearGradient id="gBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="{pal["bg1"]}"/><stop offset="55%" stop-color="{pal["bg2"]}"/><stop offset="100%" stop-color="{pal["bg3"]}"/></linearGradient>',
-        '</defs><rect x="0" y="0" width="1200" height="760" fill="url(#gBg)"/>',
-        f'<rect x="44" y="42" width="1112" height="676" rx="28" fill="{pal["card"]}" opacity="0.52" stroke="{pal["primary"]}" stroke-opacity="0.38" stroke-width="2"/>',
-        f'<circle cx="910" cy="365" r="235" fill="{pal["primary"]}" opacity="0.16"/><circle cx="910" cy="365" r="168" fill="none" stroke="{pal["accent"]}" stroke-width="3" stroke-dasharray="10 8" opacity="0.65"/>',
-        f'<circle cx="910" cy="365" r="118" fill="{pal["primary"]}" opacity="0.88"/><polygon points="770,515 910,275 1050,515" fill="{pal["bg1"]}" opacity="0.82" stroke="{pal["accent"]}" stroke-width="2.5"/>',
-        f'<polygon points="845,515 965,335 1085,515" fill="{pal["secondary"]}" opacity="0.72"/><circle cx="1015" cy="245" r="24" fill="{pal["accent"]}"/>',
-        f'<rect x="92" y="96" width="290" height="36" rx="18" fill="{pal["primary"]}" opacity="0.22" stroke="{pal["primary"]}" stroke-width="1.5"/>',
-        f'<text x="237" y="119" text-anchor="middle" fill="{pal["accent"]}" font-family="{_FONT}" font-size="13" font-weight="700" letter-spacing="2.5">{xml_esc(spec["kicker"])}</text>',
-        f'<text x="92" y="255" fill="{pal["text"]}" font-family="{_FONT}" font-size="66" font-weight="900" letter-spacing="2">{l1}</text>',
-        f'<text x="92" y="335" fill="{pal["accent"]}" font-family="{_FONT}" font-size="66" font-weight="900" letter-spacing="2">{l2}</text>',
-        f'<rect x="92" y="366" width="180" height="6" rx="3" fill="{pal["primary"]}"/><text x="92" y="418" fill="{pal["muted"]}" font-family="{_FONT}" font-size="20" font-weight="600">{xml_esc(spec["subtitle"])}</text>',
-        f'<rect x="92" y="476" width="520" height="86" rx="16" fill="{pal["bg1"]}" opacity="0.76" stroke="{pal["accent"]}" stroke-opacity="0.35"/>',
-        f'<text x="122" y="512" fill="{pal["accent"]}" font-family="{_FONT}" font-size="18" font-weight="800" letter-spacing="2">{xml_esc(spec["date_badge"])}</text>',
-        f'<text x="122" y="542" fill="{pal["text"]}" font-family="{_FONT}" font-size="16" font-weight="600" letter-spacing="1.5">{xml_esc(spec["location_badge"])}</text>',
-        *pills_svg, "</svg>",
-    ])
+    return poster_layout.render(spec, STUDIO_PALETTES, xml_esc, _FONT)
 
 
 def _classify_scene_subtype(prompt: str) -> str:
@@ -498,18 +457,6 @@ async def _generate_scene_svg(prompt: str, pal_key: str, seed: int) -> tuple[str
     """Scenes come from the layered template engine: a small local model cannot draw a usable scene as raw SVG."""
     pal, subtype = STUDIO_PALETTES.get(pal_key, STUDIO_PALETTES["midnight_cyan"]), _classify_scene_subtype(prompt)
     return render_procedural_scene_svg(subtype, prompt, pal, seed), f"scene-procedural ({subtype})", subtype
-
-
-async def _try_stable_diffusion(prompt: str, out_png: Path) -> bool:
-    try:
-        async with httpx.AsyncClient(timeout=2.0) as client:
-            resp = await client.post("http://127.0.0.1:7860/sdapi/v1/txt2img", json={"prompt": prompt, "steps": 24, "width": 1024, "height": 640})
-            if resp.status_code == 200 and resp.json().get("images"):
-                await asyncio.to_thread(out_png.write_bytes, base64.b64decode(resp.json()["images"][0]))
-                return True
-    except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError, IndexError) as exc:
-        _LOG.debug("Stable Diffusion bridge unavailable: %s", exc)
-    return False
 
 
 async def _try_comfyui(prompt: str, out_png: Path) -> bool:
@@ -560,9 +507,14 @@ async def generate_ai_image(prompt: str, history: list[dict[str, Any]] | None = 
     combined_prompt, seed = _resolve_context_prompt(prompt, history)
     mode = classify_image_mode(combined_prompt)
 
-    for bridge_name, bridge_fn in (("stable-diffusion-local", _try_stable_diffusion), ("comfyui-local", _try_comfyui)):
-        if await bridge_fn(combined_prompt, out_png):
-            return {"file_id": file_id, "mode": mode, "engine": bridge_name, "png_url": f"/api/assistant/media/{file_id}.png", "svg_url": ""}
+    if mode == "scene_illustration":  # logos, posters and diagrams keep exact vector text; diffusion models misspell it
+        model = await pick_best_model("general")
+
+        async def _english(system: str, user: str) -> dict[str, Any] | None:
+            return await _llm_json_call(system, user, model, 200)
+
+        if await sd_bridge.generate(combined_prompt, out_png, _english) or await _try_comfyui(combined_prompt, out_png):
+            return {"file_id": file_id, "mode": mode, "engine": "stable-diffusion-local", "png_url": f"/api/assistant/media/{file_id}.png", "svg_url": ""}
 
     if mode == "logo_brand":
         spec = await _design_spec_from_llm(combined_prompt, seed)
@@ -575,7 +527,7 @@ async def generate_ai_image(prompt: str, history: list[dict[str, Any]] | None = 
     elif mode == "poster_cover":
         spec_p = await _poster_spec_from_llm(combined_prompt, seed)
         svg_text, pal_key, engine = _render_poster_svg(spec_p), spec_p["palette"], f"poster-studio ({spec_p.get('model', 'local')})"
-        meta = {"brand_name": spec_p["title"], "tagline": spec_p["subtitle"]}
+        meta = {"brand_name": spec_p["title"], "tagline": spec_p["slogan"]}
     else:
         pal_key = _pick_palette_from_text(combined_prompt, seed)
         svg_text, engine, subtype = await _generate_scene_svg(combined_prompt, pal_key, seed)

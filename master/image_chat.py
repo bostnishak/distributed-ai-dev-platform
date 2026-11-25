@@ -53,12 +53,24 @@ def nsfw_requested(prompt: str) -> bool:
     return bool(_NSFW_RE.search(prompt))
 
 
+_SCENE_RE = re.compile(
+    r"\b(?:manzara\w*|dağ\w*|dag\w*|orman\w*|deniz\w*|göl\w*|gol\w*|nehir\w*|gün\s*batım\w*|gun\s*batim\w*|gün\s*doğ\w*|gökyüz\w*|gokyuz\w*|şehir\w*|sehir\w*|"
+    r"uzay\w*|galaksi\w*|gezegen\w*|yıldız\w*|nebula|soyut\w*|doğa\w*|doga\w*|plaj\w*|sahil\w*|çöl\w*|şelale\w*|boğaz\w*|aurora|"
+    r"landscape|mountain\w*|forest|sea|ocean|lake|sunset|sunrise|sky|city|cityscape|space|galaxy|abstract|beach|desert)\b",
+    re.IGNORECASE,
+)
+
+
 def unsupported_subject(prompt: str) -> str | None:
-    """The animal/person/vehicle the user wants drawn: the template engine cannot draw it."""
+    """What the user wants drawn when the template engine cannot do it: a named animal/person/vehicle, or anything that is not a scene."""
     from multimodal_studio import classify_image_mode
 
+    if classify_image_mode(prompt) != "scene_illustration":
+        return None
     m = _SUBJECT_RE.search(prompt)
-    return m.group(0) if m and classify_image_mode(prompt) == "scene_illustration" else None
+    if m:
+        return m.group(0)
+    return None if _SCENE_RE.search(prompt) else "konu"
 
 
 def photoreal_requested(prompt: str) -> bool:
@@ -83,8 +95,8 @@ async def photoreal_backend_available() -> bool:
 
 NSFW_MSG = "Cinsel içerikli ya da müstehcen görseller üretmiyorum. İstersen manzara, logo, poster, diyagram gibi başka bir görsel isteyebilirsin."
 NO_SUBJECT_MSG = (
-    "Bir **{subject}** çizemiyorum: bu kurulumdaki görsel motoru hazır sahne şablonlarıyla (manzara, şehir, uzay, soyut) çalışıyor; "
-    "hayvan, kişi ya da araç gibi belirli nesneleri çizemez ve yanlış bir şey çizip \"çizdim\" demek istemem.\n\n"
+    "İstediğin görseli (**{subject}**) çizemiyorum: bu kurulumdaki görsel motoru hazır sahne şablonlarıyla (manzara, şehir, uzay, soyut) çalışıyor; "
+    "hayvan, kişi, araç ya da fantastik varlık gibi belirli nesneleri çizemez ve yanlış bir şey çizip \"çizdim\" demek istemem.\n\n"
     "Seçenekler:\n1. Manzara/şehir/uzay sahnesi: örneğin \"gündüz bir dağ manzarası çiz\".\n2. Logo, poster ya da diyagram.\n"
     "3. Gerçek bir resim için Stable Diffusion kurulmalı: `scripts/install_sd_webui.ps1` betiği bunu yapar."
 )

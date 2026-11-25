@@ -1,0 +1,6 @@
+Aşağıdaki mantık/hesap sorusunu çözen KÜÇÜK bir Python programı yaz. Program, çözümü akıl yürütmekle değil KAPSAMLI ARAMA ya da HESAPLAMA ile bulmalı (tüm olasılıkları dolaş, kısıtları kod olarak kontrol et) ve sonucu Türkçe, anlaşılır cümlelerle ekrana yazdırmalı.
+Kurallar:
+- Yalnızca standart kütüphane (itertools, math, fractions); girdi isteme; en fazla 60 satır.
+- Soruda "etiket yanlış", "her biri farklı", "toplam X" gibi bir koşul varsa bunu tüm olası durumlar için filtrele.
+- Durumlar arası çıkarım gerekiyorsa (ör. "bir meyve çekersem ne öğrenirim") her olası gözlem için, o gözlemle tutarlı kalan durumları yazdır; kalan durum tek ise sonucu açıkça belirt.
+- Çıktı, sorunun istediği nihai cevabı ve kısa gerekçeyi içersin. Sadece tek bir ```python kod bloğu döndür.

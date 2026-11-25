@@ -13,27 +13,27 @@ Kullanıcının konusunu (ve varsa paylaşılan kaynak belge içeriğini) derinl
       "layout": "bullets",
       "bullets": [
         "En fazla 16 kelimelik somut 1. madde",
-        "Veri, tarih veya örnek içeren 2. madde",
+        "Somut bilgi veya örnek içeren 2. madde",
         "Stratejik etki veya çıkarım içeren 3. madde"
       ],
       "key_fact": "Sağdaki veya alttaki vurgu kutusunda öne çıkacak tek cümlelik kritik bulgu.",
-      "notes": "Konuşmacının bu slaytta izleyiciye aktaracağı 2-4 cümlelik ayrıntılı sunum notu."
+      "notes": "Konuşmacının bu slaytta izleyiciye aktaracağı 1-2 cümlelik ayrıntılı sunum notu."
     },
     {
       "kicker": "TEMEL GÖSTERGELER",
       "title": "Öne Çıkan Metrikler",
       "layout": "kpi_grid",
       "kpis": [
-        {"value": "%94", "label": "Doğruluk", "delta": "+12%"},
-        {"value": "3.4x", "label": "Hız Artışı", "delta": "2026"},
-        {"value": "42 ms", "label": "Ortalama Gecikme", "delta": "-38%"}
+        {"value": "<kaynaktaki değer>", "label": "<gösterge adı>", "delta": "<değişim>"},
+        {"value": "<değer>", "label": "<gösterge adı>", "delta": "<değişim>"},
+        {"value": "<değer>", "label": "<gösterge adı>", "delta": "<değişim>"}
       ],
       "bullets": [
         "Metrikleri bağlama oturtan kısa 1. özet madde",
         "Operasyonel etkiyi özetleyen kısa 2. madde"
       ],
       "key_fact": "Ölçülen kazanımların ana nedeni olan kritik bulgu.",
-      "notes": "Konuşmacının KPI kartlarını açıklayacağı 2-4 cümlelik ayrıntılı konuşmacı notu."
+      "notes": "Konuşmacının KPI kartlarını açıklayacağı 1-2 cümlelik ayrıntılı konuşmacı notu."
     },
     {
       "kicker": "KARŞILAŞTIRMALI ANALİZ",
@@ -47,7 +47,7 @@ Kullanıcının konusunu (ve varsa paylaşılan kaynak belge içeriğini) derinl
       },
       "bullets": ["Karşılaştırmanın kısa özeti"],
       "key_fact": "İki yaklaşım arasındaki temel farkı özetleyen bulgu.",
-      "notes": "İki sütun arasındaki ödünleşimleri anlatan 2-4 cümlelik konuşmacı notu."
+      "notes": "İki sütun arasındaki ödünleşimleri anlatan 1-2 cümlelik konuşmacı notu."
     },
     {
       "kicker": "VERİ TABLOSU",
@@ -56,31 +56,31 @@ Kullanıcının konusunu (ve varsa paylaşılan kaynak belge içeriğini) derinl
       "table": {
         "headers": ["Kriter", "Mevcut Durum", "Hedef Durum"],
         "rows": [
-          ["Performans", "Orta", "Yüksek"],
-          ["Maliyet", "Yüksek", "Optimize"],
-          ["Ölçeklenebilirlik", "Sınırlı", "Yatay"]
+          ["<kriter 1>", "<mevcut>", "<hedef>"],
+          ["<kriter 2>", "<mevcut>", "<hedef>"],
+          ["<kriter 3>", "<mevcut>", "<hedef>"]
         ]
       },
       "bullets": ["Tablodaki ana örüntü"],
       "key_fact": "Tablodan çıkan en önemli sonuç.",
-      "notes": "Tablodaki satırları izleyici için yorumlayan 2-4 cümlelik konuşmacı notu."
+      "notes": "Tablodaki satırları izleyici için yorumlayan 1-2 cümlelik konuşmacı notu."
     },
     {
       "kicker": "SAYISAL EĞİLİM",
       "title": "Dönemsel Gelişim Grafiği",
       "layout": "chart",
       "chart": {
-        "title": "Yıllara Göre Artış",
-        "labels": ["2023", "2024", "2025", "2026"],
-        "values": [28, 46, 71, 94],
-        "unit": "%"
+        "title": "<grafik başlığı>",
+        "labels": ["<etiket 1>", "<etiket 2>", "<etiket 3>"],
+        "values": [0, 0, 0],
+        "unit": "<birim>"
       },
       "bullets": [
         "Grafikteki yükselişi açıklayan kısa madde",
         "Dönüm noktasını vurgulayan kısa madde"
       ],
       "key_fact": "Son dönemde ivmelenen büyümenin temel itici gücü.",
-      "notes": "Grafik değerlerini ve eğilimi anlatan 2-4 cümlelik konuşmacı notu."
+      "notes": "Grafik değerlerini ve eğilimi anlatan 1-2 cümlelik konuşmacı notu."
     },
     {
       "kicker": "SONUÇ VE EYLEM PLANI",
@@ -92,18 +92,28 @@ Kullanıcının konusunu (ve varsa paylaşılan kaynak belge içeriğini) derinl
         "Risk azaltıcı 3. yönetişim adımı"
       ],
       "key_fact": "Sunumun akılda kalması gereken tek ana mesajı.",
-      "notes": "Sunumu güçlü biçimde kapatan 2-4 cümlelik kapanış konuşmacı notu."
+      "notes": "Sunumu güçlü biçimde kapatan 1-2 cümlelik kapanış konuşmacı notu."
     }
   ]
 }
 KESİN KURALLAR:
-- Dil tespiti: Kullanıcının istemi Türkçe ise "language": "tr" yaz ve tüm metinleri kusursuz Türkçe (Ç, Ğ, İ, Ö, Ş, Ü, ç, ğ, ı, ö, ş, ü) ile üret; istem İngilizce ise "language": "en" yaz ve tüm alanları doğal İngilizce üret.
-- Kullanıcının konusuna ve varsa kaynak belge verilerine %100 sadık kal; asla konu dışı veya uydurma şablon metinleri yazma.
-- layout alanı yalnızca şunlardan biri olsun: bullets, kpi_grid, two_column, table, chart, closing. Sunum boyunca düzenleri çeşitlendir (en az bir kpi_grid, veri uygunsa chart veya table, bir two_column ve son slaytta closing kullan).
-- bullets dizisinde slayt başına 3-5 madde olsun ve her madde EN FAZLA 16 kelime ile özlü yazılsın.
-- HER slaytta mutlaka 2-4 cümlelik zengin ve öğretici konuşmacı notu ("notes") bulunsun.
-- UYDURMA İSTATİSTİK YASAK: kullanıcı ya da kaynak belge sayı vermediyse yüzde, para, oran veya tarih icat etme. Sayısal veri yoksa kpi_grid ve chart düzenlerini hiç kullanma; bullets, two_column, table (metinsel) ve closing kullan. Sayı kullanıyorsan yalnızca genel olarak bilinen, doğrulanabilir olanları yaz ve emin değilsen yazma.
-- chart.values dizisi yalnızca saf sayılardan (int/float) oluşsun; labels ile aynı uzunlukta (3-6 öğe) olsun.
+- Dil: Kullanıcının istemi Türkçe ise "language": "tr" yaz ve tüm metinleri kusursuz Türkçe (Ç, Ğ, İ, Ö, Ş, Ü, ç, ğ, ı, ö, ş, ü) ile üret; istem İngilizce ise "language": "en" yaz ve TÜM alanları (başlık, madde, not, kicker dahil) doğal İngilizce üret.
+- "slides" dizisi TAM OLARAK {slide_count} eleman içersin (kapak ayrıca eklenir). Kullanıcının konusuna ve varsa kaynak belge verilerine %100 sadık kal; konu dışı ya da şablon metin yazma.
+- layout yalnızca şunlardan biri olsun: bullets, kpi_grid, two_column, table, chart, steps, closing.
+  * steps: süreç, plan, yol haritası, kilometre taşı, aşama sırası için. 3-5 madde; HER madde "Kısa başlık: tek cümlelik açıklama" biçiminde olsun.
+  * two_column: karşılaştırma, avantaj/risk, önce/sonra için; iki sütunda 3-4 madde ve karşıt sütun başlıkları.
+  * table: en az 3 satır x 3 sütunluk gerçek bir karşılaştırma varsa; hücreler en fazla 8 kelime.
+  * kpi_grid / chart: yalnızca kullanıcının verdiği sayılar için (aşağıya bak).
+  * closing: son slayt; 3-4 madde, her biri "Başlık: açıklama" biçiminde.
+  * bullets: diğer anlatımlar için. Sunum boyunca düzenleri ÇEŞİTLENDİR: üst üste iki slaytta aynı layout kullanma, 6+ slaytlık sunumda en az 4 farklı layout kullan, her şeyi bullets yapma.
+- bullets dizisinde slayt başına 3-5 madde olsun, her madde EN FAZLA 16 kelime; madde başına tek somut bilgi (genel geçer dolgu yazma). key_fact her slaytta o slayta özgü TEK cümlelik çıkarım olsun.
+- HER slaytta 1-2 cümlelik, konuya özgü konuşmacı notu ("notes") bulunsun.
+- Başlıklar konuya özgü ve 4-9 kelime olsun ('Giriş', 'Özet' gibi genel başlıklar yasak); kicker 1-3 kelime.
+- SAYILAR: Kullanıcı ya da kaynak belge hangi sayıyı verdiyse YALNIZCA onu (ve onunla yapılan basit hesapları: toplam, fark, çarpım, oran) kullan. Yüzde, para, tarih, sıklık, istatistik, araştırma/şirket/kanun adı İCAT ETME; bilmiyorsan niteliksel yaz ("sık görülür", "ciddi maliyet doğurur"). Kullanıcı sayı vermediyse kpi_grid ve chart hiç kullanma.
+- kpi_grid: 3-4 kart; "value" ve "label" kullanıcının sayılarından olsun; "delta" yalnızca iki kullanıcı sayısından hesaplanabiliyorsa yazılsın, yoksa boş bırak.
+- chart: values pozitif saf sayılar olsun (kullanıcının yazdığı gerçek değerler, ör. 12000; bin cinsinden yazacaksan unit'e "bin adet" yaz), labels ile aynı uzunlukta (3-6 öğe); zaman serisinde etiketler yıl/dönem olsun.
+- Tablolara ve maddelere uydurma hedef/durum/değer yazma; kullanıcının vermediği bir "mevcut durum" ya da "hedef durum" icat etme.
 - transition değeri şunlardan biri olsun: fade, push, wipe, cover, split.
 - Asla emoji kullanma. Sadece ham JSON döndür, markdown kod bloğu veya ek açıklama ekleme.
-- Kullanıcının verdiği dönem adlarını olduğu gibi kullan: aylık veriye 'çeyreklik', yıllık veriye 'aylık' deme; veride olmayan dönem veya karşılaştırma uydurma.
+- Kullanıcının verdiği dönem adlarını olduğu gibi kullan: aylık veriye 'çeyreklik', yıllık veriye 'aylık' deme.
+- Örnekteki <...> alanları yalnızca biçim göstermek içindir; içeriği tamamen kullanıcının konusuna göre doldur, örnek değerleri asla kopyalama.

@@ -145,6 +145,32 @@ def _use_sqlite(ws_dir: Path) -> None:
             py.write_text(fixed, encoding="utf-8")
 
 
+_LOCAL_REF_RE = re.compile(r"""(href|src)=(["'])(?!https?:|//|/|\{|#|data:)([^"'#?]+\.(?:css|js|png|jpe?g|svg|ico|gif|webp))\2""")
+
+
+def _fix_missing_local_refs(ws_dir: Path) -> None:
+    """A page that links 'theme.css' while the file is 'css/theme.css' loads nothing: point the link at the file with that name."""
+    for page in [p for p in ws_dir.rglob("*.html") if ".history" not in p.parts and p.parent.name != "templates"]:
+        text = page.read_text(encoding="utf-8", errors="replace")
+
+        def repl(m: re.Match[str], page: Path = page) -> str:
+            if (page.parent / m.group(3)).exists():
+                return m.group(0)
+            found = next((c for c in ws_dir.rglob(Path(m.group(3)).name) if c.is_file() and ".history" not in c.parts), None)
+            if found is None and Path(m.group(3)).name == "theme.css":  # the model linked the shared theme it was told about but never wrote it
+                import workspace_kit
+
+                target = page.parent / m.group(3)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text(workspace_kit._KIT.read_text(encoding="utf-8"), encoding="utf-8")
+                return m.group(0)
+            return f"{m.group(1)}={m.group(2)}{found.relative_to(page.parent).as_posix()}{m.group(2)}" if found else m.group(0)
+
+        fixed = _LOCAL_REF_RE.sub(repl, text)
+        if fixed != text:
+            page.write_text(fixed, encoding="utf-8")
+
+
 def repair_project(ws_dir: Path) -> None:
     """Fixes for typical integration slips in model-written projects (run right after generation)."""
     _use_sqlite(ws_dir)
@@ -152,6 +178,7 @@ def repair_project(ws_dir: Path) -> None:
     _fix_flask_templates(ws_dir)
     inject_theme(ws_dir)
     _fix_static_refs(ws_dir)
+    _fix_missing_local_refs(ws_dir)
     _refresh_static_copies(ws_dir)
     _add_package_launcher(ws_dir)
     _ensure_db_tables(ws_dir)

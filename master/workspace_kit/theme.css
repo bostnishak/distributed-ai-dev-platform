@@ -6,10 +6,19 @@
   --font: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
 }
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]):not(.light) {
     --bg: #0d111c; --surface: #161b2a; --surface-2: #1d2336; --text: #eef1f8; --muted: #9aa4ba; --border: #2a3248;
     --primary: #7c83ff; --primary-hover: #939aff; --primary-soft: #232a52; --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
   }
+}
+/* manual theme switch: a toggle button sets <html data-theme="dark|light"> (or adds .dark / .dark-mode to html or body) */
+:root[data-theme="dark"], :root.dark, :root.dark-mode, :root:has(body.dark), :root:has(body.dark-mode), :root:has(body[data-theme="dark"]) {
+  --bg: #0d111c; --surface: #161b2a; --surface-2: #1d2336; --text: #eef1f8; --muted: #9aa4ba; --border: #2a3248;
+  --primary: #7c83ff; --primary-hover: #939aff; --primary-soft: #232a52; --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+:root[data-theme="light"], :root.light, :root:has(body[data-theme="light"]) {
+  --bg: #f6f7fb; --surface: #ffffff; --surface-2: #f1f3f9; --text: #121826; --muted: #5b6475; --border: #e3e6ef;
+  --primary: #4f46e5; --primary-hover: #4338ca; --primary-soft: #eef0ff; --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 8px 24px rgba(16, 24, 40, 0.06);
 }
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }

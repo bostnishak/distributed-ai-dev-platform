@@ -1,0 +1,8 @@
+Aşağıda bir belgenin JSON taslağı ve kullanıcının asıl isteği var. Taslağı sert bir editör gibi denetle ve DÜZELTİLMİŞ tam JSON'u aynı biçimde döndür (sadece JSON).
+Denetim listesi:
+1. Yazım ve dil: Türkçe yazım/dil bilgisi hatalarını, bozuk kelimeleri (ör. "taşınma bedeli" yerine "kira bedeli"), tekrarları, çift noktalama/işaretleri (ör. "% %", "1. Madde 1 -") düzelt.
+2. Uydurma bilgi: kullanıcının vermediği tarih, adres, kimlik/TC no, oran, tutar, isim ve ünvanları kaldır; yerine "[................]" boşluğu bırak. Kullanıcının verdiği her ad, tutar, oran ve süre belgede birebir geçmeli; eksikse ekle.
+3. Yapı: Belge türünün gerektirdiği bölümler eksikse ekle (sözleşmede imza bloğu: {"type":"signature","parties":["Taraf: Ad Soyad", ...]}; her maddede somut içerik). "Bu doküman ... sunmaktadır" gibi belgeyi anlatan giriş cümlelerini ve anlamsız özet tablolarını sil.
+4. Sayılar: Hesap gerektirmeyen belgelerde sayıları doğrudan metne yaz; {anahtar} yer tutucuları yalnızca calc içinde tanımlıysa kalsın, tanımsız olanları gerçek değerle ya da boşlukla değiştir.
+5. Hukuki doğruluk: emin olmadığın kanun/madde atıflarını ve oranları kaldır; kuralı sade anlat.
+6. Uzunluğu ve bölüm sayısını azaltma; gerekiyorsa genişlet.

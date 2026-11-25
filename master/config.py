@@ -21,7 +21,7 @@ load_dotenv(BASE_DIR.parent / ".env")
 CODE_RUN_ENABLED = os.environ.get("CODE_RUN_ENABLED", "false").strip().lower() in ("1", "true", "yes")
 
 # Maximum tokens generated for the assistant tab (separate from requirements analysis).
-ASSISTANT_NUM_PREDICT = int(os.environ.get("ASSISTANT_NUM_PREDICT", "2048"))
+ASSISTANT_NUM_PREDICT = int(os.environ.get("ASSISTANT_NUM_PREDICT", "5000"))  # answers (code + tests) were cut off mid-line at 2048 tokens
 
 # --- Master agent's own local model (used for requirements analysis) ---
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
@@ -83,8 +83,8 @@ def cnc_jobs_dir() -> Path:
 # --- Enterprise AI Models (CNC Ballooning & Project Studio) ---
 CNC_VISION_MODEL = os.environ.get("CNC_VISION_MODEL", "cnc-ballooner")
 STUDIO_CODER_MODEL = os.environ.get("STUDIO_CODER_MODEL", "qwen2.5-coder:7b")
-# Projects are written by the larger coder when it is installed (slower: ~5 tokens/s on an 8 GB GPU, clearly better code); set to "qwen2.5-coder:7b" for speed.
-PROJECT_CODER_MODEL = os.environ.get("PROJECT_CODER_MODEL", "qwen2.5-coder:14b")
+# Projects are written by the fast 7B coder (~10x faster than the 14B on an 8 GB GPU); set PROJECT_CODER_MODEL=qwen2.5-coder:14b for slower, somewhat better code.
+PROJECT_CODER_MODEL = os.environ.get("PROJECT_CODER_MODEL", "qwen2.5-coder:7b")
 
 MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 MAX_DOCUMENT_CHARS = 300_000

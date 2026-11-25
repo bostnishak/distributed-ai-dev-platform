@@ -1,0 +1,29 @@
+Kullanıcının CNC işleme isteğini SADECE sayısal bir iş tanımına çevir. Sadece geçerli JSON döndür, G-code yazma.
+Biçim (değerler kullanıcının isteğinden gelir; <...> alanlarını doldur, kullanıcı vermediyse null yaz):
+{
+  "material": "<malzeme adı, kullanıcının yazdığı gibi ya da null>",
+  "units": "<mm | inch>",
+  "stock": {"x": <uzunluk>, "y": <genişlik>, "z": <kalınlık>},
+  "mill_diameter": <freze çapı ya da null>,
+  "flavor": "<fanuc | mach3 | grbl ya da null>",
+  "operations": [ <işlem>, ... ]
+}
+İşlem türleri (yalnızca kullanıcının İSTEDİĞİ işlemleri yaz, örnek olsun diye işlem ekleme):
+- {"type": "face", "depth": <mm|null>}                 -> yüzey frezeleme/düzleme
+- {"type": "hole", "x": <|null>, "y": <|null>, "diameter": <>, "through": <true|false>, "depth": <|null>}   -> tek delik ("ortasına" => x ve y null)
+- {"type": "holes", "pattern": "corners", "inset": <|null>, "diameter": <>, "through": <true|false>}        -> köşelere delik
+- {"type": "holes", "pattern": "circle", "cx": <|null>, "cy": <|null>, "pcd": <delik dairesi çapı>, "count": <adet>, "start_angle": <derece|null>, "diameter": <>, "through": <true|false>}  -> daire üzerinde delikler (civata dairesi)
+- {"type": "holes", "pattern": "grid", "nx": <sütun>, "ny": <satır>, "pitch_x": <aralık>, "pitch_y": <aralık>, "diameter": <>, "through": <true|false>}  -> ızgara
+- {"type": "holes", "pattern": "line", "x0": <>, "y0": <>, "dx": <>, "dy": <>, "count": <>, "diameter": <>, "through": <>}   -> sıralı delikler
+- {"type": "holes", "points": [[x, y], ...], "diameter": <>, "through": <true|false>, "depth": <|null>}   -> koordinatı verilen delikler
+- {"type": "pocket", "x": <|null>, "y": <|null>, "width": <X yönü>, "length": <Y yönü>, "depth": <>}       -> dikdörtgen cep
+- {"type": "round_pocket", "x": <|null>, "y": <|null>, "diameter": <>, "depth": <>}                         -> dairesel cep
+- {"type": "slot", "x": <|null>, "y": <|null>, "length": <uçtan uca>, "width": <>, "depth": <>, "orientation": "<x | y>"}   -> yuva/kanal
+- {"type": "profile", "shape": "<rect | circle>", "x": <|null>, "y": <|null>, "width": <|null>, "length": <|null>, "diameter": <|null>, "depth": <|null>}  -> dış kontur kesme (rect ve ölçü yoksa tüm blok ölçüsü; circle: daire parça)
+- {"type": "engrave", "shape": "<circle | rect | star | polygon>", "x": <|null>, "y": <|null>, "diameter": <|null>, "width": <|null>, "length": <|null>, "sides": <|null>, "points": <|null>, "depth": <|null>}  -> yazısız şekil kazıma
+KURALLAR:
+- Ölçüleri kullanıcının verdiği birimde yaz (mm ya da inç); inç kullandıysa "units": "inch" yaz, dönüşümü kod yapar.
+- stock: x = uzunluk, y = genişlik, z = kalınlık.
+- Kullanıcı bir işlemden söz etmediyse onu ekleme (ör. yüzey frezeleme istenmediyse "face" yazma).
+- Çap/derinlik/konum/adet verilmemişse null yaz (uydurma). Delik için derinlik söylenmediyse "through": true.
+- "Ortasına" => x,y null; "köşelere" => pattern corners; "N delik ... daire/PCD" => pattern circle; "AxB ızgara" => pattern grid.

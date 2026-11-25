@@ -1,0 +1,38 @@
+// Loads /sandbox/index.html in jsdom, runs its scripts, clicks every button / link-like control and types into inputs.
+// Prints one JSON line: {"errors": [...], "controls": N, "changed": M, "texts": [...]}
+const { JSDOM, VirtualConsole } = require('jsdom');
+const fs = require('fs');
+const errors = [];
+const vc = new VirtualConsole();
+vc.on('jsdomError', (e) => errors.push(String((e && (e.detail && e.detail.stack || e.stack)) || e).split('\n').slice(0, 3).join(' | ')));
+vc.on('error', (...a) => errors.push('console.error: ' + a.map(String).join(' ').slice(0, 300)));
+const html = fs.readFileSync('/sandbox/index.html', 'utf8');
+JSDOM.fromFile('/sandbox/index.html', { runScripts: 'dangerously', resources: 'usable', pretendToBeVisual: true, virtualConsole: vc, url: 'file:///sandbox/index.html' }).then((dom) => {
+  const w = dom.window;
+  w.addEventListener('error', (e) => errors.push('window.onerror: ' + e.message + ' @' + (e.filename || '') + ':' + (e.lineno || '')));
+  setTimeout(() => {
+    const d = w.document;
+    const snapshot = () => d.body.textContent.replace(/\s+/g, ' ').trim();
+    const before = snapshot();
+    const controls = [...d.querySelectorAll('button, [onclick], input[type=button], input[type=submit], a[href^="#"], [role=button], .btn, .key, .keypad *')]
+      .filter((el, i, arr) => arr.indexOf(el) === i && el.children.length < 3);
+    let clicked = 0;
+    for (const el of controls.slice(0, 80)) {
+      try { el.dispatchEvent(new w.MouseEvent('click', { bubbles: true, cancelable: true })); clicked++; } catch (e) { errors.push('click failed: ' + e.message); }
+    }
+    for (const inp of [...d.querySelectorAll('input:not([type=button]):not([type=submit]):not([type=checkbox]):not([type=radio]), textarea')].slice(0, 12)) {
+      try {
+        inp.value = inp.type === 'number' ? '5' : inp.type === 'date' ? '2026-01-15' : inp.type === 'email' ? 'a@b.co' : 'Deneme';
+        inp.dispatchEvent(new w.Event('input', { bubbles: true })); inp.dispatchEvent(new w.Event('change', { bubbles: true }));
+      } catch (e) { errors.push('input failed: ' + e.message); }
+    }
+    for (const f of [...d.querySelectorAll('form')].slice(0, 4)) {
+      try { f.dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true })); } catch (e) { errors.push('submit failed: ' + e.message); }
+    }
+    setTimeout(() => {
+      const after = snapshot();
+      console.log(JSON.stringify({ errors: [...new Set(errors)].slice(0, 8), controls: controls.length, clicked, changed: before !== after, title: d.title, texts: [after.slice(0, 160)] }));
+      process.exit(0);
+    }, 300);
+  }, 700);
+}).catch((e) => { console.log(JSON.stringify({ errors: ['load failed: ' + e.message], controls: 0, clicked: 0, changed: false })); process.exit(0); });

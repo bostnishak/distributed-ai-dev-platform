@@ -19,6 +19,7 @@ import httpx
 
 import config
 import db
+import reasoning_mode
 from stream_text import JsonUnescaper
 
 log = logging.getLogger("gateway.providers")
@@ -123,11 +124,16 @@ class OllamaProvider:
     ) -> AsyncIterator[dict[str, Any]]:
         opts = dict(options)
         keep_alive = opts.pop("keep_alive", "10m")
+        think = reasoning_mode.THINK.get()
+        if think:
+            opts["num_predict"] = max(int(opts.get("num_predict") or 0), 6000)  # thinking tokens count against the budget
+            opts["num_ctx"] = max(int(opts.get("num_ctx") or 0), 10240)  # room for prompt + thinking + answer
+            timeout_s = max(timeout_s, 600.0)
         payload: dict[str, Any] = {
             "model": model,
             "messages": messages,
             "stream": True,
-            "think": False,
+            "think": think,
             "keep_alive": keep_alive,
             "options": opts,
         }
@@ -351,3 +357,14 @@ def load_optional_cloud_providers() -> dict[str, Provider]:
     else:
         log.info("OpenAI bulut saglayici kapali (anahtar yok).")
     return loaded
+
+
+async def unload_all_models(base_url: str | None = None) -> None:
+    """Free the GPU: ask Ollama to drop every resident model (used before image generation shares the card)."""
+    base = (base_url or config.OLLAMA_URL).rstrip("/")
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            for m in (await client.get(f"{base}/api/ps")).json().get("models", []):
+                await client.post(f"{base}/api/generate", json={"model": m.get("name"), "keep_alive": 0})
+    except (httpx.HTTPError, OSError, ValueError):
+        logging.getLogger(__name__).debug("Could not unload Ollama models")

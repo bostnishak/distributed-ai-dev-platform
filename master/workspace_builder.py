@@ -90,22 +90,7 @@ __all__ = [
 
 ARCHITECT_SYSTEM_PROMPT = load_prompt("b4_ws_architect.txt")
 
-FILE_WRITER_SYSTEM_PROMPT = (
-    "Sen uzman bir yazılım geliştiricisin. Sana verilen proje mimarisindeki TEK BİR dosyanın "
-    "eksiksiz, çalışır, temiz, üretim kalitesinde kodunu yaz.\n"
-    "Kurallar:\n"
-    "- SADECE dosya içeriğini döndür (açıklama veya ek sohbet yazma).\n"
-    "- Veritabanı gerekiyorsa SQLite kullan (sqlite:///app.db); PostgreSQL/MySQL gibi harici sunucu ve ek sürücü paketi KULLANMA. Web uygulamasında kök dizinde çalışan tek bir giriş dosyası olsun.\n"
-    "- Yarım bırakma, '// TODO' veya '...' kullanma; tüm fonksiyonları ve stilleri eksiksiz yaz.\n"
-    "- Proje içindeki diğer dosya yolları, HTML element ID'leri, CSS sınıfları, JS fonksiyon adları ve Python importları ile %100 uyumlu ol.\n"
-    "- ASLA emoji kullanma (ne HTML metinlerinde, ne butonlarda, ne de yorumlarda). İkon gerektiğinde temiz inline SVG kullan.\n"
-    "- Arayüz metinleri (başlıklar, butonlar, placeholder, hata mesajları) kullanıcının isteğiyle AYNI dilde olsun; istek Türkçeyse Türkçe yaz.\n"
-    "- Web projelerinde projeye otomatik olarak hazır bir tasarım kiti (theme.css) eklenir ve senin CSS'inden SONRA yüklenir. HTML'de şu sınıfları kullan: " + KIT_CLASSES + ". Sayfayı bu sınıflarla kur (navbar, hero, section, container, card, grid, btn, field...). Kendi CSS dosyana yalnızca bu kitte olmayan, projeye özgü küçük stiller yaz; body, button, input, h1-h3 gibi temel öğeleri yeniden stilleme.\n"
-    "- JS'te eval() ve satır içi onclick=\"\" kullanma (addEventListener kullan), klavye desteği ekle, DOM'a yalnızca HTML'de gerçekten var olan id/sınıfları eriştir; form gönderimlerinde preventDefault kullan, boş girdiyi doğrula, fetch hatalarını yakala ve kullanıcıya göster. Sunucusuz web uygulamalarında veriyi localStorage'da sakla ki sayfa yenilenince kaybolmasın.\n"
-    "- Her uygulama gerçekten çalışır olsun: tüm butonlar bir işlev görsün, ölü bağlantı veya boş işleyici bırakma; en az bir boş durum (empty state) ve hata durumu tasarla.\n"
-    "- Web / CSS tasarımlarında kurumsal modern SaaS estetiği (Inter/Segoe UI tipografi, #0f172a / #1e293b / #4f46e5 renk paleti, ince kenarlıklar 1px solid rgba(255,255,255,0.08), yumuşak gölgeler, flexbox/grid, sekme geçişleri ve modern form kontrolleri) kullan; asla ilkel 2005 tarzı düz beyaz/gri kutular veya alert() kullanma.\n"
-    "- Python masaüstü / oyun (.exe) projelerinde SADECE Python standart kütüphanesini (tkinter, tkinter.ttk, math, json, random, datetime, pathlib) kullan; PyQt5, customtkinter, pygame gibi harici paketleri ASLA import etme."
-)
+FILE_WRITER_SYSTEM_PROMPT = load_prompt("b4_ws_writer.txt").replace("{kit_classes}", KIT_CLASSES)
 
 _BINARY_EXTS = (".png", ".jpg", ".jpeg", ".gif", ".ico", ".webp", ".bmp", ".mp3", ".wav", ".ttf", ".woff", ".woff2")
 _FILE_PATH_RE = re.compile(
@@ -146,7 +131,7 @@ async def _ollama_generate(model: str, system: str, user: str, num_predict: int 
         model=model,
         profile=prof,
         num_predict=num_predict,
-        timeout_s=240.0,
+        timeout_s=600.0,
         feature="workspace_builder",
         max_retries=0,
     )
@@ -219,7 +204,7 @@ def _is_safe_rel_path(rel: str) -> bool:
 
 def _extract_requested_paths(prompt: str) -> tuple[list[str], list[str]]:
     """Extract explicitly mentioned file and folder paths from the user prompt."""
-    cleaned_prompt = re.sub(r"https?://\S+", " ", prompt or "")
+    cleaned_prompt = re.sub(r"https?://\S+", " ", (prompt or "").split("\n\n--- ARAŞTIRILMIŞ ÜRÜN TANIMI")[0])  # the research brief is not a list of paths
     files: list[str] = []
     dirs: list[str] = []
     seen_files: set[str] = set()
@@ -278,11 +263,17 @@ def _filter_planned_files(raw_files: list[Any], limit: int = 16) -> list[dict[st
         if not isinstance(f, dict) or not f.get("path"):
             continue
         rel = str(f["path"]).replace("\\", "/").lstrip("/")
-        if not _is_safe_rel_path(rel) or rel.lower().endswith(_BINARY_EXTS) or rel in seen:
+        if not _is_safe_rel_path(rel) or rel.lower().endswith(_BINARY_EXTS) or rel in seen or rel.endswith("/"):  # a folder is not a file to write
             continue
         seen.add(rel)
         out.append({"path": rel, "purpose": str(f.get("purpose", ""))})
     return out
+
+
+def _ensure_requested_tests(planned: list[dict[str, str]], prompt: str) -> None:
+    """The user asked for tests but the plan has no test file: add one that imports and exercises the real modules."""
+    if re.search(r"pytest|unittest|test(?:ler|leri|ini)?\b", prompt, re.IGNORECASE) and not any("test" in f["path"].lower() for f in planned):
+        planned.append({"path": "tests/test_app.py", "purpose": "pytest testleri: projedeki gerçek modülleri içe aktarıp ana işlevleri ve uç durumları sınar"})
 
 
 def _prepare_workspace_from_plan(
@@ -298,6 +289,7 @@ def _prepare_workspace_from_plan(
     if not planned_files:
         fb = _fallback_architecture_plan(prompt, str(plan.get("project_type") or "auto"))
         planned_files = _filter_planned_files(fb["files"], limit=16)
+    _ensure_requested_tests(planned_files, prompt.split("\n\n--- ARAŞTIRILMIŞ ÜRÜN TANIMI")[0])
 
     req_files, req_dirs = _extract_requested_paths(prompt)
     existing_paths = {f["path"] for f in planned_files}

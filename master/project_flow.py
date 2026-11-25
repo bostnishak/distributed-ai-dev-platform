@@ -1,0 +1,198 @@
+"""Projects are researched before they are written and checked for missing features afterwards.
+
+1. Research: what is this product in the real world? Wikipedia gives the grounding text, the model turns it into a complete
+   feature / UI / edge-case list (a calculator needs % and sqrt and memory keys, not just + - * /).
+2. The list is added to the request that the architect and every file writer see.
+3. Coverage: after generation and smoke test the code is audited against the list; missing items are written in a repair pass.
+"""
+
+from __future__ import annotations
+
+import asyncio
+from collections.abc import AsyncIterator
+from pathlib import Path
+from typing import Any
+
+import json_repair
+import wiki_ground
+from prompt_loader import load_prompt
+from workspace_checks import extract_file
+
+_CODE_EXTS = (".js", ".html", ".py", ".css")
+_MAX_CODE_CHARS = 16000
+_EMPTY: dict[str, Any] = {"topic": "", "purpose": "", "features": [], "ui": [], "edge_cases": [], "source": ""}
+
+
+def _json(raw: str) -> dict[str, Any]:
+    return json_repair.loads_top(raw) or {}
+
+
+def _items(data: dict[str, Any], key: str, limit: int) -> list[str]:
+    value = data.get(key)
+    return [str(x).strip() for x in value if str(x).strip()][:limit] if isinstance(value, list) else []
+
+
+async def research(prompt: str, generate: Any) -> dict[str, Any]:
+    """{"topic","purpose","features","ui","edge_cases","source"}; empty lists when the model returned nothing usable."""
+    guess_raw = await generate('JSON döndür: {"topic": "yapılacak ürünün 2-4 kelimelik genel adı, ör. hesap makinesi"}', prompt, 60, 0.0)
+    topic_guess = str(_json(guess_raw).get("topic") or "").strip()
+    sources, note = await asyncio.to_thread(wiki_ground.lookup, topic_guess or prompt, force=True)
+    ask = f"Kullanıcının isteği:\n{prompt}\n\n" + (f"ARAŞTIRMA KAYNAĞI:\n{note}\n" if note else "ARAŞTIRMA KAYNAĞI: bulunamadı, kendi bilginle yaz.\n")
+    data = _json(await generate(load_prompt("b4_project_research.txt"), ask, 2200, 0.2))
+    return {
+        "topic": str(data.get("topic") or topic_guess), "purpose": str(data.get("purpose") or ""), "features": _items(data, "features", 25),
+        "ui": _items(data, "ui", 30), "edge_cases": _items(data, "edge_cases", 10), "source": sources[0]["title"] if sources else "",
+    }
+
+
+def brief_text(info: dict[str, Any]) -> str:
+    """The block appended to the user's request for the architect and the file writers."""
+    if not info["features"]:
+        return ""
+    lines = [f"\n\n--- ARAŞTIRILMIŞ ÜRÜN TANIMI ({info['topic']}) ---", info["purpose"], "ZORUNLU ÖZELLİKLER (hepsi çalışır halde uygulanmalı):"]
+    lines += [f"- {f}" for f in info["features"]]
+    if info["ui"]:
+        lines += ["ZORUNLU ARAYÜZ ÖĞELERİ (hepsi ekranda olmalı ve işlevine bağlanmalı):", *[f"- {u}" for u in info["ui"]]]
+    if info["edge_cases"]:
+        lines += ["ELE ALINMASI GEREKEN UÇ DURUMLAR:", *[f"- {e}" for e in info["edge_cases"]]]
+    return "\n".join(lines)
+
+
+def _code_files(ws_dir: Path) -> list[Path]:
+    skip = {".history", "node_modules", "static"}
+    return [p for p in sorted(ws_dir.rglob("*")) if p.is_file() and p.suffix in _CODE_EXTS and not skip & set(p.relative_to(ws_dir).parts)]
+
+
+def _code_bundle(ws_dir: Path) -> str:
+    text = "\n\n".join(f"=== {p.relative_to(ws_dir).as_posix()} ===\n{p.read_text(encoding='utf-8', errors='replace')}" for p in _code_files(ws_dir))
+    return text[:_MAX_CODE_CHARS]
+
+
+async def missing_features(ws_dir: Path, info: dict[str, Any], generate: Any) -> list[str]:
+    code, wanted = _code_bundle(ws_dir), info["features"] + info["ui"]
+    if not code or not wanted:
+        return []
+    ask = "ZORUNLU ÖZELLİKLER:\n" + "\n".join(f"- {w}" for w in wanted) + f"\n\nKAYNAK KOD:\n{code}"
+    return _items(_json(await generate(load_prompt("b4_project_coverage.txt"), ask, 1200, 0.0)), "missing", 12)
+
+
+async def complete_missing(ws_dir: Path, missing: list[str], generate: Any, write_file: Any) -> list[str]:
+    """Rewrite the logic file (and the page, when UI items are missing) so the missing items exist; returns the files changed.
+
+    A rewrite that breaks the static checks (syntax, DOM ids, eval) is rolled back, so the second pass can only improve a project.
+    """
+    from workspace_checks import static_problem
+
+    files = _code_files(ws_dir)
+    logic = [p for p in files if p.suffix in (".js", ".py") and p.stat().st_size > 200 and p.stem in ("calc", "calculator", "app", "main", "logic", "script")][:1]
+    logic = logic or [p for p in files if p.suffix in (".js", ".py") and p.stat().st_size > 200][:1]
+    page = [p for p in files if p.suffix == ".html" and "templates" not in p.parts][:1]
+    changed: list[str] = []
+    for p in logic + page:
+        rel, before = p.relative_to(ws_dir).as_posix(), p.read_text(encoding="utf-8", errors="replace")
+        ask = (
+            f"`{rel}` dosyası şu ZORUNLU özellikleri/öğeleri eksik bırakıyor:\n" + "\n".join(f"- {m}" for m in missing)
+            + f"\n\nMevcut içerik:\n{before[:12000]}\n\n"
+            f"SADECE `{rel}` dosyasının eksiksiz, çalışan güncel içeriğini tek bir kod bloğunda yaz (başka dosya yazma). Eksiklerin HEPSİNİ ekle; çalışan kısımları bozma, id/sınıf adlarını koru."
+        )
+        body = extract_file(await generate(None, ask, 4096, 0.15), p.suffix)
+        if not body:
+            continue
+        write_file(ws_dir, rel, body)
+        problem = static_problem(ws_dir)
+        if problem is not None:
+            write_file(ws_dir, rel, before)  # roll back a rewrite that broke the project
+            continue
+        changed.append(rel)
+    return changed
+
+
+REASONING_MODEL = "qwen3.5:9b"  # research and coverage audits need reading comprehension; the 7B coder only writes files
+
+
+async def _coverage_pass(ws_dir: Path, info: dict[str, Any], gens: tuple[Any, Any]) -> AsyncIterator[dict[str, Any]]:
+    """Audit the finished project against the researched feature list; complete what is missing, then re-run the browser/smoke checks.
+
+    Yields status events and finally {"type": "coverage", "missing": int, "warning": str}.
+    """
+    import workspace_builder as wb
+    from workspace_requirements import repair_project
+    from workspace_smoke import smoke_and_repair
+
+    think, write = gens
+    yield {"type": "status", "message": "Eksik özellik denetimi yapılıyor..."}
+    missing = await missing_features(ws_dir, info, think)
+    if not missing:
+        yield {"type": "coverage", "missing": 0, "warning": ""}
+        return
+    yield {"type": "status", "message": f"{len(missing)} eksik özellik bulundu, tamamlanıyor..."}
+    changed = await complete_missing(ws_dir, missing, write, wb._write_workspace_file)
+    repair_project(ws_dir)
+    async for evt in smoke_and_repair(ws_dir, lambda _rel, ask: write(None, ask, 4096, 0.1)):
+        if evt["type"] == "status":
+            yield evt
+    yield {"type": "coverage", "missing": len(missing), "warning": f"Eksik bulunan {len(missing)} özellik ikinci geçişte eklendi ({', '.join(changed) or 'dosya değişmedi'})."}
+
+
+async def stream_generate(prompt: str, project_type: str = "auto", model_override: str | None = None) -> AsyncIterator[dict[str, Any]]:
+    """Drop-in replacement for workspace_builder.stream_generate_project with research and a coverage pass."""
+    import workspace_builder as wb
+
+    model = await wb.pick_coder_model(model_override)
+    reasoner = await wb.pick_coder_model(REASONING_MODEL)
+
+    def caller(which: str) -> Any:
+        async def gen(system: str | None, user: str, tokens: int, temp: float) -> str:
+            return await wb._ollama_generate(which, system or wb.FILE_WRITER_SYSTEM_PROMPT, user, num_predict=tokens, temperature=temp)
+
+        return gen
+
+    think, write = caller(reasoner), caller(model)
+    info: dict[str, Any] = dict(_EMPTY)
+    async for evt in _research_events(prompt, think):
+        if evt["type"] == "info":
+            info = evt["info"]
+        else:
+            yield evt
+    done: dict[str, Any] = {}
+    async for evt in wb.stream_generate_project(prompt + brief_text(info), project_type=project_type, model_override=model_override):
+        if evt["type"] == "done":
+            done = evt
+        else:
+            yield evt
+    if done:
+        async for evt in _coverage_events(done, info, (think, write)):
+            yield evt
+
+
+async def _research_events(prompt: str, think: Any) -> AsyncIterator[dict[str, Any]]:
+    """Status lines of the research step, then {"type": "info", "info": ...} with the brief (empty when research failed)."""
+    yield {"type": "status", "message": "Konu araştırılıyor: ürünün gerçek dünyadaki işlevleri ve arayüzü çıkarılıyor..."}
+    try:
+        info = await research(prompt, think)
+    except (OSError, RuntimeError, ValueError, TypeError, KeyError):
+        info = dict(_EMPTY)
+    if info["features"]:
+        src = f" (kaynak: {info['source']})" if info["source"] else ""
+        yield {"type": "status", "message": f"Araştırma tamamlandı{src}: {len(info['features'])} işlev, {len(info['ui'])} arayüz öğesi belirlendi."}
+    yield {"type": "info", "info": info}
+
+
+async def _coverage_events(done: dict[str, Any], info: dict[str, Any], callers: tuple[Any, Any]) -> AsyncIterator[dict[str, Any]]:
+    """Progress events of the coverage pass, then the updated 'done' event (with the new file tree and warnings)."""
+    import workspace_builder as wb
+
+    if not info["features"]:
+        yield done
+        return
+    ws_dir = wb.safe_workspace_dir(done["workspace"]["id"])
+    try:
+        async for evt in _coverage_pass(ws_dir, info, callers):
+            if evt["type"] == "coverage":
+                warnings = [*done.get("warnings", []), *([evt["warning"]] if evt["warning"] else [])]
+                done = {**done, "tree": wb.build_file_tree(ws_dir), "warnings": warnings}
+            else:
+                yield evt
+    except (OSError, RuntimeError, ValueError, TypeError, KeyError) as exc:
+        done = {**done, "warnings": [*done.get("warnings", []), f"Özellik denetimi tamamlanamadı: {exc}"]}
+    yield done

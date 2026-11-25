@@ -22,8 +22,10 @@ import httpx
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
 
+import code_verify
 import config
 import db
+import reasoning_mode
 from access_control import require_local_or_admin
 from assistant_cad_cnc import (  # noqa: F401
     CNC_BALLOON_KEYWORDS,
@@ -369,9 +371,10 @@ async def chat_stream(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     if len(history) > config.MAX_HISTORY_FIELD_BYTES:
         raise HTTPException(413, "Sohbet geçmişi çok uzun; yeni bir sohbet başlat.")
+    reasoning_mode.mark(prompt)
     stream_meta = {**opts, "user_id": uid}
     resp = await _chat_stream_impl(prompt, file, history, stream_meta)
-    resp.body_iterator = with_queue_notice(_tracked_stream(resp.body_iterator, prompt, uid, stream_meta["conversation_id"]))
+    resp.body_iterator = with_queue_notice(code_verify.wrap(_tracked_stream(resp.body_iterator, prompt, uid, stream_meta["conversation_id"]), prompt))
     return resp
 
 

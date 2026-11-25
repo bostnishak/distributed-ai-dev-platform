@@ -17,6 +17,6 @@ KESİN KURALLAR:
 - Tablo konuyla doğrudan ilgili olsun: sütunları konuya göre sen seç. Konuyla ilgisi olmayan "Birim Fiyat", "Miktar", "Maliyet", "Kod/No" gibi sütunlar ekleme.
 - Kullanıcı sayı verdiyse (ör. çeyrek satışları) tabloya BİREBİR o sayıları koy ve ek sayı icat etme.
 - Kullanıcı sayı vermediyse ve konu sayısal veri gerektirmiyorsa tabloyu metinsel yap (karşılaştırma, özellik, avantaj/risk, adım gibi); sayısal sütun gerekiyorsa yalnızca genel olarak bilinen, doğrulanabilir değerleri kullan ve emin değilsen o sütunu hiç ekleme.
-- Kullanıcı grafik istediyse tabloya 1 kategori sütunu + en az 1 sayısal sütun koy ve sayısal sütunun başlığına "(yaklaşık)" ya da "(örnek)" yaz; gerçek veri gibi sunma.
+- Kullanıcı grafik istediyse tabloya 1 kategori sütunu + en az 1 sayısal sütun koy ve sayısal sütunun başlığına birimini yaz; emin olmadığın değerleri "yaklaşık" diye belirt.
 - Tabloda 4-10 dolu satır olsun; 'Örnek Kalem' gibi yer tutucu yazma.
 - Asla emoji kullanma. Kaynak veri verildiyse sayıları uydurma, birebir kaynak veriden al.

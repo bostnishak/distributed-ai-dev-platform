@@ -57,7 +57,7 @@ _CHART_REQ_RE = re.compile(
     re.IGNORECASE,
 )
 _RESEARCH_REQ_RE = re.compile(
-    r"(?:kaynaklı\s+.*araştır\w*|kaynak\w*\s+göster\w*.*araştır\w*|kısa\s+bir\s+araştırma\s+yap|araştırma\s+raporu\s+hazırla)",
+    r"(?:kaynaklı\s+.*araştır\w*|kaynak\w*\s+göster\w*|\baraştır\w*|araştırma\s+(?:yap|rapor|hazırla)\w*|\bresearch\b)",
     re.IGNORECASE,
 )
 
@@ -233,9 +233,9 @@ def gather_research_sources(prompt: str) -> list[dict[str, str]]:
             from rag.store import default_rag_store
 
             with default_rag_store._conn() as conn:
-                rows = conn.execute(
-                    "SELECT doc_id, title FROM rag_documents ORDER BY created_at DESC LIMIT 3"
-                ).fetchall()
+                rows = conn.execute("SELECT doc_id, title FROM rag_documents ORDER BY created_at DESC LIMIT 200").fetchall()
+            words = {w for w in re.findall(r"\w{5,}", prompt.lower())}
+            rows = [r for r in rows if any(w[:5] in str(r["title"] or "").lower() for w in words)][:3]  # only documents that are about the question
             for row in rows:
                 sources.append(
                     {

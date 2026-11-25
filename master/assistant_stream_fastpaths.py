@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import inspect
 import json
 import logging
 import re
@@ -19,9 +18,13 @@ import assistant_cad_cnc as _cad
 import chat_guard
 import clarify as _clarify
 import config
+import gcode_chat
 import image_chat as _img
+import project_flow
+import reasoning_mode
 import reply_labels
 import text_tools
+from deck_flow import call_generator as _call_pptx_generator
 from document_chart import chart_series
 
 log = logging.getLogger("master.assistant")
@@ -264,19 +267,6 @@ def _is_pptx_generation_request(prompt: str, is_prompt_conv: bool) -> bool:
     if is_prompt_conv or _PPTX_ADVICE_RE.search(prompt):
         return False
     return bool(_PPTX_NOUN_RE.search(prompt) and _PPTX_VERB_RE.search(prompt))
-
-
-async def _call_pptx_generator(prompt: str, context_text: str) -> dict[str, Any]:
-    import deep_research as dr
-
-    gen_fn: Any = dr.generate_ai_pptx_presentation
-    params = inspect.signature(gen_fn).parameters
-    accepts_ctx = "context_text" in params or any(p.kind == inspect.Parameter.VAR_KEYWORD for p in params.values())
-    if context_text and accepts_ctx:
-        return await gen_fn(prompt, context_text=context_text)
-    if context_text:
-        return await gen_fn(f"{prompt}\n\nKaynak veri:\n{context_text[:10000]}")
-    return await gen_fn(prompt)
 
 
 async def _try_pptx_council_erp_fastpath(
@@ -527,7 +517,7 @@ def _try_project_build_fastpath(prompt: str, file: UploadFile | None, is_prompt_
         ws_tree: Any = None
         used_model = config.STUDIO_CODER_MODEL
         try:
-            async for evt in wb.stream_generate_project(prompt.strip(), project_type=detected_type):
+            async for evt in project_flow.stream_generate(prompt.strip(), project_type=detected_type):
                 if (msg := _format_project_evt(evt)):
                     yield sse_event({"type": "token", "content": msg})
                 if evt.get("type") == "plan":
@@ -572,6 +562,8 @@ async def dispatch_chat_fastpath(
     if _cad.is_3d_cad_request(file):
         return single_token_stream(await _cad.run_3d_cad_cam_from_chat(file, prompt), "cnc-ballooner", "cad3d")  # type: ignore[arg-type]
     for maybe in (
+        await gcode_chat.fastpath(prompt, has_file),
+        await reasoning_mode.fastpath(prompt, has_file),
         await _try_file_conversion_fastpath(prompt, file, has_file, is_prompt_conv),
         _try_mcp_fastpath(prompt, has_file, is_prompt_conv),
         await _try_rfq_zip_fastpath(prompt, file, has_file),
