@@ -247,3 +247,15 @@ html[data-theme="dark"] {
 }
 .msg-act:hover::after, .msg-act:focus-visible::after { opacity: 1; }
 .sp-branch-link { margin-top: 2px; }
+
+/* ---------- narrow screens: keep the drawer button clear of the top bar ---------- */
+@media (max-width: 860px) {
+  .sp-topbar { padding: 8px 12px 8px 60px; gap: 6px; }
+  .sp-topbar-right { width: 100%; }
+  .msg-actions { gap: 0; }
+  .msg-act { width: 32px; height: 32px; }
+  .chat-ctx-menu { max-width: calc(100vw - 24px); }
+  #sidebar .brand { margin-left: 40px; min-width: 0; }
+  #promptInput { text-overflow: ellipsis; }
+  #promptInput::placeholder { font-size: 14px; }
+}

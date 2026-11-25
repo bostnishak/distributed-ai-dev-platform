@@ -68,6 +68,36 @@ def _fix_flask_templates(ws_dir: Path) -> None:
                 target.write_text(src.read_text(encoding="utf-8", errors="replace"), encoding="utf-8")
 
 
+_ASSET_REF_RE = re.compile(r"""(href|src)=(["'])/?(?!static/|https?:|//|\{|#)([^"'#?]+\.(?:css|js|png|jpe?g|svg|ico|gif|webp))\2""")
+
+
+def _fix_static_refs(ws_dir: Path) -> None:
+    """Flask serves assets from <app>/static under /static/...; point template links there and copy the files."""
+    for tpl in [p for p in ws_dir.rglob("*.html") if p.parent.name == "templates" and ".history" not in p.parts]:
+        text = tpl.read_text(encoding="utf-8", errors="replace")
+
+        def repl(m: re.Match[str], tpl: Path = tpl) -> str:
+            rel = m.group(3).lstrip("./")
+            src = next((c for c in ws_dir.rglob(Path(rel).name) if c.is_file() and ".history" not in c.parts and "static" not in c.parts[:-1]), None)
+            dest = tpl.parent.parent / "static" / rel
+            if src is not None and not dest.exists():
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                dest.write_bytes(src.read_bytes())
+            return f"{m.group(1)}={m.group(2)}/static/{rel}{m.group(2)}" if dest.exists() else m.group(0)
+
+        fixed = _ASSET_REF_RE.sub(repl, text)
+        if fixed != text:
+            tpl.write_text(fixed, encoding="utf-8")
+
+
+def _refresh_static_copies(ws_dir: Path) -> None:
+    """A copy under static/ must not go stale after the original asset was repaired."""
+    for dest in [p for p in ws_dir.rglob("*") if p.is_file() and "static" in p.parts and ".history" not in p.parts]:
+        src = next((c for c in ws_dir.rglob(dest.name) if c.is_file() and "static" not in c.parts and ".history" not in c.parts), None)
+        if src is not None and src.stat().st_mtime > dest.stat().st_mtime:
+            dest.write_bytes(src.read_bytes())
+
+
 def _add_package_launcher(ws_dir: Path) -> None:
     """`python backend/app.py` cannot import `backend.*`; give such projects an `app.py`-style launcher at the root."""
     for py in _py_files(ws_dir):
@@ -80,15 +110,31 @@ def _add_package_launcher(ws_dir: Path) -> None:
         (pkg / "__init__.py").touch()
         launcher = ws_dir / "run.py"
         if not launcher.exists() and re.search(r"^app\s*=", text, re.M):
-            body = f"from {pkg.name}.{py.stem} import app\n\nif __name__ == \"__main__\":\n    app.run(debug=True)\n"
+            lines = [f"from {pkg.name}.{py.stem} import app"]
             if "SQLAlchemy" in text or "db.init_app" in text:
-                body = body.replace("    app.run", f"    from {pkg.name}.models import db\n\n    with app.app_context():\n        db.create_all()\n    app.run")
-            launcher.write_text(body, encoding="utf-8")
+                lines += [f"from {pkg.name}.models import db", "", "with app.app_context():", "    db.create_all()"]
+            lines += ["", 'if __name__ == "__main__":', "    app.run(debug=True)", ""]
+            launcher.write_text("\n".join(lines), encoding="utf-8")
         return
+
+
+_EXTERNAL_DB_RE = re.compile(r"(?:postgres(?:ql)?|mysql|mariadb|mssql)(?:\+\w+)?://[^'\"\s]*")
+
+
+def _use_sqlite(ws_dir: Path) -> None:
+    """A starter project must run anywhere: swap external database URLs for a local SQLite file."""
+    for py in _py_files(ws_dir):
+        text = py.read_text(encoding="utf-8", errors="replace")
+        fixed = _EXTERNAL_DB_RE.sub("sqlite:///app.db", text)
+        if fixed != text:
+            py.write_text(fixed, encoding="utf-8")
 
 
 def repair_project(ws_dir: Path) -> None:
     """Fixes for typical integration slips in model-written projects (run right after generation)."""
+    _use_sqlite(ws_dir)
     fix_requirements(ws_dir)
     _fix_flask_templates(ws_dir)
+    _fix_static_refs(ws_dir)
+    _refresh_static_copies(ws_dir)
     _add_package_launcher(ws_dir)

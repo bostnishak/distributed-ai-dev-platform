@@ -53,6 +53,7 @@ from workspace_builder_ops import (
     workspaces_root,
 )
 from workspace_requirements import repair_project
+from workspace_smoke import smoke_and_repair
 
 __all__ = [
     "ARCHITECT_SYSTEM_PROMPT",
@@ -93,6 +94,7 @@ FILE_WRITER_SYSTEM_PROMPT = (
     "eksiksiz, çalışır, temiz, üretim kalitesinde kodunu yaz.\n"
     "Kurallar:\n"
     "- SADECE dosya içeriğini döndür (açıklama veya ek sohbet yazma).\n"
+    "- Veritabanı gerekiyorsa SQLite kullan (sqlite:///app.db); PostgreSQL/MySQL gibi harici sunucu ve ek sürücü paketi KULLANMA. Web uygulamasında kök dizinde çalışan tek bir giriş dosyası olsun.\n"
     "- Yarım bırakma, '// TODO' veya '...' kullanma; tüm fonksiyonları ve stilleri eksiksiz yaz.\n"
     "- Proje içindeki diğer dosya yolları, HTML element ID'leri, CSS sınıfları, JS fonksiyon adları ve Python importları ile %100 uyumlu ol.\n"
     "- ASLA emoji kullanma (ne HTML metinlerinde, ne butonlarda, ne de yorumlarda). İkon gerektiğinde temiz inline SVG kullan.\n"
@@ -499,7 +501,13 @@ async def stream_generate_project(
         yield {"type": "file_done", "path": fpath, "size": len(code.encode("utf-8")), "index": idx, "total": len(planned_files)}
 
     repair_project(ws_dir)
-    warnings = verify_workspace_files(ws_dir)
+    smoke_warning = ""
+    async for evt in smoke_and_repair(ws_dir, lambda _p, ask: _ollama_generate(model, FILE_WRITER_SYSTEM_PROMPT, ask, temperature=0.1)):
+        if evt["type"] == "status":
+            yield evt
+        else:
+            smoke_warning = evt["warning"]
+    warnings = verify_workspace_files(ws_dir) + ([smoke_warning] if smoke_warning else [])
     create_snapshot(ws_dir, "İlk oluşturma")
     meta["versions"] = list_snapshots(ws_dir)
     meta["updated_at"] = datetime.now(UTC).isoformat()

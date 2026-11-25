@@ -48,3 +48,32 @@ def test_package_style_app_gets_a_root_launcher(tmp_path):
     repair_project(tmp_path)
     assert "from backend.app import app" in (tmp_path / "run.py").read_text(encoding="utf-8")
     assert (tmp_path / "backend" / "__init__.py").exists()
+
+
+def test_external_database_url_becomes_sqlite(tmp_path):
+    from workspace_requirements import repair_project
+
+    (tmp_path / "config.py").write_text("URI = os.environ.get('DB') or 'postgresql://user:pw@localhost/todo'\n", encoding="utf-8")
+    repair_project(tmp_path)
+    assert "sqlite:///app.db" in (tmp_path / "config.py").read_text(encoding="utf-8")
+
+
+def test_asset_links_point_to_flask_static(tmp_path):
+    from workspace_requirements import repair_project
+
+    (tmp_path / "backend" / "templates").mkdir(parents=True)
+    (tmp_path / "frontend" / "css").mkdir(parents=True)
+    (tmp_path / "frontend" / "css" / "styles.css").write_text("body{}", encoding="utf-8")
+    (tmp_path / "backend" / "templates" / "index.html").write_text('<link rel="stylesheet" href="/css/styles.css">', encoding="utf-8")
+    repair_project(tmp_path)
+    assert "/static/css/styles.css" in (tmp_path / "backend" / "templates" / "index.html").read_text(encoding="utf-8")
+    assert (tmp_path / "backend" / "static" / "css" / "styles.css").exists()
+
+
+def test_js_fetch_without_matching_route_is_reported(tmp_path):
+    from workspace_contract import contract_problem
+
+    (tmp_path / "app.js").write_text("fetch('/api/tasks'); fetch(`/tasks/tasks/${id}`)", encoding="utf-8")
+    found = contract_problem(tmp_path, ["/tasks/tasks", "/tasks/tasks/<int:id>", "/static/<path:filename>"])
+    assert found and "/api/tasks" in found[1]
+    assert contract_problem(tmp_path, ["/api/tasks", "/tasks/tasks/<int:id>"]) is None

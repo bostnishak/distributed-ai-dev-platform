@@ -1,0 +1,25 @@
+import importlib.util, os, sys, traceback
+sys.path.insert(0, os.getcwd())
+try:
+    spec = importlib.util.spec_from_file_location("__smoke__", sys.argv[1])
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    app = getattr(mod, "app", None)
+    if app is not None and hasattr(app, "test_client"):
+        status = app.test_client().get("/").status_code
+        if status >= 500:
+            raise RuntimeError("GET / returned HTTP %s" % status)
+        import json
+        client = app.test_client()
+        for rule in app.url_map.iter_rules():
+            if "GET" in rule.methods and "<" not in rule.rule and not rule.rule.startswith("/static"):
+                code = client.get(rule.rule).status_code
+                if code >= 500:
+                    raise RuntimeError("GET %s returned HTTP %s" % (rule.rule, code))
+        print("ROUTES=" + json.dumps([r.rule for r in app.url_map.iter_rules()]))
+    print("SMOKE_OK")
+except SystemExit:
+    print("SMOKE_OK")
+except BaseException:
+    traceback.print_exc()
+    sys.exit(1)

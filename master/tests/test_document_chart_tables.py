@@ -1,7 +1,7 @@
 """Word and PDF deliverables carry a readable table and a real chart; numbers are formatted and right aligned."""
 
-import pytest
 import pymupdf
+import pytest
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 
