@@ -1,5 +1,4 @@
 // UX-02 Modular Split: Local Whisper STT voice capture + sandboxed Python code execution handlers.
-import { pillIcon } from './pill_icons.js';
 import { bindGlobalEvent, safeFetchJson, startManagedInterval } from './storage.js';
 
 let handsFreeActive = false;
@@ -146,24 +145,6 @@ async function transcribeAudioBlob(blob, filename, els, ui, updateSendState, isR
 }
 
 function mountVoiceModeToggle(st, startRecording, stopAndTranscribe) {
-  const pill = document.getElementById('inputPill');
-  if (pill && !document.getElementById('voiceModeBtn')) {
-    const vBtn = document.createElement('button');
-    vBtn.id = 'voiceModeBtn';
-    vBtn.type = 'button';
-    vBtn.className = 'pill-icon-btn';
-    vBtn.setAttribute('aria-pressed', 'false');
-    vBtn.setAttribute('aria-label', 'Sesli sohbet');
-    vBtn.title = 'Sesli sohbet (dinle ve sesli yanıtla)';
-    vBtn.append(pillIcon('wave'));
-    vBtn.addEventListener('click', () => {
-      const on = toggleVoiceMode();
-      if (on && !st.recording) startRecording();
-      else if (!on && st.recording) stopAndTranscribe();
-    });
-    voiceToggleRef = vBtn;
-    pill.insertBefore(vBtn, document.getElementById('sendBtn'));
-  }
   bindGlobalEvent(document, 'assistant-reply-complete', (evt) => {
     if (!handsFreeActive) return;
     const text = (evt.detail && evt.detail.text) || '';
