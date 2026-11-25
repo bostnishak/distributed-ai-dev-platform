@@ -16,6 +16,7 @@ from fastapi import UploadFile
 from fastapi.responses import StreamingResponse
 
 import assistant_cad_cnc as _cad
+import chat_guard
 import clarify as _clarify
 import config
 import image_chat as _img
@@ -549,6 +550,8 @@ async def dispatch_chat_fastpath(
 ) -> StreamingResponse | None:
     """Try deterministic/tool SSE fast paths before falling back to general LLM chat."""
     has_file = bool(file is not None and file.filename)
+    if (refusal := chat_guard.refusal_for(prompt)) is not None:
+        return single_token_stream(refusal, "guard-policy", "guard")
     if (res := _try_abstain_fastpath(prompt, history, has_file)) is not None:
         return res
     if not is_prompt_conv and (question := _clarify.clarifying_question(prompt, history, has_file)):

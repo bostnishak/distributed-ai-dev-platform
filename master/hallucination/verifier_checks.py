@@ -222,14 +222,21 @@ def decide_abstention(*, confidence_score: float, has_sources: bool, risk: str, 
     return {"abstain": False, "message": ""}
 
 
+def _has_word(text: str, marker: str) -> bool:
+    """Whole-word match so that 'gizli' does not fire on 'gizliliği' and 'getir' not on 'getirir'."""
+    return re.search(rf"(?<!\w){re.escape(marker)}(?!\w)", text) is not None
+
+
 def detect_unanswerable(question: str, *, current_year: int | None = None) -> dict[str, Any]:
     """HAL-15: questions nobody can answer truthfully (private data, exact future values) get an abstention up front."""
     year = current_year or datetime.now(UTC).year
     low = tr_lower(question)
     if any(m in low for m in _EXPLAINER_MARKERS) and not any(m in low for m in ("olacak", "will be", "tam olarak")):
         return {"unanswerable": False, "reason": "", "message": ""}
-    asks_for_value = any(v in low for v in _REQUEST_VERBS) or "?" in low
-    private = any(m in low for m in _PRIVATE_MARKERS) and asks_for_value
+    if len(low) > 400:  # a pasted text to work on, not a question about a secret value
+        return {"unanswerable": False, "reason": "", "message": ""}
+    asks_for_value = any(_has_word(low, v) for v in _REQUEST_VERBS) or "?" in low
+    private = any(_has_word(low, m) for m in _PRIVATE_MARKERS) and asks_for_value
     future = any(m in low for m in _FUTURE_MARKERS) and any(v in low for v in _FORECAST_VERBS)
     future_year = any(int(y) > year + 1 for y in _DATE_RE.findall(low)) and any(v in low for v in ("tam olarak", "kaç", "exact", "olacak"))
     if private or future or future_year:

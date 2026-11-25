@@ -40,3 +40,15 @@ def test_project_without_entry_is_skipped(tmp_path):
         raise AssertionError
 
     assert asyncio.run(_collect(tmp_path, regen))[-1]["ok"] is True
+
+
+def test_static_web_project_with_wrong_id_is_repaired(tmp_path):
+    (tmp_path / "index.html").write_text('<html><head></head><body><ul id="list"></ul><script src="app.js"></script></body></html>', encoding="utf-8")
+    (tmp_path / "app.js").write_text("document.getElementById('taskList').innerHTML = '';", encoding="utf-8")
+
+    async def regen(path, ask):
+        assert path == "app.js"
+        return "document.getElementById('list').innerHTML = '';"
+
+    events = asyncio.run(_collect(tmp_path, regen))
+    assert events[-1]["ok"] is True

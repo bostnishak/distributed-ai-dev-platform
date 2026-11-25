@@ -52,6 +52,7 @@ from workspace_builder_ops import (
     verify_workspace_files,
     workspaces_root,
 )
+from workspace_kit import KIT_CLASSES
 from workspace_requirements import repair_project
 from workspace_smoke import smoke_and_repair
 
@@ -98,6 +99,10 @@ FILE_WRITER_SYSTEM_PROMPT = (
     "- Yarım bırakma, '// TODO' veya '...' kullanma; tüm fonksiyonları ve stilleri eksiksiz yaz.\n"
     "- Proje içindeki diğer dosya yolları, HTML element ID'leri, CSS sınıfları, JS fonksiyon adları ve Python importları ile %100 uyumlu ol.\n"
     "- ASLA emoji kullanma (ne HTML metinlerinde, ne butonlarda, ne de yorumlarda). İkon gerektiğinde temiz inline SVG kullan.\n"
+    "- Arayüz metinleri (başlıklar, butonlar, placeholder, hata mesajları) kullanıcının isteğiyle AYNI dilde olsun; istek Türkçeyse Türkçe yaz.\n"
+    "- Web projelerinde projeye otomatik olarak hazır bir tasarım kiti (theme.css) eklenir ve senin CSS'inden SONRA yüklenir. HTML'de şu sınıfları kullan: " + KIT_CLASSES + ". Sayfayı bu sınıflarla kur (navbar, hero, section, container, card, grid, btn, field...). Kendi CSS dosyana yalnızca bu kitte olmayan, projeye özgü küçük stiller yaz; body, button, input, h1-h3 gibi temel öğeleri yeniden stilleme.\n"
+    "- JS'te eval() ve satır içi onclick=\"\" kullanma (addEventListener kullan), klavye desteği ekle, DOM'a yalnızca HTML'de gerçekten var olan id/sınıfları eriştir; form gönderimlerinde preventDefault kullan, boş girdiyi doğrula, fetch hatalarını yakala ve kullanıcıya göster. Sunucusuz web uygulamalarında veriyi localStorage'da sakla ki sayfa yenilenince kaybolmasın.\n"
+    "- Her uygulama gerçekten çalışır olsun: tüm butonlar bir işlev görsün, ölü bağlantı veya boş işleyici bırakma; en az bir boş durum (empty state) ve hata durumu tasarla.\n"
     "- Web / CSS tasarımlarında kurumsal modern SaaS estetiği (Inter/Segoe UI tipografi, #0f172a / #1e293b / #4f46e5 renk paleti, ince kenarlıklar 1px solid rgba(255,255,255,0.08), yumuşak gölgeler, flexbox/grid, sekme geçişleri ve modern form kontrolleri) kullan; asla ilkel 2005 tarzı düz beyaz/gri kutular veya alert() kullanma.\n"
     "- Python masaüstü / oyun (.exe) projelerinde SADECE Python standart kütüphanesini (tkinter, tkinter.ttk, math, json, random, datetime, pathlib) kullan; PyQt5, customtkinter, pygame gibi harici paketleri ASLA import etme."
 )

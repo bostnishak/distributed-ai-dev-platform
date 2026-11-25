@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import re
 import subprocess
 import sys
@@ -17,8 +18,9 @@ from pathlib import Path
 from typing import Any
 
 from process_utils import run_process
+from workspace_checks import static_problem
 from workspace_contract import contract_problem
-from workspace_requirements import repair_project
+from workspace_requirements import _PIP_NAMES, repair_project
 
 _PROBE = (Path(__file__).parent / "prompts" / "smoke_probe.py.txt").read_text(encoding="utf-8")
 _FRAME_RE = re.compile(r'File "([^"]+)", line (\d+)')
@@ -34,6 +36,15 @@ def _sandbox_python() -> Path:
     return py
 
 
+_SAFE_PACKAGES = {n.lower() for n in _PIP_NAMES.values()} | {"requests", "numpy", "pandas", "matplotlib", "pytest", "httpx", "jinja2", "werkzeug", "gunicorn", "click"}
+
+
+def _clean_env() -> dict[str, str]:
+    """Generated code runs with a minimal environment: no API keys, tokens or other secrets of this server."""
+    keep = ("PATH", "SYSTEMROOT", "TEMP", "TMP", "COMSPEC", "PATHEXT", "WINDIR", "LANG")
+    return {k: v for k, v in os.environ.items() if k.upper() in keep}
+
+
 def _find_entry(ws_dir: Path) -> Path | None:
     return next((ws_dir / e for e in _ENTRIES if (ws_dir / e).is_file()), None)
 
@@ -42,9 +53,10 @@ def _run_probe(ws_dir: Path, entry: Path) -> tuple[bool, str, list[str]]:
     py = _sandbox_python()
     req = ws_dir / "requirements.txt"
     pkgs = [ln.strip() for ln in req.read_text(encoding="utf-8").splitlines() if ln.strip() and not ln.startswith("#")] if req.is_file() else []
+    pkgs = [p for p in pkgs if re.split(r"[<>=!~\[; ]", p, maxsplit=1)[0].lower() in _SAFE_PACKAGES]  # never install unknown names
     if pkgs:
         run_process([str(py), "-m", "pip", "install", "-q", "--disable-pip-version-check", *pkgs], timeout_s=300)
-    proc = run_process([str(py), "-c", _PROBE, str(entry)], cwd=ws_dir, timeout_s=25, max_output_chars=2500)
+    proc = run_process([str(py), "-c", _PROBE, str(entry)], cwd=ws_dir, timeout_s=25, max_output_chars=2500, env=_clean_env())
     if proc.timed_out:
         return True, "", []  # long-running app (server/GUI loop): it started, which is what we wanted to know
     routes = json.loads(m.group(1)) if (m := re.search(r"^ROUTES=(.*)$", proc.stdout, re.M)) else []
@@ -55,7 +67,7 @@ def _diagnose(ws_dir: Path, ok: bool, log: str, routes: list[str]) -> tuple[bool
     """(passed, file to repair, error text) for one probe run."""
     if not ok:
         return False, _failing_file(ws_dir, log), log
-    problem = contract_problem(ws_dir, routes)
+    problem = contract_problem(ws_dir, routes) or static_problem(ws_dir)
     return (True, None, "") if problem is None else (False, problem[0], problem[1])
 
 
@@ -87,14 +99,11 @@ async def smoke_and_repair(ws_dir: Path, regenerate: _Regenerate, rounds: int = 
     """Yield status events; the last event is {"type": "smoke", "ok": bool, "warning": str}."""
     ws_dir = await asyncio.to_thread(ws_dir.resolve)
     entry = _find_entry(ws_dir)
-    if entry is None:
-        yield {"type": "smoke", "ok": True, "warning": ""}
-        return
     log = ""
     for attempt in range(rounds + 1):
         yield {"type": "status", "message": "Proje çalıştırılarak test ediliyor..." if attempt == 0 else f"Hata düzeltildi, yeniden test ediliyor ({attempt}/{rounds})..."}
         try:
-            ok, log, routes = await asyncio.to_thread(_run_probe, ws_dir, entry)
+            ok, log, routes = await asyncio.to_thread(_run_probe, ws_dir, entry) if entry else (True, "", [])
         except (OSError, subprocess.SubprocessError) as exc:
             yield {"type": "smoke", "ok": True, "warning": f"Otomatik test çalıştırılamadı: {exc}"}
             return

@@ -17,3 +17,8 @@ Kurallar:
 - Full-stack / API projelerinde backend/ (FastAPI), frontend/ (HTML/CSS/JS), tests/, requirements.txt, README.md, .gitignore gibi eksiksiz profesyonel klasör yapısı kur.
 - İkili resim dosyaları (.png, .jpg, .ico) planlama; logo/ikon gerekiyorsa .svg dosyası veya inline SVG kullan.
 - Projenin kapsamına göre 5 ile 14 arası temiz, modüler dosya planla (README.md dahil).
+- Projeyi kullanıcının isteğinin ruhuna göre tasarla: özellik listesini kafandan çıkar (ör. todo için ekle, tamamla, sil, filtrele, kalıcı saklama), gereksiz dosya ekleme; her dosya gerçekten kullanılsın.
+- Her web projesinin ana sayfası tek bir index.html olsun ve ona bağlı css/styles.css ile js/app.js (gerekirse js/ içinde 1-2 modül) bulunsun. Hazır bir tasarım kiti (theme.css) projeye otomatik eklenir; onu PLANLAMA.
+- Sunucu gereken projelerde (Flask/FastAPI) tek bir giriş dosyası (app.py) ve templates/ + static/ klasörlerini kullan; veritabanı için SQLite kullan.
+- Dosya amaçlarını (purpose) somut yaz: hangi id/sınıf/fonksiyon/rota (ör. "GET/POST /api/tasks") bu dosyada tanımlanacak, diğer dosyalar bunlara uyacak.
+- "name" ve dosya amaçları kullanıcının dilinde olsun.

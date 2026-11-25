@@ -113,7 +113,7 @@ def is_zip_workspace_request(prompt: str, file: UploadFile | None) -> bool:
 def is_project_build_request(prompt: str, file: UploadFile | None) -> bool:
     if file is not None and file.filename:
         return False
-    lower = prompt.lower().strip()
+    lower = re.sub(r"<[^>]*>|```.*?```|`[^`]*`", " ", prompt.lower(), flags=re.S).strip()  # markup/code in the message is not a project noun
     if CODE_ONLY_RE.search(lower):
         return False
     if any(

@@ -10,6 +10,8 @@ import re
 import sys
 from pathlib import Path
 
+from workspace_kit import inject_theme
+
 _PIP_NAMES = {
     "cv2": "opencv-python", "PIL": "Pillow", "yaml": "PyYAML", "sklearn": "scikit-learn", "bs4": "beautifulsoup4",
     "dotenv": "python-dotenv", "flask_sqlalchemy": "Flask-SQLAlchemy", "flask_cors": "Flask-Cors", "flask_login": "Flask-Login",
@@ -135,6 +137,7 @@ def repair_project(ws_dir: Path) -> None:
     _use_sqlite(ws_dir)
     fix_requirements(ws_dir)
     _fix_flask_templates(ws_dir)
+    inject_theme(ws_dir)
     _fix_static_refs(ws_dir)
     _refresh_static_copies(ws_dir)
     _add_package_launcher(ws_dir)

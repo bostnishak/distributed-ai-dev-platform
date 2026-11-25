@@ -11,6 +11,7 @@ import os
 import sqlite3
 import time
 import zipfile
+from datetime import datetime
 from typing import Any
 
 import httpx
@@ -20,6 +21,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 import config
 import extract as _extract_mod
 from extract import extract_csv_text, extract_docx_text, extract_pdf_text, extract_xlsx_text, extract_zip_text
+from upload_guard import PARSE_ERRORS, parse_failure, read_limited
 
 log = logging.getLogger("master.assistant")
 
@@ -223,7 +225,7 @@ async def process_uploaded_attachment(file: UploadFile, prompt: str) -> tuple[st
     filename = file.filename or "dosya"
     name = filename.lower()
     content_type = file.content_type or ""
-    raw = await file.read()
+    raw = await read_limited(file)
 
     image_b64: str | None = None
     extracted_text = ""
@@ -234,7 +236,10 @@ async def process_uploaded_attachment(file: UploadFile, prompt: str) -> tuple[st
         image_b64, file_note = _process_image_upload(raw, prompt)
         forced_task_type = "analiz"
     else:
-        extracted_text, forced_task_type, file_note = _extract_document_bytes(filename, content_type, raw, prompt)
+        try:
+            extracted_text, forced_task_type, file_note = _extract_document_bytes(filename, content_type, raw, prompt)
+        except PARSE_ERRORS as exc:
+            raise parse_failure(filename) from exc
 
     if not (content_type.startswith("image/") or content_type.startswith("audio/")):
         import chat_contracts
@@ -493,6 +498,9 @@ def build_llm_stream_inputs(
         extra_blocks.append(research_note)
     if constraints.system_notes:
         extra_blocks.append("\n".join(constraints.system_notes))
+    now = datetime.now()
+    day = ("Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar")[now.weekday()]
+    extra_blocks.append(f"Güncel tarih ve saat (sunucu saati): {now:%d.%m.%Y} {day}, {now:%H:%M}. Tarih, gün veya saat sorulursa bunu kullan; canlı veri veya internet erişimin olmadığını unutma.")
     mem_ctx = "\n\n".join(b for b in extra_blocks if b)
     if mem_ctx and messages:
         messages[0]["content"] = f"{messages[0]['content']}\n\n{mem_ctx}"

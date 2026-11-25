@@ -40,6 +40,27 @@ def is_image_revision(prompt: str, history: list[dict[str, Any]]) -> bool:
     return bool(_MARKER_RE.search(last_assistant) and _FOLLOWUP_RE.search(prompt))
 
 
+_NSFW_RE = re.compile(r"\b(?:çıplak\w*|ciplak\w*|nude\w*|naked|erotik\w*|erotic\w*|porn\w*|cinsel\w*|sexual\w*|nsfw|seks\w*)\b", re.IGNORECASE)
+_SUBJECT_RE = re.compile(
+    r"\b(?:kedi\w*|köpek\w*|kopek\w*|kuş\w*|kus\w*|at\b|atlar\w*|aslan\w*|balık\w*|balik\w*|tavşan\w*|ayı\w*|"
+    r"insan\w*|kadın\w*|kadin\w*|erkek\w*|çocuk\w*|cocuk\w*|adam\w*|araba\w*|uçak\w*|ucak\w*|gemi\w*|bisiklet\w*|"
+    r"cat\w*|dog\w*|bird\w*|horse\w*|lion\w*|fish\w*|person|people|man|woman|girl|boy|car\w*|plane\w*|ship\w*)\b",
+    re.IGNORECASE,
+)
+
+
+def nsfw_requested(prompt: str) -> bool:
+    return bool(_NSFW_RE.search(prompt))
+
+
+def unsupported_subject(prompt: str) -> str | None:
+    """The animal/person/vehicle the user wants drawn: the template engine cannot draw it."""
+    from multimodal_studio import classify_image_mode
+
+    m = _SUBJECT_RE.search(prompt)
+    return m.group(0) if m and classify_image_mode(prompt) == "scene_illustration" else None
+
+
 def photoreal_requested(prompt: str) -> bool:
     return bool(_PHOTOREAL_RE.search(prompt))
 
@@ -60,6 +81,13 @@ async def photoreal_backend_available() -> bool:
     return False
 
 
+NSFW_MSG = "Cinsel içerikli ya da müstehcen görseller üretmiyorum. İstersen manzara, logo, poster, diyagram gibi başka bir görsel isteyebilirsin."
+NO_SUBJECT_MSG = (
+    "Bir **{subject}** çizemiyorum: bu kurulumdaki görsel motoru hazır sahne şablonlarıyla (manzara, şehir, uzay, soyut) çalışıyor; "
+    "hayvan, kişi ya da araç gibi belirli nesneleri çizemez ve yanlış bir şey çizip \"çizdim\" demek istemem.\n\n"
+    "Seçenekler:\n1. Manzara/şehir/uzay sahnesi: örneğin \"gündüz bir dağ manzarası çiz\".\n2. Logo, poster ya da diyagram.\n"
+    "3. Gerçek bir resim için Stable Diffusion/ComfyUI kurulmalı; istersen adımlarını anlatırım."
+)
 NO_PHOTOREAL_MSG = (
     "Gerçekçi (fotoğraf gibi) bir görsel üretemiyorum: bu kurulumda bunu yapabilecek bir görsel yapay zeka modeli "
     "(Stable Diffusion ya da ComfyUI) çalışmıyor. Uydurma bir sonuç vermek istemedim.\n\n"
@@ -85,6 +113,11 @@ def build_image_gen_stream(prompt: str, history: str) -> StreamingResponse:
 
     async def _gen():
         try:
+            subject = None if is_image_revision(prompt, hist) else unsupported_subject(prompt)
+            if nsfw_requested(prompt) or (subject and not await photoreal_backend_available()):
+                yield _sse({"type": "token", "content": NSFW_MSG if nsfw_requested(prompt) else NO_SUBJECT_MSG.format(subject=subject)})
+                yield _sse({"type": "done", "model": "capability-check", "task_type": "gorsel"})
+                return
             if photoreal_requested(prompt) and not await photoreal_backend_available():
                 yield _sse({"type": "token", "content": NO_PHOTOREAL_MSG})
                 yield _sse({"type": "done", "model": "capability-check", "task_type": "gorsel"})

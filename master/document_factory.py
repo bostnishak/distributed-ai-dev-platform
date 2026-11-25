@@ -34,6 +34,7 @@ from openpyxl.utils import get_column_letter
 import multimodal_studio as mms
 from document_chart import _coerce_excel_cell, _row_height, chart_series, format_cell, render_bar_chart_png
 from document_chart import pdf_wrap_lines as _pdf_wrap_lines
+from document_formulas import is_rate_column, row_total_formula
 from prompt_loader import load_prompt
 
 logger = logging.getLogger(__name__)
@@ -234,11 +235,14 @@ def _xlsx_write_table(ws: Any, content: _DocContent, border: Border) -> tuple[li
         c.font, c.fill, c.border, c.alignment = Font(name="Calibri", bold=True, color="FFFFFF", size=10.5), accent, border, Alignment(horizontal="center", vertical="center", wrap_text=True)
     ws.row_dimensions[4].height = 26
     numeric_cols: set[int] = set()
+    derived = row_total_formula(content.headers, content.rows)
     for ri, rdata in enumerate(content.rows, start=5):
         row_strs: list[str] = []
         for ci in range(1, len(content.headers) + 1):
             raw_val = rdata[ci - 1] if ci - 1 < len(rdata) else ""
             val, num_fmt, is_num = _coerce_excel_cell(raw_val)
+            if derived and ci == derived[0]:
+                val, num_fmt, is_num = f"={get_column_letter(derived[1])}{ri}*{get_column_letter(derived[2])}{ri}", "#,##0.00", True
             if is_num:
                 numeric_cols.add(ci)
             c = ws.cell(ri, ci, val)
@@ -267,8 +271,9 @@ def _xlsx_add_totals_and_chart(ws: Any, content: _DocContent, numeric_cols: set[
         ws.cell(sum_r, ci).fill, ws.cell(sum_r, ci).border, ws.cell(avg_r, ci).border = total_fill, border, border
     for ci in formula_cols:
         col_let = get_column_letter(ci)
-        sc = ws.cell(sum_r, ci, f"=SUM({col_let}5:{col_let}{last_r})")
-        sc.font, sc.number_format = Font(name="Calibri", bold=True, color="1E293B"), "#,##0.00"
+        if not is_rate_column(content.headers[ci - 1]):
+            sc = ws.cell(sum_r, ci, f"=SUM({col_let}5:{col_let}{last_r})")
+            sc.font, sc.number_format = Font(name="Calibri", bold=True, color="1E293B"), "#,##0.00"
         ac = ws.cell(avg_r, ci, f"=AVERAGE({col_let}5:{col_let}{last_r})")
         ac.font, ac.number_format = Font(name="Calibri", italic=True, color="334155"), "#,##0.00"
     ws.row_dimensions[sum_r].height, ws.row_dimensions[avg_r].height = 22, 20

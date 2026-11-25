@@ -87,6 +87,8 @@ _STRONG_VISUAL_RE = re.compile(
 )
 
 
+_DRAW_RE = re.compile(r"\b(?:çiz\w*|ciz\w*|draw\w*|sketch\w*|paint\w*|illustrate\w*)\b", re.IGNORECASE)
+_CODE_WORD_RE = re.compile(r"\b(?:kod\w*|code|fonksiyon\w*|function|script\w*|program\w*|python|javascript|html|css|sql|algoritma\w*|grafik\w*|tablo\w*)\b", re.IGNORECASE)
 _NON_IMAGE_DOC_RE = re.compile(r"\b(excel\w*|word\w*|pdf\w*|pptx\w*|sunum\w*|exe|kodunu)\b", re.IGNORECASE)
 _NON_IMAGE_APP_RE = re.compile(r"\b(web\s*sitesi\w*|e-ticaret\w*|uygulama\w*|oyun(?:u|a|da|dan|un|lar[ıi]?)?)\b", re.IGNORECASE)
 
@@ -99,6 +101,8 @@ def is_image_generation_request(prompt: str, has_file: bool) -> bool:
         return False
     if _NON_IMAGE_APP_RE.search(prompt) and not _STRONG_VISUAL_RE.search(prompt):
         return False
+    if _DRAW_RE.search(prompt) and not _CODE_WORD_RE.search(prompt):
+        return True
     return bool(IMAGE_NOUN_RE.search(prompt) and IMAGE_ACTION_RE.search(prompt))
 
 
