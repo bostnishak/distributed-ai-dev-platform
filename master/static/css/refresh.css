@@ -172,3 +172,8 @@ html[data-theme="dark"] {
 .studio-dock .page-inner { max-width: none; padding: 0; }
 .studio-dock .studio-topbar { flex-wrap: wrap; gap: 8px; padding: 8px 12px; }
 .studio-dock .studio-body { grid-template-columns: 200px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) 220px; }
+
+/* sidebar status dots: stay small even when they are the first child of a chat row */
+.chat-item > .sp-chat-busy, .chat-item > .sp-chat-unread { flex: 0 0 auto; }
+.chat-item > .sp-chat-busy { width: 12px; height: 12px; min-width: 12px; box-sizing: border-box; }
+.chat-item > .sp-chat-unread { width: 8px; height: 8px; min-width: 8px; }
