@@ -16,6 +16,7 @@ from fastapi import UploadFile
 from fastapi.responses import StreamingResponse
 
 import assistant_cad_cnc as _cad
+import clarify as _clarify
 import config
 
 log = logging.getLogger("master.assistant")
@@ -573,6 +574,8 @@ async def dispatch_chat_fastpath(
     has_file = bool(file is not None and file.filename)
     if (res := _try_abstain_fastpath(prompt, history, has_file)) is not None:
         return res
+    if not is_prompt_conv and (question := _clarify.clarifying_question(prompt, history, has_file)):
+        return single_token_stream(question, "clarify-policy", "clarify")
     if _cad.is_3d_cad_request(file):
         return single_token_stream(await _cad.run_3d_cad_cam_from_chat(file, prompt), "cnc-ballooner", "cad3d")  # type: ignore[arg-type]
     for maybe in (

@@ -530,35 +530,41 @@ def build_pptx_presentation(
     return out_path
 
 
-def _build_fallback_slides(prompt: str, title: str, lang: str) -> list[dict[str, Any]]:
-    qs = decompose_research_questions(prompt)
-    slides: list[dict[str, Any]] = []
-    for i, q in enumerate(qs):
-        heading, is_last = (q.split(" - ")[-1] if " - " in q else q), (i == len(qs) - 1)
-        key_fact = f"{title} - {heading}"
-        slides.append({
-            "kicker": _LABELS[lang]["closing_kicker"] if is_last else f"{_LABELS[lang]['section']} {i + 1}",
-            "title": heading, "layout": "closing" if is_last else "bullets",
-            "bullets": [q], "key_fact": key_fact, "notes": _auto_notes(heading, [q], key_fact, lang),
-        })
-    return slides
+def _slides_are_real(spec: dict[str, Any], prompt: str) -> bool:
+    """A usable deck has several slides with their own content; slides that just repeat the request are rejected."""
+    slides = spec.get("slides")
+    if not isinstance(slides, list) or len(slides) < 3:
+        return False
+    echo = " ".join(prompt.lower().split())[:40]
+    filled = 0
+    for sl in slides:
+        if not isinstance(sl, dict) or not str(sl.get("title") or "").strip():
+            return False
+        bullets = [str(x) for x in (sl.get("bullets") or [])] + [str(x) for x in ((sl.get("columns") or {}).get("left_bullets") or [])]
+        if any(echo and echo in " ".join(x.lower().split()) for x in bullets):
+            return False
+        filled += 1 if (bullets or sl.get("kpis")) else 0
+    return filled >= max(3, len(slides) - 1)
 
 
-async def _fetch_pptx_spec(sys_prompt: str, user_msg: str, model: str) -> dict[str, Any]:
-    try:
-        import gateway
+async def _fetch_pptx_spec(sys_prompt: str, user_msg: str, model: str, prompt: str = "") -> dict[str, Any]:
+    """Ask the model for the deck outline; one retry. Returns {} when no usable content came back (never a made-up deck)."""
+    import gateway
 
-        res = await gateway.default_client.chat(
-            [{"role": "system", "content": sys_prompt}, {"role": "user", "content": user_msg}],
-            model=model, profile="analytic", num_predict=4200, timeout_s=120.0, feature="deep_research", max_retries=0,
-        )
-        m = re.search(r"\{[\s\S]*\}", res.content)
-        if m:
-            parsed = json.loads(re.sub(r",\s*([}\]])", r"\1", m.group(0)))
-            if isinstance(parsed, dict) and parsed.get("slides"):
-                return parsed
-    except (httpx.HTTPError, OSError, RuntimeError, ValueError, TypeError, KeyError, ImportError) as _exc:
-        logging.getLogger(__name__).debug("Recoverable PPTX generation error suppressed: %s", _exc)
+    for attempt in (1, 2):
+        try:
+            res = await gateway.default_client.chat(
+                [{"role": "system", "content": sys_prompt}, {"role": "user", "content": user_msg}],
+                model=model, profile="analytic", num_predict=4200, timeout_s=240.0, feature="deep_research", max_retries=0,
+            )
+            m = re.search(r"\{[\s\S]*\}", res.content)
+            if m:
+                parsed = json.loads(re.sub(r",\s*([}\]])", r"\1", m.group(0)))
+                if isinstance(parsed, dict) and _slides_are_real(parsed, prompt):
+                    return parsed
+            logging.getLogger(__name__).warning("pptx outline attempt %s unusable", attempt)
+        except (httpx.HTTPError, OSError, RuntimeError, ValueError, TypeError, KeyError, ImportError) as exc:
+            logging.getLogger(__name__).warning("pptx outline attempt %s failed: %s", attempt, exc)
     return {}
 
 
@@ -574,10 +580,10 @@ async def generate_ai_pptx_presentation(prompt: str, context_text: str = "") -> 
         "language": lang, "title": prompt.strip()[:72], "subtitle": _LABELS[lang]["cover_sub"],
         "cover_notes": "", "transition": theme["transition"], "slides": [],
     }
-    spec.update(await _fetch_pptx_spec(sys_prompt, user_msg, model))
+    spec.update(await _fetch_pptx_spec(sys_prompt, user_msg, model, prompt))
     final_lang = _detect_language(prompt, explicit=str(spec.get("language") or ""))
     if not spec.get("slides"):
-        spec["slides"] = _build_fallback_slides(prompt, str(spec["title"]), final_lang)
+        raise RuntimeError("Sunumun içeriğini üretemedim (model yanıt vermedi ya da geçerli bir slayt planı döndürmedi). Boş ya da isteğini kopyalayan bir sunum vermemek için dosya oluşturmadım; lütfen tekrar dener misin? Konuyu biraz daha açarsan (kaç slayt, hangi dönem/odak) sonuç daha iyi olur.")
     if spec.get("transition") in _TRANSITIONS:
         theme["transition"] = str(spec["transition"])
 

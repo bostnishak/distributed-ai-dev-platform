@@ -185,6 +185,9 @@ def _compile_deliverable_file(out_dir: Path, file_id: str, fmt: str, content: _D
     return out_path
 
 
+_NO_CONTENT_MSG = "Dosyanın içeriğini üretemedim (model yanıt vermedi ya da geçerli bir içerik döndürmedi). İsteğini kopyalayan boş bir dosya vermemek için oluşturmadım; lütfen tekrar dener misin? Konuyu biraz daha açarsan sonuç daha iyi olur."
+
+
 async def generate_document_deliverable(prompt: str, fmt: str, context_text: str = "") -> dict[str, Any]:
     """Use local LLM to structure content and compile a real .xlsx, .docx, .pptx, .pdf, or .csv file."""
     model = await mms.pick_best_model("deep")
@@ -201,10 +204,14 @@ async def generate_document_deliverable(prompt: str, fmt: str, context_text: str
         parsed = _extract_json_object(res.content)
         if parsed and parsed.get("title"):
             spec.update(parsed)
+        elif not context_text.strip():
+            raise RuntimeError(_NO_CONTENT_MSG)
         else:
-            logger.warning("document_factory: invalid JSON from LLM; using prompt/context fallback")
+            logger.warning("document_factory: invalid JSON from LLM; using the uploaded source data only")
     except (httpx.HTTPError, OSError, RuntimeError, ValueError, TypeError, KeyError, ImportError) as exc:
-        logger.warning("document_factory: LLM call failed (%s); using structured fallback", exc)
+        if not context_text.strip():
+            raise RuntimeError(_NO_CONTENT_MSG) from exc
+        logger.warning("document_factory: LLM call failed (%s); using the uploaded source data only", exc)
     content = _DocContent(str(spec.get("title") or lbl["report"]), str(spec.get("summary") or ""), list(spec.get("sections") or []), [str(h) for h in (spec.get("table_headers") or [lbl["item"], lbl["content"], lbl["value"]])], list(spec.get("table_rows") or []), target_lang)
     out_path = _compile_deliverable_file(mms.media_dir(), file_id, fmt, content)
     return {"file_id": file_id, "format": fmt, "title": content.title, "summary": content.summary, "sections": content.sections, "table_headers": content.headers, "table_rows": content.rows, "model": model, "url": f"/api/assistant/media/{out_path.name}"}
