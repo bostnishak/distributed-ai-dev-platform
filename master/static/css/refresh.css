@@ -224,3 +224,12 @@ html[data-theme="dark"] {
 .chat-section-more { display: block; width: 100%; text-align: left; border: none; background: transparent; color: var(--muted); font: inherit; font-size: 13px; padding: 6px 10px; cursor: pointer; border-radius: var(--r-sm); }
 .chat-section-more:hover { color: var(--text); background: var(--hover); }
 .chat-item.dragging { opacity: 0.45; }
+
+/* ---------- wider chat column on desktop (about 25% more room for code) ---------- */
+@media (min-width: 861px) {
+  .msg-row { padding: 0 7%; }
+  .msg { max-width: 84%; }
+  .msg-wrap { max-width: 84%; }
+  .msg-wrap > .msg { max-width: 100%; }
+  #inputWrap { padding: 12px 7% 20px; max-width: 1180px; }
+}
