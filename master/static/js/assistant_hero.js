@@ -1,3 +1,4 @@
+import { iconButton } from './message_icons.js';
 // UX-02 Modular Split: Model labels, hero suggestion cards & message action toolbar.
 
 export const MODEL_LABELS = {
@@ -25,53 +26,38 @@ export function downloadAsFile(text) {
 
 export function createMessageActions(text, onPromptify) {
   const bar = document.createElement('div');
-  bar.style.display = 'flex';
-  bar.style.gap = '12px';
-  bar.style.marginTop = '5px';
+  bar.className = 'msg-actions';
 
-  const copyBtn = document.createElement('span');
-  copyBtn.className = 'download-link';
-  copyBtn.textContent = 'Kopyala';
-  copyBtn.addEventListener('click', async () => {
+  const copyBtn = iconButton('copy', 'Kopyala', async () => {
     try {
       await navigator.clipboard.writeText(text);
-      copyBtn.textContent = 'Kopyalandı';
-      const COPY_RESET_MS = 1600;
-      setTimeout(() => { copyBtn.textContent = 'Kopyala'; }, COPY_RESET_MS);
+      copyBtn.setState('check', 'Kopyalandı');
     } catch {
-      copyBtn.textContent = 'Kopyalanamadı';
+      copyBtn.setState('copy', 'Kopyalanamadı');
     }
+    const COPY_RESET_MS = 1600;
+    setTimeout(() => copyBtn.setState('copy', 'Kopyala'), COPY_RESET_MS);
   });
 
-  const dl = document.createElement('span');
-  dl.className = 'download-link';
-  dl.textContent = 'Dosya olarak indir';
-  dl.addEventListener('click', () => downloadAsFile(text));
+  const dl = iconButton('download', 'Dosya olarak indir', () => downloadAsFile(text));
 
-  const ttsBtn = document.createElement('span');
-  ttsBtn.className = 'download-link';
-  ttsBtn.textContent = 'Sesli oku';
-  ttsBtn.addEventListener('click', () => {
+  const ttsBtn = iconButton('speak', 'Sesli oku', () => {
     if (!('speechSynthesis' in window)) return;
     if (window.speechSynthesis.speaking) {
       window.speechSynthesis.cancel();
-      ttsBtn.textContent = 'Sesli oku';
+      ttsBtn.setState('speak', 'Sesli oku');
       return;
     }
     const clean = String(text || '').replace(/```[\s\S]*?```/g, '').replace(/[#*|`_~]/g, ' ').slice(0, 1800);
     const utt = new SpeechSynthesisUtterance(clean);
     utt.lang = 'tr-TR';
-    utt.onend = () => { ttsBtn.textContent = 'Sesli oku'; };
-    utt.onerror = () => { ttsBtn.textContent = 'Sesli oku'; };
-    ttsBtn.textContent = 'Durdur';
+    utt.onend = () => ttsBtn.setState('speak', 'Sesli oku');
+    utt.onerror = () => ttsBtn.setState('speak', 'Sesli oku');
+    ttsBtn.setState('stop', 'Okumayı durdur');
     window.speechSynthesis.speak(utt);
   });
 
-  const promptifyBtn = document.createElement('span');
-  promptifyBtn.className = 'download-link';
-  promptifyBtn.textContent = 'Sohbeti Prompt Yap';
-  promptifyBtn.title = 'Bu sohbet geçmişini başka yapay zeka araçlarında kullanabileceğin tek bir master prompt haline çevir';
-  promptifyBtn.addEventListener('click', () => {
+  const promptifyBtn = iconButton('sparkles', 'Sohbeti master prompt yap (başka yapay zekada kullan)', () => {
     if (typeof onPromptify === 'function') {
       onPromptify(
         'Bu sohbet geçmişinin tamamını başka bir yapay zeka aracında baştan sona kullanabileceğim, eksiksiz ve kopyalanabilir tek bir master prompt haline çevir.'

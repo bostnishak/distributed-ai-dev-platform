@@ -3,6 +3,7 @@
 import { downloadText } from './panels.js';
 import { getActiveUserId } from './personal.js';
 import { bindGlobalEvent } from './storage.js';
+import { iconButton } from './message_icons.js';
 import { api, h } from './util.js';
 
 export function chatToMarkdown(messages, title = 'Sohbet') {
@@ -17,14 +18,11 @@ export function buildExtraActions({ messages, regenerate }) {
   const bar = h('div', { class: 'msg-extra-actions' });
   const note = h('span', { class: 'hub-status' });
 
-  const again = h('span', { class: 'download-link', role: 'button', tabindex: 0, title: 'Aynı istekle yanıtı yeniden üret' }, 'Yeniden üret');
-  again.addEventListener('click', regenerate);
+  const again = iconButton('refresh', 'Yanıtı yeniden üret', regenerate);
 
-  const exportBtn = h('span', { class: 'download-link', role: 'button', tabindex: 0, title: 'Sohbeti Markdown olarak indir' }, 'Sohbeti dışa aktar');
-  exportBtn.addEventListener('click', () => downloadText('sohbet.md', chatToMarkdown(messages())));
+  const exportBtn = iconButton('document', 'Sohbeti Markdown olarak dışa aktar', () => downloadText('sohbet.md', chatToMarkdown(messages())));
 
-  const shareBtn = h('span', { class: 'download-link', role: 'button', tabindex: 0, title: 'Salt okunur, süreli bağlantı oluştur' }, 'Paylaş');
-  shareBtn.addEventListener('click', async () => {
+  const shareBtn = iconButton('share', 'Paylaş (salt okunur, 24 saat geçerli bağlantı)', async () => {
     const user = getActiveUserId();
     try {
       const res = await api('/api/ux/shares', {
@@ -67,8 +65,7 @@ export function notifyAnswerReady(title) {
 
 // "Düzenle & Dallandır": cut the chat at this message and put its text back in the input to be edited (UX-08).
 export function buildBranchLink({ els, state, row, msgIdx, text, sync }) {
-  const link = h('span', { class: 'download-link sp-branch-link', style: { marginTop: '3px' }, title: 'Bu mesajı düzenleyerek sohbeti buradan yeni bir dala ayır' }, 'Düzenle & Dallandır');
-  link.addEventListener('click', () => {
+  const link = iconButton('edit', 'Düzenle ve dallandır (sohbeti buradan yeni bir dala ayır)', () => {
     els.promptInput.value = text;
     els.promptInput.style.height = `${Math.min(els.promptInput.scrollHeight, 160)}px`;
     state.currentMessages = state.currentMessages.slice(0, msgIdx);
