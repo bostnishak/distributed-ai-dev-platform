@@ -1,4 +1,5 @@
 // UX-02 Modular Split: Chat history localStorage + SQLite persistence & sidebar chat list renderer.
+import { pullMeta } from './chat_meta_sync.js';
 import { getActiveUserId } from './personal.js';
 import { buildFolderSection, buildSection, createFolder, loadChatMeta, loadFolders, loadSections, openCtxMenu, patchMeta, patchSections, showMenu } from './chat_sections.js';
 import { safeFetchJson, storageGet, storageSet } from './storage.js';
@@ -91,6 +92,7 @@ export async function syncChatsWithServer(state, callbacks) {
     }
   }
   saveChats(merged);
+  await pullMeta();
   callbacks.renderChatList();
   for (const [cid, chatObj] of toUpload) {
     safeFetchJson(`/api/user/${encodeURIComponent(uid)}/chats/${encodeURIComponent(cid)}`, {

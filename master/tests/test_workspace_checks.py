@@ -30,3 +30,13 @@ def test_undefined_python_name_is_reported(tmp_path):
     (tmp_path / "main.py").write_text("def f():\n    return missing_name\n", encoding="utf-8")
     found = python_name_problem(tmp_path)
     assert found is None or "missing_name" in found[1]
+
+
+def test_eval_in_js_is_reported(tmp_path):
+    from workspace_checks import eval_problem
+
+    (tmp_path / "app.js").write_text("display.value = eval(display.value);", encoding="utf-8")
+    found = eval_problem(tmp_path)
+    assert found and "eval" in found[1]
+    (tmp_path / "app.js").write_text("const r = evaluate(1); obj.eval2(x);", encoding="utf-8")
+    assert eval_problem(tmp_path) is None

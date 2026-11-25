@@ -106,3 +106,4 @@ KESİN KURALLAR:
 - chart.values dizisi yalnızca saf sayılardan (int/float) oluşsun; labels ile aynı uzunlukta (3-6 öğe) olsun.
 - transition değeri şunlardan biri olsun: fade, push, wipe, cover, split.
 - Asla emoji kullanma. Sadece ham JSON döndür, markdown kod bloğu veya ek açıklama ekleme.
+- Kullanıcının verdiği dönem adlarını olduğu gibi kullan: aylık veriye 'çeyreklik', yıllık veriye 'aylık' deme; veride olmayan dönem veya karşılaştırma uydurma.

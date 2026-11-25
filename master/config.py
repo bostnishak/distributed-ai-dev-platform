@@ -86,3 +86,7 @@ STUDIO_CODER_MODEL = os.environ.get("STUDIO_CODER_MODEL", "qwen2.5-coder:7b")
 
 MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 MAX_DOCUMENT_CHARS = 300_000
+CLASSIFIER_USE_LLM = os.environ.get("CLASSIFIER_USE_LLM", "0") == "1"
+REQUIRE_LOGIN = os.environ.get("REQUIRE_LOGIN", "0") == "1"  # multi-user installs: every /api call needs a session
+ENABLE_DOCS = os.environ.get("ENABLE_DOCS", "0") == "1"
+MAX_HISTORY_FIELD_BYTES = 600_000

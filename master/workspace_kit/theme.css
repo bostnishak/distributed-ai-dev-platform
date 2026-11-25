@@ -26,14 +26,14 @@ ul, ol { padding-left: 1.2em; }
 :focus-visible { outline: 3px solid var(--primary-soft); outline-offset: 2px; box-shadow: 0 0 0 2px var(--primary); }
 
 /* layout */
-.container { width: min(1120px, 100% - 32px); margin-inline: auto; padding: 0; background: transparent; box-shadow: none; max-width: none; }
-.container.narrow { width: min(640px, 100% - 32px); }
-.section { padding: 56px 0; }
-.stack > * + * { margin-top: 16px; }
-.row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.row.between { justify-content: space-between; }
-.grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-.center { text-align: center; }
+:where(.container) { width: min(1120px, 100% - 32px); margin-inline: auto; padding: 0; background: transparent; box-shadow: none; max-width: none; }
+:where(.container.narrow) { width: min(640px, 100% - 32px); }
+:where(.section) { padding: 56px 0; }
+:where(.stack) > * + * { margin-top: 16px; }
+:where(.row) { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+:where(.row.between) { justify-content: space-between; }
+:where(.grid) { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+:where(.center) { text-align: center; }
 .muted { color: var(--muted); }
 .hidden { display: none !important; }
 
@@ -44,7 +44,7 @@ ul, ol { padding-left: 1.2em; }
 .nav-links { display: flex; gap: 6px; flex-wrap: wrap; list-style: none; margin: 0; padding: 0; }
 .nav-links a { display: inline-block; padding: 8px 12px; border-radius: var(--radius-sm); color: var(--muted); font-weight: 550; }
 .nav-links a:hover, .nav-links a.active { background: var(--primary-soft); color: var(--primary); text-decoration: none; }
-.hero { padding: 88px 0 72px; text-align: center; background: radial-gradient(900px 360px at 50% -80px, var(--primary-soft), transparent); }
+:where(.hero) { padding: 88px 0 72px; text-align: center; background: radial-gradient(900px 360px at 50% -80px, var(--primary-soft), transparent); }
 .hero p { max-width: 640px; margin-inline: auto; color: var(--muted); font-size: 1.15rem; }
 .footer { padding: 32px 0; color: var(--muted); border-top: 1px solid var(--border); font-size: 0.9rem; }
 
@@ -94,7 +94,7 @@ tbody tr:hover { background: var(--surface-2); }
 .modal { background: var(--surface); border-radius: var(--radius); padding: 24px; width: min(480px, 100%); box-shadow: var(--shadow); }
 
 /* calculator / keypad style grids */
-.keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+:where(.keypad) { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
 .keypad button { min-height: 56px; font-size: 1.15rem; }
 .display { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; text-align: right; font-size: 2rem; font-variant-numeric: tabular-nums; overflow-x: auto; }
 

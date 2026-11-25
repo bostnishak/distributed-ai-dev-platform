@@ -63,6 +63,19 @@ def _run_probe(ws_dir: Path, entry: Path) -> tuple[bool, str, list[str]]:
     return "SMOKE_OK" in proc.stdout, (proc.stderr or proc.stdout)[-2500:], routes
 
 
+def _tests_problem(ws_dir: Path, py: Path) -> str:
+    """Run the project's own tests once; a failure becomes a warning (generated tests are often wrong themselves)."""
+    tests = ws_dir / "tests"
+    if not tests.is_dir() or not any(tests.glob("test_*.py")):
+        return ""
+    run_process([str(py), "-m", "pip", "install", "-q", "--disable-pip-version-check", "pytest"], timeout_s=180)
+    proc = run_process([str(py), "-m", "pytest", "-x", "-q", "--no-header", "-p", "no:cacheprovider"], cwd=ws_dir, timeout_s=60, max_output_chars=1500, env=_clean_env())
+    if proc.timed_out or proc.returncode == 0:
+        return ""
+    last = (proc.stdout.strip().splitlines() or ["test başarısız"])[-1]
+    return f"Projenin kendi testleri başarısız: {last[:160]}"
+
+
 def _diagnose(ws_dir: Path, ok: bool, log: str, routes: list[str]) -> tuple[bool, Path | None, str]:
     """(passed, file to repair, error text) for one probe run."""
     if not ok:
@@ -109,7 +122,8 @@ async def smoke_and_repair(ws_dir: Path, regenerate: _Regenerate, rounds: int = 
             return
         passed, target, log = _diagnose(ws_dir, ok, log, routes)
         if passed:
-            yield {"type": "smoke", "ok": True, "warning": ""}
+            test_warning = await asyncio.to_thread(_tests_problem, ws_dir, _sandbox_python()) if entry else ""
+            yield {"type": "smoke", "ok": True, "warning": test_warning}
             return
         if attempt == rounds or target is None:
             break

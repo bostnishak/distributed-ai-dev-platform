@@ -1,5 +1,6 @@
 // Sidebar chat organisation: pin/rename metadata, folders, collapsible sections and the right-click menus.
 import { getActiveUserId } from './personal.js';
+import { scheduleMetaPush } from './chat_meta_sync.js';
 import { bindGlobalEvent, storageGet, storageSet } from './storage.js';
 
 // Pin and rename are per-browser conveniences kept beside the chats (the server only stores title/messages).
@@ -7,7 +8,7 @@ function metaKey() { return `cm6453_chat_meta:${getActiveUserId()}`; }
 export function loadChatMeta() {
   try { return JSON.parse(storageGet(metaKey(), '{}') || '{}'); } catch { return {}; }
 }
-export function saveChatMeta(meta) { storageSet(metaKey(), JSON.stringify(meta)); }
+export function saveChatMeta(meta) { storageSet(metaKey(), JSON.stringify(meta)); scheduleMetaPush(); }
 export function patchMeta(id, patch) {
   const meta = loadChatMeta();
   meta[id] = { ...(meta[id] || {}), ...patch };
@@ -60,7 +61,7 @@ function foldersKey() { return `cm6453_chat_folders:${getActiveUserId()}`; }
 export function loadFolders() {
   try { const v = JSON.parse(storageGet(foldersKey(), '[]') || '[]'); return Array.isArray(v) ? v : []; } catch { return []; }
 }
-export function saveFolders(list) { storageSet(foldersKey(), JSON.stringify(list)); }
+export function saveFolders(list) { storageSet(foldersKey(), JSON.stringify(list)); scheduleMetaPush(); }
 let renamingFolderId = null;
 export function createFolder(chatIdToMove, callbacks) {
   const id = `f_${Date.now().toString(36)}`;
@@ -112,7 +113,7 @@ function sectionsKey() { return `cm6453_chat_sections:${getActiveUserId()}`; }
 export function loadSections() {
   try { return JSON.parse(storageGet(sectionsKey(), '{}') || '{}'); } catch { return {}; }
 }
-export function patchSections(patch) { storageSet(sectionsKey(), JSON.stringify({ ...loadSections(), ...patch })); }
+export function patchSections(patch) { storageSet(sectionsKey(), JSON.stringify({ ...loadSections(), ...patch })); scheduleMetaPush(); }
 
 export function makeDropTarget(el, host, onDrop) {
   el.addEventListener('dragover', (e) => {

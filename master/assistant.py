@@ -78,23 +78,9 @@ def _strip_emojis(text: str) -> str:
     return "".join(parts)
 
 
-ANSWER_SYSTEM_PROMPT = (
-    "Sen yüksek doğruluk odaklı, güvenilir ve kanıta dayalı bir yerel yapay zeka asistanısın.\n"
-    "HALÜSİNASYON ÖNLEME VE DOĞRULUK KURALLARI (ZORUNLU):\n"
-    "1. Bilmediğin, emin olmadığın veya kaynakta yer almayan tarih, sayı, URL, alıntı, kütüphane metodu, "
-    "dosya satırı ya da olguyu ASLA uydurma. Emin değilsen açıkça 'Bu konuda kesin bilgiye sahip değilim' "
-    "veya 'Verilen belgede bu bilgi yer almıyor' de.\n"
-    "2. Kullanıcı bir dosya, belge, kod veya görsel yüklediyse SADECE çıkarılan gerçek içeriğe ve deterministik "
-    "denetim raporuna dayan; dosyada olmayan satır veya hata uydurma.\n"
-    "3. Matematik, algoritma, derleyici (compiler), kodlama ve mantık sorularında adım adım tutarlı kontrol yap; "
-    "yanıtın ortasında kendinle çelişme ve yanlış/yarım tahmin yürütme.\n"
-    "4. Kullanıcının sorduğu dilde (Türkçe ise doğal, akıcı, imla ve ek hatasız Türkçe; İngilizce ise temiz "
-    "İngilizce) yanıt ver. Yarım kelime, bozuk ek veya çeviriden bozma ifade kullanma. ASLA emoji kullanma.\n"
-    "5. Kullanıcı başka bir sohbeti sormadıkça diğer sohbetlerden gereksiz yere bahsetme.\n"
-    "6. Net başlıklar, kısa maddeler ve karşılaştırma/yapılı veri için Markdown tabloları kullan; ayrı kod "
-    "dosyaları veya kod parçaları veriyorsan her birini uygun dil etiketiyle ayrı kod bloğu (```python, ```js vb.) içinde yaz."
-)
+ANSWER_SYSTEM_PROMPT = load_prompt("b1_answer_system.txt")
 
+_INSULT_RE = re.compile(r"\b(?:orospu\w*|piç\w*|siktir\w*|amk|aq|yarrak\w*|göt\s*veren\w*|fuck\s+you|motherfucker\w*|bitch\w*)\b", re.IGNORECASE)
 _OLLAMA_TAGS_CACHE: dict[str, Any] = {"ts": 0.0, "models": set()}
 
 
@@ -114,7 +100,7 @@ async def _select_grounded_model(task_type: str, has_image: bool = False) -> str
     if has_image:
         prefs = ("qwen3.5:9b", "gemma4:e4b", "qwen3.5:4b", config.MASTER_MODEL)
     elif task_type == "kod":
-        prefs = ("qwen2.5-coder:7b", "qwen3.5:9b", "qwen3.5:4b", config.MASTER_MODEL)
+        prefs = ("qwen3.5:9b", "qwen2.5-coder:7b", "qwen3.5:4b", config.MASTER_MODEL)  # the larger model invents fewer APIs
     else:
         prefs = ("qwen3.5:9b", "qwen2.5-coder:7b", "qwen3.5:4b", config.MASTER_MODEL)
     for cand in prefs:
@@ -241,6 +227,8 @@ def try_calculate(prompt: str) -> str | None:
 
 async def classify_and_moderate(prompt: str) -> tuple[str, bool]:
     """One classifier call decides both the task category and whether the message is insulting."""
+    if not config.CLASSIFIER_USE_LLM:  # a model call per message cost 5-13 s; keywords decide, the LLM stays optional
+        return DEFAULT_TASK, bool(_INSULT_RE.search(prompt))
     classifier_prompt = load_prompt("b1_classifier_prompt.txt").replace("{prompt}", prompt)
     try:
         result, _ = await call_ollama_chat(classifier_prompt, task_type="classifier")
@@ -378,6 +366,8 @@ async def chat_stream(
         uid = up.valid_user_id(opts["user_id"])
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if len(history) > config.MAX_HISTORY_FIELD_BYTES:
+        raise HTTPException(413, "Sohbet geçmişi çok uzun; yeni bir sohbet başlat.")
     stream_meta = {**opts, "user_id": uid}
     resp = await _chat_stream_impl(prompt, file, history, stream_meta)
     resp.body_iterator = _tracked_stream(resp.body_iterator, prompt, uid, stream_meta["conversation_id"])
@@ -589,5 +579,4 @@ __all__ = [
     "ANSWER_SYSTEM_PROMPT", "CODE_KEYWORDS", "DEFAULT_TASK", "PROMPT_CONVERSION_SYSTEM_INSTRUCTION",
     "ChatResponse", "CodeRunRequest", "CodeRunResponse", "_history_has_messages",
     "_is_prompt_conversion_request", "_strip_emojis", "call_ollama_chat", "classify_and_moderate",
-    "keyword_category_override", "parse_classifier_response", "router", "try_calculate",
-]
+    "keyword_category_override", "parse_classifier_response", "router", "try_calculate"]

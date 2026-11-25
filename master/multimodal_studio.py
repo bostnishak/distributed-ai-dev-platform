@@ -121,6 +121,7 @@ def classify_image_mode(prompt: str) -> str:
 STUDIO_PALETTES: dict[str, dict[str, str]] = {
     "midnight_cyan": {"name": "Gece Laciverti ve Turkuaz", "bg1": "#070b14", "bg2": "#0f172a", "bg3": "#111c33", "primary": "#06b6d4", "secondary": "#3b82f6", "accent": "#38bdf8", "text": "#f8fafc", "muted": "#94a3b8", "card": "#0f172a", "grid": "#38bdf8"},
     "obsidian_gold": {"name": "Obsidyen ve Altin", "bg1": "#0a0a0c", "bg2": "#141418", "bg3": "#1c1917", "primary": "#f59e0b", "secondary": "#d97706", "accent": "#fde68a", "text": "#fafaf9", "muted": "#a8a29e", "card": "#18181b", "grid": "#f59e0b"},
+    "azure_white": {"name": "Mavi ve Beyaz", "bg1": "#f5f9ff", "bg2": "#e6f0ff", "bg3": "#cfe0ff", "primary": "#1d4ed8", "secondary": "#3b82f6", "accent": "#60a5fa", "text": "#0b1b3a", "muted": "#475b85", "card": "#ffffff", "grid": "#1d4ed8"},
     "nordic_light": {"name": "Nordik Acik Minimal", "bg1": "#f8fafc", "bg2": "#f1f5f9", "bg3": "#e2e8f0", "primary": "#0f766e", "secondary": "#0284c7", "accent": "#14b8a6", "text": "#0f172a", "muted": "#475569", "card": "#ffffff", "grid": "#0f172a"},
     "emerald_slate": {"name": "Zumrut ve Antrasit", "bg1": "#051412", "bg2": "#0c2420", "bg3": "#0f172a", "primary": "#10b981", "secondary": "#06b6d4", "accent": "#6ee7b7", "text": "#ecfdf5", "muted": "#94a3b8", "card": "#0d2622", "grid": "#10b981"},
     "crimson_carbon": {"name": "Karbon ve Kizil", "bg1": "#0c0a0d", "bg2": "#1a1118", "bg3": "#18181b", "primary": "#ef4444", "secondary": "#f97316", "accent": "#fda4af", "text": "#fafafa", "muted": "#a1a1aa", "card": "#1c1519", "grid": "#ef4444"},
@@ -148,14 +149,15 @@ def _resolve_context_prompt(prompt: str, history: list[dict[str, Any]] | None) -
 def _pick_palette_from_text(text: str, seed: int) -> str:
     low = text.lower()
     rules = (
+        ("azure_white", ("mavi", "blue", "lacivert", "okyanus", "deniz")),
         ("nordic_light", ("açık", "acik", "beyaz", "light", "temiz", "minimalist beyaz", "gündüz", "gunduz", "güneşli")),
-        ("obsidian_gold", ("altın", "altin", "gold", "lüks", "luks", "premium", "gün batımı", "sunset")),
+        ("obsidian_gold", ("altın", "altin", "gold", "lüks", "luks", "premium", "gün batımı", "sunset", "sarı", "sari")),
         ("emerald_slate", ("yeşil", "yesil", "doğa", "doga", "ekoloji", "orman", "zümrüt", "sağlık")),
-        ("crimson_carbon", ("kırmızı", "kirmizi", "turuncu", "enerji", "spor", "otomotiv", "konser")),
-        ("violet_aurora", ("mor", "violet", "yapay zeka", "ai", "uzay", "galaksi", "fütüristik", "cyberpunk")),
+        ("crimson_carbon", ("kırmızı", "kirmizi", "turuncu", "enerji", "spor", "otomotiv", "konser", "red")),
+        ("violet_aurora", ("mor", "violet", "yapay zeka", "uzay", "galaksi", "fütüristik", "cyberpunk", "pembe")),
     )
     for pal_key, words in rules:
-        if any(w in low for w in words):
+        if any(re.search(rf"(?<!\w){re.escape(w)}", low) for w in words):
             return pal_key
     keys = list(STUDIO_PALETTES)
     return keys[seed % len(keys)]

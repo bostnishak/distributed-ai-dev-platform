@@ -59,8 +59,19 @@ def python_name_problem(ws_dir: Path) -> tuple[Path, str] | None:
     return None
 
 
+_EVAL_RE = re.compile(r"(?<![\w.])eval\s*\(")
+
+
+def eval_problem(ws_dir: Path) -> tuple[Path, str] | None:
+    """eval() on user input is a code-injection hole; a small parser or Function-free arithmetic is required instead."""
+    for js in _files(ws_dir, ".js"):
+        if _EVAL_RE.search(js.read_text(encoding="utf-8", errors="replace")):
+            return js, f"{js.name} dosyası eval() kullanıyor; bu güvenlik açığıdır. eval() yerine ifadeyi ayrıştıran güvenli bir fonksiyon yaz (ör. sayıları ve + - * / işleçlerini elle işle)."
+    return None
+
+
 def static_problem(ws_dir: Path) -> tuple[Path, str] | None:
-    for check in (js_syntax_problem, dom_id_problem, python_name_problem):
+    for check in (js_syntax_problem, eval_problem, dom_id_problem, python_name_problem):
         if (found := check(ws_dir)) is not None:
             return found
     return None

@@ -19,12 +19,14 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
+import config
 import ratelimit
 from auth import policy as auth_policy
 from auth import service as auth_service
 
 CSRF_COOKIE_NAME = "cm6453_csrf"
 CSRF_HEADER_NAME = "x-csrf-token"
+_PUBLIC_API = ("/api/auth/", "/api/health")
 _MUTATING_METHODS = frozenset({"POST", "PUT", "DELETE", "PATCH"})
 _API_RATE_LIMITER = ratelimit.TokenBucket(capacity=80.0, refill_per_second=10.0)
 
@@ -99,6 +101,8 @@ def _check_api_guards(request: Request, path: str) -> JSONResponse | None:
             content={"detail": "İstek hız sınırı aşıldı. Lütfen kısa süre sonra tekrar deneyin."},
         )
     session_cookie = request.cookies.get(auth_service.SESSION_COOKIE_NAME)
+    if config.REQUIRE_LOGIN and not path.startswith(_PUBLIC_API) and not auth_service.get_session_user(session_cookie):
+        return JSONResponse(status_code=401, content={"detail": "Bu işlem için giriş yapmalısın."})
     if session_cookie:
         session_user = auth_service.get_session_user(session_cookie)
         if session_user and not auth_policy.can(str(session_user.get("role") or "viewer"), request.method, path):

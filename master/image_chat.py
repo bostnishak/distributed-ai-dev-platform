@@ -86,7 +86,7 @@ NO_SUBJECT_MSG = (
     "Bir **{subject}** çizemiyorum: bu kurulumdaki görsel motoru hazır sahne şablonlarıyla (manzara, şehir, uzay, soyut) çalışıyor; "
     "hayvan, kişi ya da araç gibi belirli nesneleri çizemez ve yanlış bir şey çizip \"çizdim\" demek istemem.\n\n"
     "Seçenekler:\n1. Manzara/şehir/uzay sahnesi: örneğin \"gündüz bir dağ manzarası çiz\".\n2. Logo, poster ya da diyagram.\n"
-    "3. Gerçek bir resim için Stable Diffusion/ComfyUI kurulmalı; istersen adımlarını anlatırım."
+    "3. Gerçek bir resim için Stable Diffusion kurulmalı: `scripts/install_sd_webui.ps1` betiği bunu yapar."
 )
 NO_PHOTOREAL_MSG = (
     "Gerçekçi (fotoğraf gibi) bir görsel üretemiyorum: bu kurulumda bunu yapabilecek bir görsel yapay zeka modeli "
@@ -94,7 +94,7 @@ NO_PHOTOREAL_MSG = (
     "Şunları yapabilirim:\n"
     "1. **Vektörel illüstrasyon**: manzara, şehir, uzay ya da soyut bir sahne (şablon tabanlı, nesneleri tek tek çizemez).\n"
     "2. **Logo, poster, diyagram, infografik**.\n"
-    "3. İstersen Stable Diffusion/ComfyUI'yi yerelde kurman için adımları anlatırım; çalışınca gerçekçi görseller de üretirim.\n\n"
+    "3. Gerçekçi görseller için Stable Diffusion kur: `scripts/install_sd_webui.ps1` betiğini çalıştır; açılınca platform otomatik algılar.\n\n"
     "Hangisini istersin? Örneğin: \"illüstrasyon olarak gündüz bir dağ manzarası üret\"."
 )
 TEMPLATE_NOTE = (

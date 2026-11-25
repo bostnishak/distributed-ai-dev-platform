@@ -20,6 +20,8 @@ import chat_guard
 import clarify as _clarify
 import config
 import image_chat as _img
+import reply_labels
+import text_tools
 from document_chart import chart_series
 
 log = logging.getLogger("master.assistant")
@@ -287,17 +289,18 @@ async def _try_pptx_council_erp_fastpath(
         async def _pptx_gen():
             try:
                 res = await _call_pptx_generator(prompt, extracted_ctx)
+                lb = reply_labels.labels(prompt)
                 md = [
-                    f"## {res['title']} (PowerPoint Sunumu Hazır)", res["subtitle"], "",
-                    f"- **Tema & Arka Plan:** {res['theme_name']} · **Slayt Geçiş Animasyonu:** `{res['transition']}` · **Toplam:** `{res['slide_count']} slayt`",
-                    f"- **Sunumu İndir (.PPTX):** [{res['title']} ({res['filename']})]({res['url']})", "",
-                    "### Araştırılan Slayt İçeriği",
+                    f"## {res['title']} ({lb['pptx_ready']})", res["subtitle"], "",
+                    f"- **{lb['theme']}:** {res['theme_name']} · **{lb['transition']}:** `{res['transition']}` · **{lb['total']}:** `{res['slide_count']} {lb['slides']}`",
+                    f"- **{lb['download_pptx']}:** [{res['title']} ({res['filename']})]({res['url']})", "",
+                    f"### {lb['content']}",
                 ]
                 for i, s in enumerate(res["slides"], start=2):
-                    md.append(f"#### Slayt {i}: {s.get('title', '')}")
+                    md.append(f"#### {lb['slide']} {i}: {s.get('title', '')}")
                     md.extend(f"- {b}" for b in (s.get("bullets") or [])[:5])
                     if s.get("key_fact"):
-                        md.append(f"- **Vurgu Kartı:** {s['key_fact']}")
+                        md.append(f"- **{lb['callout']}:** {s['key_fact']}")
                     md.append("")
                 yield sse_event({"type": "token", "content": "\n".join(md)})
                 yield sse_event({"type": "done", "model": res["model"], "task_type": "dokuman"})
@@ -414,9 +417,10 @@ def _build_doc_gen_stream(prompt: str, doc_fmt: str, context_text: str = "") -> 
     async def _gen():
         try:
             res = await df.generate_document_deliverable(prompt, doc_fmt, context_text=context_text)
+            lb = reply_labels.labels(prompt)
             md = [
-                f"## {res['title']} ({doc_fmt.upper()} Dosyası Hazır)", res.get("summary") or "", "",
-                f"- **Dosya İndirme Bağlantısı:** [{res['title']} (.{doc_fmt} İndir)]({res['url']})", "",
+                f"## {res['title']} ({doc_fmt.upper()} {lb['file_ready']})", res.get("summary") or "", "",
+                f"- **{lb['download']}:** [{res['title']} (.{doc_fmt} {lb['get']})]({res['url']})", "",
             ]
             headers, rows = res.get("table_headers") or [], res.get("table_rows") or []
             if headers and rows:
@@ -426,7 +430,7 @@ def _build_doc_gen_stream(prompt: str, doc_fmt: str, context_text: str = "") -> 
                     *("| " + " | ".join(str(c) for c in r[: len(headers)]) + " |" for r in rows[:15]),
                 ])
             if doc_fmt in ("docx", "pdf") and re.search(r"(grafik|chart|diyagram)", prompt, re.I) and chart_series([str(h) for h in headers], rows) is None:
-                md.extend(["", "> **Not:** Grafik istedin ama tabloda grafiğe çevrilecek sayısal veri yok; sayı uydurmamak için grafik eklemedim. Verilerini yazarsan grafikli hazırlarım."])
+                md.extend(["", f"> **{lb['note']}:** {lb['chart_note']}"])
             yield sse_event({"type": "artifact", "kind": "document", "format": doc_fmt, "url": res["url"]})
             yield sse_event({"type": "token", "content": "\n".join(md)})
             yield sse_event({"type": "done", "model": res["model"], "task_type": "dokuman"})
@@ -545,13 +549,22 @@ def _try_project_build_fastpath(prompt: str, file: UploadFile | None, is_prompt_
     return StreamingResponse(_gen(), media_type=_MEDIA_SSE)
 
 
+def _try_guard_fastpaths(prompt: str, has_file: bool) -> StreamingResponse | None:
+    """Instruction-extraction refusals and exact answers (counting, sorting, tiny Python) that need no model."""
+    if (refusal := chat_guard.refusal_for(prompt)) is not None:
+        return single_token_stream(refusal, "guard-policy", "guard")
+    if not has_file and (exact := text_tools.answer(prompt)) is not None:
+        return single_token_stream(exact, "text-tools", "hesaplama")
+    return None
+
+
 async def dispatch_chat_fastpath(
     prompt: str, file: UploadFile | None, history: str, is_prompt_conv: bool
 ) -> StreamingResponse | None:
     """Try deterministic/tool SSE fast paths before falling back to general LLM chat."""
     has_file = bool(file is not None and file.filename)
-    if (refusal := chat_guard.refusal_for(prompt)) is not None:
-        return single_token_stream(refusal, "guard-policy", "guard")
+    if (early := _try_guard_fastpaths(prompt, has_file)) is not None:
+        return early
     if (res := _try_abstain_fastpath(prompt, history, has_file)) is not None:
         return res
     if not is_prompt_conv and (question := _clarify.clarifying_question(prompt, history, has_file)):

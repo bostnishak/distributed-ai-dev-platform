@@ -196,6 +196,8 @@ async def generate_document_deliverable(prompt: str, fmt: str, context_text: str
     lbl = _labels(target_lang)
     schema_prompt = load_prompt("b3_document_factory_schema.txt").replace("{target_lang}", target_lang)
     user_msg = f"{prompt}\n\n{lbl['source_note']}\n{context_text[:8000]}" if context_text else prompt
+    if (pages := re.search(r"(\d{1,2})\s*(?:sayfa|page)", prompt, re.I)) and not context_text:
+        user_msg += f"\n\n[Not: Belge yaklaşık {pages.group(1)} sayfa olmalı: toplam en az {int(pages.group(1)) * 380} kelime, bölümleri ayrıntılı ve dolu yaz.]"
     if re.search(r"(grafik|chart|diyagram)", prompt, re.I) and not context_text:
         user_msg += "\n\n[Not: Grafik isteniyor. Tabloda 1 kategori sütunu ve en az 1 sayısal sütun olsun; sayısal sütun başlığına (örnek değerler) yaz.]"
     spec = _build_fallback_spec(prompt, context_text, target_lang)
@@ -274,8 +276,9 @@ def _xlsx_add_totals_and_chart(ws: Any, content: _DocContent, numeric_cols: set[
         if not is_rate_column(content.headers[ci - 1]):
             sc = ws.cell(sum_r, ci, f"=SUM({col_let}5:{col_let}{last_r})")
             sc.font, sc.number_format = Font(name="Calibri", bold=True, color="1E293B"), "#,##0.00"
-        ac = ws.cell(avg_r, ci, f"=AVERAGE({col_let}5:{col_let}{last_r})")
-        ac.font, ac.number_format = Font(name="Calibri", italic=True, color="334155"), "#,##0.00"
+        if is_rate_column(content.headers[ci - 1]) or not row_total_formula(content.headers, content.rows):
+            ac = ws.cell(avg_r, ci, f"=AVERAGE({col_let}5:{col_let}{last_r})")
+            ac.font, ac.number_format = Font(name="Calibri", italic=True, color="334155"), "#,##0.00"
     ws.row_dimensions[sum_r].height, ws.row_dimensions[avg_r].height = 22, 20
     last_c = max(formula_cols)
     if len(content.rows) >= 2:

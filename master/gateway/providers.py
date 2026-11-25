@@ -19,6 +19,7 @@ import httpx
 
 import config
 import db
+from stream_text import JsonUnescaper
 
 log = logging.getLogger("gateway.providers")
 
@@ -130,6 +131,7 @@ class OllamaProvider:
             "keep_alive": keep_alive,
             "options": opts,
         }
+        unescaper = JsonUnescaper()
         async with httpx.AsyncClient(timeout=timeout_s) as client:
             async with client.stream("POST", f"{self.base_url}/api/chat", json=payload) as resp:
                 resp.raise_for_status()
@@ -140,10 +142,12 @@ class OllamaProvider:
                         chunk = json.loads(line)
                     except json.JSONDecodeError:
                         continue
-                    piece = (chunk.get("message") or {}).get("content", "")
+                    piece = unescaper.feed((chunk.get("message") or {}).get("content", ""))
                     if piece:
                         yield {"type": "token", "content": piece}
                     if chunk.get("done"):
+                        if tail := unescaper.flush():
+                            yield {"type": "token", "content": tail}
                         yield {
                             "type": "done",
                             "model": str(chunk.get("model") or model),

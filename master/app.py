@@ -15,6 +15,7 @@ import audit_log
 import auth
 import automation
 import backup_manager
+import chat_meta_api
 import cnc_api
 import config
 import contract_check
@@ -111,7 +112,10 @@ async def lifespan(_app: FastAPI):
     ops.shutdown()
 
 
-app = FastAPI(title="Distributed AI Software Development Platform - Master", lifespan=lifespan)
+app = FastAPI(
+    title="Distributed AI Software Development Platform - Master", lifespan=lifespan,
+    docs_url="/docs" if config.ENABLE_DOCS else None, redoc_url="/redoc" if config.ENABLE_DOCS else None,
+)
 app.add_middleware(security_middleware.SecurityHeadersAndCSRFMiddleware)
 ops.install(app)
 app.include_router(agents_api.router)
@@ -120,6 +124,7 @@ app.include_router(auth_orgs.router)
 app.include_router(privacy.router)
 app.include_router(projects_api.router)
 app.include_router(assistant.router)
+app.include_router(chat_meta_api.router)
 app.include_router(tasks_api.router)
 app.include_router(output_api.router)
 app.include_router(perf_api.router)

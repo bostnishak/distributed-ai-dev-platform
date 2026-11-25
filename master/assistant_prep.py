@@ -11,15 +11,15 @@ import os
 import sqlite3
 import time
 import zipfile
-from datetime import datetime
 from typing import Any
 
 import httpx
-from fastapi import Form, HTTPException, UploadFile
+from fastapi import Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 
 import config
 import extract as _extract_mod
+import reply_labels
 from extract import extract_csv_text, extract_docx_text, extract_pdf_text, extract_xlsx_text, extract_zip_text
 from upload_guard import PARSE_ERRORS, parse_failure, read_limited
 
@@ -403,12 +403,16 @@ def _append_history_messages(messages: list[dict[str, Any]], history: str, is_pr
 
 
 def parse_stream_opts(
+    request: Request,
     user_id: str = Form("default"),
     conversation_id: str = Form(""),
     model: str = Form(""),
     custom_agent_id: str = Form(""),
 ) -> dict[str, str]:
-    """Parse optional chat stream form fields cleanly without exceeding route arg limits."""
+    """Parse the chat stream form fields; once accounts exist the caller must own the user_id (no impersonation)."""
+    from user_api import _enforce_user_access
+
+    _enforce_user_access(request, user_id.strip().lower() or "default")
     return {
         "user_id": user_id,
         "conversation_id": conversation_id[:80],
@@ -498,9 +502,7 @@ def build_llm_stream_inputs(
         extra_blocks.append(research_note)
     if constraints.system_notes:
         extra_blocks.append("\n".join(constraints.system_notes))
-    now = datetime.now()
-    day = ("Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar")[now.weekday()]
-    extra_blocks.append(f"Güncel tarih ve saat (sunucu saati): {now:%d.%m.%Y} {day}, {now:%H:%M}. Tarih, gün veya saat sorulursa bunu kullan; canlı veri veya internet erişimin olmadığını unutma.")
+    extra_blocks.append(reply_labels.now_context())
     mem_ctx = "\n\n".join(b for b in extra_blocks if b)
     if mem_ctx and messages:
         messages[0]["content"] = f"{messages[0]['content']}\n\n{mem_ctx}"
