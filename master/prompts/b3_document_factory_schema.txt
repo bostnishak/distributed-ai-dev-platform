@@ -7,13 +7,16 @@ Kullanıcının istediği kurumsal dokümanı/tabloyu SADECE {target_lang} dilin
     {"heading": "2. Bölüm Başlığı", "content": "Detaylı analiz ve bulgular"},
     {"heading": "3. Bölüm Başlığı", "content": "Uygulama planı ve öneriler"}
   ],
-  "table_headers": ["Kod / No", "Kalem / Açıklama", "Kategori", "Birim / Durum", "Sayısal Değer"],
+  "table_headers": ["<konuya uygun 3-5 sütun başlığı>"],
   "table_rows": [
-    ["01", "Somut Kalem 1", "Kategori A", "Aktif", 12500],
-    ["02", "Somut Kalem 2", "Kategori B", "Aktif", 24800]
+    ["<konuya uygun hücre>", "<...>"]
   ]
 }
 KESİN KURALLAR:
 - Tüm başlıklar, metinler ve tablo hücreleri kesinlikle {target_lang} dilinde olsun; başka dilden kelimeler karıştırma.
-- Tabloda en az 8 adet dolu, tutarlı ve gerçekçi satır üret; 'Örnek Kalem' gibi boş yer tutucu yazma.
+- Tablo konuyla doğrudan ilgili olsun: sütunları konuya göre sen seç. Konuyla ilgisi olmayan "Birim Fiyat", "Miktar", "Maliyet", "Kod/No" gibi sütunlar ekleme.
+- Kullanıcı sayı verdiyse (ör. çeyrek satışları) tabloya BİREBİR o sayıları koy ve ek sayı icat etme.
+- Kullanıcı sayı vermediyse ve konu sayısal veri gerektirmiyorsa tabloyu metinsel yap (karşılaştırma, özellik, avantaj/risk, adım gibi); sayısal sütun gerekiyorsa yalnızca genel olarak bilinen, doğrulanabilir değerleri kullan ve emin değilsen o sütunu hiç ekleme.
+- Kullanıcı grafik istediyse tabloya 1 kategori sütunu + en az 1 sayısal sütun koy ve sayısal sütunun başlığına "(yaklaşık)" ya da "(örnek)" yaz; gerçek veri gibi sunma.
+- Tabloda 4-10 dolu satır olsun; 'Örnek Kalem' gibi yer tutucu yazma.
 - Asla emoji kullanma. Kaynak veri verildiyse sayıları uydurma, birebir kaynak veriden al.

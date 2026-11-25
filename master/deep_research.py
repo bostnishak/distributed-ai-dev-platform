@@ -32,6 +32,7 @@ from pptx.oxml.ns import nsdecls
 from pptx.util import Inches, Pt
 
 import multimodal_studio as mms
+from pptx_guard import clean_spec
 from prompt_loader import load_prompt
 
 _FONT_FAMILY = "Calibri"  # Cross-platform Office standard (fallback: DejaVu Sans / Arial)
@@ -46,13 +47,13 @@ _WORD_COUNTS: tuple[tuple[str, int], ...] = (
 _LABELS: dict[str, dict[str, str]] = {
     "tr": {
         "slide": "Slayt", "key_insight": "ÖNEMLİ BULGU", "section": "BÖLÜM",
-        "cover_badge": "YAPAY ZEKA ARAŞTIRMA SUNUMU", "cover_sub": "Yapay Zeka Araştırma Sunumu",
+        "cover_badge": "SUNUM", "cover_sub": "Sunum",
         "left_col": "TEMEL EKSEN", "right_col": "KARŞILAŞTIRMALI EKSEN",
         "closing_kicker": "SONUÇ VE EYLEM PLANI", "takeaways": "ÖNE ÇIKAN ÇIKARIMLAR",
     },
     "en": {
         "slide": "Slide", "key_insight": "KEY INSIGHT", "section": "SECTION",
-        "cover_badge": "AI RESEARCH BRIEFING", "cover_sub": "AI Research Presentation",
+        "cover_badge": "PRESENTATION", "cover_sub": "Presentation",
         "left_col": "PRIMARY AXIS", "right_col": "COMPARATIVE AXIS",
         "closing_kicker": "CONCLUSION & NEXT STEPS", "takeaways": "KEY TAKEAWAYS",
     },
@@ -110,7 +111,7 @@ def _tr_upper(text: str, lang: str = "tr") -> str:
 def _parse_slide_count(prompt: str) -> int:
     """Parse requested total slide count (3..15) and return content slide count (2..14)."""
     low = (prompt or "").lower()
-    unit = r"(?:adet|tane|sayfalık|slaytlık)?\s*(?:slayt\w*|sayfa\w*|slides?)"
+    unit = r"(?:(?:adet|tane)\s*)?(?:slayt\w*|sayfa\w*|slides?)"
     m_num = re.search(rf"\b(\d{{1,2}})\s*{unit}\b", low)
     if m_num:
         return max(2, min(14, int(m_num.group(1)) - 1))
@@ -580,7 +581,7 @@ async def generate_ai_pptx_presentation(prompt: str, context_text: str = "") -> 
         "language": lang, "title": prompt.strip()[:72], "subtitle": _LABELS[lang]["cover_sub"],
         "cover_notes": "", "transition": theme["transition"], "slides": [],
     }
-    spec.update(await _fetch_pptx_spec(sys_prompt, user_msg, model, prompt))
+    spec.update(clean_spec(await _fetch_pptx_spec(sys_prompt, user_msg, model, prompt), user_msg, _parse_slide_count(prompt)))
     final_lang = _detect_language(prompt, explicit=str(spec.get("language") or ""))
     if not spec.get("slides"):
         raise RuntimeError("Sunumun içeriğini üretemedim (model yanıt vermedi ya da geçerli bir slayt planı döndürmedi). Boş ya da isteğini kopyalayan bir sunum vermemek için dosya oluşturmadım; lütfen tekrar dener misin? Konuyu biraz daha açarsan (kaç slayt, hangi dönem/odak) sonuç daha iyi olur.")

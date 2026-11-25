@@ -19,6 +19,7 @@ import assistant_cad_cnc as _cad
 import clarify as _clarify
 import config
 import image_chat as _img
+from document_chart import chart_series
 
 log = logging.getLogger("master.assistant")
 
@@ -423,6 +424,8 @@ def _build_doc_gen_stream(prompt: str, doc_fmt: str, context_text: str = "") -> 
                     "|" + "|".join("---" for _ in headers) + "|",
                     *("| " + " | ".join(str(c) for c in r[: len(headers)]) + " |" for r in rows[:15]),
                 ])
+            if doc_fmt in ("docx", "pdf") and re.search(r"(grafik|chart|diyagram)", prompt, re.I) and chart_series([str(h) for h in headers], rows) is None:
+                md.extend(["", "> **Not:** Grafik istedin ama tabloda grafiğe çevrilecek sayısal veri yok; sayı uydurmamak için grafik eklemedim. Verilerini yazarsan grafikli hazırlarım."])
             yield sse_event({"type": "artifact", "kind": "document", "format": doc_fmt, "url": res["url"]})
             yield sse_event({"type": "token", "content": "\n".join(md)})
             yield sse_event({"type": "done", "model": res["model"], "task_type": "dokuman"})

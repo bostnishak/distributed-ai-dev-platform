@@ -489,23 +489,8 @@ def _classify_scene_subtype(prompt: str) -> str:
 
 
 async def _generate_scene_svg(prompt: str, pal_key: str, seed: int) -> tuple[str, str, str]:
-    pal, subtype, model = STUDIO_PALETTES.get(pal_key, STUDIO_PALETTES["midnight_cyan"]), _classify_scene_subtype(prompt), await pick_best_model("code")
-    sys_msg = (
-        'Output ONLY a complete valid SVG with xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" width="1200" height="760". '
-        "Include sky gradients, sun/moon/stars, layered silhouettes (buildings/bridges/mountains/planets), water reflections, foreground depth. No scripts or on* handlers."
-    )
-    try:
-        import gateway
-
-        res = await gateway.default_client.chat(
-            [{"role": "system", "content": sys_msg}, {"role": "user", "content": prompt}],
-            model=model, profile="creative", num_predict=1800, timeout_s=45.0, feature="multimodal_studio", max_retries=0,
-        )
-        clean = sanitize_svg(res.content)
-        if clean:
-            return clean, f"scene-llm-svg ({model})", subtype
-    except (httpx.HTTPError, OSError, RuntimeError, ValueError, TypeError, KeyError, ImportError) as exc:
-        _LOG.debug("Scene LLM SVG fallback triggered: %s", exc)
+    """Scenes come from the layered template engine: a small local model cannot draw a usable scene as raw SVG."""
+    pal, subtype = STUDIO_PALETTES.get(pal_key, STUDIO_PALETTES["midnight_cyan"]), _classify_scene_subtype(prompt)
     return render_procedural_scene_svg(subtype, prompt, pal, seed), f"scene-procedural ({subtype})", subtype
 
 

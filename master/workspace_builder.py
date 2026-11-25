@@ -52,6 +52,7 @@ from workspace_builder_ops import (
     verify_workspace_files,
     workspaces_root,
 )
+from workspace_requirements import repair_project
 
 __all__ = [
     "ARCHITECT_SYSTEM_PROMPT",
@@ -497,6 +498,7 @@ async def stream_generate_project(
         written_snippets.append(f"=== {fpath} ===\n{code[:1200]}")
         yield {"type": "file_done", "path": fpath, "size": len(code.encode("utf-8")), "index": idx, "total": len(planned_files)}
 
+    repair_project(ws_dir)
     warnings = verify_workspace_files(ws_dir)
     create_snapshot(ws_dir, "İlk oluşturma")
     meta["versions"] = list_snapshots(ws_dir)
@@ -572,6 +574,7 @@ async def stream_iterate_project(
         code = await _generate_and_write_file(ws_dir, model, fspec, edit_prompt)
         yield {"type": "file_done", "path": fpath, "size": len(code.encode("utf-8")), "index": idx, "total": len(targets)}
 
+    repair_project(ws_dir)
     warnings = verify_workspace_files(ws_dir)
     create_snapshot(ws_dir, instruction[:60])
     meta["versions"] = list_snapshots(ws_dir)

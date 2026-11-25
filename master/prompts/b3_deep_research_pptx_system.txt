@@ -102,6 +102,7 @@ KESİN KURALLAR:
 - layout alanı yalnızca şunlardan biri olsun: bullets, kpi_grid, two_column, table, chart, closing. Sunum boyunca düzenleri çeşitlendir (en az bir kpi_grid, veri uygunsa chart veya table, bir two_column ve son slaytta closing kullan).
 - bullets dizisinde slayt başına 3-5 madde olsun ve her madde EN FAZLA 16 kelime ile özlü yazılsın.
 - HER slaytta mutlaka 2-4 cümlelik zengin ve öğretici konuşmacı notu ("notes") bulunsun.
+- UYDURMA İSTATİSTİK YASAK: kullanıcı ya da kaynak belge sayı vermediyse yüzde, para, oran veya tarih icat etme. Sayısal veri yoksa kpi_grid ve chart düzenlerini hiç kullanma; bullets, two_column, table (metinsel) ve closing kullan. Sayı kullanıyorsan yalnızca genel olarak bilinen, doğrulanabilir olanları yaz ve emin değilsen yazma.
 - chart.values dizisi yalnızca saf sayılardan (int/float) oluşsun; labels ile aynı uzunlukta (3-6 öğe) olsun.
 - transition değeri şunlardan biri olsun: fade, push, wipe, cover, split.
 - Asla emoji kullanma. Sadece ham JSON döndür, markdown kod bloğu veya ek açıklama ekleme.

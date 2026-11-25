@@ -195,6 +195,8 @@ async def generate_document_deliverable(prompt: str, fmt: str, context_text: str
     lbl = _labels(target_lang)
     schema_prompt = load_prompt("b3_document_factory_schema.txt").replace("{target_lang}", target_lang)
     user_msg = f"{prompt}\n\n{lbl['source_note']}\n{context_text[:8000]}" if context_text else prompt
+    if re.search(r"(grafik|chart|diyagram)", prompt, re.I) and not context_text:
+        user_msg += "\n\n[Not: Grafik isteniyor. Tabloda 1 kategori sütunu ve en az 1 sayısal sütun olsun; sayısal sütun başlığına (örnek değerler) yaz.]"
     spec = _build_fallback_spec(prompt, context_text, target_lang)
     try:
         import gateway
