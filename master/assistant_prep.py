@@ -20,7 +20,9 @@ from fastapi.responses import FileResponse, StreamingResponse
 import config
 import extract as _extract_mod
 import reply_labels
+import wiki_ground
 from extract import extract_csv_text, extract_docx_text, extract_pdf_text, extract_xlsx_text, extract_zip_text
+from prep_notes import split_pre_notes
 from upload_guard import PARSE_ERRORS, parse_failure, read_limited
 
 log = logging.getLogger("master.assistant")
@@ -374,8 +376,10 @@ async def enrich_done_event_with_verification(
 def _build_research_context(prompt: str, has_file: bool, is_prompt_conv: bool) -> tuple[list[dict[str, str]], str]:
     import chat_contracts
 
-    if is_prompt_conv or not chat_contracts.is_grounded_research_request(prompt, has_file):
+    if is_prompt_conv or has_file:
         return [], ""
+    if not chat_contracts.is_grounded_research_request(prompt, has_file):
+        return wiki_ground.lookup(prompt)
     sources = chat_contracts.gather_research_sources(prompt)
     if sources:
         src_lines = [f"[{s['id']}] {s['title']} ({s['url']}): {s['snippet']}" for s in sources]
@@ -477,16 +481,6 @@ def _collect_memory_blocks(ctx: dict[str, Any], prompt_conv_instruction: str) ->
     return blocks
 
 
-def _split_pre_notes(full_prompt: str) -> tuple[str, str]:
-    pre_note = ""
-    for marker in ("### İşlenmiş Görsel Çıktısı", "### Deterministik Dosya Denetim Raporu"):
-        if marker in full_prompt:
-            idx_n = full_prompt.index(marker)
-            pre_note += full_prompt[idx_n:] + "\n\n---\n\n"
-            full_prompt = full_prompt[:idx_n].strip()
-    return full_prompt, pre_note
-
-
 def build_llm_stream_inputs(
     ctx: dict[str, Any], answer_system_prompt: str, prompt_conv_instruction: str
 ) -> tuple[list[dict[str, Any]], str, Any, list[dict[str, str]]]:
@@ -510,7 +504,7 @@ def build_llm_stream_inputs(
     _append_history_messages(messages, ctx["history"], ctx["is_prompt_conv"])
     if not ctx["is_prompt_conv"]:
         messages = mem.compact_conversation_context(messages)
-    full_prompt, pre_note = _split_pre_notes(ctx["full_prompt"])
+    full_prompt, pre_note = split_pre_notes(ctx["full_prompt"])
     user_msg: dict[str, Any] = {"role": "user", "content": full_prompt}
     if ctx["image_b64"]:
         user_msg["images"] = [ctx["image_b64"]]

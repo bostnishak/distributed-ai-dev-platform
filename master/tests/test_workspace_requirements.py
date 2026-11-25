@@ -2,7 +2,7 @@
 
 import pytest
 
-from workspace_requirements import fix_requirements
+from workspace_requirements import fix_requirements, repair_project
 
 pytestmark = pytest.mark.unit
 
@@ -77,3 +77,23 @@ def test_js_fetch_without_matching_route_is_reported(tmp_path):
     found = contract_problem(tmp_path, ["/tasks/tasks", "/tasks/tasks/<int:id>", "/static/<path:filename>"])
     assert found and "/api/tasks" in found[1]
     assert contract_problem(tmp_path, ["/api/tasks", "/tasks/tasks/<int:id>"]) is None
+
+
+def test_tables_are_created_outside_main_guard(tmp_path):
+    (tmp_path / "app.py").write_text(
+        "from flask import Flask\nfrom models import db\napp = Flask(__name__)\ndb.init_app(app)\n\nif __name__ == '__main__':\n    with app.app_context():\n        db.create_all()\n    app.run()\n",
+        encoding="utf-8",
+    )
+    repair_project(tmp_path)
+    head = (tmp_path / "app.py").read_text(encoding="utf-8").split("if __name__")[0]
+    assert "db.create_all()" in head
+
+
+def test_static_refs_are_not_nested_on_repeat(tmp_path):
+    (tmp_path / "templates").mkdir()
+    (tmp_path / "static" / "css").mkdir(parents=True)
+    (tmp_path / "static" / "css" / "a.css").write_text("x{}", encoding="utf-8")
+    (tmp_path / "templates" / "i.html").write_text('<link rel="stylesheet" href="/static/css/a.css">', encoding="utf-8")
+    for _ in range(3):
+        repair_project(tmp_path)
+    assert not (tmp_path / "static" / "static").exists()

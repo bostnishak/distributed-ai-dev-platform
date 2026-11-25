@@ -54,6 +54,7 @@ from assistant_stream_fastpaths import (
     dispatch_chat_fastpath,
     single_token_stream,
 )
+from chat_queue import with_queue_notice
 from prompt_loader import load_prompt
 
 log = logging.getLogger(__name__)
@@ -370,7 +371,7 @@ async def chat_stream(
         raise HTTPException(413, "Sohbet geçmişi çok uzun; yeni bir sohbet başlat.")
     stream_meta = {**opts, "user_id": uid}
     resp = await _chat_stream_impl(prompt, file, history, stream_meta)
-    resp.body_iterator = _tracked_stream(resp.body_iterator, prompt, uid, stream_meta["conversation_id"])
+    resp.body_iterator = with_queue_notice(_tracked_stream(resp.body_iterator, prompt, uid, stream_meta["conversation_id"]))
     return resp
 
 
@@ -437,8 +438,8 @@ async def _chat_stream_impl(
         "history": history, "user_id": user_id, "conversation_id": conversation_id,
         "has_file": has_file, "is_prompt_conv": is_prompt_conv, "custom_agent": agent_prof,
     }
-    messages, pre_note, constraints, research_sources = build_llm_stream_inputs(
-        ctx, ANSWER_SYSTEM_PROMPT, PROMPT_CONVERSION_SYSTEM_INSTRUCTION
+    messages, pre_note, constraints, research_sources = await asyncio.to_thread(
+        build_llm_stream_inputs, ctx, ANSWER_SYSTEM_PROMPT, PROMPT_CONVERSION_SYSTEM_INSTRUCTION
     )
     return create_llm_stream_response(
         {

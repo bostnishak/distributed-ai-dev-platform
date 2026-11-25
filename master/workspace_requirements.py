@@ -79,7 +79,7 @@ def _fix_static_refs(ws_dir: Path) -> None:
         text = tpl.read_text(encoding="utf-8", errors="replace")
 
         def repl(m: re.Match[str], tpl: Path = tpl) -> str:
-            rel = m.group(3).lstrip("./")
+            rel = re.sub(r"^(?:static/)+", "", m.group(3).lstrip("./"))  # collapse /static/static/... left by earlier passes
             src = next((c for c in ws_dir.rglob(Path(rel).name) if c.is_file() and ".history" not in c.parts and "static" not in c.parts[:-1]), None)
             dest = tpl.parent.parent / "static" / rel
             if src is not None and not dest.exists():
@@ -98,6 +98,19 @@ def _refresh_static_copies(ws_dir: Path) -> None:
         src = next((c for c in ws_dir.rglob(dest.name) if c.is_file() and "static" not in c.parts and ".history" not in c.parts), None)
         if src is not None and src.stat().st_mtime > dest.stat().st_mtime:
             dest.write_bytes(src.read_bytes())
+
+
+def _ensure_db_tables(ws_dir: Path) -> None:
+    """Flask-SQLAlchemy apps often create tables only under `if __name__ == "__main__"`, so `flask run`/gunicorn start without tables."""
+    for py in _py_files(ws_dir):
+        text = py.read_text(encoding="utf-8", errors="replace")
+        guard = re.search(r"^if __name__ == ['\"]__main__['\"]:", text, re.M)
+        if py.parent != ws_dir or not re.search(r"^app\s*=\s*Flask", text, re.M) or not re.search(r"db\.init_app\(app\)|SQLAlchemy\(app\)", text):
+            continue
+        head = text[: guard.start()] if guard else text
+        if "create_all" not in head:
+            block = "with app.app_context():\n    db.create_all()\n\n\n"
+            py.write_text(head.rstrip() + "\n\n" + block + (text[guard.start() :] if guard else ""), encoding="utf-8")
 
 
 def _add_package_launcher(ws_dir: Path) -> None:
@@ -141,3 +154,4 @@ def repair_project(ws_dir: Path) -> None:
     _fix_static_refs(ws_dir)
     _refresh_static_copies(ws_dir)
     _add_package_launcher(ws_dir)
+    _ensure_db_tables(ws_dir)

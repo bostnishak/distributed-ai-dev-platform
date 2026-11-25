@@ -17,6 +17,8 @@ from collections.abc import AsyncIterator, Awaitable, Callable
 from pathlib import Path
 from typing import Any
 
+import workspace_docker
+import workspace_node
 from process_utils import run_process
 from workspace_checks import static_problem
 from workspace_contract import contract_problem
@@ -49,11 +51,25 @@ def _find_entry(ws_dir: Path) -> Path | None:
     return next((ws_dir / e for e in _ENTRIES if (ws_dir / e).is_file()), None)
 
 
-def _run_probe(ws_dir: Path, entry: Path) -> tuple[bool, str, list[str]]:
-    py = _sandbox_python()
+def _safe_requirements(ws_dir: Path) -> list[str]:
     req = ws_dir / "requirements.txt"
     pkgs = [ln.strip() for ln in req.read_text(encoding="utf-8").splitlines() if ln.strip() and not ln.startswith("#")] if req.is_file() else []
-    pkgs = [p for p in pkgs if re.split(r"[<>=!~\[; ]", p, maxsplit=1)[0].lower() in _SAFE_PACKAGES]  # never install unknown names
+    return [p for p in pkgs if re.split(r"[<>=!~\[; ]", p, maxsplit=1)[0].lower() in _SAFE_PACKAGES]  # never install unknown names
+
+
+def _run_node_probe(ws_dir: Path) -> tuple[bool, str, list[str]]:
+    node_entry = workspace_node.find_entry(ws_dir)
+    if node_entry is None or not workspace_docker.available():
+        return True, "", []  # nothing runnable here, or no sandbox: static checks still apply
+    ok, log = workspace_node.run_probe(ws_dir, node_entry)
+    return ok, log, []
+
+
+def _run_probe(ws_dir: Path, entry: Path) -> tuple[bool, str, list[str]]:
+    pkgs = _safe_requirements(ws_dir)
+    if workspace_docker.available():
+        return workspace_docker.run_probe(ws_dir, entry, _PROBE, pkgs)
+    py = _sandbox_python()
     if pkgs:
         run_process([str(py), "-m", "pip", "install", "-q", "--disable-pip-version-check", *pkgs], timeout_s=300)
     proc = run_process([str(py), "-c", _PROBE, str(entry)], cwd=ws_dir, timeout_s=25, max_output_chars=2500, env=_clean_env())
@@ -63,11 +79,15 @@ def _run_probe(ws_dir: Path, entry: Path) -> tuple[bool, str, list[str]]:
     return "SMOKE_OK" in proc.stdout, (proc.stderr or proc.stdout)[-2500:], routes
 
 
-def _tests_problem(ws_dir: Path, py: Path) -> str:
+def _tests_problem(ws_dir: Path) -> str:
     """Run the project's own tests once; a failure becomes a warning (generated tests are often wrong themselves)."""
     tests = ws_dir / "tests"
     if not tests.is_dir() or not any(tests.glob("test_*.py")):
         return ""
+    if workspace_docker.available():
+        last = workspace_docker.run_tests(ws_dir, _safe_requirements(ws_dir))
+        return f"Projenin kendi testleri başarısız: {last[:160]}" if last else ""
+    py = _sandbox_python()
     run_process([str(py), "-m", "pip", "install", "-q", "--disable-pip-version-check", "pytest"], timeout_s=180)
     proc = run_process([str(py), "-m", "pytest", "-x", "-q", "--no-header", "-p", "no:cacheprovider"], cwd=ws_dir, timeout_s=60, max_output_chars=1500, env=_clean_env())
     if proc.timed_out or proc.returncode == 0:
@@ -86,8 +106,10 @@ def _diagnose(ws_dir: Path, ok: bool, log: str, routes: list[str]) -> tuple[bool
 
 def _failing_file(ws_dir: Path, log: str) -> Path | None:
     root = ws_dir.resolve()
+    if (node_file := workspace_node.failing_file(root, log)) is not None:
+        return node_file
     for raw, _line in reversed(_FRAME_RE.findall(log)):
-        p = Path(raw)
+        p = root / raw.removeprefix("/sandbox/") if raw.startswith("/sandbox/") else Path(raw)  # container paths map back to the host copy
         if p.is_file() and root in p.resolve().parents and ".history" not in p.parts:
             return p
     return None
@@ -116,13 +138,13 @@ async def smoke_and_repair(ws_dir: Path, regenerate: _Regenerate, rounds: int = 
     for attempt in range(rounds + 1):
         yield {"type": "status", "message": "Proje çalıştırılarak test ediliyor..." if attempt == 0 else f"Hata düzeltildi, yeniden test ediliyor ({attempt}/{rounds})..."}
         try:
-            ok, log, routes = await asyncio.to_thread(_run_probe, ws_dir, entry) if entry else (True, "", [])
+            ok, log, routes = await asyncio.to_thread(_run_probe, ws_dir, entry) if entry else await asyncio.to_thread(_run_node_probe, ws_dir)
         except (OSError, subprocess.SubprocessError) as exc:
             yield {"type": "smoke", "ok": True, "warning": f"Otomatik test çalıştırılamadı: {exc}"}
             return
         passed, target, log = _diagnose(ws_dir, ok, log, routes)
         if passed:
-            test_warning = await asyncio.to_thread(_tests_problem, ws_dir, _sandbox_python()) if entry else ""
+            test_warning = await asyncio.to_thread(_tests_problem, ws_dir) if entry else ""
             yield {"type": "smoke", "ok": True, "warning": test_warning}
             return
         if attempt == rounds or target is None:

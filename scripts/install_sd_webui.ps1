@@ -6,7 +6,7 @@
 #
 # Usage (PowerShell):   .\scripts\install_sd_webui.ps1 [-Target C:\ai\sd-webui]
 
-param([string]$Target = "$HOME\sd-webui")
+param([string]$Target = "$HOME\sd-webui", [string]$Python = "")
 
 $ErrorActionPreference = "Stop"
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) { throw "git not found" }
@@ -23,8 +23,10 @@ if (-not (Test-Path $Model)) {
 }
 
 # --api turns on /sdapi/v1/*, --medvram keeps it inside 8 GB, --listen is NOT set: stays on localhost.
+$PyLine = if ($Python) { "set PYTHON=$Python" } else { "" }
 Set-Content -Path (Join-Path $Target "webui-user.bat") -Value @"
 @echo off
+$PyLine
 set COMMANDLINE_ARGS=--api --medvram --xformers
 call webui.bat
 "@

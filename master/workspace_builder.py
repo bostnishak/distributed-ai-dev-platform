@@ -121,7 +121,7 @@ _log = logging.getLogger(__name__)
 
 async def pick_coder_model(preferred: str | None = None) -> str:
     candidates = [
-        c for c in (preferred, config.STUDIO_CODER_MODEL, "qwen2.5-coder:7b", "qwen3.5:9b", "qwen3.5:4b", config.MASTER_MODEL)
+        c for c in (preferred, config.PROJECT_CODER_MODEL, config.STUDIO_CODER_MODEL, "qwen2.5-coder:7b", "qwen3.5:9b", "qwen3.5:4b", config.MASTER_MODEL)
         if c
     ]
     try:
