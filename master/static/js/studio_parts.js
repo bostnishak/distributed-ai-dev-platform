@@ -1,5 +1,5 @@
 // Studio UI panes, explorer tree helpers, and SSE generation stream consumer.
-import { h } from './util.js';
+import { h, svg } from './util.js';
 
 export function fileIcon(name, isDir) {
   if (isDir) return '▸';
@@ -10,6 +10,27 @@ export function fileIcon(name, isDir) {
     sql: '', svg: '', png: '', jpg: '',
   };
   return map[ext] || '';
+}
+
+const TREE_PATHS = {
+  'chev-r': 'M6 4l4 4-4 4',
+  'chev-d': 'M4 6l4 4 4-4',
+  folder: 'M1.5 4.5A1 1 0 012.5 3.5h3.2l1.3 1.5h6.5a1 1 0 011 1v6a1 1 0 01-1 1h-11a1 1 0 01-1-1z',
+  'folder-open': 'M1.5 4.5A1 1 0 012.5 3.5h3.2l1.3 1.5h5.5a1 1 0 011 1V7H4.2L1.5 12.5zM4.2 7H14.5l-2.4 5.5H1.5z',
+  file: 'M4 1.5h5l3.5 3.5v9a.5.5 0 01-.5.5H4a.5.5 0 01-.5-.5v-12A.5.5 0 014 1.5zM9 1.5V5h3.5',
+};
+const TREE_COLORS = { py: '#3b82f6', js: '#eab308', ts: '#3b82f6', html: '#f97316', htm: '#f97316', css: '#38bdf8', json: '#a3a3a3', md: '#94a3b8', yml: '#ef4444', yaml: '#ef4444' };
+
+function treeSvg(kind) {
+  const line = kind.startsWith('chev') || kind === 'file';
+  return svg('svg', { viewBox: '0 0 16 16', width: kind.startsWith('chev') ? '12' : '16', height: kind.startsWith('chev') ? '12' : '16', fill: line ? 'none' : 'currentColor', stroke: line ? 'currentColor' : 'none', 'stroke-width': '1.4', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' },
+    svg('path', { d: TREE_PATHS[kind] }));
+}
+
+function fileBadge(name) {
+  const ext = (name.split('.').pop() || '').toLowerCase();
+  const label = { html: '<>', htm: '<>', json: '{}', css: '#' }[ext] || ext.slice(0, 2);
+  return h('span', { class: 'file-badge', style: { color: TREE_COLORS[ext] || 'var(--muted)' } }, label);
 }
 
 export function formatSize(bytes) {
@@ -128,10 +149,9 @@ export function renderStudioTreeNodes(nodes, state, onToggleDir, onOpenFile, dep
       style: { paddingLeft: `${10 + depth * 14}px` },
       onClick: () => (isDir ? onToggleDir(node.path, isCollapsed) : onOpenFile(node.path)),
     },
-      h('span', { class: 'tree-chevron' }, isDir ? (isCollapsed ? '▸' : '▾') : ''),
-      h('span', { class: 'tree-icon' }, isDir ? '' : fileIcon(node.name, isDir)),
-      h('span', { class: 'tree-name' }, node.name),
-      !isDir ? h('span', { class: 'tree-size' }, formatSize(node.size)) : null,
+      h('span', { class: 'tree-chevron' }, isDir ? treeSvg(isCollapsed ? 'chev-r' : 'chev-d') : ''),
+      h('span', { class: 'tree-icon' + (isDir ? ' is-dir' : '') }, isDir ? treeSvg(isCollapsed ? 'folder' : 'folder-open') : (fileIcon(node.name, false) ? fileBadge(node.name) : treeSvg('file'))),
+      h('span', { class: 'tree-name', title: node.name }, node.name),
     );
     frag.appendChild(item);
     if (isDir && !isCollapsed && node.children?.length) {

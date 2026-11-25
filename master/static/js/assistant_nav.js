@@ -1,10 +1,10 @@
 // Pages that are not in the sidebar but open from the assistant when the user asks for them.
 const PAGES = [
-  { hash: '#/cnc', label: 'CNC Balonlama', re: /\bcnc\b|balonlama|ballooning/ },
-  { hash: '#/studio', label: 'Kod Stüdyosu', dock: true, re: /kod\s*st[üu]dyo|\bide\b|code\s*studio/ },
-  { hash: '#/studios', label: 'Stüdyolar', re: /st[üu]dyolar|studios/ },
-  { hash: '#/artifacts', label: 'Artefaktlar', re: /artefakt|artifact/ },
-  { hash: '#/files', label: 'Dosyalar ve Bilgi Bankası', re: /dosyalar|bilgi\s*bankas|files/ },
+  { key: 'cnc', hash: '#/cnc', label: 'CNC Balonlama', re: /\bcnc\b|balonlama|ballooning/ },
+  { key: 'studio', hash: '#/studio', label: 'Kod Stüdyosu', re: /kod\s*st[üu]dyo|\bide\b|code\s*studio/ },
+  { key: 'studios', hash: '#/studios', label: 'Stüdyolar', re: /st[üu]dyolar|studios/ },
+  { key: 'artifacts', hash: '#/artifacts', label: 'Artefaktlar', re: /artefakt|artifact/ },
+  { key: 'files', hash: '#/files', label: 'Dosyalar ve Bilgi Bankası', re: /dosyalar|bilgi\s*bankas|files/ },
 ];
 const OPEN_RE = /(?<![\p{L}])(a[çc]|a[çc]ar m[ıi]s[ıi]n|git|g[öo]ster|g[öo]t[üu]r|open|show)(?![\p{L}])|sayfas[ıi]/u;
 
@@ -16,8 +16,7 @@ export function matchPageRequest(prompt) {
 }
 
 export function pageLinkMessage(page) {
-  if (page.dock) return `**${page.label}** sağ tarafta açıldı. Tam sayfa için: [tam sayfada aç](${page.hash})`;
-  return `**${page.label}** sayfasını açabilirsin: [${page.label} sayfasına git](${page.hash})`;
+  return `**${page.label}** sağ tarafta açıldı. Tam sayfa için: [tam sayfada aç](${page.hash})`;
 }
 
 export const HIDDEN_PAGES = PAGES;
