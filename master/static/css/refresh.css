@@ -209,14 +209,18 @@ html[data-theme="dark"] {
   body.sidebar-collapsed #view-page { padding-top: 56px; }
 }
 
-/* ---------- chat folders ---------- */
+/* ---------- sidebar chat sections ---------- */
 .chat-ctx-menu .ctx-label { font-size: 11px; color: var(--muted); padding: 6px 10px 2px; text-transform: uppercase; letter-spacing: 0.05em; }
-.chat-folder { margin: 2px 0; border-radius: var(--r-sm); }
-.chat-folder.drop-target { background: var(--accent-soft); outline: 1px dashed var(--accent); }
-.chat-folder-head { display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 8px; font-size: 13px; font-weight: 600; color: var(--text); cursor: pointer; border-radius: var(--r-sm); user-select: none; }
-.chat-folder-head:hover { background: var(--hover); }
-.chat-folder-chev { width: 12px; color: var(--muted); font-size: 11px; flex: 0 0 auto; }
-.chat-folder-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.chat-folder-count { font-size: 11px; color: var(--muted); font-weight: 500; }
-.chat-folder-body { padding-left: 14px; min-height: 6px; }
+.chat-section { margin: 0 0 2px; border-radius: var(--r-sm); }
+.chat-section.drop-target { background: var(--accent-soft); outline: 1px dashed var(--accent); }
+.chat-section-head { display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 8px; font-size: 12.5px; font-weight: 600; color: var(--muted); cursor: pointer; border-radius: var(--r-sm); user-select: none; }
+.chat-section-head:hover { color: var(--text); }
+.chat-section-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat-section-chev { font-size: 14px; line-height: 1; flex: 0 0 auto; }
+.chat-section-action { margin-left: auto; width: 26px; height: 24px; border: none; background: transparent; color: var(--muted); border-radius: 6px; cursor: pointer; font-size: 14px; padding: 0; }
+.chat-section-action:hover { background: var(--hover); color: var(--text); }
+.chat-section-body { min-height: 4px; }
+.chat-section-empty { font-size: 12px; color: var(--muted); padding: 4px 10px 8px; }
+.chat-section-more { display: block; width: 100%; text-align: left; border: none; background: transparent; color: var(--muted); font: inherit; font-size: 13px; padding: 6px 10px; cursor: pointer; border-radius: var(--r-sm); }
+.chat-section-more:hover { color: var(--text); background: var(--hover); }
 .chat-item.dragging { opacity: 0.45; }
