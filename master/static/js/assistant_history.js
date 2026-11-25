@@ -1,196 +1,7 @@
 // UX-02 Modular Split: Chat history localStorage + SQLite persistence & sidebar chat list renderer.
 import { getActiveUserId } from './personal.js';
-import { bindGlobalEvent, safeFetchJson, storageGet, storageSet } from './storage.js';
-
-// Pin and rename are per-browser conveniences kept beside the chats (the server only stores title/messages).
-function metaKey() { return `cm6453_chat_meta:${getActiveUserId()}`; }
-export function loadChatMeta() {
-  try { return JSON.parse(storageGet(metaKey(), '{}') || '{}'); } catch { return {}; }
-}
-function saveChatMeta(meta) { storageSet(metaKey(), JSON.stringify(meta)); }
-function patchMeta(id, patch) {
-  const meta = loadChatMeta();
-  meta[id] = { ...(meta[id] || {}), ...patch };
-  if (!meta[id].pinned && !meta[id].title && !meta[id].folder) delete meta[id];
-  saveChatMeta(meta);
-}
-
-let ctxMenu = null;
-function closeCtxMenu() { if (ctxMenu) { ctxMenu.remove(); ctxMenu = null; } }
-let ctxBound = false;
-function bindCtxClose() {
-  if (ctxBound) return;
-  ctxBound = true;
-  bindGlobalEvent(document, 'click', closeCtxMenu);
-  bindGlobalEvent(document, 'keydown', (e) => { if (e.key === 'Escape') closeCtxMenu(); });
-  bindGlobalEvent(window, 'blur', closeCtxMenu);
-}
-
-function showMenu(evt, entries) {
-  evt.preventDefault();
-  closeCtxMenu();
-  bindCtxClose();
-  ctxMenu = document.createElement('div');
-  ctxMenu.className = 'chat-ctx-menu';
-  ctxMenu.setAttribute('role', 'menu');
-  for (const e of entries) {
-    if (e.sep) {
-      const l = document.createElement('div');
-      l.className = 'ctx-label';
-      l.textContent = e.sep;
-      ctxMenu.append(l);
-      continue;
-    }
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'ctx-item' + (e.danger ? ' danger' : '');
-    b.textContent = e.label;
-    b.addEventListener('click', (ev) => { ev.stopPropagation(); closeCtxMenu(); e.fn(); });
-    ctxMenu.append(b);
-  }
-  document.body.append(ctxMenu);
-  const w = ctxMenu.offsetWidth; const h = ctxMenu.offsetHeight;
-  ctxMenu.style.left = `${Math.max(8, Math.min(evt.clientX, window.innerWidth - w - 8))}px`;
-  ctxMenu.style.top = `${Math.max(8, Math.min(evt.clientY, window.innerHeight - h - 8))}px`;
-  ctxMenu.querySelector('button')?.focus();
-}
-
-// Folders: per-browser grouping of chats, stored next to pin/rename metadata.
-function foldersKey() { return `cm6453_chat_folders:${getActiveUserId()}`; }
-export function loadFolders() {
-  try { const v = JSON.parse(storageGet(foldersKey(), '[]') || '[]'); return Array.isArray(v) ? v : []; } catch { return []; }
-}
-function saveFolders(list) { storageSet(foldersKey(), JSON.stringify(list)); }
-let renamingFolderId = null;
-export function createFolder(chatIdToMove, callbacks) {
-  const id = `f_${Date.now().toString(36)}`;
-  saveFolders([...loadFolders(), { id, name: 'Yeni klasör', collapsed: false }]);
-  if (chatIdToMove) patchMeta(chatIdToMove, { folder: id, pinned: false });
-  renamingFolderId = id;
-  callbacks.renderChatList();
-}
-function moveChat(chatId, folderId, callbacks) {
-  patchMeta(chatId, { folder: folderId || '', pinned: false });
-  callbacks.renderChatList();
-}
-
-function openCtxMenu(evt, id, chat, state, callbacks, startRename) {
-  const meta = loadChatMeta()[id] || {};
-  const folders = loadFolders();
-  const entries = [
-    { label: meta.pinned ? 'Sabitlemeyi kaldır' : 'Sabitle', fn: () => { patchMeta(id, meta.pinned ? { pinned: false } : { pinned: true, folder: '' }); callbacks.renderChatList(); } },
-    { label: 'Yeniden adlandır', fn: startRename },
-    { sep: 'Klasöre taşı' },
-    ...folders.filter((f) => f.id !== meta.folder).map((f) => ({ label: `📁 ${f.name}`, fn: () => moveChat(id, f.id, callbacks) })),
-    { label: '＋ Yeni klasör', fn: () => createFolder(id, callbacks) },
-  ];
-  if (meta.folder) entries.push({ label: 'Klasörden çıkar', fn: () => moveChat(id, '', callbacks) });
-  entries.push({ sep: ' ' }, { label: 'Sil', danger: true, fn: () => { state.pendingDeleteId = id; callbacks.renderChatList(); } });
-  showMenu(evt, entries);
-}
-
-function openFolderMenu(evt, folder, callbacks, startRename) {
-  showMenu(evt, [
-    { label: 'Yeniden adlandır', fn: startRename },
-    { label: 'Klasörü sil (sohbetler kalır)', danger: true, fn: () => {
-      saveFolders(loadFolders().filter((f) => f.id !== folder.id));
-      const meta = loadChatMeta();
-      for (const k of Object.keys(meta)) {
-        if (meta[k].folder === folder.id) {
-          meta[k].folder = '';
-          if (!meta[k].pinned && !meta[k].title) delete meta[k];
-        }
-      }
-      saveChatMeta(meta);
-      callbacks.renderChatList();
-    } },
-  ]);
-}
-
-// Sidebar sections (Sabitlenmiş / folders / Son kullanılanlar): collapsible headers that also accept dragged chats.
-function sectionsKey() { return `cm6453_chat_sections:${getActiveUserId()}`; }
-function loadSections() {
-  try { return JSON.parse(storageGet(sectionsKey(), '{}') || '{}'); } catch { return {}; }
-}
-function patchSections(patch) { storageSet(sectionsKey(), JSON.stringify({ ...loadSections(), ...patch })); }
-
-function makeDropTarget(el, host, onDrop) {
-  el.addEventListener('dragover', (e) => {
-    if (e.dataTransfer && e.dataTransfer.types.includes('text/x-chat-id')) { e.preventDefault(); e.stopPropagation(); host.classList.add('drop-target'); }
-  });
-  el.addEventListener('dragleave', (e) => { if (!host.contains(e.relatedTarget)) host.classList.remove('drop-target'); });
-  el.addEventListener('drop', (e) => {
-    host.classList.remove('drop-target');
-    const cid = e.dataTransfer && e.dataTransfer.getData('text/x-chat-id');
-    if (!cid) return;
-    e.preventDefault();
-    e.stopPropagation();
-    onDrop(cid);
-  });
-}
-
-function buildSectionHead(label, collapsed, onToggle) {
-  const head = document.createElement('div');
-  head.className = 'chat-section-head';
-  head.tabIndex = 0;
-  head.setAttribute('role', 'button');
-  head.setAttribute('aria-expanded', String(!collapsed));
-  const text = document.createElement('span');
-  text.className = 'chat-section-label';
-  text.textContent = label;
-  const chev = document.createElement('span');
-  chev.className = 'chat-section-chev';
-  chev.textContent = collapsed ? '›' : '⌄';
-  head.append(text, chev);
-  head.addEventListener('click', onToggle);
-  head.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle(); } });
-  return { head, text };
-}
-
-function buildSection(label, collapsed, onToggle, onDrop) {
-  const section = document.createElement('div');
-  section.className = 'chat-section' + (collapsed ? ' collapsed' : '');
-  const { head, text } = buildSectionHead(label, collapsed, onToggle);
-  const body = document.createElement('div');
-  body.className = 'chat-section-body';
-  body.hidden = collapsed;
-  section.append(head, body);
-  if (onDrop) { makeDropTarget(head, section, onDrop); makeDropTarget(body, section, onDrop); }
-  return { section, head, text, body };
-}
-
-function buildFolderSection(folder, callbacks) {
-  const built = buildSection(
-    folder.name,
-    Boolean(folder.collapsed),
-    () => { saveFolders(loadFolders().map((f) => (f.id === folder.id ? { ...f, collapsed: !f.collapsed } : f))); callbacks.renderChatList(); },
-    (cid) => moveChat(cid, folder.id, callbacks),
-  );
-  const startRename = () => {
-    const input = document.createElement('input');
-    input.className = 'chat-rename-input';
-    input.value = folder.name;
-    input.maxLength = 40;
-    let done = false;
-    const finish = (save) => {
-      if (done) return;
-      done = true;
-      renamingFolderId = null;
-      const next = input.value.trim();
-      if (save && next) saveFolders(loadFolders().map((f) => (f.id === folder.id ? { ...f, name: next } : f)));
-      callbacks.renderChatList();
-    };
-    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') finish(true); else if (e.key === 'Escape') finish(false); e.stopPropagation(); });
-    input.addEventListener('blur', () => finish(true));
-    input.addEventListener('click', (e) => e.stopPropagation());
-    built.text.replaceWith(input);
-    input.focus();
-    input.select();
-  };
-  built.head.addEventListener('contextmenu', (e) => openFolderMenu(e, folder, callbacks, startRename));
-  if (renamingFolderId === folder.id) queueMicrotask(startRename);
-  return built;
-}
+import { buildFolderSection, buildSection, createFolder, loadChatMeta, loadFolders, loadSections, openCtxMenu, patchMeta, patchSections, showMenu } from './chat_sections.js';
+import { safeFetchJson, storageGet, storageSet } from './storage.js';
 
 function renameInline(item, titleSpan, id, chat, callbacks) {
   const input = document.createElement('input');
@@ -345,54 +156,51 @@ function buildChatItem(id, chat, meta, state, callbacks) {
 
 const RECENT_LIMIT = 10;
 
-export function renderSidebarChatList(els, state, callbacks) {
-  const chats = loadChats();
-  const list = els.chatList;
-  list.replaceChildren();
-  const q = (els.chatSearchInput ? els.chatSearchInput.value : '').trim().toLowerCase();
-  const meta = loadChatMeta();
-  const sec = loadSections();
-  const sortMode = sec.sort === 'title' ? 'title' : 'recent';
+function bindListDrop(list, callbacks) {
+  if (list.dataset.dropBound) return;
+  list.dataset.dropBound = '1';
+  list.addEventListener('dragover', (e) => { if (e.dataTransfer && e.dataTransfer.types.includes('text/x-chat-id')) e.preventDefault(); });
+  list.addEventListener('drop', (e) => {
+    const cid = e.dataTransfer && e.dataTransfer.getData('text/x-chat-id');
+    if (!cid) return;
+    e.preventDefault();
+    patchMeta(cid, { pinned: false, folder: '' });
+    callbacks.renderChatList();
+  });
+}
 
-  const matches = (chat) => {
-    if (!q) return true;
-    return (chat.title || '').toLowerCase().includes(q) || (chat.messages || []).some((m) => (m.text || '').toLowerCase().includes(q));
-  };
-  const byOrder = (a, b) => (sortMode === 'title'
-    ? String((meta[a[0]] && meta[a[0]].title) || a[1].title || '').localeCompare(String((meta[b[0]] && meta[b[0]].title) || b[1].title || ''), 'tr')
-    : (b[1].updatedAt || 0) - (a[1].updatedAt || 0));
-  const entries = Object.entries(chats).filter(([, c]) => matches(c)).sort(byOrder);
-  const item = ([id, chat]) => buildChatItem(id, chat, meta, state, callbacks);
+function buildGroupButton(sortMode, callbacks) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'chat-section-action';
+  btn.title = 'Grupla ve sırala';
+  btn.setAttribute('aria-label', 'Grupla ve sırala');
+  btn.textContent = '☰';
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const r = btn.getBoundingClientRect();
+    const pick = (patch) => () => { patchSections(patch); callbacks.renderChatList(); };
+    showMenu({ preventDefault() {}, clientX: r.left, clientY: r.bottom + 4 }, [
+      { sep: 'Sırala' },
+      { label: `${sortMode === 'recent' ? '✓ ' : ''}En son kullanılan`, fn: pick({ sort: 'recent' }) },
+      { label: `${sortMode === 'title' ? '✓ ' : ''}Başlığa göre (A–Z)`, fn: pick({ sort: 'title' }) },
+      { sep: 'Grupla' },
+      { label: '＋ Yeni klasör', fn: () => createFolder('', callbacks) },
+    ]);
+  });
+  return btn;
+}
 
-  if (!list.dataset.dropBound) {
-    list.dataset.dropBound = '1';
-    list.addEventListener('dragover', (e) => { if (e.dataTransfer && e.dataTransfer.types.includes('text/x-chat-id')) e.preventDefault(); });
-    list.addEventListener('drop', (e) => {
-      const cid = e.dataTransfer && e.dataTransfer.getData('text/x-chat-id');
-      if (!cid) return;
-      e.preventDefault();
-      patchMeta(cid, { pinned: false, folder: '' });
-      callbacks.renderChatList();
-    });
-  }
+function renderSearchResults(list, entries, item) {
+  for (const e of entries) list.appendChild(item(e));
+  if (entries.length) return;
+  const none = document.createElement('div');
+  none.className = 'chat-section-empty';
+  none.textContent = 'Eşleşen sohbet yok';
+  list.appendChild(none);
+}
 
-  if (q) {
-    for (const e of entries) list.appendChild(item(e));
-    if (!entries.length) {
-      const none = document.createElement('div');
-      none.className = 'chat-section-empty';
-      none.textContent = 'Eşleşen sohbet yok';
-      list.appendChild(none);
-    }
-    return;
-  }
-
-  const folders = loadFolders();
-  const folderIds = new Set(folders.map((f) => f.id));
-  const pinned = entries.filter(([id]) => meta[id] && meta[id].pinned);
-  const inFolder = (fid) => entries.filter(([id]) => !(meta[id] && meta[id].pinned) && meta[id] && meta[id].folder === fid);
-  const rest = entries.filter(([id]) => !(meta[id] && meta[id].pinned) && !(meta[id] && meta[id].folder && folderIds.has(meta[id].folder)));
-
+function buildPinnedSection(pinned, sec, item, callbacks) {
   const pinSec = buildSection('Sabitlenmiş', Boolean(sec.pinnedCollapsed), () => { patchSections({ pinnedCollapsed: !sec.pinnedCollapsed }); callbacks.renderChatList(); },
     (cid) => { patchMeta(cid, { pinned: true, folder: '' }); callbacks.renderChatList(); });
   for (const e of pinned) pinSec.body.appendChild(item(e));
@@ -402,36 +210,14 @@ export function renderSidebarChatList(els, state, callbacks) {
     hint.textContent = 'Sohbeti buraya sürükleyerek sabitle';
     pinSec.body.appendChild(hint);
   }
-  list.appendChild(pinSec.section);
+  return pinSec.section;
+}
 
-  for (const f of folders) {
-    const built = buildFolderSection(f, callbacks);
-    for (const e of inFolder(f.id)) built.body.appendChild(item(e));
-    list.appendChild(built.section);
-  }
-
+function buildRecentSection(rest, sec, sortMode, item, callbacks) {
   const recent = buildSection('Son kullanılanlar', Boolean(sec.recentCollapsed), () => { patchSections({ recentCollapsed: !sec.recentCollapsed }); callbacks.renderChatList(); },
     (cid) => { patchMeta(cid, { pinned: false, folder: '' }); callbacks.renderChatList(); });
-  const groupBtn = document.createElement('button');
-  groupBtn.type = 'button';
-  groupBtn.className = 'chat-section-action';
-  groupBtn.title = 'Grupla ve sırala';
-  groupBtn.setAttribute('aria-label', 'Grupla ve sırala');
-  groupBtn.textContent = '☰';
-  groupBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const r = groupBtn.getBoundingClientRect();
-    showMenu({ preventDefault() {}, clientX: r.left, clientY: r.bottom + 4 }, [
-      { sep: 'Sırala' },
-      { label: `${sortMode === 'recent' ? '✓ ' : ''}En son kullanılan`, fn: () => { patchSections({ sort: 'recent' }); callbacks.renderChatList(); } },
-      { label: `${sortMode === 'title' ? '✓ ' : ''}Başlığa göre (A–Z)`, fn: () => { patchSections({ sort: 'title' }); callbacks.renderChatList(); } },
-      { sep: 'Grupla' },
-      { label: '＋ Yeni klasör', fn: () => createFolder('', callbacks) },
-    ]);
-  });
-  recent.head.appendChild(groupBtn);
-  const shown = sec.showAll ? rest : rest.slice(0, RECENT_LIMIT);
-  for (const e of shown) recent.body.appendChild(item(e));
+  recent.head.appendChild(buildGroupButton(sortMode, callbacks));
+  for (const e of (sec.showAll ? rest : rest.slice(0, RECENT_LIMIT))) recent.body.appendChild(item(e));
   if (rest.length > RECENT_LIMIT) {
     const more = document.createElement('button');
     more.type = 'button';
@@ -440,5 +226,35 @@ export function renderSidebarChatList(els, state, callbacks) {
     more.addEventListener('click', () => { patchSections({ showAll: !sec.showAll }); callbacks.renderChatList(); });
     recent.body.appendChild(more);
   }
-  list.appendChild(recent.section);
+  return recent.section;
+}
+
+export function renderSidebarChatList(els, state, callbacks) {
+  const chats = loadChats();
+  const list = els.chatList;
+  list.replaceChildren();
+  const q = (els.chatSearchInput ? els.chatSearchInput.value : '').trim().toLowerCase();
+  const meta = loadChatMeta();
+  const sec = loadSections();
+  const sortMode = sec.sort === 'title' ? 'title' : 'recent';
+  const titleOf = ([id, c]) => String((meta[id] && meta[id].title) || c.title || '');
+  const matches = (chat) => !q || (chat.title || '').toLowerCase().includes(q) || (chat.messages || []).some((m) => (m.text || '').toLowerCase().includes(q));
+  const byOrder = (a, b) => (sortMode === 'title' ? titleOf(a).localeCompare(titleOf(b), 'tr') : (b[1].updatedAt || 0) - (a[1].updatedAt || 0));
+  const entries = Object.entries(chats).filter(([, c]) => matches(c)).sort(byOrder);
+  const item = ([id, chat]) => buildChatItem(id, chat, meta, state, callbacks);
+  bindListDrop(list, callbacks);
+  if (q) { renderSearchResults(list, entries, item); return; }
+
+  const folders = loadFolders();
+  const folderIds = new Set(folders.map((f) => f.id));
+  const isPinned = ([id]) => Boolean(meta[id] && meta[id].pinned);
+  const folderOf = ([id]) => (meta[id] && meta[id].folder) || '';
+  list.appendChild(buildPinnedSection(entries.filter(isPinned), sec, item, callbacks));
+  for (const f of folders) {
+    const built = buildFolderSection(f, callbacks);
+    for (const e of entries.filter((x) => !isPinned(x) && folderOf(x) === f.id)) built.body.appendChild(item(e));
+    list.appendChild(built.section);
+  }
+  const rest = entries.filter((x) => !isPinned(x) && !folderIds.has(folderOf(x)));
+  list.appendChild(buildRecentSection(rest, sec, sortMode, item, callbacks));
 }

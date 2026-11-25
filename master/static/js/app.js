@@ -11,7 +11,7 @@ import { renderArtifacts, renderFiles, renderShare } from './panels.js';
 import { initPersonalSpace } from './personal.js';
 import { renderNewProject, renderProjectDetail, renderProjects } from './projects.js';
 import { createReactiveStore } from './store.js';
-import { bindGlobalEvent, startManagedInterval } from './storage.js';
+import { bindGlobalEvent, startManagedInterval, storageGet, storageSet } from './storage.js';
 import { renderStudio } from './studio.js';
 import { closeSidebar, isDesktop, openSidebar } from './util.js';
 import { announceAriaLive, fetchHealthWizardStatus } from './ux_shell.js';
@@ -115,12 +115,12 @@ function applySidebarCollapsed(collapsed) {
   document.body.classList.toggle('sidebar-collapsed', collapsed);
   document.getElementById('sidebarToggle').setAttribute('aria-expanded', String(!collapsed));
 }
-try { applySidebarCollapsed(localStorage.getItem(SIDEBAR_KEY) === '1'); } catch { applySidebarCollapsed(false); }
+applySidebarCollapsed(storageGet(SIDEBAR_KEY, '0') === '1');
 document.getElementById('sidebarToggle').addEventListener('click', () => {
   if (isDesktop()) {
     const next = !document.body.classList.contains('sidebar-collapsed');
     applySidebarCollapsed(next);
-    try { localStorage.setItem(SIDEBAR_KEY, next ? '1' : '0'); } catch { /* storage unavailable: state lasts for this visit only */ }
+    storageSet(SIDEBAR_KEY, next ? '1' : '0');
     return;
   }
   document.getElementById('sidebar').classList.contains('open') ? closeSidebar() : openSidebar();
