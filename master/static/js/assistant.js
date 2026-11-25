@@ -9,7 +9,6 @@ import {
   syncChatsWithServer,
 } from './assistant_history.js';
 import { matchPageRequest, pageLinkMessage } from './assistant_nav.js';
-import { openDock } from './studio_dock.js';
 import { buildInlineWorkspaceCard } from './assistant_ide_card.js';
 import { runAssistantStream } from './assistant_stream.js';
 import {
@@ -227,7 +226,6 @@ async function sendMessage(overridePrompt = null) {
   const pageRequest = fileToSend ? null : matchPageRequest(prompt);
   if (pageRequest) {
     if (!isOverride) { els.promptInput.value = ''; els.promptInput.style.height = 'auto'; }
-    openDock(pageRequest.key);
     addAssistantMessage(pageLinkMessage(pageRequest), null, false, false);
     persistChatById(targetChatId, state.currentMessages);
     return;

@@ -16,7 +16,7 @@ export function matchPageRequest(prompt) {
 }
 
 export function pageLinkMessage(page) {
-  return `**${page.label}** sağ tarafta açıldı. Tam sayfa için: [tam sayfada aç](${page.hash})`;
+  return `**${page.label}** sayfasını açabilirsin: [${page.label} sayfasına git](${page.hash})`;
 }
 
 export const HIDDEN_PAGES = PAGES;
