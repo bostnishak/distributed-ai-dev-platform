@@ -173,7 +173,11 @@ html[data-theme="dark"] {
 .studio-dock .studio-topbar { flex-wrap: wrap; gap: 8px; padding: 8px 12px; }
 .studio-dock .studio-body { grid-template-columns: 200px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) 220px; }
 
-/* sidebar status dots: stay small even when they are the first child of a chat row */
-.chat-item > .sp-chat-busy, .chat-item > .sp-chat-unread { flex: 0 0 auto; }
-.chat-item > .sp-chat-busy { width: 12px; height: 12px; min-width: 12px; box-sizing: border-box; }
-.chat-item > .sp-chat-unread { width: 8px; height: 8px; min-width: 8px; }
+/* sidebar status: a small pulsing dot (beats app.css first-child flex rule by specificity) */
+.chat-item > span.sp-chat-busy:first-child, .chat-item > span.sp-chat-busy, .chat-item > span.sp-chat-unread:first-child, .chat-item > span.sp-chat-unread {
+  flex: 0 0 8px; width: 8px; min-width: 8px; max-width: 8px; height: 8px; box-sizing: border-box;
+  border: none; border-radius: 50%; margin: 0 8px 0 0; background: var(--accent);
+}
+.chat-item > span.sp-chat-busy { animation: sp-dot-pulse 1.1s ease-in-out infinite; }
+@keyframes sp-dot-pulse { 0%, 100% { opacity: 0.25; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.1); } }
+@media (prefers-reduced-motion: reduce) { .chat-item > span.sp-chat-busy { animation: none; } }
