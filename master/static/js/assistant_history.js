@@ -11,7 +11,7 @@ function saveChatMeta(meta) { storageSet(metaKey(), JSON.stringify(meta)); }
 function patchMeta(id, patch) {
   const meta = loadChatMeta();
   meta[id] = { ...(meta[id] || {}), ...patch };
-  if (!meta[id].pinned && !meta[id].title) delete meta[id];
+  if (!meta[id].pinned && !meta[id].title && !meta[id].folder) delete meta[id];
   saveChatMeta(meta);
 }
 
@@ -26,32 +26,149 @@ function bindCtxClose() {
   bindGlobalEvent(window, 'blur', closeCtxMenu);
 }
 
-function openCtxMenu(evt, id, chat, state, callbacks, startRename) {
+function showMenu(evt, entries) {
   evt.preventDefault();
   closeCtxMenu();
   bindCtxClose();
-  const pinned = Boolean(loadChatMeta()[id]?.pinned);
-  const entry = (label, fn, danger) => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'ctx-item' + (danger ? ' danger' : '');
-    b.textContent = label;
-    b.addEventListener('click', (e) => { e.stopPropagation(); closeCtxMenu(); fn(); });
-    return b;
-  };
   ctxMenu = document.createElement('div');
   ctxMenu.className = 'chat-ctx-menu';
   ctxMenu.setAttribute('role', 'menu');
-  ctxMenu.append(
-    entry(pinned ? 'Sabitlemeyi kaldır' : 'Sabitle', () => { patchMeta(id, { pinned: !pinned }); callbacks.renderChatList(); }),
-    entry('Yeniden adlandır', startRename),
-    entry('Sil', () => { state.pendingDeleteId = id; callbacks.renderChatList(); }, true),
-  );
+  for (const e of entries) {
+    if (e.sep) {
+      const l = document.createElement('div');
+      l.className = 'ctx-label';
+      l.textContent = e.sep;
+      ctxMenu.append(l);
+      continue;
+    }
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'ctx-item' + (e.danger ? ' danger' : '');
+    b.textContent = e.label;
+    b.addEventListener('click', (ev) => { ev.stopPropagation(); closeCtxMenu(); e.fn(); });
+    ctxMenu.append(b);
+  }
   document.body.append(ctxMenu);
   const w = ctxMenu.offsetWidth; const h = ctxMenu.offsetHeight;
-  ctxMenu.style.left = `${Math.min(evt.clientX, window.innerWidth - w - 8)}px`;
-  ctxMenu.style.top = `${Math.min(evt.clientY, window.innerHeight - h - 8)}px`;
+  ctxMenu.style.left = `${Math.max(8, Math.min(evt.clientX, window.innerWidth - w - 8))}px`;
+  ctxMenu.style.top = `${Math.max(8, Math.min(evt.clientY, window.innerHeight - h - 8))}px`;
   ctxMenu.querySelector('button')?.focus();
+}
+
+// Folders: per-browser grouping of chats, stored next to pin/rename metadata.
+function foldersKey() { return `cm6453_chat_folders:${getActiveUserId()}`; }
+export function loadFolders() {
+  try { const v = JSON.parse(storageGet(foldersKey(), '[]') || '[]'); return Array.isArray(v) ? v : []; } catch { return []; }
+}
+function saveFolders(list) { storageSet(foldersKey(), JSON.stringify(list)); }
+let renamingFolderId = null;
+function createFolder(chatIdToMove, callbacks) {
+  const id = `f_${Date.now().toString(36)}`;
+  saveFolders([...loadFolders(), { id, name: 'Yeni klasör', collapsed: false }]);
+  if (chatIdToMove) patchMeta(chatIdToMove, { folder: id });
+  renamingFolderId = id;
+  callbacks.renderChatList();
+}
+function moveChat(chatId, folderId, callbacks) {
+  patchMeta(chatId, { folder: folderId || '' });
+  callbacks.renderChatList();
+}
+
+function openCtxMenu(evt, id, chat, state, callbacks, startRename) {
+  const meta = loadChatMeta()[id] || {};
+  const folders = loadFolders();
+  const entries = [
+    { label: meta.pinned ? 'Sabitlemeyi kaldır' : 'Sabitle', fn: () => { patchMeta(id, { pinned: !meta.pinned }); callbacks.renderChatList(); } },
+    { label: 'Yeniden adlandır', fn: startRename },
+    { sep: 'Klasöre taşı' },
+    ...folders.filter((f) => f.id !== meta.folder).map((f) => ({ label: `📁 ${f.name}`, fn: () => moveChat(id, f.id, callbacks) })),
+    { label: '＋ Yeni klasör', fn: () => createFolder(id, callbacks) },
+  ];
+  if (meta.folder) entries.push({ label: 'Klasörden çıkar', fn: () => moveChat(id, '', callbacks) });
+  entries.push({ sep: ' ' }, { label: 'Sil', danger: true, fn: () => { state.pendingDeleteId = id; callbacks.renderChatList(); } });
+  showMenu(evt, entries);
+}
+
+function openFolderMenu(evt, folder, callbacks, startRename) {
+  showMenu(evt, [
+    { label: 'Yeniden adlandır', fn: startRename },
+    { label: 'Klasörü sil (sohbetler kalır)', danger: true, fn: () => {
+      saveFolders(loadFolders().filter((f) => f.id !== folder.id));
+      const meta = loadChatMeta();
+      for (const k of Object.keys(meta)) {
+        if (meta[k].folder === folder.id) {
+          meta[k].folder = '';
+          if (!meta[k].pinned && !meta[k].title) delete meta[k];
+        }
+      }
+      saveChatMeta(meta);
+      callbacks.renderChatList();
+    } },
+  ]);
+}
+
+function buildFolderSection(folder, count, callbacks) {
+  const section = document.createElement('div');
+  section.className = 'chat-folder' + (folder.collapsed ? ' collapsed' : '');
+  const head = document.createElement('div');
+  head.className = 'chat-folder-head';
+  const chev = document.createElement('span');
+  chev.className = 'chat-folder-chev';
+  chev.textContent = folder.collapsed ? '▸' : '▾';
+  const name = document.createElement('span');
+  name.className = 'chat-folder-name';
+  name.textContent = `📁 ${folder.name}`;
+  const cnt = document.createElement('span');
+  cnt.className = 'chat-folder-count';
+  cnt.textContent = String(count);
+  head.append(chev, name, cnt);
+  const body = document.createElement('div');
+  body.className = 'chat-folder-body';
+  body.hidden = Boolean(folder.collapsed);
+
+  const startRename = () => {
+    const input = document.createElement('input');
+    input.className = 'chat-rename-input';
+    input.value = folder.name;
+    input.maxLength = 40;
+    let done = false;
+    const finish = (save) => {
+      if (done) return;
+      done = true;
+      renamingFolderId = null;
+      const next = input.value.trim();
+      if (save && next) saveFolders(loadFolders().map((f) => (f.id === folder.id ? { ...f, name: next } : f)));
+      callbacks.renderChatList();
+    };
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') finish(true); else if (e.key === 'Escape') finish(false); e.stopPropagation(); });
+    input.addEventListener('blur', () => finish(true));
+    input.addEventListener('click', (e) => e.stopPropagation());
+    name.replaceWith(input);
+    input.focus();
+    input.select();
+  };
+  head.addEventListener('click', () => {
+    saveFolders(loadFolders().map((f) => (f.id === folder.id ? { ...f, collapsed: !f.collapsed } : f)));
+    callbacks.renderChatList();
+  });
+  head.addEventListener('contextmenu', (e) => openFolderMenu(e, folder, callbacks, startRename));
+  for (const el of [head, body]) {
+    el.addEventListener('dragover', (e) => {
+      if (e.dataTransfer && e.dataTransfer.types.includes('text/x-chat-id')) { e.preventDefault(); e.stopPropagation(); section.classList.add('drop-target'); }
+    });
+    el.addEventListener('dragleave', () => section.classList.remove('drop-target'));
+    el.addEventListener('drop', (e) => {
+      const cid = e.dataTransfer && e.dataTransfer.getData('text/x-chat-id');
+      section.classList.remove('drop-target');
+      if (!cid) return;
+      e.preventDefault();
+      e.stopPropagation();
+      moveChat(cid, folder.id, callbacks);
+    });
+  }
+  section.append(head, body);
+  if (renamingFolderId === folder.id) queueMicrotask(startRename);
+  return { section, body };
 }
 
 function renameInline(item, titleSpan, id, chat, callbacks) {
@@ -163,6 +280,29 @@ export function renderSidebarChatList(els, state, callbacks) {
   els.chatList.replaceChildren();
   const q = (els.chatSearchInput ? els.chatSearchInput.value : '').trim().toLowerCase();
   const meta = loadChatMeta();
+  const folders = q ? [] : loadFolders();
+  const folderIds = new Set(folders.map((f) => f.id));
+  const counts = {};
+  for (const cid of Object.keys(chats)) {
+    const fid = meta[cid] && meta[cid].folder;
+    if (fid && folderIds.has(fid)) counts[fid] = (counts[fid] || 0) + 1;
+  }
+  const bodies = {};
+  for (const f of folders) {
+    const built = buildFolderSection(f, counts[f.id] || 0, callbacks);
+    els.chatList.appendChild(built.section);
+    bodies[f.id] = built.body;
+  }
+  if (!els.chatList.dataset.dropBound) {
+    els.chatList.dataset.dropBound = '1';
+    els.chatList.addEventListener('dragover', (e) => { if (e.dataTransfer && e.dataTransfer.types.includes('text/x-chat-id')) e.preventDefault(); });
+    els.chatList.addEventListener('drop', (e) => {
+      const cid = e.dataTransfer && e.dataTransfer.getData('text/x-chat-id');
+      if (!cid) return;
+      e.preventDefault();
+      moveChat(cid, '', callbacks);
+    });
+  }
   const sorted = Object.entries(chats).sort((a, b) => (Number(Boolean(meta[b[0]]?.pinned)) - Number(Boolean(meta[a[0]]?.pinned))) || (b[1].updatedAt - a[1].updatedAt));
 
   for (const [id, chat] of sorted) {
@@ -221,8 +361,12 @@ export function renderSidebarChatList(els, state, callbacks) {
       }
       item.append(titleSpan, del);
       item.addEventListener('contextmenu', (e) => openCtxMenu(e, id, chat, state, callbacks, () => renameInline(item, titleSpan, id, chat, callbacks)));
+      item.draggable = true;
+      item.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/x-chat-id', id); e.dataTransfer.effectAllowed = 'move'; item.classList.add('dragging'); });
+      item.addEventListener('dragend', () => item.classList.remove('dragging'));
       item.addEventListener('click', () => callbacks.openChat(id));
     }
-    els.chatList.appendChild(item);
+    const folderBody = meta[id] && meta[id].folder && bodies[meta[id].folder];
+    (folderBody || els.chatList).appendChild(item);
   }
 }

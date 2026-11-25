@@ -121,6 +121,7 @@ export function initAuthUi() {
   btn.id = 'authModalBtn';
   btn.type = 'button';
   btn.className = 'sp-icon-btn';
+  btn.hidden = true; // kept in the DOM so the command palette can still open the account dialog
   btn.setAttribute('aria-label', 'Hesap ve oturum yönetimi');
   const lockIcon = svg('svg', {
     viewBox: '0 0 24 24', width: '16', height: '16', fill: 'none',
