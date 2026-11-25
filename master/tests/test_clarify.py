@@ -32,9 +32,11 @@ def test_specific_or_plain_questions_go_straight_through(prompt):
     assert clarify.clarifying_question(prompt) is None
 
 
-def test_attachment_or_history_skips_the_question():
+def test_attachment_skips_and_followups_lean_on_history():
     assert clarify.clarifying_question("bir logo yap", has_file=True) is None
-    assert clarify.clarifying_question("bir logo yap", history=json.dumps([{"role": "user", "text": "merhaba"}])) is None
+    hist = json.dumps([{"role": "user", "text": "merhaba"}])
+    assert clarify.clarifying_question("bir logo yap", history=hist)  # still vague in an ongoing chat
+    assert clarify.clarifying_question("bir logo daha yap", history=hist) is None  # follow-up: uses the conversation
 
 
 def test_answer_after_our_question_is_not_asked_again():

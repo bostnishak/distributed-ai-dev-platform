@@ -128,7 +128,7 @@ LAYOUT_ORDER = ["badge_showcase", "horizontal_lockup", "centered_emblem"]
 
 def _resolve_context_prompt(prompt: str, history: list[dict[str, Any]] | None) -> tuple[str, int]:
     low = (prompt or "").lower()
-    is_rev = any(k in low for k in ("farklı", "farkli", "beğenmedim", "begenmedim", "kötü", "kotu", "başka", "baska", "yeniden", "tekrar", "değiştir", "degistir", "alternatif", "revize", "daha iyi"))
+    is_rev = any(k in low for k in ("farklı", "farkli", "beğenmedim", "begenmedim", "kötü", "kotu", "başka", "baska", "yeniden", "tekrar", "değiştir", "degistir", "alternatif", "revize", "daha iyi", "çevir", "gündüz", "olsun", "ekle"))
     prior_cnt, prior_user = 0, ""
     for m in history or ():
         txt = str(m.get("text") or "")
@@ -144,7 +144,7 @@ def _resolve_context_prompt(prompt: str, history: list[dict[str, Any]] | None) -
 def _pick_palette_from_text(text: str, seed: int) -> str:
     low = text.lower()
     rules = (
-        ("nordic_light", ("açık", "acik", "beyaz", "light", "temiz", "minimalist beyaz")),
+        ("nordic_light", ("açık", "acik", "beyaz", "light", "temiz", "minimalist beyaz", "gündüz", "gunduz", "güneşli")),
         ("obsidian_gold", ("altın", "altin", "gold", "lüks", "luks", "premium", "gün batımı", "sunset")),
         ("emerald_slate", ("yeşil", "yesil", "doğa", "doga", "ekoloji", "orman", "zümrüt", "sağlık")),
         ("crimson_carbon", ("kırmızı", "kirmizi", "turuncu", "enerji", "spor", "otomotiv", "konser")),

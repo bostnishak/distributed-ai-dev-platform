@@ -18,6 +18,7 @@ from fastapi.responses import StreamingResponse
 import assistant_cad_cnc as _cad
 import clarify as _clarify
 import config
+import image_chat as _img
 
 log = logging.getLogger("master.assistant")
 
@@ -394,42 +395,15 @@ async def _try_media_doc_fastpath(
         return StreamingResponse(_chart_gen(), media_type=_MEDIA_SSE)
 
     if mms.is_image_generation_request(prompt, has_file):
-        return _build_image_gen_stream(prompt, history)
+        return _img.build_image_gen_stream(prompt, history)
 
     doc_fmt = df.detect_document_request(prompt, has_file)
     if doc_fmt:
         extracted_ctx = await _extract_upload_context(file, prompt) if has_file else ""
         return _build_doc_gen_stream(prompt, doc_fmt, context_text=extracted_ctx)
+    if not has_file and _img.is_image_revision(prompt, _img.parse_history(history)):
+        return _img.build_image_gen_stream(prompt, history)
     return None
-
-
-def _build_image_gen_stream(prompt: str, history: str) -> StreamingResponse:
-    import multimodal_studio as mms
-
-    try:
-        parsed = json.loads(history) if history else []
-        hist_for_img = parsed if isinstance(parsed, list) else []
-    except (json.JSONDecodeError, TypeError):
-        hist_for_img = []
-
-    async def _gen():
-        try:
-            res = await mms.generate_ai_image(prompt, history=hist_for_img)
-            preview_url = res.get("svg_url") or res["png_url"]
-            meta = [f"**Motor:** `{res['engine']}`"]
-            if res.get("brand_name"):
-                meta.append(f"**Konsept:** {res['brand_name']}")
-            if res.get("palette_name"):
-                meta.append(f"**Palet:** {res['palette_name']}")
-            svg_link = f" · [Vektörel SVG İndir]({res['svg_url']})" if res.get("svg_url") else ""
-            md = f"## Üretilen Görsel Tasarım\n- {' · '.join(meta)}\n- [Yüksek Çözünürlüklü PNG İndir]({res['png_url']}){svg_link}\n\n![Üretilen Görsel]({preview_url})"
-            yield sse_event({"type": "artifact", "kind": "image", "format": "png", "url": res["png_url"], "svg_url": res.get("svg_url")})
-            yield sse_event({"type": "token", "content": md})
-            yield sse_event({"type": "done", "model": res["engine"], "task_type": "gorsel"})
-        except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError, RuntimeError, ImportError) as exc:
-            yield sse_event({"type": "error", "content": str(exc)})
-
-    return StreamingResponse(_gen(), media_type=_MEDIA_SSE)
 
 
 def _build_doc_gen_stream(prompt: str, doc_fmt: str, context_text: str = "") -> StreamingResponse:

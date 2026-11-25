@@ -21,6 +21,8 @@ _DEICTIC_RE = re.compile(
     re.IGNORECASE,
 )
 
+_CONTINUATION_RE = re.compile(r"\b(bunu|şunu|sunu|onu|aynı|ayni|devam|daha|tekrar|yeniden|başka|baska|farklı|farkli|bi de|bir de|ekle\w*|değiştir\w*|degistir\w*|çevir\w*|cevir\w*|düzelt\w*|duzelt\w*)\b", re.IGNORECASE)
+
 # (object pattern, what the assistant needs to know)
 _TOPICS: tuple[tuple[re.Pattern[str], str, tuple[str, ...]], ...] = (
     (
@@ -79,8 +81,8 @@ def clarifying_question(prompt: str, history: str = "", has_file: bool = False) 
         return None  # the user is answering our question: go ahead
     if not items and _DEICTIC_RE.search(text):
         return "Neyi kastettiğini anlayamadım: \"bunu/şunu\" dediğin metin, dosya ya da konu bu sohbette yok. Üzerinde çalışmamı istediğin içeriği yapıştırır mısın ya da dosyayı yükler misin?"
-    if items or not _CREATE_VERB_RE.search(text):
-        return None
+    if not _CREATE_VERB_RE.search(text) or (items and _CONTINUATION_RE.search(text)):
+        return None  # not a creation request, or a follow-up that leans on the conversation so far
     for topic_re, kind, questions in _TOPICS:
         if not topic_re.search(text):
             continue
