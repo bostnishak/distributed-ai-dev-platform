@@ -32,6 +32,8 @@ from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
 import multimodal_studio as mms
+from document_chart import _coerce_excel_cell, _row_height, chart_series, format_cell, render_bar_chart_png
+from document_chart import pdf_wrap_lines as _pdf_wrap_lines
 from prompt_loader import load_prompt
 
 logger = logging.getLogger(__name__)
@@ -48,9 +50,6 @@ _FMT_MATCHERS: tuple[tuple[str, re.Pattern[str]], ...] = (
 DOC_BUILD_RE = re.compile("|".join(p.pattern for _, p in _FMT_MATCHERS), re.I)
 _TR_CUES_RE = re.compile(r"\b(?:hazırla\w*|hazirla\w*|oluştur\w*|olustur\w*|rapor\w*|tablo\w*|dosya\w*|belge\w*|bütçe\w*|sözleşme\w*|için|olarak|lütfen|bana|hakkında|satış\w*|çıkar\w*|yaz\w*|ver\w*|özet\w*|sunum\w*|analiz\w*)\b", re.I)
 _EN_CUES_RE = re.compile(r"\b(?:create|generate|make|build|export|write|draft|prepare|report|spreadsheet|document|summary|budget|analysis|table|sales|monthly|quarterly|annual|financial|please|executive|data|file|for|with|about|the|and|of|from)\b", re.I)
-_THOUSAND_DOT_RE = re.compile(r"^[+-]?\d{1,3}(?:\.\d{3})+$")
-_THOUSAND_COMMA_RE = re.compile(r"^[+-]?\d{1,3}(?:,\d{3})+$")
-_CURRENCY_RE = re.compile(r"(?:[$€£₺%\s\u00a0]+|\b(?:TL|TRY|USD|EUR|GBP)\b)", re.I)
 _MD_INLINE_RE = re.compile(r"(\*\*[^*]+\*\*|\*[^*\n]+\*|`[^`\n]+`)")
 
 _FONT_REG = ("C:/Windows/Fonts/segoeui.ttf", "C:/Windows/Fonts/arial.ttf", "C:/Windows/Fonts/calibri.ttf", "C:/Windows/Fonts/tahoma.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf", "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf", "/usr/share/fonts/truetype/freefont/FreeSans.ttf", "/System/Library/Fonts/Supplemental/Arial.ttf", "/System/Library/Fonts/Supplemental/Arial Unicode.ttf", "/Library/Fonts/Arial.ttf")
@@ -217,45 +216,6 @@ async def generate_document_deliverable(prompt: str, fmt: str, context_text: str
     return {"file_id": file_id, "format": fmt, "title": content.title, "summary": content.summary, "sections": content.sections, "table_headers": content.headers, "table_rows": content.rows, "model": model, "url": f"/api/assistant/media/{out_path.name}"}
 
 
-def _normalize_numeric_str(s: str) -> str | None:
-    if "." in s and "," in s:
-        return s.replace(".", "").replace(",", ".") if s.rfind(",") > s.rfind(".") else s.replace(",", "")
-    if "," in s:
-        return s.replace(",", "") if _THOUSAND_COMMA_RE.match(s) else (s.replace(",", ".") if s.count(",") == 1 else None)
-    if "." in s:
-        return s.replace(".", "") if _THOUSAND_DOT_RE.match(s) else (s if s.count(".") == 1 else None)
-    return s
-
-
-def _coerce_excel_cell(val: Any) -> tuple[Any, str | None, bool]:
-    """Coerce numeric strings like '12.500', '12,500.50', '12500 TL', '%18', '$1,200' to numbers."""
-    if isinstance(val, bool) or not isinstance(val, (int, float, str)):
-        return val, None, False
-    if isinstance(val, int):
-        return val, "#,##0", True
-    if isinstance(val, float):
-        return (val, "#,##0.00", True) if math.isfinite(val) else (str(val), None, False)
-    raw = val.strip()
-    is_pct, s = "%" in raw, _CURRENCY_RE.sub("", raw).strip()
-    if not raw or (raw.isdigit() and len(raw) > 1 and raw.startswith("0")) or not s or not re.fullmatch(r"[+-]?[\d.,]+", s):
-        return raw, None, False
-    num_s = _normalize_numeric_str(s)
-    try:
-        parsed_f = float(num_s) if num_s is not None else math.nan
-    except ValueError:
-        return raw, None, False
-    if not math.isfinite(parsed_f) or num_s is None:
-        return raw, None, False
-    if is_pct:
-        return parsed_f / 100.0, "0.0%", True
-    return (int(num_s), "#,##0", True) if "." not in num_s else (parsed_f, "#,##0.00", True)
-
-
-def _row_height(values: list[str], col_widths: list[int], base: float = 20.0) -> float:
-    lines = max((sum(max(1, math.ceil(len(p) / max(10, w - 3))) for p in (t.splitlines() or [""])) for t, w in zip(values, col_widths, strict=False)), default=1)
-    return max(base, min(120.0, lines * 15.0 + 6.0))
-
-
 def _xlsx_write_table(ws: Any, content: _DocContent, border: Border) -> tuple[list[int], set[int]]:
     last_col = get_column_letter(max(3, len(content.headers)))
     ws.merge_cells(f"A1:{last_col}1")
@@ -370,7 +330,7 @@ def _set_docx_cell_xml(cell: Any, fill_hex: str | None = None, pad_lr: int = 110
 
 def _docx_style_run(run: Any, **style: Any) -> None:
     size = float(style.get("size", 10.0))
-    run.font.name, run.font.size = str(style.get("font", "Segoe UI")), Pt(size)
+    run.font.name, run.font.size = str(style.get("font", "Calibri")), Pt(size)
     run.bold, run.italic = bool(style.get("bold", False)) or run.bold, bool(style.get("italic", False)) or run.italic
     if (rgb := style.get("rgb")) is not None:
         run.font.color.rgb = rgb
@@ -384,7 +344,34 @@ def _docx_add_inline_runs(paragraph: Any, text: str, *, size_pt: float = 10.0, r
         is_i = (not is_b) and tok.startswith("*") and tok.endswith("*") and len(tok) > 2
         is_c = tok.startswith("`") and tok.endswith("`") and len(tok) > 2
         clean = tok[2:-2] if is_b else (tok[1:-1] if (is_i or is_c) else tok)
-        _docx_style_run(paragraph.add_run(clean), size=size_pt - 0.5 if is_c else size_pt, bold=is_b or force_bold, italic=is_i, rgb=rgb, font="Consolas" if is_c else "Segoe UI")
+        _docx_style_run(paragraph.add_run(clean), size=size_pt - 0.5 if is_c else size_pt, bold=is_b or force_bold, italic=is_i, rgb=rgb, font="Consolas" if is_c else "Calibri")
+
+
+_CHART_WORD = {"Türkçe": "Grafik", "English": "Chart", "German": "Diagramm"}
+
+
+def _chart_title(content: _DocContent) -> str:
+    return f"{content.title[:48]} - {_CHART_WORD.get(content.lang, 'Chart')}"
+
+
+def _docx_col_widths(content: _DocContent) -> list[float]:
+    lens = [max([len(str(h))] + [len(format_cell(r[i], str(h), content.lang)[0]) for r in content.rows if i < len(r)]) for i, h in enumerate(content.headers)]
+    weights = [min(max(x, 5), 28) for x in lens]
+    total = float(sum(weights)) or 1.0
+    return [6.8 * w / total for w in weights]
+
+
+def _docx_add_chart(doc: Any, content: _DocContent) -> None:
+    from io import BytesIO
+
+    png = render_bar_chart_png(content.headers, content.rows, _chart_title(content), _find_unicode_fonts())
+    if png is None:
+        return
+    h = doc.add_heading(_CHART_WORD.get(content.lang, "Chart"), level=1)
+    for r in h.runs:
+        _docx_style_run(r, size=13.0, bold=True, rgb=RGBColor(0x1E, 0x29, 0x3B))
+    doc.add_picture(BytesIO(png), width=Inches(6.6))
+    doc.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
 
 
 def _docx_add_table(doc: Any, content: _DocContent) -> None:
@@ -392,23 +379,31 @@ def _docx_add_table(doc: Any, content: _DocContent) -> None:
     for r in h.runs:
         _docx_style_run(r, size=13.0, bold=True, rgb=RGBColor(0x1E, 0x29, 0x3B))
     tbl = doc.add_table(rows=1, cols=len(content.headers))
-    tbl.style, tbl.autofit, col_w = "Table Grid", False, Inches(6.8 / max(1, len(content.headers)))
+    tbl.style, tbl.autofit, widths = "Table Grid", False, [Inches(w) for w in _docx_col_widths(content)]
+    num_cols = {i for i, hd in enumerate(content.headers) if content.rows and all(format_cell(r[i], str(hd), content.lang)[1] for r in content.rows if i < len(r) and str(r[i]).strip())}
     tr_pr = tbl.rows[0]._tr.get_or_add_trPr()
-    _xml_el(tr_pr, "w:tblHeader")
     _xml_el(tr_pr, "w:cantSplit")
+    _xml_el(tr_pr, "w:tblHeader")
     for i, hdr in enumerate(content.headers):
         cell = tbl.rows[0].cells[i]
-        cell.width, cell.paragraphs[0].text = col_w, ""
+        cell.width, cell.paragraphs[0].text = widths[i], ""
         _set_docx_cell_xml(cell, fill_hex="1E293B")
-        _docx_add_inline_runs(cell.paragraphs[0], hdr, size_pt=9.5, rgb=RGBColor(0xFF, 0xFF, 0xFF), force_bold=True)
+        _docx_add_inline_runs(cell.paragraphs[0], str(hdr), size_pt=9.5, rgb=RGBColor(0xFF, 0xFF, 0xFF), force_bold=True)
+        if i in num_cols:
+            cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
     for r_idx, rdata in enumerate(content.rows):
         row = tbl.add_row()
         _xml_el(row._tr.get_or_add_trPr(), "w:cantSplit")
         for i in range(len(content.headers)):
             cell = row.cells[i]
-            cell.width, cell.paragraphs[0].text = col_w, ""
+            cell.width, cell.paragraphs[0].text = widths[i], ""
             _set_docx_cell_xml(cell, fill_hex="F8FAFC" if r_idx % 2 == 1 else None)
-            _docx_add_inline_runs(cell.paragraphs[0], str(rdata[i]) if i < len(rdata) else "", size_pt=9.0, rgb=RGBColor(0x1E, 0x29, 0x3B))
+            text = format_cell(rdata[i], str(content.headers[i]), content.lang)[0] if i < len(rdata) else ""
+            _docx_add_inline_runs(cell.paragraphs[0], text, size_pt=9.0, rgb=RGBColor(0x1E, 0x29, 0x3B))
+            if i in num_cols:
+                cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    if chart_series(content.headers, content.rows):
+        _docx_add_chart(doc, content)
 
 
 def _docx_add_header_footer(sec0: Any, content: _DocContent, muted: RGBColor) -> None:
@@ -440,7 +435,7 @@ def _build_docx(out_path: Path, *args: Any, **kwargs: Any) -> None:
     content = _unpack_doc_content(args, kwargs)
     doc = Document()
     normal_style: Any = doc.styles["Normal"]
-    normal_style.font.name, normal_style.font.size = "Segoe UI", Pt(10.0)
+    normal_style.font.name, normal_style.font.size = "Calibri", Pt(10.0)
     sec0, muted = doc.sections[0], RGBColor(0x64, 0x74, 0x8B)
     sec0.top_margin, sec0.bottom_margin, sec0.left_margin, sec0.right_margin = Inches(0.8), Inches(0.8), Inches(0.85), Inches(0.85)
     _docx_add_header_footer(sec0, content, muted)
@@ -463,34 +458,6 @@ def _build_docx(out_path: Path, *args: Any, **kwargs: Any) -> None:
     if content.headers and content.rows:
         _docx_add_table(doc, content)
     doc.save(str(out_path))
-
-
-def _pdf_wrap_lines(text: str, max_w: float, font: fitz.Font, fontsize: float) -> list[str]:
-    out: list[str] = []
-    for para in re.sub(r"\*\*([^*]+)\*\*", r"\1", text or "").splitlines():
-        if not para.strip():
-            out.append("")
-            continue
-        cur = ""
-        for word in para.split():
-            trial = f"{cur} {word}".strip()
-            if font.text_length(trial, fontsize=fontsize) <= max_w:
-                cur = trial
-            elif font.text_length(word, fontsize=fontsize) <= max_w:
-                out.append(cur) if cur else None
-                cur = word
-            else:
-                out.append(cur) if cur else None
-                cur = ""
-                for ch in word:
-                    if font.text_length(cur + ch, fontsize=fontsize) > max_w and cur:
-                        out.append(cur)
-                        cur = ch
-                    else:
-                        cur += ch
-        if cur:
-            out.append(cur)
-    return out or [""]
 
 
 def _pdf_new_page(doc: fitz.Document, fonts: tuple[str | None, str | None, str, str]) -> fitz.Page:
@@ -520,11 +487,13 @@ def _pdf_draw_lines(
 def _pdf_render_table(
     doc: fitz.Document, page: fitz.Page, y: float, content: _DocContent,
     pdf_ctx: tuple[tuple[str | None, str | None, str, str], tuple[fitz.Font, fitz.Font], list[list[Any]]],
-) -> None:
+) -> tuple[fitz.Page, float]:
     fonts, measure, toc = pdf_ctx
     _reg, _bold, fn_reg, fn_bold = fonts
     f_reg, f_bold = measure
     col_w = 523.0 / max(1, len(content.headers))
+
+    num_cols = {i for i, hd in enumerate(content.headers) if content.rows and all(format_cell(r[i], str(hd), content.lang)[1] for r in content.rows if i < len(r) and str(r[i]).strip())}
 
     def _draw_row(pg: fitz.Page, yp: float, cells: list[list[str]], *, is_hdr: bool = False, zebra: bool = False) -> float:
         rh = max(24.0 if is_hdr else 20.0, max(len(c) for c in cells) * 11.5 + 8.0)
@@ -540,7 +509,8 @@ def _pdf_render_table(
             if i > 0:
                 pg.draw_line((x0, yp), (x0, yp + rh), color=grid_c, width=0.5)
             for li, ln in enumerate(lns):
-                pg.insert_text((x0 + 4, yp + 12 + li * 11.5), ln, fontname=fn, fontsize=8.5, color=txt_c)
+                tx = x0 + col_w - 4 - (f_bold if is_hdr else f_reg).text_length(ln, fontsize=8.5) if i in num_cols else x0 + 4
+                pg.insert_text((tx, yp + 12 + li * 11.5), ln, fontname=fn, fontsize=8.5, color=txt_c)
         return yp + rh
 
     if y > 700:
@@ -551,11 +521,27 @@ def _pdf_render_table(
     hdr_cells = [_pdf_wrap_lines(h, max(24.0, col_w - 8.0), f_bold, 8.5) for h in content.headers]
     y = _draw_row(page, y + 18.0, hdr_cells, is_hdr=True)
     for r_idx, rdata in enumerate(content.rows):
-        cells = [_pdf_wrap_lines(str(rdata[i]) if i < len(rdata) else "", max(24.0, col_w - 8.0), f_reg, 8.5) for i in range(len(content.headers))]
+        cells = [_pdf_wrap_lines(format_cell(rdata[i], str(content.headers[i]), content.lang)[0] if i < len(rdata) else "", max(24.0, col_w - 8.0), f_reg, 8.5) for i in range(len(content.headers))]
         if y + max(20.0, max(len(c) for c in cells) * 11.5 + 8.0) > 792:
             page = _pdf_new_page(doc, fonts)
             y = _draw_row(page, 48.0, hdr_cells, is_hdr=True)
         y = _draw_row(page, y, cells, zebra=r_idx % 2 == 1)
+    return page, y
+
+
+def _pdf_add_chart(doc: fitz.Document, page: fitz.Page, y: float, content: _DocContent, ctx: tuple[tuple[str | None, str | None, str, str], list[list[Any]]]) -> None:
+    fonts, toc = ctx
+    reg_font, bold_font, _fn_reg, fn_bold = fonts
+    png = render_bar_chart_png(content.headers, content.rows, _chart_title(content), (reg_font, bold_font))
+    if png is None:
+        return
+    chart_h = 523.0 * 820 / 1600
+    if y + chart_h + 30 > 792:
+        page, y = _pdf_new_page(doc, fonts), 48.0
+    word = _CHART_WORD.get(content.lang, "Chart")
+    toc.append([1, word, len(doc)])
+    page.insert_text((36, y + 24), word, fontname=fn_bold, fontsize=11.5, color=(0.12, 0.16, 0.23))
+    page.insert_image(fitz.Rect(36, y + 32, 559, y + 32 + chart_h), stream=png)
 
 
 def _build_pdf(out_path: Path, *args: Any, **kwargs: Any) -> None:
@@ -588,7 +574,8 @@ def _build_pdf(out_path: Path, *args: Any, **kwargs: Any) -> None:
         page, y = _pdf_draw_lines(doc, page, y + 6.0, b_lines, fonts, fontname=fn_reg, fontsize=9.5, line_h=13.5, color=(0.2, 0.24, 0.3))
         y += 10.0
     if content.headers and content.rows:
-        _pdf_render_table(doc, page, y, content, (fonts, (f_reg, f_bold), toc))
+        page, y = _pdf_render_table(doc, page, y, content, (fonts, (f_reg, f_bold), toc))
+        _pdf_add_chart(doc, page, y, content, (fonts, toc))
     if toc:
         doc.set_toc(toc)
     lbl, doc_pages = _labels(content.lang), doc
