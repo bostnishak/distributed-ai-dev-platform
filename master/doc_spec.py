@@ -69,7 +69,7 @@ def _block(raw: Any, values: dict[str, float], shown: dict[str, str], calc_rows:
     if kind in ("para", "paragraph") and text:
         return {"type": "para", "text": text}
     if kind in ("numbered", "bullets") and (items := _texts(raw.get("items"), shown)):
-        own = kind == "numbered" and all(re.match(r"(?:Madde\s*\d+|\d+[.)])\s", i, re.IGNORECASE) for i in items)
+        own = kind == "numbered" and sum(bool(re.match(r"(?:Madde\s*\d+|\d+[.)])\s", i, re.IGNORECASE)) for i in items) * 2 >= len(items)  # clause lists mix "Madde 1 - ..." with plain sub-clauses
         return {"type": kind, "items": items, "own_numbers": own}
     if kind == "table":
         return _table(raw, shown)

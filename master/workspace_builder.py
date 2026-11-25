@@ -13,6 +13,7 @@ desktop apps, full-stack apps) directly into real workspace directories on disk,
 from __future__ import annotations
 
 import ast
+import asyncio
 import json
 import logging
 import re
@@ -53,6 +54,8 @@ from workspace_builder_ops import (
     workspaces_root,
 )
 from workspace_kit import KIT_CLASSES
+from workspace_batches import file_batches as _file_batches
+from workspace_batches import file_prompt as _file_prompt
 from workspace_requirements import repair_project
 from workspace_smoke import smoke_and_repair
 
@@ -480,22 +483,16 @@ async def stream_generate_project(
     written_snippets: list[str] = []
     contracts: list[str] = []
 
-    for idx, fspec in enumerate(planned_files, start=1):
-        fpath = fspec["path"]
-        yield {"type": "file_start", "path": fpath, "index": idx, "total": len(planned_files)}
-        manifest_block = "\n".join(contracts)
-        context_tail = "\n\n".join(written_snippets[-3:])
-        file_prompt = (
-            f"Proje Adı: {meta['name']}\nProje Türü: {meta['project_type']}\nKullanıcı İsteği: {prompt}\n\n"
-            f"Tüm Dosya Ağacı:\n{tree_summary}\n\n"
-            + (f"Yazılan Dosyaların Sözleşme Özeti (ID/CSS/Export/Sembol):\n{manifest_block}\n\n" if manifest_block else "")
-            + (f"Son dosyaların kod özetleri:\n{context_tail}\n\n" if context_tail else "")
-            + f"ŞİMDİ SADECE ŞU DOSYANIN EKSİKSİZ İÇERİĞİNİ YAZ: `{fpath}`\nDosya amacı: {fspec['purpose']}"
-        )
-        code = await _generate_and_write_file(ws_dir, model, fspec, file_prompt)
-        contracts.append(_extract_file_contract(fpath, code))
-        written_snippets.append(f"=== {fpath} ===\n{code[:1200]}")
-        yield {"type": "file_done", "path": fpath, "size": len(code.encode("utf-8")), "index": idx, "total": len(planned_files)}
+    order = {f["path"]: i for i, f in enumerate(planned_files, start=1)}
+    for batch in _file_batches(planned_files):
+        for fspec in batch:
+            yield {"type": "file_start", "path": fspec["path"], "index": order[fspec["path"]], "total": len(planned_files)}
+        prompts = [_file_prompt(meta, prompt, tree_summary, (contracts, written_snippets), fspec) for fspec in batch]
+        codes = await asyncio.gather(*(_generate_and_write_file(ws_dir, model, f, p) for f, p in zip(batch, prompts, strict=True)))
+        for fspec, code in zip(batch, codes, strict=True):
+            contracts.append(_extract_file_contract(fspec["path"], code))
+            written_snippets.append(f"=== {fspec['path']} ===\n{code[:1200]}")
+            yield {"type": "file_done", "path": fspec["path"], "size": len(code.encode("utf-8")), "index": order[fspec["path"]], "total": len(planned_files)}
 
     repair_project(ws_dir)
     smoke_warning = ""

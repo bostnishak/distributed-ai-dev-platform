@@ -10,6 +10,7 @@ from __future__ import annotations
 import html
 import os
 import re
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -20,6 +21,7 @@ import wiki_ground
 _UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36"
 _RESULT_RE = re.compile(r'class="result__a" href="([^"]+)">(.*?)</a>.*?class="result__snippet"[^>]*>(.*?)</a>', re.DOTALL)
 _FRESH_RE = re.compile(r"\b(güncel|bugün|şu\s+an|son\s+(?:durum|veri|rakam)\w*|20\d\d|kaç\s+(?:tane|adet|kişi|lira|dolar|euro)|ne\s+kadar|fiyat\w*|kur\w*|oran\w*|sayısı|istatistik\w*)\b", re.IGNORECASE)
+_HOWTO_RE = re.compile(r"(nasıl\s+(?:yapılır|kurulur|yapabilirim|kullanılır|çalışır|oluşturulur|ayarlanır)|how\s+(?:do|can|to|should)\b|adım\s+adım|step[\s-]by[\s-]step)", re.IGNORECASE)
 _NOISE = frozenset("araştırma araştır yap yapar kısa bir hakkında kaynak kaynağı kaynak bulamazsan bulursan belirt özetle anlat açıkla bilgi ver mısın misin lütfen".split())
 _CACHE: dict[str, list[dict[str, str]]] = {}
 NO_SOURCE_NOTE = (
@@ -57,15 +59,20 @@ def web_search(query: str, limit: int = 5) -> list[dict[str, str]]:
     if query in _CACHE:
         return _CACHE[query]
     url = "https://html.duckduckgo.com/html/?" + urllib.parse.urlencode({"q": query, "kl": "tr-tr"})
-    try:
-        with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": _UA}), timeout=12) as resp:
-            page = resp.read().decode("utf-8", "replace")
-    except (urllib.error.URLError, OSError, ValueError):
-        return []
-    out = [
-        {"id": f"S{i}", "title": _clean(t)[:120], "url": _real_url(u), "snippet": _clean(s)[:380]}
-        for i, (u, t, s) in enumerate(_RESULT_RE.findall(page)[:limit], 1)
-    ]
+    out: list[dict[str, str]] = []
+    for attempt in range(3):  # the search page sometimes comes back empty (rate limit); a short pause and one more try usually fixes it
+        try:
+            with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": _UA}), timeout=12) as resp:
+                page = resp.read().decode("utf-8", "replace")
+        except (urllib.error.URLError, OSError, ValueError):
+            page = ""
+        out = [
+            {"id": f"S{i}", "title": _clean(t)[:120], "url": _real_url(u), "snippet": _clean(s)[:380]}
+            for i, (u, t, s) in enumerate(_RESULT_RE.findall(page)[:limit], 1)
+        ]
+        if out:
+            break
+        time.sleep(1.5 * (attempt + 1))
     if out:
         _CACHE[query] = out
     return out
@@ -96,6 +103,10 @@ def build(prompt: str, research: bool) -> tuple[list[dict[str, str]], str]:
             return sources, _web_note(sources)
         wiki_sources, wiki_note = wiki_ground.lookup(prompt, force=True)
         return wiki_sources, wiki_note or NO_SOURCE_NOTE
+    if _HOWTO_RE.search(prompt) and len(prompt) <= 300:
+        how = page_facts.enrich(web_search(_query(prompt)), _query(prompt), top=3)
+        if how:
+            return how, _web_note(how, research=False) + "\nBu bir NASIL YAPILIR sorusu: numaralı, uygulanabilir adımlarla anlat (komutları yaz); kaynaklardaki adımlara sadık kal."
     sources, note = wiki_ground.lookup(prompt)
     if sources or not (wiki_ground.looks_factual(prompt) and _FRESH_RE.search(prompt)):
         return sources, note

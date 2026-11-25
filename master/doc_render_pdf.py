@@ -9,6 +9,7 @@ from typing import Any
 
 import pymupdf
 
+import doc_tables
 from document_chart import render_bar_chart_png, to_number
 
 _CSS = (Path(__file__).parent / "prompts" / "doc_pdf.css").read_text(encoding="utf-8")
@@ -23,7 +24,8 @@ def _table(block: dict[str, Any]) -> str:
     rows = ""
     for ri, row in enumerate(block["rows"]):
         bg = ' style="background-color:#f1f5f9"' if ri % 2 else ""
-        rows += "<tr>" + "".join(f'<td{bg} align="{"right" if to_number(c) is not None else "left"}">{_e(c)}</td>' for c in row) + "</tr>"
+        bold = doc_tables.is_total_row(row)
+        rows += "<tr>" + "".join(f'<td{bg} align="{"right" if to_number(c) is not None else "left"}">{"<b>" if bold else ""}{_e(c)}{"</b>" if bold else ""}</td>' for c in row) + "</tr>"
     cap = f'<p class="cap">{_e(block["caption"])}</p>' if block.get("caption") else ""
     return f'{cap}<table width="100%" cellspacing="0"><tr>{head}</tr>{rows}</table><p></p>'
 

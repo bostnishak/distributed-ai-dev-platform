@@ -11,13 +11,15 @@ import deliverable_score
 import doc_calc
 import doc_polish
 import doc_proof
+import doc_research
 import doc_render_docx
 import doc_render_pdf
 import doc_spec
 import json_repair
 from prompt_loader import load_prompt
 
-MAX_ATTEMPTS = 2
+MAX_ATTEMPTS = 3
+CLEAN_DRAFT = 92  # a draft that already passes every deterministic check skips the slow editor generation
 NO_CONTENT = "Belgenin içeriğini üretemedim (model geçerli bir belge yapısı döndürmedi). Kalıp ya da boş bir dosya vermemek için oluşturmadım; lütfen tekrar dener misin? Belgenin amacını ve bildiğin bilgileri (taraflar, tutarlar, süre) yazarsan sonuç daha iyi olur."
 
 
@@ -36,14 +38,14 @@ async def _reviewed(prompt: str, draft: dict[str, Any], model: str) -> dict[str,
 
 
 def _requested_pages(prompt: str) -> int:
-    m = re.search(r"(\d{1,2})\s*sayfa", prompt, re.IGNORECASE)
+    m = re.search(r"(\d{1,2})\s*sayfa", prompt.split("ARAŞTIRMA BULGULARI")[0], re.IGNORECASE)
     return int(m.group(1)) if m else 0
 
 
 def _build_pdf_fitting(out_path: Path, spec: dict[str, Any], fonts: Any, prompt: str) -> int:
     """Render the PDF; when the user asked for N pages and it came out longer, shrink the type step by step until it fits. Returns the page count."""
     limit, pages = _requested_pages(prompt), 0
-    for scale in (1.0, 0.93, 0.86, 0.8):
+    for scale in (1.0, 0.93, 0.86, 0.8, 0.74, 0.68):
         pages = doc_render_pdf.build(out_path, spec, fonts, scale)
         if pages <= (limit or 99):
             break
@@ -90,17 +92,20 @@ async def _draft(prompt: str, target_lang: str, model: str) -> dict[str, Any] | 
     return None
 
 
-async def _attempt(prompt: str, fmt: str, ctx: tuple[str, str], out_path: Path, fonts: Any) -> tuple[dict[str, Any], int, list[str]]:
+async def _attempt(prompt: str, fmt: str, ctx: tuple[str, str, list[dict[str, str]]], out_path: Path, fonts: Any) -> tuple[dict[str, Any], int, list[str]]:
     """One full pass: draft, complete the calculations, editor review, proofreading, render, score. Returns (spec, score, problems)."""
-    target_lang, model = ctx
+    target_lang, model, sources = ctx
     draft = await _draft(prompt, target_lang, model)
     if draft is None:
         raise RuntimeError(NO_CONTENT)
     draft = await _complete_calc(prompt, draft, model)
-    spec = doc_spec.parse(await _reviewed(prompt, draft, model), prompt) or doc_spec.parse(draft, prompt)
+    spec = doc_spec.parse(draft, prompt)
+    if spec is None or deliverable_score.score_document(spec, prompt)[0] < CLEAN_DRAFT:
+        spec = doc_spec.parse(await _reviewed(prompt, draft, model), prompt) or spec  # the editor pass only when the checks found something to fix
     if spec is None:
         raise RuntimeError(NO_CONTENT)
-    await doc_proof.proofread(spec["blocks"], model)  # paragraph-level language fixes, numbers and blanks are protected
+    await doc_proof.proofread(spec["blocks"], model)
+    spec["blocks"] += doc_research.bibliography(sources)
     pages = _build_pdf_fitting(out_path, spec, fonts, prompt) if fmt == "pdf" else 0
     if fmt != "pdf":
         doc_render_docx.build(out_path, spec, fonts)
@@ -111,9 +116,11 @@ async def _attempt(prompt: str, fmt: str, ctx: tuple[str, str], out_path: Path, 
 async def generate(prompt: str, fmt: str, ctx: tuple[str, str], out_path: Path, helpers: tuple[Any, Any]) -> dict[str, Any]:
     """Quality loop: build, score, and when the score is below target retry once with the concrete problems; the best attempt is kept."""
     fonts, best, extra = helpers[1], None, ""
+    sources, note = await doc_research.gather(prompt)
+    prompt, ctx3 = prompt + note, (*ctx, sources)
     for attempt in range(MAX_ATTEMPTS):
         try:
-            spec, score, issues = await _attempt(prompt + extra, fmt, ctx, out_path if best is None else out_path.with_suffix(f".try{attempt}{out_path.suffix}"), fonts)
+            spec, score, issues = await _attempt(prompt + extra, fmt, ctx3, out_path if best is None else out_path.with_suffix(f".try{attempt}{out_path.suffix}"), fonts)
         except RuntimeError:
             if best is None:
                 raise
@@ -133,5 +140,5 @@ async def generate(prompt: str, fmt: str, ctx: tuple[str, str], out_path: Path, 
     return {
         "file_id": out_path.stem, "format": fmt, "title": spec["title"], "summary": spec["subtitle"] or first_para[:240], "sections": [],
         "table_headers": tables["headers"] if tables else [], "table_rows": tables["rows"][:10] if tables else [],
-        "model": ctx[1], "url": f"/api/assistant/media/{out_path.name}", "quality_score": best[1],  # type: ignore[index]
+        "model": ctx[1], "sources": [s["url"] for s in sources], "url": f"/api/assistant/media/{out_path.name}", "quality_score": best[1],  # type: ignore[index]
     }

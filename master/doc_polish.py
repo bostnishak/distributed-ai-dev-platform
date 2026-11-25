@@ -9,6 +9,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
+import doc_tables
+
 BLANK = "[................]"
 _AMOUNT_RE = re.compile(r"(\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+(?:,\d+)?)\s*(TL|₺|lira|ay|gün|yıl|adet|kişi|%)", re.IGNORECASE)
 _TABLE_FILLER_RE = re.compile(r"\b(tablo\w*|özet\w*)\b[^.]{0,40}\.$", re.IGNORECASE)
@@ -87,19 +89,45 @@ def fill_deposit(blocks: list[dict[str, Any]], request: str) -> None:
 
 
 
+_DUP_UNIT_RE = re.compile(r"(?<!\w)([^\s\d]*[A-Za-z$%€₺/][^\s\d]*)\s+\1(?!\w)")
+_SIGNED_RE = re.compile(r"(sözleşme|sozlesme|imza|taahhüt|dilekçe|dilekce|mektup|protokol|tutanak|vekalet|contract|agreement)", re.IGNORECASE)
+
+
+def _dedupe_units(blocks: list[dict[str, Any]]) -> None:
+    """'1.850 MW MW' / '1,35 $/kW $/kW' -> one unit (the model repeats the unit already in the column header)."""
+    for b in blocks:
+        for row in b.get("rows", []):
+            row[:] = [_DUP_UNIT_RE.sub(r"\1", c) for c in row]
+
+
 def polish(blocks: list[dict[str, Any]], request: str) -> list[dict[str, Any]]:
     fill_deposit(blocks, request)
     fill_given_amounts(blocks, request)
+    _dedupe_units(blocks)
+    blocks = _drop_repeated_tables(blocks)
+    doc_tables.normalise(blocks)
+    fix_totals(blocks)
+    if not _SIGNED_RE.search(request):
+        blocks = [b for b in blocks if b["type"] != "signature"]  # an unrequested signature block only adds invented names and dates
     return drop_table_fillers(blocks)
 
 
 _PCT_RE = re.compile(r"%\s*(\d+(?:[.,]\d+)?)|(\d+(?:[.,]\d+)?)\s*%")
 
 
+_ASSUMED_RE = re.compile(r"(varsay|tahmin|yaklaşık|ortalama|sektör|tipik|assum|estimate|approx)", re.IGNORECASE)
+
+
 def blank_invented_percentages(text: str, request: str) -> str:
-    """Raw model text only (placeholders are not filled yet): a literal percentage that is not in the request becomes %[....]."""
+    """Raw model text only (placeholders are not filled yet): a literal percentage that is neither in the request nor presented as an
+    assumption/estimate becomes %[....]; a labelled assumption stays, so plans keep their working rates."""
     asked = {m.group(1) or m.group(2) for m in _PCT_RE.finditer(request)}
-    return _PCT_RE.sub(lambda m: m.group(0) if (m.group(1) or m.group(2)) in asked else "%" + BLANK, text)
+
+    def keep(m: re.Match[str]) -> str:
+        near = text[max(0, m.start() - 60) : m.end() + 25]
+        return m.group(0) if (m.group(1) or m.group(2)) in asked or _ASSUMED_RE.search(near) else "%" + BLANK
+
+    return _PCT_RE.sub(keep, text)
 
 
 _DAILY_RE = re.compile(r"günlük\s+(\d{1,5})\s+[\wçğıöşü]+(?:\s+ve)?\s+(?:ortalama\s+)?(?:sepet\s+)?(\d{1,3}(?:\.\d{3})+|\d+)\s*(?:TL|₺|lira)", re.IGNORECASE)
@@ -114,3 +142,38 @@ def request_facts(request: str) -> str:
         fmt = lambda n: f"{n:,}".replace(",", ".")  # noqa: E731
         facts.append(f"günlük ciro = {qty} x {fmt(price)} TL = {fmt(daily)} TL; aylık ciro (30 gün) = {fmt(daily * 30)} TL; yıllık ciro (12 ay) = {fmt(daily * 360)} TL")
     return ("\n\n[Kesin hesaplanmış değerler, aynen kullan (kendin yeniden hesaplama): " + "; ".join(facts) + "]") if facts else ""
+
+
+_TOTAL_RE = re.compile(r"^\s*(genel\s+)?(toplam|total|sum)\b", re.IGNORECASE)
+
+
+def fix_totals(blocks: list[dict[str, Any]]) -> None:
+    """A 'Toplam' row must equal the sum of the rows above it: the model's mental addition is replaced by the real sum."""
+    from deliverable_score import _amount
+    from doc_calc import fmt_number
+
+    for b in blocks:
+        rows = b.get("rows") or []
+        if b.get("type") != "table" or len(rows) < 3 or not _TOTAL_RE.search(rows[-1][0]):
+            continue
+        for ci in range(1, len(rows[-1])):
+            total = _amount(rows[-1][ci])
+            parts = [v for r in rows[:-1] if ci < len(r) and (v := _amount(r[ci])) is not None]
+            if total is None or len(parts) < 2 or abs(sum(parts) - total) <= max(0.5, total * 0.002):
+                continue
+            unit = re.sub(r"[\d.,\s]", "", rows[-1][ci])
+            rows[-1][ci] = fmt_number(sum(parts), unit)
+
+
+def _drop_repeated_tables(blocks: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The calculation table is sometimes written twice; the second identical table is dropped."""
+    seen: list[Any] = []
+    out = []
+    for b in blocks:
+        key = (tuple(b.get("headers", ())), tuple(map(tuple, b["rows"]))) if b.get("type") == "table" else None
+        if key is not None and key in seen:
+            continue
+        if key is not None:
+            seen.append(key)
+        out.append(b)
+    return out

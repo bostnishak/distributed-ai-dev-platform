@@ -7,9 +7,14 @@ try again, keeping the best attempt. All checks are deterministic (no second mod
 from __future__ import annotations
 
 import re
+from datetime import datetime
 from typing import Any
 
+import doc_sanity
+import doc_tables
+
 TARGET = 85
+_BRAND_RE = re.compile(r"(?:[A-ZÇĞİÖŞÜ0-9][\w'’.-]*\s+){1,3}(?:Co\.|Ltd\.?|A\.Ş\.?|Inc\.?|LLC|Corp\.?)")
 _BLANK = "[................]"
 _IDENTITY_RE = re.compile(r"(kimlik|tc\b|t\.c|adres|iban|ada\b|parsel|plaka|imza|tarih|telefon|e-?posta|mahalle|sokak|no:|numara|vergi)", re.IGNORECASE)
 
@@ -21,17 +26,68 @@ def _texts(spec: dict[str, Any]) -> list[str]:
     return [t for t in out if t]
 
 
+def _amount(cell: str) -> float | None:
+    """'125.000 TL' -> 125000.0, '1,38 TL' -> 1.38; None when the cell is not a plain amount."""
+    m = re.fullmatch(r"\s*(\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+(?:,\d+)?)\s*(?:TL|₺|\$|€|USD|EUR)?\s*", cell)
+    return float(m.group(1).replace(".", "").replace(",", ".")) if m else None
+
+
+def _implausible_amounts(spec: dict[str, Any]) -> list[str]:
+    """Cells that are orders of magnitude below the rest of their column (a ‘1,38 TL’ espresso machine next to 125.000 TL furniture)."""
+    out: list[str] = []
+    for b in spec["blocks"]:
+        if b.get("type") != "table":
+            continue
+        for ci in range(len(b["headers"])):
+            cells = [(r[ci], _amount(r[ci])) for r in b["rows"] if ci < len(r)]
+            values = [v for _, v in cells if v is not None]
+            if len(values) >= 3 and max(values) >= 10000:
+                out += [f"{c.strip()} ({b['rows'][i][0][:30]})" for i, (c, v) in enumerate(cells) if v is not None and v < max(values) / 500]
+    return out
+
+
+def _fabrication_issues(spec: dict[str, Any], request: str, texts: list[str]) -> tuple[int, list[str]]:
+    """Invented dates and numbers that cannot be right: (penalty, problems)."""
+    penalty, issues = 0, []
+    now_year = datetime.now().year
+    stale = {y for y in re.findall(r"\b(?:19|20)\d{2}\b", " ".join(texts)) if int(y) < now_year - 1 and y not in request}
+    if stale:
+        penalty += 10
+        issues.append(f"uydurulmuş eski tarih var ({', '.join(sorted(stale))}); bugünün yılı {now_year}, kullanıcı vermediği tarihi yazma")
+    if sane := doc_sanity.implausible_results(spec):
+        penalty += 25
+        issues.append("hesap sonuçları gerçekçi değil: " + "; ".join(sane[:3]))
+    if oddities := _implausible_amounts(spec):
+        penalty += 12
+        issues.append("tabloda gerçekçi olmayan tutar var: " + "; ".join(oddities[:3]) + " (diğer kalemlerle aynı büyüklükte, gerçekçi bir tutar yaz)")
+    brands = {m.group(0) for m in _BRAND_RE.finditer(" ".join(texts)) if m.group(0).lower() not in request.lower()}
+    if brands:
+        penalty += 12
+        issues.append(f"kullanıcının vermediği marka/şirket adı uydurulmuş ({', '.join(sorted(brands)[:2])}); genel ad kullan (ör. 'Kahve Dükkanı')")
+    if layout := doc_tables.issues(spec):
+        penalty += min(20, 8 * len(layout))
+        issues += layout
+    return penalty, issues
+
+
 def score_document(spec: dict[str, Any], request: str, pages: int = 0, rendered_pages: int = 0) -> tuple[int, list[str]]:
     """(score, problems) for a parsed document spec (doc_spec.parse output)."""
     score, issues = 100, []
     texts = _texts(spec)
-    blanks = [t for t in texts for _ in range(t.count(_BLANK)) if not _IDENTITY_RE.search(t)]
+    blanks = [t for t in texts for _ in range(t.count(_BLANK)) if not (len(t) < 80 and _IDENTITY_RE.search(t))]
     if blanks:
         score -= min(45, 9 * len(blanks))
         issues.append(f"{len(blanks)} yerde sayı/bilgi boş bırakılmış ([....]); bunlar hesaplanmalı ya da varsayımla doldurulmalı")
+    leaked = sorted({m.group(0) for t in texts for m in re.finditer(r"%?[a-z]{3,}_[a-z_]{2,}", t)})
+    if leaked:
+        score -= 15
+        issues.append(f"metne kod değişken adı sızmış ({', '.join(leaked[:3])}); gerçek değerini yaz")
     if any("{" in t and "}" in t for t in texts):
         score -= 15
         issues.append("metinde çözülmemiş {yer tutucu} kalmış")
+    penalty, found = _fabrication_issues(spec, request, texts)
+    score -= penalty
+    issues += found
     words = sum(len(t.split()) for t in texts)
     wants_calc = bool(re.search(r"hesap|toplam|başa\s*baş|maliyet|gelir|bütçe|yatırım|oran|tutar", request, re.IGNORECASE))
     kinds = {b["type"] for b in spec["blocks"]}

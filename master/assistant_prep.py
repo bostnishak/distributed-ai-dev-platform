@@ -20,6 +20,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 import answer_sources
 import config
 import extract as _extract_mod
+import code_probe
 import reasoning_mode
 import reply_labels
 import research_context
@@ -497,6 +498,7 @@ def build_llm_stream_inputs(
     if not ctx["is_prompt_conv"]:
         messages = mem.compact_conversation_context(messages)
     full_prompt, pre_note = split_pre_notes(ctx["full_prompt"])
+    full_prompt = code_probe.verified_prefix(ctx["prompt"], ctx["has_file"]) + full_prompt  # verified facts sit right next to the question
     user_msg: dict[str, Any] = {"role": "user", "content": full_prompt}
     if ctx["image_b64"]:
         user_msg["images"] = [ctx["image_b64"]]

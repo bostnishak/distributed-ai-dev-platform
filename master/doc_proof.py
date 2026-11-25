@@ -6,6 +6,9 @@ roughly the same length. Anything else keeps the original wording.
 
 from __future__ import annotations
 
+import asyncio
+import json
+
 import re
 from typing import Any
 
@@ -61,26 +64,31 @@ def _batches(texts: list[str]) -> list[list[int]]:
     return groups
 
 
-async def proofread(blocks: list[dict[str, Any]], model: str) -> int:
-    """Correct the language of the document in place; returns how many texts were changed."""
+async def _proof_group(texts: list[str], group: list[int], model: str) -> list[Any] | None:
+    """The corrected texts of one batch, or None when the model failed or returned the wrong number of items."""
     import gateway
 
+    payload = {"texts": [texts[i] for i in group]}
+    try:
+        res = await gateway.default_client.chat(
+            [{"role": "system", "content": load_prompt("b3_doc_proof.txt")}, {"role": "user", "content": json.dumps(payload, ensure_ascii=False)}],
+            model=model, profile="factual", num_predict=2600, timeout_s=240.0, feature="document_factory", max_retries=0,
+        )
+    except (OSError, RuntimeError, ValueError, TypeError):
+        return None
+    fixed = (json_repair.loads_top(res.content) or {}).get("texts")
+    return fixed if isinstance(fixed, list) and len(fixed) == len(group) else None
+
+
+async def proofread(blocks: list[dict[str, Any]], model: str) -> int:
+    """Correct the language of the document in place (batches run concurrently: Ollama serves several requests at once); returns how many texts were changed."""
     slots = _slots(blocks)
     texts = [_get(s) for s in slots]
+    groups = _batches(texts)
+    results = await asyncio.gather(*(_proof_group(texts, g, model) for g in groups))
     changed = 0
-    for group in _batches(texts):
-        payload = {"texts": [texts[i] for i in group]}
-        try:
-            res = await gateway.default_client.chat(
-                [{"role": "system", "content": load_prompt("b3_doc_proof.txt")}, {"role": "user", "content": __import__("json").dumps(payload, ensure_ascii=False)}],
-                model=model, profile="factual", num_predict=2600, timeout_s=240.0, feature="document_factory", max_retries=0,
-            )
-        except (OSError, RuntimeError, ValueError, TypeError):
-            continue
-        fixed = (json_repair.loads_top(res.content) or {}).get("texts")
-        if not isinstance(fixed, list) or len(fixed) != len(group):
-            continue
-        for i, new in zip(group, fixed, strict=True):
+    for group, fixed in zip(groups, results, strict=True):
+        for i, new in zip(group, fixed or [], strict=False):
             if isinstance(new, str) and new.strip() != texts[i].strip() and acceptable(texts[i], new.strip()):
                 _put(slots[i], new.strip())
                 changed += 1

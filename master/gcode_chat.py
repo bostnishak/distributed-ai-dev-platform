@@ -25,6 +25,9 @@ def is_gcode_request(prompt: str, has_file: bool) -> bool:
     return not has_file and bool(_REQUEST_RE.search(prompt)) and bool(_VERB_RE.search(prompt))
 
 
+_PATTERNS = {"corners": "köşe", "corner": "köşe", "grid": "ızgara", "circle": "daire (bolt circle)", "bolt_circle": "daire (bolt circle)", "line": "sıra", "row": "sıra", "center": "merkez"}
+
+
 def _num(op: dict[str, Any], key: str, default: float = 0.0) -> float:
     value = op.get(key)
     return float(value) if isinstance(value, (int, float)) else default
@@ -35,7 +38,8 @@ def _depth(op: dict[str, Any]) -> str:
 
 
 def _holes(op: dict[str, Any]) -> str:
-    where = f"{op['pattern']} deseni" if op.get("pattern") else f"{len(op.get('points') or [])} nokta"
+    pattern = _PATTERNS.get(str(op.get("pattern")).lower(), op.get("pattern"))
+    where = f"{pattern} deseni" if op.get("pattern") else f"{len(op.get('points') or [])} nokta"
     return f"Ø{_num(op, 'diameter'):g} mm, {where}, " + ("delik boydan boya" if op.get("through", True) else _depth(op))
 
 

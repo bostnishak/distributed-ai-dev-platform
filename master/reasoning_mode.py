@@ -73,17 +73,26 @@ async def reasoner_installed() -> bool:
     return any(str(m.get("name", "")).startswith(REASONER.split(":")[0]) for m in tags)
 
 
+_EN_WORDS = frozenset("the and is are if then box boxes label labeled that this which because so you your draw from only contains contain will be it of to in".split())
+
+
+def _english_ratio(text: str) -> float:
+    """Share of English function words in a text: high means a 'Turkish' answer is really English or a mixture."""
+    words = re.findall(r"[A-Za-zçğıöşüÇĞİÖŞÜ]+", text.lower())
+    return sum(w in _EN_WORDS for w in words) / len(words) if words else 1.0
+
+
 async def solve_deep(prompt: str, general_model: str) -> str:
     """Translate to English, let the reasoning model think (it is far stronger in English), translate the verified solution back."""
     english_q = await _chat(general_model, ("Translate the user's question into precise English. Return only the translation.", prompt), (700, 120.0))
-    solution = await _chat(REASONER, ("", english_q + "\n\nGive only the verified final answer: at most 5 short numbered steps that are consistent with your own reasoning (no doubts, no corrections, no repeated cases), then a conclusion that covers every case."), (8000, 900.0), think=True)
+    solution = await _chat(REASONER, ("", english_q + "\n\nGive only the verified final answer: at most 5 short numbered steps that are consistent with your own reasoning (no doubts, no corrections, no repeated cases), then a conclusion that covers every case."), (5000, 600.0), think=True)
     if not solution:
         return ""
-    ask = (
-        "Translate this solution into fluent Turkish. Keep every sentence's meaning exactly; do not solve, reorder or change anything; keep numbering; "
-        "use the object names of the Turkish question (\"" + prompt[:300] + "\"). Output only Turkish:\n\n" + solution
-    )
-    return await _chat(REASONER, ("", ask), (3000, 300.0)) or await _chat(general_model, ("Translate into Turkish. Return only Turkish.", solution), (1400, 240.0))
+    ask = "Translate this solution into Turkish. Keep every sentence's meaning exactly; do not solve, reorder or change anything. Output only Turkish:\n\n" + solution
+    turkish = await _chat(REASONER, ("", ask), (3000, 300.0))
+    if _english_ratio(turkish) > 0.06:  # the reasoner drifted back into English: translate again with the general model
+        turkish = await _chat(general_model, ("Translate into Turkish. Return only Turkish.", solution), (1400, 240.0))
+    return turkish if _english_ratio(turkish) <= 0.06 else ""
 
 
 async def solve(prompt: str) -> str:

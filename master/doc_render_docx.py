@@ -14,6 +14,7 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, RGBColor
 
+import doc_tables
 from document_chart import render_bar_chart_png, to_number
 
 INK, MUTED, ACCENT = RGBColor(0x1E, 0x29, 0x3B), RGBColor(0x64, 0x74, 0x8B), "1E293B"
@@ -90,7 +91,7 @@ def _table(doc: Any, block: dict[str, Any]) -> None:
         cells = table.add_row().cells
         for i, val in enumerate(row):
             numeric = to_number(val) is not None
-            _run(cells[i].paragraphs[0], val, size=10)
+            _run(cells[i].paragraphs[0], val, size=10, bold=doc_tables.is_total_row(row))
             cells[i].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT if numeric else WD_ALIGN_PARAGRAPH.LEFT
             if ri % 2:
                 _shade(cells[i], "F1F5F9")
