@@ -190,3 +190,21 @@ html[data-theme="dark"] {
 .chat-rename-input { flex: 1; min-width: 0; height: 24px; font: inherit; font-size: 13px; padding: 0 6px; border-radius: 6px; border: 1px solid var(--accent); background: var(--surface); color: var(--text); }
 .chat-pin { font-size: 10px; margin-right: 4px; opacity: 0.7; flex: 0 0 auto; }
 .chat-item > span.chat-pin:first-child { flex: 0 0 auto; overflow: visible; }
+
+/* ---------- collapsible sidebar: the toggle icon always stays top-left ---------- */
+#sidebarToggle {
+  display: flex; align-items: center; justify-content: center; position: fixed; top: 12px; left: 14px; z-index: 110;
+  width: 34px; height: 34px; border-radius: 10px; border: none; background: transparent; color: var(--muted); cursor: pointer; padding: 0; box-shadow: none;
+}
+#sidebarToggle:hover { background: var(--hover); color: var(--text); }
+@media (min-width: 861px) {
+  #sidebar { transition: margin-left 0.2s ease; }
+  #sidebar .brand { margin-left: 38px; padding-left: 4px; gap: 8px; min-width: 0; }
+  #sidebar .brand .brand-logo { width: 30px; height: 30px; flex-shrink: 0; }
+  #sidebar .brand > div { min-width: 0; }
+  #sidebar .brand-title { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #sidebar .brand-sub { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  body.sidebar-collapsed #sidebar { margin-left: -261px; }
+  body.sidebar-collapsed .sp-topbar { padding-left: 60px; }
+  body.sidebar-collapsed #view-page { padding-top: 56px; }
+}

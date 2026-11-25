@@ -110,7 +110,19 @@ function route() {
   if (mainEl) mainEl.focus({ preventScroll: true });
 }
 
+const SIDEBAR_KEY = 'cm6453_sidebar_collapsed';
+function applySidebarCollapsed(collapsed) {
+  document.body.classList.toggle('sidebar-collapsed', collapsed);
+  document.getElementById('sidebarToggle').setAttribute('aria-expanded', String(!collapsed));
+}
+try { applySidebarCollapsed(localStorage.getItem(SIDEBAR_KEY) === '1'); } catch { applySidebarCollapsed(false); }
 document.getElementById('sidebarToggle').addEventListener('click', () => {
+  if (isDesktop()) {
+    const next = !document.body.classList.contains('sidebar-collapsed');
+    applySidebarCollapsed(next);
+    try { localStorage.setItem(SIDEBAR_KEY, next ? '1' : '0'); } catch { /* storage unavailable: state lasts for this visit only */ }
+    return;
+  }
   document.getElementById('sidebar').classList.contains('open') ? closeSidebar() : openSidebar();
 });
 document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
