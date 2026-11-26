@@ -43,3 +43,22 @@ def inject_theme(ws_dir: Path) -> bool:
         page.write_text(text[:pos] + ("\n    " if links else "    ") + tag + ("\n" if not links else "") + text[pos:], encoding="utf-8")
         changed = True
     return changed
+
+_TOGGLE_ASK_RE = re.compile(r"(gece\s*/?\s*gündüz|gündüz\s*/?\s*gece|karanlık\s+mod|koyu\s+tema|tema\s+düğme|dark\s*mode|dark\s*/\s*light|night\s+mode)", re.IGNORECASE)
+_TOGGLE_HAVE_RE = re.compile(r"<(?:button|input|a|label)\b[^>]*(?:theme|tema|dark|gece|mode)[^>]*>|>\s*(?:gece|gündüz|karanlık|koyu|dark|light)[^<]{0,20}<", re.IGNORECASE)
+_TOGGLE_HTML = "\n" + (Path(__file__).parent / "workspace_kit" / "theme_toggle.html").read_text(encoding="utf-8")
+
+
+def ensure_theme_toggle(ws_dir: Path, request: str) -> bool:
+    """The user asked for a day/night switch but the generated page has none: a small fixed toggle (theme.css understands data-theme) is added."""
+    if not _TOGGLE_ASK_RE.search(request or ""):
+        return False
+    changed = False
+    for page in _pages(ws_dir):
+        text = page.read_text(encoding="utf-8", errors="replace")
+        if page.parent.name == "templates" or "</body>" not in text.lower() or _TOGGLE_HAVE_RE.search(text) or "theme-toggle" in text:
+            continue
+        pos = text.lower().rindex("</body>")
+        page.write_text(text[:pos] + _TOGGLE_HTML + text[pos:], encoding="utf-8")
+        changed = True
+    return changed

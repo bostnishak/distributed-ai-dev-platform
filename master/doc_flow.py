@@ -20,6 +20,7 @@ import json_repair
 from prompt_loader import load_prompt
 
 MAX_ATTEMPTS = 3
+RETRY_FLOOR = 75
 CLEAN_DRAFT = 92  # a draft that already passes every deterministic check skips the slow editor generation
 NO_CONTENT = "Belgenin içeriğini üretemedim (model geçerli bir belge yapısı döndürmedi). Kalıp ya da boş bir dosya vermemek için oluşturmadım; lütfen tekrar dener misin? Belgenin amacını ve bildiğin bilgileri (taraflar, tutarlar, süre) yazarsan sonuç daha iyi olur."
 
@@ -91,8 +92,9 @@ async def _draft(prompt: str, target_lang: str, model: str) -> dict[str, Any] | 
     import gateway
 
     system = load_prompt("b3_doc_blocks_schema.txt").replace("{target_lang}", target_lang)
-    for _ in range(3):
-        res = await gateway.default_client.chat([{"role": "system", "content": system}, {"role": "user", "content": prompt + doc_polish.request_facts(prompt) + _length_budget(prompt)}], model=model, profile="factual", num_predict=4500, timeout_s=300.0, feature="document_factory", max_retries=1)
+    for tries in range(4):
+        short = "\n\n[Kısa ve basit tut: en fazla 8 blok, hesap gerekmiyorsa calc kullanma, geçerli JSON'u eksiksiz bitir.]" if tries == 3 else ""  # last resort after three broken drafts
+        res = await gateway.default_client.chat([{"role": "system", "content": system}, {"role": "user", "content": prompt + doc_polish.request_facts(prompt) + _length_budget(prompt) + short}], model=model, profile="factual", num_predict=4500, timeout_s=300.0, feature="document_factory", max_retries=1)
         draft = json_repair.loads_top(res.content)
         if draft and doc_spec.parse(draft, prompt) is not None:
             return draft
@@ -140,8 +142,8 @@ async def generate(prompt: str, fmt: str, ctx: tuple[str, str], out_path: Path, 
             best = (spec, score, issues)
         else:
             out_path.with_suffix(f".try{attempt}{out_path.suffix}").unlink(missing_ok=True)
-        if best[1] >= deliverable_score.TARGET:
-            break
+        if best[1] >= deliverable_score.TARGET or (attempt >= 1 and best[1] >= RETRY_FLOOR):
+            break  # a second round only fixes what is clearly wrong; a good-enough result is not worth another 3-5 minutes
         extra = deliverable_score.feedback(best[2])
     spec = best[0]  # type: ignore[index]
     tables = next((b for b in spec["blocks"] if b["type"] == "table"), None)

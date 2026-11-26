@@ -21,9 +21,10 @@ import wiki_ground
 _UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36"
 _RESULT_RE = re.compile(r'class="result__a" href="([^"]+)">(.*?)</a>.*?class="result__snippet"[^>]*>(.*?)</a>', re.DOTALL)
 _FRESH_RE = re.compile(r"\b(güncel|bugün|şu\s+an|son\s+(?:durum|veri|rakam)\w*|20\d\d|kaç\s+(?:tane|adet|kişi|lira|dolar|euro)|ne\s+kadar|fiyat\w*|kur\w*|oran\w*|sayısı|istatistik\w*)\b", re.IGNORECASE)
-_HOWTO_RE = re.compile(r"(nasıl\s+(?:yapılır|kurulur|yapabilirim|kullanılır|çalışır|oluşturulur|ayarlanır)|how\s+(?:do|can|to|should)\b|adım\s+adım|step[\s-]by[\s-]step)", re.IGNORECASE)
+_HOWTO_RE = re.compile(r"(nasıl\s+(?:yapılır|kurulur|yapabilirim|kullanılır|çalışır|oluşturulur|ayarlanır)|how\s+(?:do|can|to|should)\b)", re.IGNORECASE)
 _SUPER_RE = re.compile(r"\ben\s+(uzun|büyük|küçük|yüksek|alçak|kalabalık|eski|yeni|derin|geniş|hızlı|pahalı|ucuz|çok|fazla|az)\b", re.IGNORECASE)
 _NOT_SUPER_RE = re.compile(r"\b(kod|yaz|program|script|function|fonksiyon|şiir|hikaye|çiz|tasarla|hazırla)\w*", re.IGNORECASE)
+_ARITH_RE = re.compile(r"\d\s*[x×*/+\-:÷^]\s*\d")
 _NOISE = frozenset("araştırma araştır yap yapar kısa bir hakkında kaynak kaynağı kaynak bulamazsan bulursan belirt özetle anlat açıkla bilgi ver mısın misin lütfen".split())
 _CACHE: dict[str, list[dict[str, str]]] = {}
 NO_SOURCE_NOTE = (
@@ -105,7 +106,7 @@ def build(prompt: str, research: bool) -> tuple[list[dict[str, str]], str]:
             return sources, _web_note(sources)
         wiki_sources, wiki_note = wiki_ground.lookup(prompt, force=True)
         return wiki_sources, wiki_note or NO_SOURCE_NOTE
-    if (_HOWTO_RE.search(prompt) or _SUPER_RE.search(prompt)) and len(prompt) <= 300 and not _NOT_SUPER_RE.search(prompt):
+    if (_HOWTO_RE.search(prompt) or _SUPER_RE.search(prompt)) and len(prompt) <= 300 and not _NOT_SUPER_RE.search(prompt) and not _ARITH_RE.search(prompt):
         how = page_facts.enrich(web_search(_query(prompt)), _query(prompt), top=3)
         if how:
             extra = (

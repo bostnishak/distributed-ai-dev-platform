@@ -182,7 +182,7 @@ def _drop_repeated_tables(blocks: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 _TEMPLATE_RE = re.compile(r"(şablon|sablon|template|boş\s+form|doldurulacak|form\s+hazırla|dilekçe|taslak)", re.IGNORECASE)
-_KEEP_BLANK_RE = re.compile(r"(adı|soyadı|imza|tarih|adres|kimlik|tc\b|telefon|e-?posta|iban|no\b|unvan|katılımcı)", re.IGNORECASE)
+_KEEP_BLANK_RE = re.compile(r"\b(adı|soyadı|imza\w*|tarih\w*|adres\w*|kimlik|tc|telefon|e-?posta|iban|unvan|katılımcı\w*|müşteri\w*|kiracı|kiraya\s+veren)\b", re.IGNORECASE)
 _SENTENCE_RE = re.compile(r"(?<=[.!?])\s+")
 
 

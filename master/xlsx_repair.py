@@ -116,9 +116,30 @@ def apply_budget(sheet: dict[str, Any], request: str) -> None:
     ]
 
 
+def _chart_usable(sheet: dict[str, Any]) -> bool:
+    """The model's own chart spec only counts when its category and value columns really exist (a wrong name used to mean: no chart at all)."""
+    spec = sheet.get("chart")
+    headers = sheet["headers"]
+    return isinstance(spec, dict) and str(spec.get("category")) in headers and any(v in headers and v != spec.get("category") for v in spec.get("values") or [])
+
+
+_PLACEHOLDER_RE = re.compile(r"\{[^{}]+\}|^=+\s*\{")
+
+
+def drop_broken_cells(sheet: dict[str, Any]) -> int:
+    """Cells that still hold a template placeholder ('AVERAGE({Sheet}!{Col})', '=={Col}') would show as raw text: they are emptied. Returns how many."""
+    n = 0
+    for row in sheet["rows"]:
+        for i, cell in enumerate(row):
+            if isinstance(cell, str) and _PLACEHOLDER_RE.search(cell):
+                row[i] = None
+                n += 1
+    return n
+
+
 def auto_chart(sheet: dict[str, Any]) -> None:
     """A column chart of the total (or last numeric) column by the first column, unless the model already asked for one."""
-    if isinstance(sheet.get("chart"), dict) or len(sheet["rows"]) < 3:
+    if _chart_usable(sheet) or len(sheet["rows"]) < 3:
         return
     target = _total_column(sheet)
     if target is None:
@@ -168,6 +189,7 @@ def repair(spec: dict[str, Any], request: str) -> dict[str, Any]:
         recover_text(sheet)
         recover_numeric(sheet)
         apply_budget(sheet, request)
+        drop_broken_cells(sheet)
         auto_chart(sheet)
     auto_comparison(spec, request)
     return spec

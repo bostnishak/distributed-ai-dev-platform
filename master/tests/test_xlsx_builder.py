@@ -82,3 +82,12 @@ def test_letter_references_to_text_columns_are_rejected():
 
 def test_cross_sheet_references_need_real_cells():
     assert xb._safe_formula("=SUM('A'!B5:B9)") and not xb._safe_formula("=AVERAGE(Kadıköy!Matrah (TL))")
+
+
+def test_placeholder_cells_are_emptied_and_an_unusable_chart_spec_is_replaced():
+    import xlsx_repair
+
+    sheet = {"headers": ["Ad", "Not", "Ort"], "rows": [["A", 80, "AVERAGE({X}!{Not})"], ["B", 90, "=={Not}"], ["C", 70, None]], "chart": {"type": "bar", "category": "Yok", "values": ["Hiç"]}, "formulas": [], "col_formulas": {}}
+    assert xlsx_repair.drop_broken_cells(sheet) == 2
+    xlsx_repair.auto_chart(sheet)
+    assert sheet["chart"]["category"] == "Ad" and sheet["chart"]["values"] == ["Not"]

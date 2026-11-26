@@ -114,7 +114,7 @@ async def _cot(prompt: str, model: str, seed: int) -> str:
 async def _reference(prompt: str, model: str) -> str:
     """The reasoning model's verified solution in English (it is far stronger there); '' when it did not finish in time."""
     english_q = await _chat(model, ("Translate the user's question into precise English. Return only the translation.", prompt), (700, 120.0))
-    return await _chat(REASONER, ("", english_q + "\n\nGive only the verified final answer: at most 5 short numbered steps that are consistent with your own reasoning (no doubts, no corrections), then a conclusion that covers every case."), (4000, 330.0), think=True)
+    return await _chat(REASONER, ("", english_q + "\n\nGive only the verified final answer: at most 5 short numbered steps that are consistent with your own reasoning (no doubts, no corrections), then a conclusion that covers every case."), (3500, 270.0), think=True)
 
 
 async def _guided(prompt: str, reference: str, model: str) -> str:

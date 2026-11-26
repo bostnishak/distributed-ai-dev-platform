@@ -127,6 +127,9 @@ async def _coverage_pass(ws_dir: Path, info: dict[str, Any], gens: tuple[Any, An
         yield {"type": "status", "message": f"{len(missing)} eksik özellik bulundu, tamamlanıyor..."}
         changed = await complete_missing(ws_dir, missing, write, wb._write_workspace_file)
         repair_project(ws_dir)
+    from workspace_kit import ensure_theme_toggle
+
+    ensure_theme_toggle(ws_dir, request)
     smoke_warning = ""  # the single browser/smoke run of the whole generation happens here, after the last file change
     async for evt in smoke_and_repair(ws_dir, lambda _rel, ask: write(None, ask, 4096, 0.1), request=request):
         if evt["type"] == "status":

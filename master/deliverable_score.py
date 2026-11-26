@@ -17,6 +17,7 @@ TARGET = 85
 _BRAND_RE = re.compile(r"(?:[A-ZÇĞİÖŞÜ0-9][\w'’.-]*\s+){1,3}(?:Co\.|Ltd\.?|A\.Ş\.?|Inc\.?|LLC|Corp\.?)")
 _GIVEN_AMOUNT_RE = re.compile(r"(?<![\d.,])(\d{1,3}(?:\.\d{3})+)\s*(?:TL|₺|lira)", re.IGNORECASE)
 _UNIT_PRICE_RE = re.compile(r"(birim|sepet|fiyat|ortalama|günlük|saatlik|kişi\s+başı|adet|oran|kur\b|kdv)", re.IGNORECASE)
+_EXTRA_COST_RE = re.compile(r"\b(sgk|vergi|kdv|stopaj|komisyon|prim|enflasyon|zam)\w*", re.IGNORECASE)
 _BLANK = "[................]"
 _IDENTITY_RE = re.compile(r"(kimlik|tc\b|t\.c|adres|iban|ada\b|parsel|plaka|imza|tarih|telefon|e-?posta|mahalle|sokak|no:|numara|vergi)", re.IGNORECASE)
 
@@ -72,6 +73,10 @@ def _fabrication_issues(spec: dict[str, Any], request: str, texts: list[str]) ->
     if absent:
         penalty += min(30, 15 * len(absent))
         issues.append("kullanıcının verdiği tutar belgede geçmiyor: " + ", ".join(absent[:3]) + " TL (istekteki rakamı aynen yaz)")
+    extras = sorted({r[0].strip() for b in spec["blocks"] if b.get("type") == "table" for r in b["rows"] if len(r) > 2 and "varsay" in r[2].lower() and _EXTRA_COST_RE.search(r[0]) and not _EXTRA_COST_RE.search(request)})
+    if extras:
+        penalty += 15
+        issues.append("kullanıcının istemediği ek kalem/oran uydurulmuş: " + ", ".join(extras[:2]) + " (yalnızca verilen rakamlarla hesapla; SGK, vergi, KDV, prim vb. ekleme)")
     if layout := doc_tables.issues(spec):
         penalty += min(20, 8 * len(layout))
         issues += layout
@@ -143,6 +148,10 @@ def score_workbook(spec: dict[str, Any], request: str) -> tuple[int, list[str]]:
     if missing and len(sheets) > 1:
         score -= 20
         issues.append(f"istekte adı geçen birimler için ayrı sayfa yok: {', '.join(m.strip() for m in missing)}")
+    broken = sum(1 for s in sheets for r in s["rows"] for c in r if isinstance(c, str) and re.search(r"\{[^{}]+\}|^=+\s*\{", c))
+    if broken:
+        score -= 25
+        issues.append(f"{broken} hücrede çözülmemiş {{yer tutucu}}/bozuk formül var; formüller gerçek hücre adresleriyle (örn. =AVERAGE(B5:D5)) yazılmalı")
     headers = [h.lower() for s in sheets for h in s["headers"]]
     if any(h in ("", "sütun 1", "column1") for h in headers):
         score -= 10
