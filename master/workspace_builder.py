@@ -455,10 +455,17 @@ def _build_existing_contracts(ws_dir: Path, rel_files: list[str], limit: int = 2
     return "\n".join(lines)
 
 
+async def _no_events() -> AsyncIterator[dict[str, Any]]:
+    """Empty async stream (used when the run/repair step is left to the caller)."""
+    return
+    yield {}
+
+
 async def stream_generate_project(
     prompt: str,
     project_type: str = "auto",
     model_override: str | None = None,
+    run_smoke: bool = True,
 ) -> AsyncIterator[dict[str, Any]]:
     """2-stage SSE generator: Architect plan -> file-by-file generation -> verification."""
     model = await pick_coder_model(model_override)
@@ -496,7 +503,7 @@ async def stream_generate_project(
 
     repair_project(ws_dir)
     smoke_warning = ""
-    async for evt in smoke_and_repair(ws_dir, lambda _p, ask: _ollama_generate(model, FILE_WRITER_SYSTEM_PROMPT, ask, temperature=0.1)):
+    async for evt in smoke_and_repair(ws_dir, lambda _p, ask: _ollama_generate(model, FILE_WRITER_SYSTEM_PROMPT, ask, temperature=0.1)) if run_smoke else _no_events():
         if evt["type"] == "status":
             yield evt
         else:

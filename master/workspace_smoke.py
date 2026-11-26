@@ -19,6 +19,7 @@ from typing import Any
 
 import workspace_docker
 import workspace_node
+import workspace_behavior
 import workspace_web
 from process_utils import run_process
 from workspace_checks import extract_file, static_problem
@@ -132,11 +133,22 @@ def _apply_fix(target: Path, fixed: str, ws_dir: Path) -> None:
     repair_project(ws_dir)
 
 
-async def smoke_and_repair(ws_dir: Path, regenerate: _Regenerate, rounds: int = 2) -> AsyncIterator[dict[str, Any]]:
+async def _scenario_problem(ws_dir: Path, request: str, regenerate: _Regenerate, cache: list[Any]) -> tuple[Path | None, str] | None:
+    """(file, text) when a user scenario written from the request fails on the real page; the scenarios are written once (cache[0])."""
+    if not request or not workspace_web.has_page(ws_dir) or not workspace_docker.available():
+        return None
+    if not cache:
+        cache.append(await workspace_behavior.tests_for(request, ws_dir, regenerate))
+    failures = await asyncio.to_thread(workspace_behavior.run, ws_dir, cache[0]) if cache[0] else []
+    return workspace_behavior.problem(ws_dir, failures) if failures else None
+
+
+async def smoke_and_repair(ws_dir: Path, regenerate: _Regenerate, rounds: int = 2, request: str = "") -> AsyncIterator[dict[str, Any]]:
     """Yield status events; the last event is {"type": "smoke", "ok": bool, "warning": str}."""
     ws_dir = await asyncio.to_thread(ws_dir.resolve)
     entry = _find_entry(ws_dir)
     log = ""
+    scenarios: list[Any] = []
     for attempt in range(rounds + 1):
         yield {"type": "status", "message": "Proje çalıştırılarak test ediliyor..." if attempt == 0 else f"Hata düzeltildi, yeniden test ediliyor ({attempt}/{rounds})..."}
         try:
@@ -149,6 +161,8 @@ async def smoke_and_repair(ws_dir: Path, regenerate: _Regenerate, rounds: int = 
             result = await asyncio.to_thread(workspace_web.probe, ws_dir)  # real page load + clicks in jsdom
             if result and (found := workspace_web.problem(ws_dir, result)):
                 passed, target, log = False, found[0], found[1]
+            elif result and (scenario := await _scenario_problem(ws_dir, request, regenerate, scenarios)):
+                passed, target, log = False, scenario[0], scenario[1]
         if passed:
             test_warning = await asyncio.to_thread(_tests_problem, ws_dir) if entry else ""
             yield {"type": "smoke", "ok": True, "warning": test_warning}

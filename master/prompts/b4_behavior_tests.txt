@@ -1,0 +1,7 @@
+Bir web uygulamasının ÇEKİRDEK davranışını doğrulayan 2-3 kısa kullanıcı senaryosu yaz. SADECE geçerli JSON döndür:
+{"tests":[{"name":"kısa ad","steps":[{"action":"click","target":"düğmenin ekrandaki yazısı"},{"action":"type","target":"alanın etiketi/placeholder/id","value":"yazılacak metin"},{"action":"submit"}],"expect":["ekranda görünmesi gereken metin"]}]}
+KURALLAR:
+- action yalnızca click, type, submit olabilir. target, aşağıdaki HTML'de gerçekten görünen yazı, placeholder, etiket ya da id olmalı (uydurma).
+- Senaryolar kullanıcının isteğindeki ana işlevi sınasın. Örnek hesap makinesi: tıkla 7, tıkla +, tıkla 8, tıkla =, beklenen ["15"]. Örnek yapılacaklar listesi: görev alanına "Süt al" yaz, submit, beklenen ["Süt al"]. Örnek sayaç: "+" düğmesine iki kez tıkla, beklenen ["2"].
+- expect içine yalnızca kesin olarak bilinen, kısa sonuçlar yaz (sayı ya da girilen metin). Tahmin gerektiren metin yazma.
+- En fazla 8 adım ve 2-3 senaryo olsun.

@@ -40,8 +40,8 @@ async def research(prompt: str, generate: Any) -> dict[str, Any]:
     ask = f"Kullanıcının isteği:\n{prompt}\n\n" + (f"ARAŞTIRMA KAYNAĞI:\n{note}\n" if note else "ARAŞTIRMA KAYNAĞI: bulunamadı, kendi bilginle yaz.\n")
     data = _json(await generate(load_prompt("b4_project_research.txt"), ask, 2200, 0.2))
     return {
-        "topic": str(data.get("topic") or topic_guess), "purpose": str(data.get("purpose") or ""), "features": _items(data, "features", 25),
-        "ui": _items(data, "ui", 30), "edge_cases": _items(data, "edge_cases", 10), "source": sources[0]["title"] if sources else "",
+        "topic": str(data.get("topic") or topic_guess), "purpose": str(data.get("purpose") or ""), "features": _items(data, "features", 12),
+        "ui": _items(data, "ui", 14), "edge_cases": _items(data, "edge_cases", 6), "source": sources[0]["title"] if sources else "",
     }
 
 
@@ -110,7 +110,7 @@ async def complete_missing(ws_dir: Path, missing: list[str], generate: Any, writ
 REASONING_MODEL = "qwen3.5:9b"  # research and coverage audits need reading comprehension; the 7B coder only writes files
 
 
-async def _coverage_pass(ws_dir: Path, info: dict[str, Any], gens: tuple[Any, Any]) -> AsyncIterator[dict[str, Any]]:
+async def _coverage_pass(ws_dir: Path, info: dict[str, Any], gens: tuple[Any, Any], request: str = "") -> AsyncIterator[dict[str, Any]]:
     """Audit the finished project against the researched feature list; complete what is missing, then re-run the browser/smoke checks.
 
     Yields status events and finally {"type": "coverage", "missing": int, "warning": str}.
@@ -122,16 +122,19 @@ async def _coverage_pass(ws_dir: Path, info: dict[str, Any], gens: tuple[Any, An
     think, write = gens
     yield {"type": "status", "message": "Eksik özellik denetimi yapılıyor..."}
     missing = await missing_features(ws_dir, info, think)
-    if not missing:
-        yield {"type": "coverage", "missing": 0, "warning": ""}
-        return
-    yield {"type": "status", "message": f"{len(missing)} eksik özellik bulundu, tamamlanıyor..."}
-    changed = await complete_missing(ws_dir, missing, write, wb._write_workspace_file)
-    repair_project(ws_dir)
-    async for evt in smoke_and_repair(ws_dir, lambda _rel, ask: write(None, ask, 4096, 0.1)):
+    changed: list[str] = []
+    if missing:
+        yield {"type": "status", "message": f"{len(missing)} eksik özellik bulundu, tamamlanıyor..."}
+        changed = await complete_missing(ws_dir, missing, write, wb._write_workspace_file)
+        repair_project(ws_dir)
+    smoke_warning = ""  # the single browser/smoke run of the whole generation happens here, after the last file change
+    async for evt in smoke_and_repair(ws_dir, lambda _rel, ask: write(None, ask, 4096, 0.1), request=request):
         if evt["type"] == "status":
             yield evt
-    yield {"type": "coverage", "missing": len(missing), "warning": f"Eksik bulunan {len(missing)} özellik ikinci geçişte eklendi ({', '.join(changed) or 'dosya değişmedi'})."}
+        else:
+            smoke_warning = evt.get("warning", "")
+    added = f"Eksik bulunan {len(missing)} özellik ikinci geçişte eklendi ({', '.join(changed) or 'dosya değişmedi'})." if missing else ""
+    yield {"type": "coverage", "missing": len(missing), "warning": " ".join(w for w in (added, smoke_warning) if w)}
 
 
 async def stream_generate(prompt: str, project_type: str = "auto", model_override: str | None = None) -> AsyncIterator[dict[str, Any]]:
@@ -154,8 +157,9 @@ async def stream_generate(prompt: str, project_type: str = "auto", model_overrid
             info = evt["info"]
         else:
             yield evt
+    info["request"] = prompt  # the user's own words: the scenario tests are written from them
     done: dict[str, Any] = {}
-    async for evt in wb.stream_generate_project(prompt + brief_text(info), project_type=project_type, model_override=model_override):
+    async for evt in wb.stream_generate_project(prompt + brief_text(info), project_type=project_type, model_override=model_override, run_smoke=False):
         if evt["type"] == "done":
             done = evt
         else:
@@ -182,12 +186,9 @@ async def _coverage_events(done: dict[str, Any], info: dict[str, Any], callers: 
     """Progress events of the coverage pass, then the updated 'done' event (with the new file tree and warnings)."""
     import workspace_builder as wb
 
-    if not info["features"]:
-        yield done
-        return
     ws_dir = wb.safe_workspace_dir(done["workspace"]["id"])
     try:
-        async for evt in _coverage_pass(ws_dir, info, callers):
+        async for evt in _coverage_pass(ws_dir, info, callers, str(info.get("request") or "")):
             if evt["type"] == "coverage":
                 warnings = [*done.get("warnings", []), *([evt["warning"]] if evt["warning"] else [])]
                 done = {**done, "tree": wb.build_file_tree(ws_dir), "warnings": warnings}

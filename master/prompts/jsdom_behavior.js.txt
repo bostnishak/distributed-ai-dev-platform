@@ -1,0 +1,71 @@
+// Runs the scenario tests of /sandbox/.tests.json against /sandbox/index.html in jsdom (fresh page per test).
+// Prints one JSON line: {"failures": ["..."]}
+const { JSDOM, VirtualConsole } = require('jsdom');
+const fs = require('fs');
+process.on('uncaughtException', () => {});
+process.on('unhandledRejection', () => {});
+const tests = JSON.parse(fs.readFileSync('/sandbox/.tests.json', 'utf8'));
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const norm = (s) => String(s || '').replace(/\s+/g, ' ').trim().toLowerCase();
+
+function labelsOf(el) {
+  return [el.textContent, el.value, el.getAttribute('aria-label'), el.getAttribute('title'), el.getAttribute('placeholder'), el.id, el.getAttribute('name'), el.dataset && el.dataset.value, el.dataset && el.dataset.key].map(norm).filter(Boolean);
+}
+function find(d, target, selector) {
+  const want = norm(target);
+  const all = [...d.querySelectorAll(selector)];
+  return all.find((el) => labelsOf(el).includes(want)) || all.find((el) => want.length > 2 && labelsOf(el).some((l) => l.includes(want)));
+}
+function labelFor(d, input) {
+  const l = input.id && d.querySelector('label[for="' + input.id + '"]');
+  return l ? norm(l.textContent) : '';
+}
+function findInput(d, target) {
+  const want = norm(target);
+  const inputs = [...d.querySelectorAll('input:not([type=button]):not([type=submit]), textarea, select')];
+  return inputs.find((el) => labelsOf(el).includes(want) || labelFor(d, el) === want) || inputs.find((el) => want.length > 2 && (labelsOf(el).some((l) => l.includes(want)) || labelFor(d, el).includes(want)));
+}
+
+async function runTest(t) {
+  const errors = [];
+  const vc = new VirtualConsole();
+  vc.on('jsdomError', (e) => errors.push(String(e.message || e).slice(0, 100)));
+  const dom = await JSDOM.fromFile('/sandbox/index.html', { runScripts: 'dangerously', resources: 'usable', pretendToBeVisual: true, virtualConsole: vc, url: 'file:///sandbox/index.html' });
+  const w = dom.window, d = w.document;
+  w.alert = () => {}; w.confirm = () => true; w.prompt = () => '1';
+  await wait(600);
+  const log = [];
+  for (const s of t.steps || []) {
+    const action = String(s.action || '').toLowerCase();
+    if (action === 'click') {
+      const el = find(d, s.target, 'button, input[type=button], input[type=submit], a, [role=button], .btn, .key, li, label, summary');
+      if (!el) { return `'${t.name}': '${s.target}' adlı düğme/öğe sayfada bulunamadı`; }
+      el.dispatchEvent(new w.MouseEvent('click', { bubbles: true, cancelable: true }));
+    } else if (action === 'type') {
+      const el = findInput(d, s.target);
+      if (!el) { return `'${t.name}': '${s.target}' adlı giriş alanı sayfada bulunamadı`; }
+      el.value = String(s.value == null ? '' : s.value);
+      el.dispatchEvent(new w.Event('input', { bubbles: true })); el.dispatchEvent(new w.Event('change', { bubbles: true }));
+    } else if (action === 'submit') {
+      const form = (s.target && find(d, s.target, 'form')) || d.querySelector('form');
+      const btn = [...d.querySelectorAll('button, input[type=submit]')].find((b) => /ekle|gönder|kaydet|oluştur|add|submit|save|ara|hesapla/i.test(b.textContent + b.value));
+      if (btn) btn.dispatchEvent(new w.MouseEvent('click', { bubbles: true, cancelable: true }));
+      if (form) form.dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
+    }
+    await wait(60);
+  }
+  await wait(120);
+  const shown = norm(d.body.textContent + ' ' + [...d.querySelectorAll('input,textarea,select')].map((i) => i.value).join(' '));
+  const missing = (t.expect || []).filter((x) => !shown.includes(norm(x)));
+  if (missing.length) { return `'${t.name}': ekranda beklenen '${missing[0]}' görünmüyor (ekran: '${shown.slice(0, 120)}')` + (errors.length ? ' | JS hatası: ' + errors[0] : ''); }
+  return '';
+}
+
+(async () => {
+  const failures = [];
+  for (const t of tests.slice(0, 4)) {
+    try { const f = await runTest(t); if (f) failures.push(f); } catch (e) { failures.push(`'${t.name}': senaryo çalıştırılamadı: ${String(e.message).slice(0, 80)}`); }
+  }
+  console.log(JSON.stringify({ failures }));
+  process.exit(0);
+})();

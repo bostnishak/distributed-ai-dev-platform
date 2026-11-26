@@ -171,6 +171,69 @@ def _fix_missing_local_refs(ws_dir: Path) -> None:
             page.write_text(fixed, encoding="utf-8")
 
 
+_LISTENER_RE = re.compile(r"(?<![?\w$])((?:document\.(?:getElementById|querySelector)\([^()]*\)|[A-Za-z_$][\w$]*))\.addEventListener\(")
+
+
+def _null_safe_listeners(ws_dir: Path) -> None:
+    """`el.addEventListener(...)` on an element the page does not have crashes the whole script (nothing after it runs); `el?.addEventListener`
+    keeps the rest of the app working. Only page scripts are touched."""
+    for js in ws_dir.rglob("*.js"):
+        if "node_modules" in js.parts or ".history" in js.parts or js.name.startswith("test"):
+            continue
+        try:
+            text = js.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        fixed = _LISTENER_RE.sub(lambda m: f"{m.group(1)}?.addEventListener(" if m.group(1) not in ("window", "document", "this", "self") else m.group(0), text)
+        if fixed != text:
+            js.write_text(fixed, encoding="utf-8")
+
+
+_SCRIPT_SRC_RE = re.compile(r"<script\b([^>]*)\bsrc=[\"']([^\"']+)[\"']([^>]*)>", re.IGNORECASE)
+_ES_LINE_RE = re.compile(r"^[ \t]*(?:import\s[^\n]*?[\"'][^\"'\n]+[\"'];?|export\s*\{[^}\n]*\};?)[ \t]*$", re.MULTILINE)
+_EXPORT_RE = re.compile(r"^([ \t]*)export\s+(?:default\s+)?(?=(?:async\s+)?(?:function|class|const|let|var)\b)", re.MULTILINE)
+
+
+def _classic_scripts(ws_dir: Path) -> None:
+    """Pages load scripts as classic scripts, but the writers like ES-module syntax: 'export'/'import' there is a SyntaxError that stops
+    the whole file. The keywords are removed in files that a page loads without type=module (declarations stay global, as the page needs)."""
+    for html in ws_dir.rglob("*.html"):
+        if "node_modules" in html.parts or ".history" in html.parts:
+            continue
+        try:
+            page = html.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        for m in _SCRIPT_SRC_RE.finditer(page):
+            if "module" in (m.group(1) + m.group(3)).lower() or m.group(2).startswith(("http", "//")):
+                continue
+            target = (html.parent / m.group(2).split("?")[0]).resolve()
+            if not target.is_file() or ws_dir.resolve() not in target.parents:
+                continue
+            code = target.read_text(encoding="utf-8", errors="replace")
+            fixed = _EXPORT_RE.sub(r"", _ES_LINE_RE.sub("", code))
+            if fixed != code:
+                target.write_text(fixed, encoding="utf-8")
+
+
+_KEY_BUTTON_RE = re.compile(r"(<button\b[^>]*\bdata-(?:value|key|digit)=[\"']([0-9.])[\"'][^>]*>)([^<]*)(</button>)", re.IGNORECASE)
+
+
+def _sync_key_labels(ws_dir: Path) -> None:
+    """Keypad buttons whose label contradicts their value (a '9' key showing '*') are a typical slip of small models: the digit/dot the
+    button actually carries becomes its label."""
+    for html in ws_dir.rglob("*.html"):
+        if "node_modules" in html.parts or ".history" in html.parts:
+            continue
+        try:
+            page = html.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        fixed = _KEY_BUTTON_RE.sub(lambda m: m.group(0) if m.group(3).strip() == m.group(2) else f"{m.group(1)}{m.group(2)}{m.group(4)}", page)
+        if fixed != page:
+            html.write_text(fixed, encoding="utf-8")
+
+
 def repair_project(ws_dir: Path) -> None:
     """Fixes for typical integration slips in model-written projects (run right after generation)."""
     _use_sqlite(ws_dir)
@@ -179,6 +242,9 @@ def repair_project(ws_dir: Path) -> None:
     inject_theme(ws_dir)
     _fix_static_refs(ws_dir)
     _fix_missing_local_refs(ws_dir)
+    _classic_scripts(ws_dir)
+    _sync_key_labels(ws_dir)
+    _null_safe_listeners(ws_dir)
     _refresh_static_copies(ws_dir)
     _add_package_launcher(ws_dir)
     _ensure_db_tables(ws_dir)
