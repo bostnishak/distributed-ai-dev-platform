@@ -26,6 +26,8 @@ import httpx
 
 import config
 from prompt_loader import load_prompt
+from workspace_batches import file_batches as _file_batches
+from workspace_batches import file_prompt as _file_prompt
 from workspace_builder_ops import (
     _RUNNING_SERVERS,
     META_FILENAME,
@@ -54,8 +56,6 @@ from workspace_builder_ops import (
     workspaces_root,
 )
 from workspace_kit import KIT_CLASSES
-from workspace_batches import file_batches as _file_batches
-from workspace_batches import file_prompt as _file_prompt
 from workspace_requirements import repair_project
 from workspace_smoke import smoke_and_repair
 

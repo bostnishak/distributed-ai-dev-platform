@@ -65,7 +65,7 @@ def _javascript(code: str) -> str:
         # Node's permission model: no file-system (beyond the snippet), network, child-process or worker access
         cmd = [node, "--permission", f"--allow-fs-read={path}", str(path)]
         try:
-            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=6, check=False)  # noqa: S603
+            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=6, check=False)  # noqa: S603, RUF100
         except subprocess.TimeoutExpired:
             return ""
     lines = [ln for ln in proc.stderr.splitlines() if re.match(r"\w*Error", ln)]
@@ -89,7 +89,7 @@ def note(prompt: str) -> str:
     return f"DOĞRULANMIŞ HATA (kod gerçekten çalıştırıldı/derlendi): {error}\nHatayı yalnızca bu çıktıya dayanarak açıkla ve düzeltilmiş kodu ver; çıktıda olmayan bir neden uydurma."
 
 
-_EXPR_RE = re.compile(r"(?<![\w.])(\d+(?:[.,]\d+)?(?:\s*[-+*/x×:÷^]\s*\d+(?:[.,]\d+)?){1,4})(?![\w.])")
+_EXPR_RE = re.compile(r"(?<![\w.])(\d+(?:[.,]\d+)?(?:\s*[-+*/x\u00d7:÷^]\s*\d+(?:[.,]\d+)?){1,4})(?![\w.])")
 
 
 def calc_note(prompt: str) -> str:
@@ -99,11 +99,11 @@ def calc_note(prompt: str) -> str:
     m = _EXPR_RE.search(prompt)
     if not m:
         return ""
-    expr = re.sub(r"\s+", "", m.group(1)).replace(",", ".").replace("x", "*").replace("×", "*").replace(":", "/").replace("÷", "/").replace("^", "**")
+    expr = re.sub(r"\s+", "", m.group(1)).replace(",", ".").replace("x", "*").replace("\u00d7", "*").replace(":", "/").replace("÷", "/").replace("^", "**")
     if "**" in expr:
         return ""
     try:
-        value = eval(compile(expr, "<calc>", "eval", dont_inherit=True), {"__builtins__": {}}, {})  # noqa: S307  # digits and + - * / only (regex-checked above)
+        value = eval(compile(expr, "<calc>", "eval", dont_inherit=True), {"__builtins__": {}}, {})  # noqa: S307, RUF100  # digits and + - * / only (regex-checked above)
     except (SyntaxError, ZeroDivisionError, ValueError):
         return ""
     shown = f"{value:.6f}".rstrip("0").rstrip(".") if isinstance(value, float) else str(value)

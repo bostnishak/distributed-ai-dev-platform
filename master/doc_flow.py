@@ -11,10 +11,10 @@ import deliverable_score
 import doc_calc
 import doc_polish
 import doc_proof
-import doc_research
-import doc_sanity
 import doc_render_docx
 import doc_render_pdf
+import doc_research
+import doc_sanity
 import doc_spec
 import json_repair
 from prompt_loader import load_prompt

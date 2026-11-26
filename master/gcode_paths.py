@@ -36,7 +36,7 @@ class Writer:
         self.lines.append(f"N{self.n} {text}")
         self.n += 10
 
-    def move(self, code: str, x: float | None = None, y: float | None = None, z: float | None = None, f: float | None = None, ij: Point | None = None) -> None:  # noqa: PLR0913
+    def move(self, code: str, x: float | None = None, y: float | None = None, z: float | None = None, f: float | None = None, ij: Point | None = None) -> None:  # noqa: PLR0913, RUF100
         """One motion block; G0/G1 moves that would not change anything are dropped."""
         if code in ("G0", "G1") and z is None and x is not None and y is not None and self.xy is not None and math.dist(self.xy, (x, y)) < 1e-6:
             return

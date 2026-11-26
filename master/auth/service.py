@@ -40,7 +40,7 @@ _GENERATED_SECRET: bytes | None = None
 
 def _generated_secret() -> bytes:
     """Per-installation random secret kept in the data dir (never in the repo) when SECRET_KEY is unset."""
-    global _GENERATED_SECRET  # noqa: PLW0603
+    global _GENERATED_SECRET  # noqa: PLW0603, RUF100
     if _GENERATED_SECRET is None:
         path = Path(config.DATA_DIR) / ".session_secret"
         try:

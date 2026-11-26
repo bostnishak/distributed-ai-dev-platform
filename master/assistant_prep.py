@@ -18,9 +18,9 @@ from fastapi import Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 
 import answer_sources
+import code_probe
 import config
 import extract as _extract_mod
-import code_probe
 import reasoning_mode
 import reply_labels
 import research_context

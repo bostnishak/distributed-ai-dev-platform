@@ -14,7 +14,7 @@ import doc_sanity
 import doc_tables
 
 TARGET = 85
-_BRAND_RE = re.compile(r"(?:[A-ZÇĞİÖŞÜ0-9][\w'’.-]*\s+){1,3}(?:Co\.|Ltd\.?|A\.Ş\.?|Inc\.?|LLC|Corp\.?)")
+_BRAND_RE = re.compile(r"(?:[A-ZÇĞİÖŞÜ0-9][\w'\u2019.-]*\s+){1,3}(?:Co\.|Ltd\.?|A\.Ş\.?|Inc\.?|LLC|Corp\.?)")
 _GIVEN_AMOUNT_RE = re.compile(r"(?<![\d.,])(\d{1,3}(?:\.\d{3})+)\s*(?:TL|₺|lira)", re.IGNORECASE)
 _UNIT_PRICE_RE = re.compile(r"(birim|sepet|fiyat|ortalama|günlük|saatlik|kişi\s+başı|adet|oran|kur\b|kdv)", re.IGNORECASE)
 _EXTRA_COST_RE = re.compile(r"\b(sgk|vergi|kdv|stopaj|komisyon|prim|enflasyon|zam)\w*", re.IGNORECASE)
@@ -36,7 +36,7 @@ def _amount(cell: str) -> float | None:
 
 
 def _implausible_amounts(spec: dict[str, Any]) -> list[str]:
-    """Cells that are orders of magnitude below the rest of their column (a ‘1,38 TL’ espresso machine next to 125.000 TL furniture)."""
+    """Cells that are orders of magnitude below the rest of their column (a '1,38 TL' espresso machine next to 125.000 TL furniture)."""
     out: list[str] = []
     for b in spec["blocks"]:
         if b.get("type") != "table":

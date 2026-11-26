@@ -17,9 +17,9 @@ from collections.abc import AsyncIterator, Awaitable, Callable
 from pathlib import Path
 from typing import Any
 
+import workspace_behavior
 import workspace_docker
 import workspace_node
-import workspace_behavior
 import workspace_web
 from process_utils import run_process
 from workspace_checks import extract_file, static_problem
