@@ -24,7 +24,7 @@ def needs_thinking(prompt: str) -> bool:
         return False
     if _RE.search(text):
         return True
-    return len(re.findall(r"\d+(?:[.,]\d+)?", text)) >= 3 and bool(_WORD_PROBLEM_RE.search(text)) and text.endswith("?")
+    return len(re.findall(r"\d+(?:[.,]\d+)?", text)) >= 2 and bool(_WORD_PROBLEM_RE.search(text)) and text.endswith("?")
 
 
 def mark(prompt: str) -> None:
@@ -82,46 +82,78 @@ def _english_ratio(text: str) -> float:
     return sum(w in _EN_WORDS for w in words) / len(words) if words else 1.0
 
 
-async def solve_deep(prompt: str, general_model: str) -> str:
-    """Translate to English, let the reasoning model think (it is far stronger in English), translate the verified solution back."""
-    english_q = await _chat(general_model, ("Translate the user's question into precise English. Return only the translation.", prompt), (700, 120.0))
-    solution = await _chat(REASONER, ("", english_q + "\n\nGive only the verified final answer: at most 5 short numbered steps that are consistent with your own reasoning (no doubts, no corrections, no repeated cases), then a conclusion that covers every case."), (3500, 240.0), think=True)
-    if not solution:
+_PUZZLE_RE = re.compile(r"(bulmaca|bilmece|şövalye|yalancı|kutu|etiket|paradoks|riddle|puzzle|knight|knave|kanıtla|ispat|prove\b)", re.IGNORECASE)
+_COT = (
+    "Önce 'DÜŞÜNCE:' başlığı altında soruyu adım adım, tüm olasılıkları tek tek deneyerek çöz ve sonucu kontrol et (kısa notlar). "
+    "Sonra 'ÇÖZÜM:' başlığı altında yalnızca doğrulanmış çözümü akıcı, doğru Türkçe ile yaz: en fazla 5 kısa numaralı adım; olası her durumu AYRI AYRI yaz, "
+    "her çıkarımın nedenini 'çünkü ...' ile ver, son satırda tek cümlelik net sonuç yaz. Soruda geçen kelimeleri aynen kullan."
+)
+
+
+def _vocab(question: str) -> str:
+    return ", ".join(sorted({w for w in re.findall(r"[A-Za-zçğıöşüÇĞİÖŞÜ]{5,}", question)}, key=str.lower))[:300]
+
+
+async def _cot(prompt: str, model: str, seed: int) -> str:
+    """One quick chain-of-thought answer (the 'ÇÖZÜM' part only); '' on failure."""
+    import gateway
+
+    try:
+        res = await gateway.default_client.chat([{"role": "system", "content": _COT}, {"role": "user", "content": prompt}], model=model, profile="analytic", num_predict=1400, timeout_s=240.0, feature="reasoning", seed=seed, max_retries=0)
+    except (OSError, RuntimeError, ValueError, TypeError):
         return ""
-    ask = "Translate this solution into Turkish. Keep every sentence's meaning exactly; do not solve, reorder or change anything. Output only Turkish:\n\n" + solution
-    turkish = await _chat(REASONER, ("", ask), (2500, 150.0))
-    if _english_ratio(turkish) > 0.06:  # the reasoner drifted back into English: translate again with the general model
-        turkish = await _chat(general_model, ("Translate into Turkish. Return only Turkish.", solution), (1400, 240.0))
-    return turkish if _english_ratio(turkish) <= 0.06 else ""
+    text = res.content.strip()
+    return re.split(r"ÇÖZÜM\s*:", text)[-1].strip() if "ÇÖZÜM" in text else text
+
+
+async def _reference(prompt: str, model: str) -> str:
+    """The reasoning model's verified solution in English (it is far stronger there); '' when it did not finish in time."""
+    english_q = await _chat(model, ("Translate the user's question into precise English. Return only the translation.", prompt), (700, 120.0))
+    return await _chat(REASONER, ("", english_q + "\n\nGive only the verified final answer: at most 5 short numbered steps that are consistent with your own reasoning (no doubts, no corrections), then a conclusion that covers every case."), (3500, 240.0), think=True)
+
+
+async def _guided(prompt: str, reference: str, model: str) -> str:
+    """Turkish write-up by the general model that follows the verified English solution step by step (logic fixed, wording free)."""
+    ask = (
+        f"SORU:\n{prompt}\n\nDOĞRULANMIŞ ÇÖZÜM (İngilizce; mantığı ve sonucu DEĞİŞTİRME):\n{reference}\n\n"
+        f"Bu çözümü akıcı ve doğru Türkçe ile yaz: en fazla 5 kısa numaralı adım ve tek cümlelik sonuç. Her durumu ayrı yaz, kimin neyi içerdiğini/olduğunu değiştirme. "
+        f"Şu kelimeleri aynen kullan: {_vocab(prompt)}."
+    )
+    return await _chat(model, ("", ask), (1200, 200.0))
 
 
 async def solve(prompt: str) -> str:
-    """Three independent concise solutions, then a judge pass that verifies them and writes the final answer; '' on failure."""
+    """Puzzles: verified English solution from the reasoning model, written up in Turkish by the general model. Calculations: two quick
+    answers that must agree on their numbers, otherwise three drafts and a judge. '' on failure."""
     import asyncio
 
-    import gateway
     import multimodal_studio as mms
 
     model = await mms.pick_best_model("deep")
-    if await reasoner_installed():
+    if _PUZZLE_RE.search(prompt) and await reasoner_installed():
         try:
-            if deep := await solve_deep(prompt, model):
-                return deep
+            if (ref := await _reference(prompt, model)) and (turkish := await _guided(prompt, ref, model)) and _english_ratio(turkish) <= 0.06:
+                return turkish
         except (OSError, RuntimeError, ValueError, TypeError):
-            pass  # fall back to the self-consistency solver below
-    system = {"role": "system", "content": guidance(prompt)}
+            pass  # fall back to the quick answers below
+    first, second = await asyncio.gather(_cot(prompt, model, 11), _cot(prompt, model, 22))
+    if first and second and set(re.findall(r"\d+(?:[.,]\d+)?", first[-200:])) == set(re.findall(r"\d+(?:[.,]\d+)?", second[-200:])):
+        return first
+    return await _vote(prompt, model, [d for d in (first, second) if d])
 
-    async def one(temp_seed: int) -> str:
-        res = await gateway.default_client.chat([system, {"role": "user", "content": prompt}], model=model, profile="analytic", num_predict=900, timeout_s=240.0, feature="reasoning", seed=temp_seed, max_retries=0)
-        return res.content.strip()
+
+async def _vote(prompt: str, model: str, known: list[str]) -> str:
+    """Three independent drafts (two may already exist), then a judge pass that verifies them and writes the final answer."""
+    import asyncio
+
+    import gateway
 
     try:
-        drafts = [d for d in await asyncio.gather(*(one(s) for s in (11, 22, 33)), return_exceptions=True) if isinstance(d, str) and d]
+        drafts = known + [d for d in await asyncio.gather(*(_cot(prompt, model, s) for s in (33, 44)[: max(1, 3 - len(known))])) if d]
         if not drafts:
             return ""
         candidates = "\n\n".join(f"ADAY {i}:\n{d}" for i, d in enumerate(drafts, 1))
-        ask = f"SORU:\n{prompt}\n\n{candidates}"
-        res = await gateway.default_client.chat([{"role": "system", "content": _JUDGE}, {"role": "user", "content": ask}], model=model, profile="factual", num_predict=1100, timeout_s=300.0, feature="reasoning", max_retries=0)
+        res = await gateway.default_client.chat([{"role": "system", "content": _JUDGE}, {"role": "user", "content": f"SORU:\n{prompt}\n\n{candidates}"}], model=model, profile="factual", num_predict=1100, timeout_s=300.0, feature="reasoning", max_retries=0)
     except (OSError, RuntimeError, ValueError, TypeError):
         return ""
     return res.content.strip()

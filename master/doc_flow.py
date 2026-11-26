@@ -43,6 +43,12 @@ def _requested_pages(prompt: str) -> int:
     return int(m.group(1)) if m else 0
 
 
+def _length_budget(prompt: str) -> str:
+    """A requested page count becomes a word budget the model can follow (a 1-page request used to come back as 2 pages)."""
+    pages = _requested_pages(prompt)
+    return f"\n\n[Uzunluk sınırı: {pages} sayfa; en fazla {330 * pages} kelime ve en fazla {4 + 2 * pages} içerik bloğu yaz, fazlasını yazma.]" if pages else ""
+
+
 def _build_pdf_fitting(out_path: Path, spec: dict[str, Any], fonts: Any, prompt: str) -> int:
     """Render the PDF; when the user asked for N pages and it came out longer, shrink the type step by step until it fits. Returns the page count."""
     limit, pages = _requested_pages(prompt), 0
@@ -85,8 +91,8 @@ async def _draft(prompt: str, target_lang: str, model: str) -> dict[str, Any] | 
     import gateway
 
     system = load_prompt("b3_doc_blocks_schema.txt").replace("{target_lang}", target_lang)
-    for _ in range(2):
-        res = await gateway.default_client.chat([{"role": "system", "content": system}, {"role": "user", "content": prompt + doc_polish.request_facts(prompt)}], model=model, profile="factual", num_predict=4500, timeout_s=300.0, feature="document_factory", max_retries=1)
+    for _ in range(3):
+        res = await gateway.default_client.chat([{"role": "system", "content": system}, {"role": "user", "content": prompt + doc_polish.request_facts(prompt) + _length_budget(prompt)}], model=model, profile="factual", num_predict=4500, timeout_s=300.0, feature="document_factory", max_retries=1)
         draft = json_repair.loads_top(res.content)
         if draft and doc_spec.parse(draft, prompt) is not None:
             return draft

@@ -11,7 +11,7 @@ import json_repair
 import xlsx_builder
 from prompt_loader import load_prompt
 
-MAX_ATTEMPTS = 2
+MAX_ATTEMPTS = 3
 NO_CONTENT = "Excel dosyasının içeriğini üretemedim (model geçerli bir çalışma kitabı döndürmedi). Boş ya da kalıp bir dosya vermemek için oluşturmadım; lütfen tekrar dener misin? Ne için kullanacağını kısaca yazarsan sonuç daha iyi olur."
 
 

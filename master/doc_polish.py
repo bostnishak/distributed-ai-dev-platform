@@ -109,7 +109,7 @@ def polish(blocks: list[dict[str, Any]], request: str) -> list[dict[str, Any]]:
     fix_totals(blocks)
     if not _SIGNED_RE.search(request):
         blocks = [b for b in blocks if b["type"] != "signature"]  # an unrequested signature block only adds invented names and dates
-    return drop_table_fillers(blocks)
+    return drop_table_fillers(drop_blank_clauses(blocks, request))
 
 
 _PCT_RE = re.compile(r"%\s*(\d+(?:[.,]\d+)?)|(\d+(?:[.,]\d+)?)\s*%")
@@ -122,10 +122,12 @@ def blank_invented_percentages(text: str, request: str) -> str:
     """Raw model text only (placeholders are not filled yet): a literal percentage that is neither in the request nor presented as an
     assumption/estimate becomes %[....]; a labelled assumption stays, so plans keep their working rates."""
     asked = {m.group(1) or m.group(2) for m in _PCT_RE.finditer(request)}
+    if len(text) < 70 and not text.rstrip().endswith((".", "!", "?")) and not _SIGNED_RE.search(request):
+        return text  # labels and table cells ("Beta teslimi (%35)") are the model's own plan figures, not claims about the world
 
     def keep(m: re.Match[str]) -> str:
         near = text[max(0, m.start() - 60) : m.end() + 25]
-        return m.group(0) if (m.group(1) or m.group(2)) in asked or _ASSUMED_RE.search(near) else "%" + BLANK
+        return m.group(0) if (m.group(1) or m.group(2)) in asked or (_ASSUMED_RE.search(near) and not _SIGNED_RE.search(request)) else "%" + BLANK
 
     return _PCT_RE.sub(keep, text)
 
@@ -175,5 +177,45 @@ def _drop_repeated_tables(blocks: list[dict[str, Any]]) -> list[dict[str, Any]]:
             continue
         if key is not None:
             seen.append(key)
+        out.append(b)
+    return out
+
+
+_TEMPLATE_RE = re.compile(r"(şablon|sablon|template|boş\s+form|doldurulacak|form\s+hazırla|dilekçe|taslak)", re.IGNORECASE)
+_KEEP_BLANK_RE = re.compile(r"(adı|soyadı|imza|tarih|adres|kimlik|tc\b|telefon|e-?posta|iban|no\b|unvan|katılımcı)", re.IGNORECASE)
+_SENTENCE_RE = re.compile(r"(?<=[.!?])\s+")
+
+
+def _strip_blank_clauses(sentence: str) -> str:
+    """The comma-separated clauses of a sentence without those holding an unfillable blank ('' when nothing is left)."""
+    if BLANK not in sentence or _KEEP_BLANK_RE.search(sentence):
+        return sentence
+    clauses = [c for c in re.split(r"(?<=,)\s*|;\s*", sentence) if BLANK not in c]
+    text = " ".join(clauses).rstrip(" ,;")
+    return (text if text.endswith((".", "!", "?")) else text + ".") if len(text) > 12 else ""
+
+
+def drop_blank_clauses(blocks: list[dict[str, Any]], request: str) -> list[dict[str, Any]]:
+    """A fill-in blank the model left for a figure it could not know ('%[....] memnuniyet', 'yaklaşık [....] yıl') is worse than no
+    sentence: those sentences and table rows are removed. Identity fields (names, dates, signatures) and templates keep their blanks."""
+    if _TEMPLATE_RE.search(request):
+        return blocks
+    out: list[dict[str, Any]] = []
+    for b in blocks:
+        if b["type"] == "para" and BLANK in b["text"]:
+            kept = [c for c in (_strip_blank_clauses(s) for s in _SENTENCE_RE.split(b["text"])) if c]
+            if not kept:
+                continue
+            b = {**b, "text": " ".join(kept)}
+        elif b["type"] in ("bullets", "numbered") and any(BLANK in i for i in b["items"]):
+            items = [i for i in b["items"] if BLANK not in i or _KEEP_BLANK_RE.search(i)]
+            if len(items) < 1:
+                continue
+            b = {**b, "items": items}
+        elif b["type"] == "table" and any(BLANK in c for r in b["rows"] for c in r):
+            rows = [r for r in b["rows"] if not any(BLANK in c for c in r) or _KEEP_BLANK_RE.search(" ".join(r + b["headers"]))]
+            if len(rows) < 2:
+                continue
+            b = {**b, "rows": rows}
         out.append(b)
     return out

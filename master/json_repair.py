@@ -13,6 +13,7 @@ from typing import Any
 
 _FENCE_RE = re.compile(r"```(?:json)?\s*([\s\S]*?)```", re.IGNORECASE)
 _TRAILING_COMMA_RE = re.compile(r",\s*([}\]])")
+_BARE_KEY_RE = re.compile(r"([:\[,]\s*)\{([A-Za-z_]\w*)\}(?=\s*[,\]}])")  # {key} used as a value without quotes
 _DANGLING_RE = re.compile(r',?\s*"[^"\\]*"?\s*:?\s*$')
 
 
@@ -71,7 +72,8 @@ def loads_top(raw: str) -> dict[str, Any] | None:
     start = text.find("{")
     if start == -1:
         return None
-    for candidate in (text[start:], _sanitize(text[start:])):
+    fixed = _sanitize(text[start:])
+    for candidate in (text[start:], fixed, _BARE_KEY_RE.sub(lambda m: f'{m.group(1)}"{{{m.group(2)}}}"', fixed)):
         try:
             obj, _ = json.JSONDecoder().raw_decode(candidate)
         except json.JSONDecodeError:

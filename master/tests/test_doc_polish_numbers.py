@@ -54,3 +54,22 @@ def test_shares_not_adding_to_100_are_reported():
 
     table = {"type": "table", "headers": ["Kalem", "Pay %"], "rows": [["A", "50"], ["B", "30"], ["C", "5"]]}
     assert any("%100" in i for i in doc_tables.issues({"blocks": [table]}))
+
+
+def test_unfillable_blank_sentences_are_dropped_but_identity_blanks_stay():
+    blank = doc_polish.BLANK
+    blocks = [
+        {"type": "para", "text": f"Rapor hazırlandı. Hedef memnuniyet oranı %{blank} olacaktır. Sonuç olumludur."},
+        {"type": "table", "headers": ["Kalem", "Değer"], "rows": [["A", "10"], ["B", blank], ["C", "30"]]},
+        {"type": "para", "text": f"Müşteri Adı Soyadı: {blank}"},
+    ]
+    out = doc_polish.polish(blocks, "rapor hazırla")
+    assert blank not in out[0]["text"] and "Sonuç olumludur" in out[0]["text"]
+    assert len(out[1]["rows"]) == 2
+    assert blank in out[2]["text"]
+    assert doc_polish.polish([{"type": "para", "text": f"Tarih: {blank}"}], "toplantı tutanağı şablonu")[0]["text"].endswith(blank)
+
+
+def test_urls_with_underscores_are_not_code_leaks():
+    spec = {"title": "t", "subtitle": "", "blocks": [{"type": "bullets", "items": ["Kaynak — https://site.gov.tr/meb_iys_dosyalar/x_y"] * 3}, {"type": "para", "text": "Metin"}] * 2}
+    assert not any("değişken adı" in i for i in deliverable_score.score_document(spec, "rapor")[1])

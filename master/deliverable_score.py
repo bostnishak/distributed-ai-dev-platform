@@ -15,6 +15,8 @@ import doc_tables
 
 TARGET = 85
 _BRAND_RE = re.compile(r"(?:[A-ZÇĞİÖŞÜ0-9][\w'’.-]*\s+){1,3}(?:Co\.|Ltd\.?|A\.Ş\.?|Inc\.?|LLC|Corp\.?)")
+_GIVEN_AMOUNT_RE = re.compile(r"(?<![\d.,])(\d{1,3}(?:\.\d{3})+)\s*(?:TL|₺|lira)", re.IGNORECASE)
+_UNIT_PRICE_RE = re.compile(r"(birim|sepet|fiyat|ortalama|günlük|saatlik|kişi\s+başı|adet|oran|kur\b|kdv)", re.IGNORECASE)
 _BLANK = "[................]"
 _IDENTITY_RE = re.compile(r"(kimlik|tc\b|t\.c|adres|iban|ada\b|parsel|plaka|imza|tarih|telefon|e-?posta|mahalle|sokak|no:|numara|vergi)", re.IGNORECASE)
 
@@ -39,7 +41,7 @@ def _implausible_amounts(spec: dict[str, Any]) -> list[str]:
         if b.get("type") != "table":
             continue
         for ci in range(len(b["headers"])):
-            cells = [(r[ci], _amount(r[ci])) for r in b["rows"] if ci < len(r)]
+            cells = [(r[ci], None if _UNIT_PRICE_RE.search(r[0]) else _amount(r[ci])) for r in b["rows"] if ci < len(r)]  # unit prices are small by nature
             values = [v for _, v in cells if v is not None]
             if len(values) >= 3 and max(values) >= 10000:
                 out += [f"{c.strip()} ({b['rows'][i][0][:30]})" for i, (c, v) in enumerate(cells) if v is not None and v < max(values) / 500]
@@ -64,6 +66,12 @@ def _fabrication_issues(spec: dict[str, Any], request: str, texts: list[str]) ->
     if brands:
         penalty += 12
         issues.append(f"kullanıcının vermediği marka/şirket adı uydurulmuş ({', '.join(sorted(brands)[:2])}); genel ad kullan (ör. 'Kahve Dükkanı')")
+    given = {m.group(1) for m in _GIVEN_AMOUNT_RE.finditer(request)}
+    body = " ".join(texts)
+    absent = sorted(a for a in given if a not in body and a.replace(".", " ") not in body)
+    if absent:
+        penalty += min(30, 15 * len(absent))
+        issues.append("kullanıcının verdiği tutar belgede geçmiyor: " + ", ".join(absent[:3]) + " TL (istekteki rakamı aynen yaz)")
     if layout := doc_tables.issues(spec):
         penalty += min(20, 8 * len(layout))
         issues += layout
@@ -78,7 +86,7 @@ def score_document(spec: dict[str, Any], request: str, pages: int = 0, rendered_
     if blanks:
         score -= min(45, 9 * len(blanks))
         issues.append(f"{len(blanks)} yerde sayı/bilgi boş bırakılmış ([....]); bunlar hesaplanmalı ya da varsayımla doldurulmalı")
-    leaked = sorted({m.group(0) for t in texts for m in re.finditer(r"%?[a-z]{3,}_[a-z_]{2,}", t)})
+    leaked = sorted({m.group(0) for t in texts for m in re.finditer(r"%?[a-z]{3,}_[a-z_]{2,}", re.sub(r"https?://\S+", " ", t))})
     if leaked:
         score -= 15
         issues.append(f"metne kod değişken adı sızmış ({', '.join(leaked[:3])}); gerçek değerini yaz")
