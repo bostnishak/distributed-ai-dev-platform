@@ -7,11 +7,11 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 
 | Sürüm | canlı | test | kısmi | yok | dışarıda | teknik engel | Toplam |
 |---|---|---|---|---|---|---|---|
-| v1 | 18 | 13 | 1 | 0 | 0 | 0 | 32 |
+| v1 | 19 | 13 | 0 | 0 | 0 | 0 | 32 |
 | v2 | 14 | 21 | 6 | 0 | 2 | 1 | 44 |
 | v3 | 17 | 18 | 8 | 0 | 5 | 2 | 50 |
 | v4 | 18 | 12 | 3 | 0 | 0 | 0 | 33 |
-| **Hepsi** | 67 | 64 | 18 | 0 | 7 | 3 | 159 |
+| **Hepsi** | 68 | 64 | 17 | 0 | 7 | 3 | 159 |
 
 ## v1
 
@@ -46,7 +46,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 4 Bellek | Yıkıcı olmayan yineleme | canlı | revise_chat, tier0_edit |
 | 5 IDE | Yalıtılmış çalışma alanı, yol kaçışı koruması | test | workspace_builder_ops |
 | 5 IDE | Dosya gezgini, editör, diff, ZIP | canlı | diff artık bir önceki sürümle |
-| 5 IDE | Korumalı önizleme ve hata köprüsü | kısmi | ide_error_bridge yalnız Node ile denendi |
+| 5 IDE | Korumalı önizleme ve hata köprüsü | canlı | gerçek Chromium'da denendi; satır numarası düzeltildi |
 | 5 IDE | API test konsolu sekmesi | canlı | workspace_inspect.py; gerçek Chromium'da denendi |
 | 6 Teslim | Uçtan uca testler ve çalışma kılavuzu | canlı | scripts/e2e_stress.py |
 

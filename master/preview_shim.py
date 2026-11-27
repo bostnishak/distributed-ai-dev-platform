@@ -17,6 +17,7 @@ _HEAD_RE = re.compile(r"<head\b[^>]*>", re.IGNORECASE)
 def with_storage(page: Path) -> str:
     """The page's HTML with the stand-in as its first script."""
     html = page.read_text(encoding="utf-8", errors="replace")
-    tag = f"<script>{load_prompt('preview_storage.js.txt')}</script>"
+    script = load_prompt("preview_storage.js.txt")
+    tag = "<script>" + script.replace("__ADDED_LINES__", str(script.count("\n"))) + "</script>"  # so reported lines are those of the user's file
     head = _HEAD_RE.search(html)
     return html[: head.end()] + tag + html[head.end() :] if head else tag + html

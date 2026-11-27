@@ -29,7 +29,7 @@ v1	4 Bellek	Uzun süreli tercih belleği	T	memory_engine
 v1	4 Bellek	Yıkıcı olmayan yineleme	C	revise_chat, tier0_edit
 v1	5 IDE	Yalıtılmış çalışma alanı, yol kaçışı koruması	T	workspace_builder_ops
 v1	5 IDE	Dosya gezgini, editör, diff, ZIP	C	diff artık bir önceki sürümle
-v1	5 IDE	Korumalı önizleme ve hata köprüsü	K	ide_error_bridge yalnız Node ile denendi
+v1	5 IDE	Korumalı önizleme ve hata köprüsü	C	gerçek Chromium'da denendi; satır numarası düzeltildi
 v1	5 IDE	API test konsolu sekmesi	C	workspace_inspect.py; gerçek Chromium'da denendi
 v1	6 Teslim	Uçtan uca testler ve çalışma kılavuzu	C	scripts/e2e_stress.py
 v2	2.1	Sabit önek önce istem düzeni	K	bazı istemlerde

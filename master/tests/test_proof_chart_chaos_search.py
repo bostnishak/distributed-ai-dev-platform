@@ -82,3 +82,29 @@ def test_diagram_exports_share_the_same_structure():
     out = flowchart_studio.exports(flow)
     assert out["mmd"].startswith("flowchart TD") and "-->|Evet| n3" in out["mmd"] and '"Stok  var  mı?"' in out["mmd"]
     assert 'n2 -> n3 [label="Evet"];' in out["dot"] and out["puml"].startswith("@startuml") and "n2 --> n3 : Evet" in out["puml"]
+
+
+def test_preview_errors_report_the_line_of_the_users_file(tmp_path):
+    pytest.importorskip("playwright")
+    from playwright.sync_api import Error as PlaywrightError
+    from playwright.sync_api import sync_playwright
+
+    import preview_shim
+
+    source = tmp_path / "index.html"
+    source.write_text("<!doctype html><html><head><title>a</title></head><body>\n<script>\n\nmissingThing();\n</script></body></html>", encoding="utf-8")
+    served = tmp_path / "served.html"
+    served.write_text(preview_shim.with_storage(source), encoding="utf-8")
+    holder = tmp_path / "holder.html"
+    holder.write_text("<script>window.got=[];addEventListener('message',e=>got.push(e.data))</script><iframe src='served.html'></iframe>", encoding="utf-8")
+    try:
+        with sync_playwright() as driver:
+            browser = driver.chromium.launch()
+            page = browser.new_page()
+            page.goto(holder.as_uri())
+            page.wait_for_function("got.some(m => m.type === 'preview-error')", timeout=10000)
+            messages = page.evaluate("got.filter(m => m.type === 'preview-error').map(m => m.message)")
+            browser.close()
+    except PlaywrightError as exc:
+        pytest.skip(f"tarayıcı yok: {exc}")
+    assert "(satır 4)" in messages[0]

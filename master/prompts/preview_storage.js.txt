@@ -17,7 +17,11 @@
   if (window.parent === window) return;
   var send = function (type, message) { window.parent.postMessage({ type: type, message: String(message || '') }, '*'); };
   send('preview-ready');
-  window.addEventListener('error', function (e) { send('preview-error', e.message + (e.lineno ? ' (satır ' + e.lineno + ')' : '')); });
+  var added = __ADDED_LINES__;
+  window.addEventListener('error', function (e) {
+    var line = e.lineno && e.filename === location.href ? e.lineno - added : e.lineno;
+    send('preview-error', e.message + (line > 0 ? ' (satır ' + line + ')' : ''));
+  });
   window.addEventListener('unhandledrejection', function (e) { send('preview-error', e.reason && e.reason.message || e.reason); });
   var picking = false;
   var describe = function (el) {
