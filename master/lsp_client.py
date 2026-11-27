@@ -21,6 +21,8 @@ _log = logging.getLogger(__name__)
 _SKIP = {".history", "venv", ".venv", "__pycache__", "node_modules"}
 _ASK_RE = re.compile(r"^\s*(?P<a>[A-Za-z_]\w{1,60})\s+(?:nerede\s+kullanılıyor|nerelerde\s+kullanılıyor)\??\s*$|^\s*find\s+references\s+(?:of\s+)?(?P<b>[A-Za-z_]\w{1,60})\s*$", re.IGNORECASE)
 _TIMEOUT = 25.0
+_DEFINITION_RE = re.compile(r"^\s*(?P<a>[A-Za-z_]\w{1,60})\s+(?:nerede\s+tanımlı|tanımına\s+git)\??\s*$|^\s*go\s+to\s+definition\s+(?:of\s+)?(?P<b>[A-Za-z_]\w{1,60})\s*$", re.IGNORECASE)
+_HOVER_RE = re.compile(r"^\s*(?P<a>[A-Za-z_]\w{1,60})\s+(?:imzası|imza\s+bilgisi|tip\s+bilgisi)\??\s*$|^\s*hover\s+(?P<b>[A-Za-z_]\w{1,60})\s*$", re.IGNORECASE)
 
 
 class Session:
@@ -102,6 +104,68 @@ def references(root: Path, symbol: str) -> list[tuple[str, int, str]] | None:
             lines = target.read_text(encoding="utf-8", errors="replace").splitlines()
             out.append((target.relative_to(session.root).as_posix(), row + 1, lines[row].strip()[:90]))
         return sorted(set(out))
+
+
+def _usage(files: list[Path], symbol: str) -> tuple[Path, int, int] | None:
+    """A place that uses the name (not the line defining it): where "go to definition" starts from."""
+    word = re.compile(rf"\b{re.escape(symbol)}\b")
+    declares = re.compile(rf"^\s*(?:async\s+)?(?:def|class)\s+{re.escape(symbol)}\b|^{re.escape(symbol)}\s*=|^\s*(?:from|import)\s")
+    for path in files:
+        for number, line in enumerate(path.read_text(encoding="utf-8", errors="replace").splitlines()):
+            if not declares.match(line) and (match := word.search(line)):
+                return path, number, match.start()
+    return None
+
+
+def definition(root: Path, symbol: str) -> list[tuple[str, int, str]] | None:
+    """Where the server says a use of the name leads; None when the project does not mention it."""
+    with Session(root) as session:
+        at = _usage(session.files(), symbol) or _definition(session.files(), symbol)
+        if not at:
+            return None
+        path, line, column = at
+        result = session.request("textDocument/definition", {"textDocument": {"uri": path.as_uri()}, "position": {"line": line, "character": column}}) or []
+        by_uri = {_norm(p.as_uri()): p for p in session.files()}
+        out = []
+        for item in result if isinstance(result, list) else [result]:
+            if target := by_uri.get(_norm(item.get("uri", item.get("targetUri", "")))):
+                row = item.get("range", item.get("targetRange"))["start"]["line"]
+                out.append((target.relative_to(session.root).as_posix(), row + 1, target.read_text(encoding="utf-8", errors="replace").splitlines()[row].strip()[:90]))
+        return sorted(set(out))
+
+
+def hover(root: Path, symbol: str) -> str | None:
+    """The signature and docstring the server shows on the name; None when the project does not define it."""
+    with Session(root) as session:
+        found = _definition(session.files(), symbol)
+        if not found:
+            return None
+        path, line, column = found
+        result = session.request("textDocument/hover", {"textDocument": {"uri": path.as_uri()}, "position": {"line": line, "character": column}}) or {}
+        contents = result.get("contents", "")
+        parts = contents if isinstance(contents, list) else [contents]
+        return "\n".join(str(p.get("value", "")) if isinstance(p, dict) else str(p) for p in parts).strip()[:1500]
+
+
+def asked(prompt: str) -> tuple[str, str] | None:
+    """("definition"|"hover", name) for the two questions answered from the language server."""
+    for kind, pattern in (("definition", _DEFINITION_RE), ("hover", _HOVER_RE)):
+        if match := pattern.match(prompt):
+            return kind, match["a"] or match["b"]
+    return None
+
+
+def explain(root: Path, kind: str, symbol: str) -> str:
+    try:
+        found = definition(root, symbol) if kind == "definition" else hover(root, symbol)
+    except (OSError, TimeoutError, RuntimeError, subprocess.SubprocessError) as exc:
+        _log.warning("language server failed: %r", exc)
+        return "Dil sunucusu çalıştırılamadı."
+    if not found:
+        return f"Dil sunucusu `{symbol}` için {'tanım' if kind == 'definition' else 'bilgi'} bulamadı."
+    if kind == "hover":
+        return f"`{symbol}`:\n```\n{found}\n```"
+    return f"`{symbol}` şurada tanımlı:\n" + "\n".join(f"- `{name}:{row}` — `{source}`" for name, row, source in found)
 
 
 def asked_symbol(prompt: str) -> str:

@@ -923,3 +923,25 @@ def test_interactive_file_really_draws_with_the_network_cut(tmp_path, monkeypatc
         page.wait_for_selector(selector, state="attached", timeout=15000)
         browser.close()
     assert errors == [] and outside == [], (errors, outside)
+
+
+def test_definition_hover_and_conditional_breakpoint_come_from_the_real_servers(tmp_path):
+    import debug_probe
+    import workspace_commands
+    import workspace_docker
+
+    (tmp_path / "hesap.py").write_text('def indirim(tutar: float) -> float:\n    """Yüz liradan fazlasına indirim."""\n    sonuc = tutar\n    if tutar > 100:\n        sonuc = tutar - 10\n    return sonuc\n', encoding="utf-8")
+    (tmp_path / "ana.py").write_text("from hesap import indirim\n\nprint(indirim(5))\n", encoding="utf-8")
+    assert workspace_commands.parse("indirim nerede tanımlı?") == ("inspect", "indirim nerede tanımlı?")
+    assert debug_probe.asked("koşullu kesme: ../x.py:1") is None
+    answer = workspace_commands._inspect(tmp_path, "indirim tanımına git")
+    assert "hesap.py:1" in answer, answer
+    info = workspace_commands._inspect(tmp_path, "indirim imzası")
+    assert "tutar: float" in info and "indirim" in info, info
+    if not workspace_docker.available():
+        pytest.skip("Docker kapalı")
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests" / "test_hesap.py").write_text("from hesap import indirim\n\n\ndef test_hepsi():\n    for tutar in (50, 150, 500):\n        indirim(tutar)\n", encoding="utf-8")
+    hit = workspace_commands._inspect(tmp_path, "koşullu kesme: hesap.py:6 tutar > 400")
+    assert "kesme noktasında durdu" in hit and "tutar=500" in hit and "sonuc=490" in hit, hit
+    assert "durulmadı" in workspace_commands._inspect(tmp_path, "koşullu kesme: hesap.py:6 tutar > 9000")

@@ -85,8 +85,8 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [x] Modül ayırma aracı (`X, Y fonksiyonlarını Z modülüne taşı`)
 - [x] İmza taşıma aracı (parametre ekleme / adını değiştirme)
 - [~] İki zaman çizgisini yan yana karşılaştırma — dal var, fark görünümü yok
-- [ ] LSP: tanıma git, üstüne gelince bilgi
-- [ ] DAP: koşullu kesme noktası
+- [x] LSP: tanıma git (`X nerede tanımlı`), imza bilgisi (`X imzası`)
+- [x] DAP: koşullu kesme noktası (`koşullu kesme: dosya.py:12 x > 5`; Docker içinde canlı geçti)
 - [ ] Savaş odasında Z3 ve mutasyon kanıtları
 - [ ] Pareto sınırı izleme
 - [ ] Ölçüm bozulunca geri alma ve olay raporu

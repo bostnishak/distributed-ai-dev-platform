@@ -6,12 +6,14 @@ import re
 from pathlib import Path
 
 import code_search
+import debug_probe
 import lsp_client
 import refactor
 import refactor_move
 import repo_map
 import revise_chat
 import workspace_inspect
+import workspace_requirements
 
 _UNDO_RE = re.compile(r"^\s*(?:(?:son\s+)?(?:değişikliği|degisikligi)?\s*geri\s+al|önceki\s+(?:sürüme|hale)\s+(?:dön|geri dön)|undo)\s*[.!]*\s*$", re.IGNORECASE)
 _LOAD_RE = re.compile(r"^\s*(?:(?:api\s+)?yük\s+testi(?:\s+yap)?|load\s+test)\s*[.!]*\s*$", re.IGNORECASE)
@@ -28,6 +30,8 @@ def parse(prompt: str) -> tuple[str, str] | None:
         return "search", topic
     if symbol := lsp_client.asked_symbol(prompt):
         return "references", symbol
+    if lsp_client.asked(prompt) or debug_probe.asked(prompt):
+        return "inspect", prompt
     if _LOAD_RE.match(prompt):
         return "load", ""
     if pair := refactor.parse(prompt):
@@ -55,6 +59,8 @@ def run(ws_id: str, command: str, value: str) -> str:
         return code_search.answer(ws_dir, value)
     if command == "references":
         return lsp_client.answer(ws_dir, value)
+    if command == "inspect":
+        return _inspect(ws_dir, value)
     if command == "load":
         return load_summary(workspace_inspect.run_load(ws_dir))
     if command == "rename":
@@ -75,6 +81,13 @@ def run(ws_id: str, command: str, value: str) -> str:
         return "Geri dönülecek bir önceki sürüm yok." if command == "undo" else f"{target} adında bir sürüm yok. Olanlar: {', '.join(sorted(v['version'] for v in versions))}"
     wb.restore_snapshot(ws_id, target)
     return f"Proje **{target}** sürümüne döndürüldü. Sonraki sürümler silinmedi; istersen onlara da dönebilirim."
+
+
+def _inspect(ws_dir: Path, prompt: str) -> str:
+    """Definition and signature from the language server, or a conditional breakpoint under the debugger."""
+    if asked := lsp_client.asked(prompt):
+        return lsp_client.explain(ws_dir, *asked)
+    return debug_probe.explain(ws_dir, workspace_requirements.declared_packages(ws_dir), debug_probe.asked(prompt))
 
 
 def _restructure(ws_dir: Path, meta: dict, prompt: str) -> str:
