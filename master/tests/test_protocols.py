@@ -23,10 +23,12 @@ def test_framed_messages_round_trip():
 def test_a_real_language_server_finds_every_use(tmp_path):
     pytest.importorskip("pylsp")
     pytest.importorskip("jedi")
-    (tmp_path / "store.py").write_text("def load_orders():\n    return []\n", encoding="utf-8")
+    tmp_path = tmp_path / "Okul projeleri şu klasör"
+    tmp_path.mkdir()
+    (tmp_path / "store.py").write_text("import json\n\n\ndef load_orders():\n    return []\n", encoding="utf-8")
     (tmp_path / "app.py").write_text("from store import load_orders\n\n\ndef main():\n    # load_orders in a comment is not a use\n    return load_orders()\n", encoding="utf-8")
     found = lsp_client.references(tmp_path, "load_orders")
-    assert [(name, row) for name, row, _ in found] == [("app.py", 1), ("app.py", 6), ("store.py", 1)]
+    assert [(name, row) for name, row, _ in found] == [("app.py", 1), ("app.py", 6), ("store.py", 4)]
     assert lsp_client.references(tmp_path, "missing_name") is None
 
 

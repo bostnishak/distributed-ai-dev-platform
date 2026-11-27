@@ -12,6 +12,7 @@ import subprocess
 import sys
 from pathlib import Path
 from typing import Any
+from urllib.parse import unquote
 
 import protocol_io
 
@@ -65,8 +66,12 @@ class Session:
         self.close()
 
 
+def _norm(uri: str) -> str:
+    return unquote(uri).casefold()
+
+
 def _definition(files: list[Path], symbol: str) -> tuple[Path, int, int] | None:
-    pattern = re.compile(rf"^(\s*(?:async\s+)?(?:def|class)\s+){re.escape(symbol)}\b|^(){re.escape(symbol)}\s*=", re.MULTILINE)
+    pattern = re.compile(rf"^([ \t]*(?:async[ \t]+)?(?:def|class)[ \t]+){re.escape(symbol)}\b|^(){re.escape(symbol)}[ \t]*=", re.MULTILINE)
     for path in files:
         text = path.read_text(encoding="utf-8", errors="replace")
         if match := pattern.search(text):
@@ -85,9 +90,9 @@ def references(root: Path, symbol: str) -> list[tuple[str, int, str]] | None:
         result = session.request("textDocument/references", {"textDocument": {"uri": path.as_uri()}, "position": {"line": line, "character": column},
                                                              "context": {"includeDeclaration": True}}) or []
         out = []
-        by_uri = {p.as_uri().lower(): p for p in session.files()}
+        by_uri = {_norm(p.as_uri()): p for p in session.files()}  # servers percent-encode paths differently
         for item in result:
-            target = by_uri.get(item["uri"].replace("%3A", ":").lower()) or by_uri.get(item["uri"].lower())
+            target = by_uri.get(_norm(item["uri"]))
             if target is None:
                 continue
             row = item["range"]["start"]["line"]
