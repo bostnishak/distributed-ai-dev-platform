@@ -91,7 +91,7 @@ def prune_faded(
 
     moment = now or datetime.now(UTC)
     removed = 0
-    pinned = memory_marks.pinned_ids()
+    pinned = memory_marks.pinned_ids(conn)
     for row in conn.execute(
         "SELECT id, confidence, updated_at FROM semantic_memories WHERE user_id = ?", (owner,)
     ).fetchall():

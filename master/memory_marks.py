@@ -70,9 +70,11 @@ def apply(facts: list[dict[str, Any]], user_id: str = "default", now: datetime |
     return sorted(kept, key=lambda f: not f["pinned"])
 
 
-def pinned_ids() -> set[int]:
-    with memory_engine._connect() as conn:
-        return {fact_id for fact_id, (pinned, _expires) in _marks(conn).items() if pinned}
+def pinned_ids(conn: sqlite3.Connection) -> set[int]:
+    """Read through the caller's own connection; a database that never had a mark has no table yet."""
+    if conn.execute("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'memory_marks'").fetchone() is None:
+        return set()
+    return {row[0] for row in conn.execute("SELECT fact_id FROM memory_marks WHERE pinned = 1")}
 
 
 def _listing(user_id: str) -> str:

@@ -46,10 +46,9 @@ async def apply(ws_dir: Path, request: str, done: dict[str, Any]) -> dict[str, A
         ("API zorlama testi", (api_fuzz.report, ws_dir), False),
         ("Bellek ve DOM sızıntısı", (leak_check.report, ws_dir), True),
     )
-    web = (ws_dir / "index.html").is_file()
-    wanted = [(name, call) for name, call, needs_page in steps if web or not needs_page]
-    found = await asyncio.gather(*(asyncio.to_thread(*call) for _name, call in wanted))  # read-only checks run at the same time
-    checks = dict(zip((name for name, _call in wanted), found, strict=True))
+    found = await asyncio.gather(*(asyncio.to_thread(*call) for _name, call, _page in steps))  # read-only checks run at the same time
+    web = (ws_dir / "index.html").is_file()  # without a page, the page checks are not listed as verified
+    checks = {name: result for (name, _call, needs_page), result in zip(steps, found, strict=True) if web or not needs_page}
     ledger.write(ws_dir, ledger.build(checks))
     for result in (*found, deployment):
         warnings += result if isinstance(result, list) else [result] if result else []

@@ -648,6 +648,9 @@ def test_memory_facts_can_be_pinned_expired_and_forgotten_for_good(tmp_path, mon
     assert memory_engine.build_memory_context_block("FastAPI", "u").splitlines()[1] == "- [preference] koyu tema"  # pinned beats relevance
     assert "(sabit)" in memory_marks.answer("hafızamı göster", "u")
     far = datetime.now(UTC) + timedelta(days=4000)
+    with memory_engine._connect() as conn:  # inside an open write, pins are still readable
+        conn.execute("UPDATE semantic_memories SET confidence = confidence WHERE user_id = 'u'")
+        assert len(memory_marks.pinned_ids(conn)) == 1
     with memory_engine._connect() as conn:
         assert memory_maintenance.prune_faded(conn, "u", far) == 2  # the pinned one never fades
     memory_engine.upsert_semantic_fact("preference", "b", "FastAPI", "u")
@@ -736,7 +739,7 @@ def test_code_is_moved_and_signatures_migrated_without_breaking_callers(tmp_path
     assert "alan(1, carpan=2)" in (tmp_path / "ana.py").read_text(encoding="utf-8") and "# alan: açıklama" in (tmp_path / "ana.py").read_text(encoding="utf-8")
     assert refactor_move.run(tmp_path, *refactor_move.parse("kare fonksiyonuna us parametresi ekle varsayılan 2")) == ["geometri.py"]
     assert "def kare(x, us=2):" in (tmp_path / "geometri.py").read_text(encoding="utf-8") and output() == before
-    for bad, why in (("sinirli fonksiyonunu yeni modülüne taşı", "döngüsel"), ("kare fonksiyonuna k parametresi ekle varsayılan open('x')", "")):
+    for bad, why in (("sinirli fonksiyonunu yeni modülüne taşı", "döngüsel"), ("kare fonksiyonuna k parametresi ekle varsayılan open('x')", "malformed")):
         with pytest.raises(ValueError, match=why):
             refactor_move.run(tmp_path, *refactor_move.parse(bad))
     assert not (tmp_path / "yeni.py").exists() and output() == before
@@ -756,12 +759,15 @@ def test_every_finish_check_runs_for_a_page_and_for_a_script(tmp_path, monkeypat
         monkeypatch.setattr(getattr(post_checks, module), "report", stub(module))
     monkeypatch.setattr(post_checks.deploy_kit, "apply", lambda *a: "")
     monkeypatch.setattr(post_checks.provenance, "write", lambda *a: None)
+    written = []
+    monkeypatch.setattr(post_checks.ledger, "write", lambda _ws, entry: written.append(entry))
     done = asyncio.run(post_checks.apply(tmp_path, "küçük bir betik", {"warnings": []}))
-    assert done["warnings"] == [] and len(ran) == 6, ran
+    assert done["warnings"] == [] and len(ran) == 10, ran
+    assert not any("yerleşim" in line or "sızıntı" in line for line in written[-1]["verified"]), written  # no page, no claim
     ran.clear()
     (tmp_path / "index.html").write_text("<p>a</p>", encoding="utf-8")
     asyncio.run(post_checks.apply(tmp_path, "sayfa", {}))
-    assert len(ran) == 10, ran
+    assert len(ran) == 10 and any("yerleşim" in line for line in written[-1]["verified"]), written
 
 
 def test_a_page_that_keeps_growing_is_reported_and_a_steady_one_is_not(tmp_path):
