@@ -28,9 +28,9 @@ v1	4 Bellek	Proje durumu, sürüm anlık görüntüsü	T	workspace_builder_ops
 v1	4 Bellek	Uzun süreli tercih belleği	T	memory_engine
 v1	4 Bellek	Yıkıcı olmayan yineleme	C	revise_chat, tier0_edit
 v1	5 IDE	Yalıtılmış çalışma alanı, yol kaçışı koruması	T	workspace_builder_ops
-v1	5 IDE	Dosya gezgini, editör, diff, ZIP	K	diff sekmesi sürümler arası değil
+v1	5 IDE	Dosya gezgini, editör, diff, ZIP	C	diff artık bir önceki sürümle
 v1	5 IDE	Korumalı önizleme ve hata köprüsü	K	ide_error_bridge yalnız Node ile denendi
-v1	5 IDE	API test konsolu sekmesi	Y
+v1	5 IDE	API test konsolu sekmesi	C	workspace_inspect.py; gerçek Chromium'da denendi
 v1	6 Teslim	Uçtan uca testler ve çalışma kılavuzu	C	scripts/e2e_stress.py
 v2	2.1	Sabit önek önce istem düzeni	K	bazı istemlerde
 v2	2.1	keep_alive, num_ctx boyutlama	T	gateway/registry
@@ -73,7 +73,7 @@ v2	8.1	İzleme (OpenTelemetry) ve pano	K	telemetry_otel, run_trace; pano yok
 v2	8.2	25+ senaryoluk altın test takımı	K	6 + 7 senaryo
 v2	8.3	Sürüm kapısı ölçütleri	T	eval_stats (hatta bağlı değil)
 v2	9	Çalışırken duraklatma ve yönlendirme	Y
-v2	9	Kanıt kartı (doğrulama özeti)	K	sonuç mesajında özet var
+v2	9	Kanıt kartı (doğrulama özeti)	C	IDE 'Kanıt' çekmecesi
 v2	9	İki varyant yan yana	Y
 v2	9	Dürüst düşüş bildirimi	T	reply_labels
 v3	1.1	LAN çıkarım ağı ve zamanlayıcı	X	tek bilgisayar
@@ -118,10 +118,10 @@ v3	8	Performans profilleyici (SQL planı, N+1)	T	code_audit: N+1 ve SQLite sorgu
 v3	8	Tüm projede sembol yeniden adlandırma	C	refactor.py (Python), sohbetten
 v3	9.1	Olay kaydı ve zaman yolculuğu	Y
 v3	9.2	LSP ve DAP veri yolu	Y
-v3	10	Önizlemede tıklayıp düzenleme	Y
-v3	10	DAG savaş odası ve zaman kaydırıcı	Y
+v3	10	Önizlemede tıklayıp düzenleme	C	öğe seçici; gerçek Chromium'da denendi
+v3	10	DAG savaş odası ve zaman kaydırıcı	K	sürüm zaman çizelgesi var; canlı graf yok
 v3	10	Turnuva modu	K	media_lab_arena model puanlama
-v3	10	Köken ve bellek çekmeceleri	Y
+v3	10	Köken ve bellek çekmeceleri	K	kanıt çekmecesi var; bellek çekmecesi yok
 v3	10	Elle yapılan düzenlemeyi koruma	K	yama korur, geri al ve sürüme dön canlı; tercih sinyali toplanmıyor
 v3	11.1	Parametrik benchmark üretici	Y
 v3	11.2	İstatistiksel sürüm kapısı, SPRT	T	eval_stats
@@ -133,7 +133,7 @@ v4	2.1	Web araması ve temiz metin çıkarma	C	DuckDuckGo + trafilatura
 v4	2.2	Çok adımlı derin araştırma ve çelişki tespiti	C	research.py: yanıtsız kalanlar için ikinci tur
 v4	2.2	Alıntı doğrulama kapısı	C	research.py; çeviri hatasını yakalayamaz
 v4	2.3	Sürüme bağlı belge kasası, çevrimdışı mod	Y
-v4	3.1	Üç sesli tartışma kurulu	K	tool_executor (yalnız bazı sorular)
+v4	3.1	Üç sesli tartışma kurulu	C	tool_executor: 'konseyde tartış'; canlıda denendi
 v4	3.2	Tasarım kuralları ve şablon görünüm dedektörü	T	design_slop
 v4	3.2	OKLCH palet derleyici	Y
 v4	3.3	Kişisel beğeni belleği	Y

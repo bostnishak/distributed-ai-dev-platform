@@ -341,11 +341,11 @@ def start_workspace_live_server(id: str):
 
 
 @router.get("/workspaces/{id}/diff")
-async def get_workspace_file_diff(id: str, path: str = Query(...), base_version: str = Query("v1")):
-    """Return a unified line diff between base_version (default v1) and current file content."""
+async def get_workspace_file_diff(id: str, path: str = Query(...), base_version: str = Query("")):
+    """Unified diff against base_version; by default the version before the latest one."""
     import difflib
 
-    if not re.fullmatch(r"v\d+", base_version):
+    if base_version and not re.fullmatch(r"v\d+", base_version):
         raise HTTPException(status_code=400, detail="Geçersiz sürüm adı.")
     try:
         ws_dir = wb.safe_workspace_dir(id)
@@ -354,6 +354,9 @@ async def get_workspace_file_diff(id: str, path: str = Query(...), base_version:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     if not target.is_file():
         raise HTTPException(status_code=404, detail="Dosya bulunamadı.")
+    if not base_version:
+        versions = wb.list_snapshots(ws_dir)  # newest first
+        base_version = versions[1]["version"] if len(versions) > 1 else "v1"
 
     current_lines = target.read_text(encoding="utf-8", errors="replace").splitlines()
     safe_rel = target.relative_to(ws_dir.resolve()).as_posix()

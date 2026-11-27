@@ -7,11 +7,11 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 
 | Sürüm | canlı | test | kısmi | yok | dışarıda | teknik engel | Toplam |
 |---|---|---|---|---|---|---|---|
-| v1 | 15 | 13 | 3 | 1 | 0 | 0 | 32 |
-| v2 | 7 | 11 | 14 | 9 | 2 | 1 | 44 |
-| v3 | 6 | 11 | 8 | 18 | 5 | 2 | 50 |
-| v4 | 13 | 8 | 6 | 6 | 0 | 0 | 33 |
-| **Hepsi** | 41 | 43 | 31 | 34 | 7 | 3 | 159 |
+| v1 | 17 | 13 | 2 | 0 | 0 | 0 | 32 |
+| v2 | 8 | 11 | 13 | 9 | 2 | 1 | 44 |
+| v3 | 7 | 11 | 10 | 15 | 5 | 2 | 50 |
+| v4 | 14 | 8 | 5 | 6 | 0 | 0 | 33 |
+| **Hepsi** | 46 | 43 | 30 | 30 | 7 | 3 | 159 |
 
 ## v1
 
@@ -45,9 +45,9 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 4 Bellek | Uzun süreli tercih belleği | test | memory_engine |
 | 4 Bellek | Yıkıcı olmayan yineleme | canlı | revise_chat, tier0_edit |
 | 5 IDE | Yalıtılmış çalışma alanı, yol kaçışı koruması | test | workspace_builder_ops |
-| 5 IDE | Dosya gezgini, editör, diff, ZIP | kısmi | diff sekmesi sürümler arası değil |
+| 5 IDE | Dosya gezgini, editör, diff, ZIP | canlı | diff artık bir önceki sürümle |
 | 5 IDE | Korumalı önizleme ve hata köprüsü | kısmi | ide_error_bridge yalnız Node ile denendi |
-| 5 IDE | API test konsolu sekmesi | yok |  |
+| 5 IDE | API test konsolu sekmesi | canlı | workspace_inspect.py; gerçek Chromium'da denendi |
 | 6 Teslim | Uçtan uca testler ve çalışma kılavuzu | canlı | scripts/e2e_stress.py |
 
 ## v2
@@ -95,7 +95,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 8.2 | 25+ senaryoluk altın test takımı | kısmi | 6 + 7 senaryo |
 | 8.3 | Sürüm kapısı ölçütleri | test | eval_stats (hatta bağlı değil) |
 | 9 | Çalışırken duraklatma ve yönlendirme | yok |  |
-| 9 | Kanıt kartı (doğrulama özeti) | kısmi | sonuç mesajında özet var |
+| 9 | Kanıt kartı (doğrulama özeti) | canlı | IDE 'Kanıt' çekmecesi |
 | 9 | İki varyant yan yana | yok |  |
 | 9 | Dürüst düşüş bildirimi | test | reply_labels |
 
@@ -145,10 +145,10 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 8 | Tüm projede sembol yeniden adlandırma | canlı | refactor.py (Python), sohbetten |
 | 9.1 | Olay kaydı ve zaman yolculuğu | yok |  |
 | 9.2 | LSP ve DAP veri yolu | yok |  |
-| 10 | Önizlemede tıklayıp düzenleme | yok |  |
-| 10 | DAG savaş odası ve zaman kaydırıcı | yok |  |
+| 10 | Önizlemede tıklayıp düzenleme | canlı | öğe seçici; gerçek Chromium'da denendi |
+| 10 | DAG savaş odası ve zaman kaydırıcı | kısmi | sürüm zaman çizelgesi var; canlı graf yok |
 | 10 | Turnuva modu | kısmi | media_lab_arena model puanlama |
-| 10 | Köken ve bellek çekmeceleri | yok |  |
+| 10 | Köken ve bellek çekmeceleri | kısmi | kanıt çekmecesi var; bellek çekmecesi yok |
 | 10 | Elle yapılan düzenlemeyi koruma | kısmi | yama korur, geri al ve sürüme dön canlı; tercih sinyali toplanmıyor |
 | 11.1 | Parametrik benchmark üretici | yok |  |
 | 11.2 | İstatistiksel sürüm kapısı, SPRT | test | eval_stats |
@@ -165,7 +165,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 2.2 | Çok adımlı derin araştırma ve çelişki tespiti | canlı | research.py: yanıtsız kalanlar için ikinci tur |
 | 2.2 | Alıntı doğrulama kapısı | canlı | research.py; çeviri hatasını yakalayamaz |
 | 2.3 | Sürüme bağlı belge kasası, çevrimdışı mod | yok |  |
-| 3.1 | Üç sesli tartışma kurulu | kısmi | tool_executor (yalnız bazı sorular) |
+| 3.1 | Üç sesli tartışma kurulu | canlı | tool_executor: 'konseyde tartış'; canlıda denendi |
 | 3.2 | Tasarım kuralları ve şablon görünüm dedektörü | test | design_slop |
 | 3.2 | OKLCH palet derleyici | yok |  |
 | 3.3 | Kişisel beğeni belleği | yok |  |

@@ -66,6 +66,7 @@ import triggers
 import updater
 import user_api
 import ux_api
+import workspace_inspect
 from auth import orgs as auth_orgs
 from domains import engineering_bench as domains_eng
 from domains import kb_service as domains_kb
@@ -133,6 +134,7 @@ app.include_router(output_api.router)
 app.include_router(perf_api.router)
 app.include_router(cnc_api.router)
 app.include_router(studio_api.router)
+app.include_router(workspace_inspect.router)
 app.include_router(user_api.router)
 app.include_router(memory_api.router)
 app.include_router(memory_conflicts.router)

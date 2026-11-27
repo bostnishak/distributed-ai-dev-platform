@@ -1,4 +1,5 @@
 // UX-02 Modular Split: Inline IDE Workbench card controller (<= 400 lines).
+import { attachInspector } from './assistant_ide_inspect.js';
 import {
   buildCodePane,
   buildPreviewPane,
@@ -244,6 +245,10 @@ export function buildInlineWorkspaceCard(wsMeta, wsTree) {
   });
   card.append(iterBar, status.statusBar);
   attachErrorBridge(pp.iframe, iterBar, card);
+  attachInspector(card, {
+    wsId, iframe: pp.iframe, iterBar, toolbar: dom.editToggleBtn.parentElement, hasPreview: Boolean(wsMeta.has_web_preview),
+    openPreview: () => { if (st.viewMode === 'code') tb.btnModeSplit.click(); },
+  });
 
   const flatPaths = collectWorkspaceFiles(st.currentTree);
   ctrl.renderTree();
