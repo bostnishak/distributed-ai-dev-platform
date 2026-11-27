@@ -90,14 +90,14 @@ v3	2.3	Yerleşim geometrisi ve kontrast denetimi	T	visual_audit
 v3	2.3	Görsel model eleştirisi	C	vlm_critique; kusurların bir kısmını kaçırıyor
 v3	3.1	PRM eğitimi	X	eğitim
 v3	3.1	Bütçeli ağaç araması (MCTS)	Y
-v3	3.2	Boşta kendi kendine alıştırma (müfredat + kırmızı takım)	Y
+v3	3.2	Boşta kendi kendine alıştırma (müfredat + kırmızı takım)	K	SELF_EVAL_HOUR ile gece altın test; yeni görev üretmiyor
 v3	3.3	Çoklu LoRA, TIES/DARE birleştirme	X	eğitim
 v3	3.4	Bilgi damıtma	X	eğitim
 v3	4.1	Ajan başına git worktree ve AST birleştirme	Y
 v3	4.2	Depolar arası sözleşme ve geri alınabilir göç	K	migration_check.py: up/down çiftleri; depolar arası sözleşme yok
 v3	4.3	Sertleştirilmiş Dockerfile/Compose üretimi ve denetimi	T	deploy_kit.py: istenince Python web projesine; hadolint/trivy ile değil
 v3	4.3	Yük ve kaos testi	C	sohbetten 'yük testi yap' (ağsız kutuda); kaos senaryosu yok
-v3	4.3	Çalışma anı bekçisi	Y
+v3	4.3	Çalışma anı bekçisi	T	watchdog.py: duran proje sunucusunu olay kaydına yazar; otomatik düzeltme önermez
 v3	5.1	Ekran görüntüsünden koda	C	design_from_image.py: ölçülen renk/yerleşim + görsel model; canlıda yerleşim %87, renk %97
 v3	5.2	Typst/WeasyPrint belge stüdyosu	K	PyMuPDF ile PDF; Typst yok
 v3	5.2	PDF sayfa sayfa görsel kanıtlama	T	office_verify.proof_page: boş sayfa, taşma, çakışma, küçük punto

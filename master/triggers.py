@@ -14,6 +14,7 @@ import zipfile
 from datetime import datetime
 from pathlib import Path
 
+import httpx
 import psutil
 from pypdf.errors import PyPdfError
 
@@ -21,6 +22,7 @@ import config
 import extract
 import injection
 import table_stats
+import watchdog
 from process_utils import run_process
 
 _log = logging.getLogger(__name__)
@@ -46,6 +48,14 @@ def busy_reason() -> str:
     except (OSError, subprocess.SubprocessError):
         return ""
     return "GPU sıcak" if done.stdout.strip().isdigit() and int(done.stdout.strip()) > _HOT_C else ""
+
+
+def gpu_in_use() -> bool:
+    """True while a model is loaded, i.e. someone is (or was moments ago) using it."""
+    try:
+        return bool(httpx.get(f"{config.OLLAMA_URL}/api/ps", timeout=3).json().get("models"))
+    except (httpx.HTTPError, ValueError):
+        return True
 
 
 def describe(path: Path) -> str:
@@ -88,6 +98,7 @@ async def loop() -> None:
     while True:
         await asyncio.sleep(_INTERVAL_S)
         try:
+            await asyncio.to_thread(watchdog.tick, lambda: not busy_reason() and not gpu_in_use())
             if any(p.is_file() for p in root.iterdir()) and not await asyncio.to_thread(busy_reason):
                 for report in await asyncio.to_thread(run_once, root):
                     _log.info("inbox raporu: %s", report)

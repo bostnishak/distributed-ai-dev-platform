@@ -9,9 +9,9 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 |---|---|---|---|---|---|---|---|
 | v1 | 17 | 13 | 2 | 0 | 0 | 0 | 32 |
 | v2 | 9 | 14 | 15 | 3 | 2 | 1 | 44 |
-| v3 | 9 | 16 | 13 | 5 | 5 | 2 | 50 |
+| v3 | 9 | 17 | 14 | 3 | 5 | 2 | 50 |
 | v4 | 16 | 11 | 6 | 0 | 0 | 0 | 33 |
-| **Hepsi** | 51 | 54 | 36 | 8 | 7 | 3 | 159 |
+| **Hepsi** | 51 | 55 | 37 | 6 | 7 | 3 | 159 |
 
 ## v1
 
@@ -117,14 +117,14 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 2.3 | Görsel model eleştirisi | canlı | vlm_critique; kusurların bir kısmını kaçırıyor |
 | 3.1 | PRM eğitimi | dışarıda | eğitim |
 | 3.1 | Bütçeli ağaç araması (MCTS) | yok |  |
-| 3.2 | Boşta kendi kendine alıştırma (müfredat + kırmızı takım) | yok |  |
+| 3.2 | Boşta kendi kendine alıştırma (müfredat + kırmızı takım) | kısmi | SELF_EVAL_HOUR ile gece altın test; yeni görev üretmiyor |
 | 3.3 | Çoklu LoRA, TIES/DARE birleştirme | dışarıda | eğitim |
 | 3.4 | Bilgi damıtma | dışarıda | eğitim |
 | 4.1 | Ajan başına git worktree ve AST birleştirme | yok |  |
 | 4.2 | Depolar arası sözleşme ve geri alınabilir göç | kısmi | migration_check.py: up/down çiftleri; depolar arası sözleşme yok |
 | 4.3 | Sertleştirilmiş Dockerfile/Compose üretimi ve denetimi | test | deploy_kit.py: istenince Python web projesine; hadolint/trivy ile değil |
 | 4.3 | Yük ve kaos testi | canlı | sohbetten 'yük testi yap' (ağsız kutuda); kaos senaryosu yok |
-| 4.3 | Çalışma anı bekçisi | yok |  |
+| 4.3 | Çalışma anı bekçisi | test | watchdog.py: duran proje sunucusunu olay kaydına yazar; otomatik düzeltme önermez |
 | 5.1 | Ekran görüntüsünden koda | canlı | design_from_image.py: ölçülen renk/yerleşim + görsel model; canlıda yerleşim %87, renk %97 |
 | 5.2 | Typst/WeasyPrint belge stüdyosu | kısmi | PyMuPDF ile PDF; Typst yok |
 | 5.2 | PDF sayfa sayfa görsel kanıtlama | test | office_verify.proof_page: boş sayfa, taşma, çakışma, küçük punto |

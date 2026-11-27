@@ -53,3 +53,31 @@ def test_a_contained_process_dies_when_the_job_is_closed():
     assert handle is not None and proc.poll() is None
     isolation.release(handle)
     assert proc.wait(timeout=10) is not None
+
+
+def test_a_dead_project_server_is_recorded_once(tmp_path, monkeypatch):
+    import event_log
+    import watchdog
+
+    class Dead:
+        def poll(self):
+            return 3
+
+    monkeypatch.setattr(watchdog.ops, "_RUNNING_SERVERS", {"w": (9999, Dead())})
+    monkeypatch.setattr(watchdog.ops, "safe_workspace_dir", lambda _id: tmp_path)
+    assert watchdog.check_servers() == ["w"] and watchdog.check_servers() == []
+    assert event_log.read(tmp_path)[0]["detail"] == "çıkış kodu 3"
+
+
+def test_night_measurement_runs_once_a_day_only_when_idle(monkeypatch):
+    import time
+
+    import watchdog
+
+    monkeypatch.setitem(watchdog._state, "last_eval_day", "")
+    three = time.strptime("2026-11-27 03:10", "%Y-%m-%d %H:%M")
+    assert not watchdog.nightly_due(three, "", lambda: True)
+    assert not watchdog.nightly_due(three, "3", lambda: False)
+    assert watchdog.nightly_due(three, "3", lambda: True)
+    monkeypatch.setitem(watchdog._state, "last_eval_day", "2026-11-27")
+    assert not watchdog.nightly_due(three, "3", lambda: True)
