@@ -18,6 +18,7 @@ from pathlib import Path
 from pydantic import BaseModel, ValidationError
 
 import cheat_guard
+import decisions
 import gateway
 import patch_edit
 import repair_pairs
@@ -167,7 +168,7 @@ async def _propose(ws_dir: Path, log: str, regenerate: Regenerate, models: Model
         _log.warning("debugger hypotheses failed: %s", exc)
         return {}, ""
     for guess in grounded(audit, log, files)[:2]:
-        new = await _candidate(guess, f"{log}\n{cheat_guard.guardrails()}", files, regenerate, models.patcher)
+        new = await _candidate(guess, f"{log}\n{cheat_guard.guardrails()}\n{decisions.lessons()}", files, regenerate, models.patcher)
         if new and new != files[guess.file] and not weakens_tests(guess.file, files[guess.file], new, _literals(files)):
             return {guess.file: new}, f"{guess.file}: {guess.cause[:120]}"
     return {}, ""
@@ -243,6 +244,7 @@ async def repair(ws_dir: Path, run_tests: Callable[[], str], regenerate: Regener
         after = await asyncio.to_thread(run_tests)
         if not after:
             repair_pairs.record(first, originals, sources(ws_dir))
+            decisions.learned(ws_dir.name, "; ".join([*causes, cause]))
             return True, f"Testler başta başarısızdı; kök neden bulundu ve düzeltildi ({'; '.join([*causes, cause])})."
         if _headline(after) in seen:  # no progress: take this attempt back
             _write(ws_dir, {path: before[path] for path in changes})

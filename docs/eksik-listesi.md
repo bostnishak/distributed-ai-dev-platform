@@ -72,18 +72,18 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [ ] Diyagramda kesişim azaltma ve metin kırpılma denetimi
 - [ ] Etkileşimli grafik (Chart.js / ECharts)
 - [ ] Üretilen görselin isteme uyum puanı
-- [ ] Sohbetlerden mimari karar kaydı (ADR)
-- [ ] Genel mühendislik defteri
+- [x] Sohbetlerden mimari karar kaydı (`karar: ...`, `kararları göster`)
+- [x] Mühendislik defteri: bulunan kök nedenler kaydediliyor ve sonraki onarıma veriliyor (`defteri göster`)
 - [x] Bellek: sabitleme
 - [x] Bellek: süre sonu
 - [x] Bellek: kalıcı silme (`hafızamı göster`, `hafıza <no> sabitle / süre N gün / kalıcı sil`)
 - [~] Gizli etiketli verinin PDF, günlük ve eğitim verisine sızması — sır taraması var, etiket yayılımı yok
 - [x] Köken kaydı: model özeti, üretim ayarları, kanıt özetleri (teslim kaydında)
 - [x] Fonksiyonlar arası veri akışı, ölü kod, boş değer erişimi (`flow_analysis.py`; platformun kendi kodunda 2 gerçek açık buldu)
-- [ ] Önce/sonra ölçümlü performans iyileştirme
-- [ ] DOM ve bellek sızıntısı ölçümü
-- [ ] Modül ayırma aracı
-- [ ] İmza taşıma aracı
+- [x] Önce/sonra ölçümlü performans karşılaştırması (`.ai-os/performance.md`)
+- [x] DOM, dinleyici ve bellek sızıntısı ölçümü (canlı tarayıcıda sınandı)
+- [x] Modül ayırma aracı (`X, Y fonksiyonlarını Z modülüne taşı`)
+- [x] İmza taşıma aracı (parametre ekleme / adını değiştirme)
 - [~] İki zaman çizgisini yan yana karşılaştırma — dal var, fark görünümü yok
 - [ ] LSP: tanıma git, üstüne gelince bilgi
 - [ ] DAP: koşullu kesme noktası
@@ -144,19 +144,19 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 ### M01 — Windows dayanıklılığı (ana kısım tamam)
 
 - [x] Port ayırıcı, Windows Job Object, yetim süreç temizliği
-- [~] Her alt sürecin Job'a bağlanması — proje sunucusu ve LSP bağlı; node, Playwright, LibreOffice tek tek doğrulanacak
+- [x] Her kısa ömürlü alt süreç Job içinde; zaman aşımında torun süreçler de ölüyor (canlı sınandı)
 - [x] Atomik dosya yazımı, kilit yeniden deneme, uzun yol
 - [x] UTF-8, satır sonu, Türkçe harf güvenliği
 - [x] SQLite WAL, `busy_timeout`, `quick_check`, canlı yedek
-- [ ] Tek yazıcılı sıraya alınmış veritabanı yazımı
-- [~] Şema değişikliğinden önce yedek — yalnız açılışta alınıyor
+- [x] Tek yazıcılı sıra: aynı veritabanı dosyasına yazımlar platform içinde sıraya giriyor (16 iş parçacığı, 0 hata)
+- [x] Şema değişikliğinden önce yedek
 - [x] Ekran kartı bellek / ısı gözcüsü, bağlam küçültme, arka plan işini bekletme, pil modu
-- [~] Oyun / başka ağır kullanıcı algılama — bellek üzerinden dolaylı
+- [x] Başka ağır kullanıcı algılama: kartın boş belleği azalınca bağlam küçülüyor (oyunu adından değil, bellekten anlıyor)
 - [—] VRAM parçalanması: NVIDIA araçları bu bilgiyi vermiyor
 - [x] Disk temizliği (kuru çalıştırmalı)
-- [ ] Eski Docker katmanları ve Playwright profilleri temizliği
-- [ ] Sabitlenen kilometre taşlarını hiç silmeme
-- [~] Uyku / yeniden başlatma: veritabanı boşaltılıyor; çalışan iş grafiğinin kaydı doğrulanacak
+- [x] Platformun kendi eski Docker katmanları ve Playwright profilleri temizliği (`disk temizle uygula`)
+- [x] Kilometre taşları: proje sürümleri hiçbir temizlikte silinmiyor
+- [x] Uyku / yeniden başlatma: veritabanı boşaltılıyor; üretim her dosyadan sonra kayıt noktası yazıyor (`devam et`)
 - [—] Gerçek uyku-uyanma ve gerçek 82 °C denemesi benim tetikleyemeyeceğim bir şey
 
 ### M02 — Hile engeli (ana kısım tamam)

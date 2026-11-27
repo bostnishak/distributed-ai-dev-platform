@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 import config
+import db_health
 import db_tasks
 import dbconn
 import dbindexes
@@ -186,6 +187,8 @@ def init_db() -> None:
             conn.execute("INSERT INTO schema_version (version) VALUES (?)", (SCHEMA_VERSION,))
         else:
             version = row["version"]
+            if any(target > version for target in MIGRATIONS):
+                db_health.hot_backup(Path(config.DB_PATH), "gecis")  # a copy before the schema changes
             for target in sorted(MIGRATIONS):
                 if target > version:
                     for statement in MIGRATIONS[target]:

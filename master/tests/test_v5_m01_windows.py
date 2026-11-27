@@ -691,3 +691,180 @@ def test_random_actions_catch_an_api_whose_list_disagrees_with_what_was_done():
     assert good.problems == [] and alive and all(alive.values()), good.problems
     bad, _alive = state_property.exercise(server(True), resource)
     assert bad.problems and "uyuşmuyor" in bad.problems[0]
+
+
+def test_decisions_become_numbered_records_and_root_causes_fill_the_notebook(tmp_path, monkeypatch):
+    import config
+    import decisions
+
+    monkeypatch.setattr(config, "data_dir", lambda: tmp_path / "data")
+    project = tmp_path / "p"
+    project.mkdir()
+    assert "001-veritabani-olarak-sqlite" in decisions.answer("karar: veritabanı olarak SQLite kullanacağız çünkü tek bilgisayarda çalışacak", project)
+    text = next((project / "docs" / "adr").glob("001-*.md")).read_text(encoding="utf-8")
+    assert "## Gerekçe\n\ntek bilgisayarda çalışacak" in text
+    assert decisions.note("Arayüzü sade tutmaya karar verdik. Şimdi listeyi ekle.", project).startswith("002-")
+    assert decisions.note("Arayüzü sade tutmaya karar verdik.", project).startswith("002-")  # not twice
+    assert decisions.note("Karar verdik mi?", project) == "" and decisions.answer("liste ekle", project) == ""
+    listing = decisions.answer("mimari kararları göster", project)
+    assert "ADR 001" in listing and "ADR 002" in listing
+    decisions.learned("p1", "indeks bir fazla başlatılmış")
+    decisions.learned("p2", "indeks bir fazla başlatılmış")
+    assert decisions.lessons().count("indeks") == 1 and "[p1]" in decisions.answer("defteri göster", None)
+
+
+def test_code_is_moved_and_signatures_migrated_without_breaking_callers(tmp_path):
+    import subprocess
+
+    import refactor_move
+    import workspace_commands
+
+    (tmp_path / "araclar.py").write_text("import math\n\nSINIR = 10\n\n\ndef alan(yaricap, oran=1):\n    return round(math.pi * yaricap ** 2 * oran, 2)\n\n\n"
+                                         "def kare(x):\n    return x * x\n\n\ndef sinirli(x):\n    return min(x, SINIR)\n", encoding="utf-8")
+    (tmp_path / "ana.py").write_text("from araclar import alan, kare\n\nprint(alan(1, oran=2), alan(2), kare(3))  # alan: açıklama\n", encoding="utf-8")
+
+    def output():
+        return subprocess.run([sys.executable, "ana.py"], cwd=tmp_path, capture_output=True, text=True, check=True).stdout
+
+    before = output()
+    assert workspace_commands.parse("alan ve kare fonksiyonlarını geometri modülüne taşı")[0] == "restructure"
+    assert refactor_move.run(tmp_path, *refactor_move.parse("alan ve kare fonksiyonlarını geometri modülüne taşı")) == ["geometri.py", "araclar.py"]
+    moved = (tmp_path / "geometri.py").read_text(encoding="utf-8")
+    assert moved.startswith("import math") and "def alan" in moved and "def alan" not in (tmp_path / "araclar.py").read_text(encoding="utf-8")
+    assert output() == before
+    assert refactor_move.run(tmp_path, *refactor_move.parse("alan fonksiyonunda oran parametresini carpan yap")) == ["ana.py", "geometri.py"]
+    assert "alan(1, carpan=2)" in (tmp_path / "ana.py").read_text(encoding="utf-8") and "# alan: açıklama" in (tmp_path / "ana.py").read_text(encoding="utf-8")
+    assert refactor_move.run(tmp_path, *refactor_move.parse("kare fonksiyonuna us parametresi ekle varsayılan 2")) == ["geometri.py"]
+    assert "def kare(x, us=2):" in (tmp_path / "geometri.py").read_text(encoding="utf-8") and output() == before
+    for bad, why in (("sinirli fonksiyonunu yeni modülüne taşı", "döngüsel"), ("kare fonksiyonuna k parametresi ekle varsayılan open('x')", "")):
+        with pytest.raises(ValueError, match=why):
+            refactor_move.run(tmp_path, *refactor_move.parse(bad))
+    assert not (tmp_path / "yeni.py").exists() and output() == before
+
+
+def test_every_finish_check_runs_for_a_page_and_for_a_script(tmp_path, monkeypatch):
+    import asyncio
+
+    import post_checks
+
+    ran = []
+
+    def stub(name):
+        return lambda *a, **k: ran.append(name) or ""
+
+    for module in ("security_scan", "flow_analysis", "visual_audit", "design_slop", "package_check", "code_audit", "migration_check", "ui_chaos", "api_fuzz", "leak_check"):
+        monkeypatch.setattr(getattr(post_checks, module), "report", stub(module))
+    monkeypatch.setattr(post_checks.deploy_kit, "apply", lambda *a: "")
+    monkeypatch.setattr(post_checks.provenance, "write", lambda *a: None)
+    done = asyncio.run(post_checks.apply(tmp_path, "küçük bir betik", {"warnings": []}))
+    assert done["warnings"] == [] and len(ran) == 6, ran
+    ran.clear()
+    (tmp_path / "index.html").write_text("<p>a</p>", encoding="utf-8")
+    asyncio.run(post_checks.apply(tmp_path, "sayfa", {}))
+    assert len(ran) == 10, ran
+
+
+def test_a_page_that_keeps_growing_is_reported_and_a_steady_one_is_not(tmp_path):
+    import leak_check
+
+    steady = "<button type='button' onclick=\"document.getElementById('n').textContent++\">say</button><p id='n'>0</p>"
+    leaking = ("<button type='button' id='b'>ekle</button><div id='l'></div><script>const keep = [];\n"
+               "document.getElementById('b').addEventListener('click', () => { for (let i = 0; i < 5; i++) { const d = document.createElement('div'); d.addEventListener('click', () => d); "
+               "document.getElementById('l').append(d); keep.push(d); } });</script>")
+    results = {}
+    for name, markup in (("sabit", steady), ("sizan", leaking)):
+        (tmp_path / f"{name}.html").write_text(markup, encoding="utf-8")
+        try:
+            results[name] = leak_check.measure((tmp_path / f"{name}.html").as_uri(), cycles=30)
+        except ValueError:
+            pytest.skip("tarayıcı yok")
+    assert results["sabit"].leaks() == [], results["sabit"]
+    found = " | ".join(results["sizan"].leaks())
+    assert "DOM öğesi" in found and "olay dinleyicisi" in found, found
+    assert "| DOM öğesi |" in leak_check.compare(results["sizan"], results["sabit"])
+
+
+def test_a_timed_out_command_takes_its_grandchildren_with_it(tmp_path):
+    import time
+
+    import psutil
+
+    import process_utils
+
+    if sys.platform != "win32":
+        pytest.skip("Windows iş nesnesi")
+    marker = tmp_path / "torun.pid"
+    child = (f"import subprocess, sys, time\np = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'])\n"
+             f"open({str(marker)!r}, 'w').write(str(p.pid))\ntime.sleep(60)\n")
+    began = time.time()
+    done = process_utils.run_process([sys.executable, "-c", child], timeout_s=4)
+    assert done.timed_out and time.time() - began < 20
+    pid = int(marker.read_text())
+    for _wait in range(50):
+        if not psutil.pid_exists(pid):
+            break
+        time.sleep(0.1)
+    assert not psutil.pid_exists(pid), "torun süreç hayatta kaldı"
+    assert process_utils.run_process([sys.executable, "-c", "print('İğne')"]).stdout.strip() == "İğne"
+
+
+def test_concurrent_writers_queue_instead_of_failing(tmp_path):
+    import threading
+
+    import dbconn
+
+    path = tmp_path / "y.db"
+    with dbconn.connection(path) as conn:
+        conn.execute("CREATE TABLE s (n INTEGER)")
+    errors = []
+
+    def work(worker):
+        try:
+            for i in range(25):
+                with dbconn.open_db(path) as conn:
+                    conn.execute("INSERT INTO s VALUES (?)", (worker * 100 + i,))
+                    conn.execute("UPDATE s SET n = n WHERE n = -1")
+        except Exception as exc:  # collected and asserted below
+            errors.append(exc)
+
+    threads = [threading.Thread(target=work, args=(w,)) for w in range(16)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(60)
+    with dbconn.connection(path) as conn:
+        assert errors == [] and conn.execute("SELECT COUNT(*) FROM s").fetchone()[0] == 400
+    assert dbconn.writer_lock(path).acquire(blocking=False), "yazma kilidi geri verilmemiş"
+    dbconn.writer_lock(path).release()
+    first = dbconn.open_db(path)
+    first.execute("INSERT INTO s VALUES (1)")
+    assert first.held
+    first.rollback()
+    assert not first.held
+    first.close()
+
+
+def test_schema_change_is_preceded_by_a_backup_and_only_own_images_are_pruned(tmp_path, monkeypatch):
+    import config
+    import db
+    import db_health
+    import disk_gc
+
+    monkeypatch.setattr(config, "DB_PATH", str(tmp_path / "platform.db"))
+    db.init_db()
+    with db.connect() as conn:
+        conn.execute("UPDATE schema_version SET version = 1")
+    copies = []
+    monkeypatch.setattr(db_health, "hot_backup", lambda path, label="manual": copies.append(label))
+    db.init_db()
+    assert copies == ["gecis"]
+    db.init_db()
+    assert copies == ["gecis"]
+    seen = []
+
+    class Done:
+        returncode, stdout = 0, "Total reclaimed space: 12MB\n"
+
+    monkeypatch.setattr(disk_gc.shutil, "which", lambda name: "docker")
+    assert disk_gc.prune_images(run=lambda args, **k: seen.append(args) or Done()) == "Total reclaimed space: 12MB"
+    assert seen == [["docker", "image", "prune", "--force", "--filter", "label=cm6453"]]

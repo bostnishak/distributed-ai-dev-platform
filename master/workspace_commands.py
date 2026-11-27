@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import re
+from pathlib import Path
 
 import code_search
 import lsp_client
 import refactor
+import refactor_move
 import repo_map
 import revise_chat
 import workspace_inspect
@@ -30,6 +32,8 @@ def parse(prompt: str) -> tuple[str, str] | None:
         return "load", ""
     if pair := refactor.parse(prompt):
         return "rename", " ".join(pair)
+    if refactor_move.parse(prompt):
+        return "restructure", prompt
     return None
 
 
@@ -63,12 +67,32 @@ def run(ws_id: str, command: str, value: str) -> str:
         wb.save_workspace_meta(ws_dir, meta)
         note = repo_map.dependents_note(ws_dir, changed)
         return f"`{old}` → `{new}` olarak model kullanılmadan yeniden adlandırıldı: {', '.join(changed)}." + (f"\n> {note}" if note.startswith("Kırık") else "")
+    if command == "restructure":
+        return _restructure(ws_dir, meta, value)
     versions = wb.list_snapshots(ws_dir)
     target = value or previous_version(versions, str(meta.get("active_version") or ""))
     if not target or target not in {v["version"] for v in versions}:
         return "Geri dönülecek bir önceki sürüm yok." if command == "undo" else f"{target} adında bir sürüm yok. Olanlar: {', '.join(sorted(v['version'] for v in versions))}"
     wb.restore_snapshot(ws_id, target)
     return f"Proje **{target}** sürümüne döndürüldü. Sonraki sürümler silinmedi; istersen onlara da dönebilirim."
+
+
+def _restructure(ws_dir: Path, meta: dict, prompt: str) -> str:
+    """Move code into a new module or migrate a signature, then save a version."""
+    import workspace_builder as wb
+
+    parsed = refactor_move.parse(prompt)
+    try:
+        changed = refactor_move.run(ws_dir, *parsed) if parsed else []
+    except ValueError as exc:
+        return f"Yapılmadı: {exc}"
+    if not changed:
+        return "Değişecek bir yer bulunamadı."
+    version = wb.create_snapshot(ws_dir, prompt[:60])
+    meta.update(versions=wb.list_snapshots(ws_dir), active_version=version["version"])
+    wb.save_workspace_meta(ws_dir, meta)
+    note = repo_map.dependents_note(ws_dir, changed)
+    return f"Model kullanılmadan yapıldı: {', '.join(changed)}." + (f"\n> {note}" if note.startswith("Kırık") else "")
 
 
 def load_summary(result: dict) -> str:
