@@ -22,6 +22,14 @@ SYSTEM = (
 W, H, DH, GX, GY = 200, 62, 84, 70, 56
 
 
+def missing_steps(prompt: str, flow: dict[str, Any]) -> list[str]:
+    """Clauses the user listed ("...: a, b, c") that no box of the drawing mentions."""
+    listed = prompt.split(":", 1)[1] if ":" in prompt else ""
+    labels = " ".join(s["label"] for s in flow["steps"]).casefold()
+    clauses = [c.strip() for c in re.split(r"[,;.→\n]|->", listed) if len(c.strip()) > 3]
+    return [c for c in clauses if not any(w[:4] in labels for w in re.findall(r"\w{4,}", c.casefold()))]
+
+
 def is_flow_request(prompt: str) -> bool:
     return bool(_FLOW_RE.search(prompt or "")) and not _NOT_FLOW_RE.search(prompt or "")
 

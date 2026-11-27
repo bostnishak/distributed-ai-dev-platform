@@ -235,7 +235,7 @@ export function buildPreviewPane(wsId) {
 
   const iframe = document.createElement('iframe');
   iframe.className = 'ide-preview-iframe';
-  iframe.setAttribute('sandbox', 'allow-scripts allow-forms');
+  iframe.setAttribute('sandbox', 'allow-scripts allow-forms allow-modals');
   refreshBtn.addEventListener('click', () => { iframe.src = `/api/studio/workspaces/${wsId}/preview/index.html?t=${Date.now()}`; });
   previewPane.append(browserBar, iframe);
   return { previewPane, iframe };

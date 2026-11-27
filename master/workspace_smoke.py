@@ -17,16 +17,18 @@ from collections.abc import AsyncIterator, Awaitable, Callable
 from pathlib import Path
 from typing import Any
 
+import spec_contract
 import workspace_behavior
 import workspace_docker
 import workspace_node
 import workspace_web
 from process_utils import run_process
+from prompt_loader import load_prompt
 from workspace_checks import extract_file, static_problem
 from workspace_contract import contract_problem
 from workspace_requirements import _PIP_NAMES, repair_project
 
-_PROBE = (Path(__file__).parent / "prompts" / "smoke_probe.py.txt").read_text(encoding="utf-8")
+_PROBE = "".join((Path(__file__).parent / "prompts" / name).read_text(encoding="utf-8") for name in ("api_probe.py.txt", "smoke_probe.py.txt"))
 _FRAME_RE = re.compile(r'File "([^"]+)", line (\d+)')
 _ENTRIES = ("run.py", "app.py", "main.py", "backend/app.py", "src/main.py", "app/main.py")
 _Regenerate = Callable[[str, str], Awaitable[str]]
@@ -40,7 +42,7 @@ def _sandbox_python() -> Path:
     return py
 
 
-_SAFE_PACKAGES = {n.lower() for n in _PIP_NAMES.values()} | {"requests", "numpy", "pandas", "matplotlib", "pytest", "httpx", "jinja2", "werkzeug", "gunicorn", "click"}
+_SAFE_PACKAGES = {n.lower() for n in _PIP_NAMES.values()} | {"greenlet", "aiosqlite", "sqlalchemy", "requests", "numpy", "pandas", "matplotlib", "pytest", "httpx", "jinja2", "werkzeug", "gunicorn", "click"}
 
 
 def _clean_env() -> dict[str, str]:
@@ -69,6 +71,8 @@ def _run_node_probe(ws_dir: Path) -> tuple[bool, str, list[str]]:
 
 def _run_probe(ws_dir: Path, entry: Path) -> tuple[bool, str, list[str]]:
     pkgs = _safe_requirements(ws_dir)
+    if any(p.lower().startswith("fastapi") for p in pkgs) and "httpx" not in pkgs:
+        pkgs.append("httpx")  # FastAPI's test client needs it
     if workspace_docker.available():
         return workspace_docker.run_probe(ws_dir, entry, _PROBE, pkgs)
     py = _sandbox_python()
@@ -121,6 +125,7 @@ def _repair_prompt(ws_dir: Path, target: Path, log: str) -> tuple[str, str]:
     rel = target.relative_to(ws_dir.resolve()).as_posix()
     body = target.read_text(encoding="utf-8", errors="replace")
     return rel, (
+        load_prompt("agent_qa.md") + "\n"
         f"`{rel}` dosyası çalıştırılırken şu hata oluştu:\n{log}\n\nMevcut içerik:\n{body}\n\n"
         "Hatayı düzelt ve dosyanın eksiksiz içeriğini döndür. Diğer dosyalarla uyumlu kal."
     )
@@ -128,7 +133,8 @@ def _repair_prompt(ws_dir: Path, target: Path, log: str) -> tuple[str, str]:
 
 def _apply_fix(target: Path, fixed: str, ws_dir: Path) -> None:
     """Write the repaired file; a reply with several files or stray prose is reduced to the one block that belongs to `target`."""
-    if body := extract_file(fixed, target.suffix):
+    old = target.read_text(encoding="utf-8", errors="replace").lower()
+    if (body := extract_file(fixed, target.suffix)) and ("</html>" not in old or "</html>" in body.lower()):  # never save a cut-off page
         target.write_text(body, encoding="utf-8")
     repair_project(ws_dir)
 
@@ -159,7 +165,7 @@ async def smoke_and_repair(ws_dir: Path, regenerate: _Regenerate, rounds: int = 
         passed, target, log = _diagnose(ws_dir, ok, log, routes)
         if passed and workspace_web.has_page(ws_dir) and workspace_docker.available():
             result = await asyncio.to_thread(workspace_web.probe, ws_dir)  # real page load + clicks in jsdom
-            if result and (found := workspace_web.problem(ws_dir, result)):
+            if result and (found := workspace_web.problem(ws_dir, result) or spec_contract.problem(ws_dir, request)):
                 passed, target, log = False, found[0], found[1]
             elif result and (scenario := await _scenario_problem(ws_dir, request, regenerate, scenarios)):
                 passed, target, log = False, scenario[0], scenario[1]

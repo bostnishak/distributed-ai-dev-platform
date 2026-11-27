@@ -32,6 +32,8 @@ def inject_theme(ws_dir: Path) -> bool:
         text = page.read_text(encoding="utf-8", errors="replace")
         if "theme.css" in text or "</head>" not in text.lower():
             continue
+        if "<style" in text.lower() and not _LINK_RE.search(text):  # a self-contained page keeps its own design (and stays one file)
+            continue
         flask_tpl = page.parent.name == "templates"
         target = (page.parent.parent / "static" / "css" / "theme.css") if flask_tpl else (page.parent / "css" / "theme.css")
         target.parent.mkdir(parents=True, exist_ok=True)

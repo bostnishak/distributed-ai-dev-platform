@@ -26,6 +26,7 @@ import httpx
 
 import config
 from prompt_loader import load_prompt
+from workspace_batches import apply_edit, fixed_plan, pure_source
 from workspace_batches import file_batches as _file_batches
 from workspace_batches import file_prompt as _file_prompt
 from workspace_builder_ops import (
@@ -100,7 +101,7 @@ _FILE_PATH_RE = re.compile(
     r"(?<![A-Za-z0-9_./:-])([A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\."
     r"(?:py|js|mjs|ts|tsx|jsx|html|css|scss|json|md|txt|yml|yaml|toml|sql|sh|cfg|ini|svg|xml|csv))\b"
 )
-_DIR_PATH_RE = re.compile(r"(?<![A-Za-z0-9_./:-])([A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*/)")
+_DIR_PATH_RE = re.compile(r"(?<![\w./:-])([A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*/)(?!\w)")  # "Duraklat/Devam" is not a folder
 _SPECIAL_FILES = ("Dockerfile", "Makefile", ".gitignore", ".env.example")
 _ITERATE_CONTENT_LIMIT = 24000
 _verify_workspace_files = verify_workspace_files
@@ -282,19 +283,23 @@ def _ensure_requested_tests(planned: list[dict[str, str]], prompt: str) -> None:
 def _prepare_workspace_from_plan(
     plan: dict[str, Any], prompt: str, model: str
 ) -> tuple[Path, dict[str, Any], list[dict[str, str]]]:
+    request = prompt.split("\n\n--- ARAŞTIRILMIŞ ÜRÜN TANIMI")[0]
+    fixed = fixed_plan(request)
+    if fixed:
+        plan = {**plan, **fixed}
     ws_name = str(plan.get("name") or "Yeni Proje").strip()
     ws_id = make_workspace_id(ws_name)
     ws_dir = safe_workspace_dir(ws_id)
     ws_dir.mkdir(parents=True, exist_ok=True)
 
     raw_files = plan.get("files") if isinstance(plan.get("files"), list) else []
-    planned_files = _filter_planned_files(raw_files, limit=16)
+    planned_files = fixed["files"] if fixed else _filter_planned_files(raw_files, limit=16)
     if not planned_files:
         fb = _fallback_architecture_plan(prompt, str(plan.get("project_type") or "auto"))
         planned_files = _filter_planned_files(fb["files"], limit=16)
-    _ensure_requested_tests(planned_files, prompt.split("\n\n--- ARAŞTIRILMIŞ ÜRÜN TANIMI")[0])
+    _ensure_requested_tests(planned_files, "" if fixed else request)
 
-    req_files, req_dirs = _extract_requested_paths(prompt)
+    req_files, req_dirs = ([], []) if fixed else _extract_requested_paths(prompt)
     existing_paths = {f["path"] for f in planned_files}
     for rf in req_files:
         if rf not in existing_paths:
@@ -424,7 +429,7 @@ def _write_workspace_file(ws_dir: Path, fpath: str, code: str) -> Path:
     if target.is_dir():
         target = target / "__init__.py"
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(code, encoding="utf-8")
+    target.write_text(pure_source(code), encoding="utf-8")
     return target
 
 
@@ -435,7 +440,8 @@ async def _generate_and_write_file(
     file_prompt: str,
 ) -> str:
     fpath = fspec["path"]
-    raw_code = await _ollama_generate(model=model, system=FILE_WRITER_SYSTEM_PROMPT, user=file_prompt, num_predict=4096, temperature=0.2)
+    model = await pick_coder_model(fspec["model"]) if fspec.get("model") else model  # missing model: best installed one
+    raw_code = await _ollama_generate(model=model, system=fspec.get("system") or FILE_WRITER_SYSTEM_PROMPT, user=file_prompt, num_predict=fspec.get("tokens", 4096), temperature=0.2)
     code = await _validate_and_fix_code(model, fpath, _strip_code_fences(raw_code))
     _write_workspace_file(ws_dir, fpath, code)
     return code
@@ -519,6 +525,8 @@ async def stream_generate_project(
 def _select_iterate_targets(
     ws_dir: Path, parsed: dict[str, Any] | None, existing_files: list[str], meta: dict[str, Any], instruction: str
 ) -> list[dict[str, str]]:
+    if existing_files == ["index.html"]:  # a one-page app: every change belongs in that page
+        return [{"path": "index.html", "purpose": instruction}]
     raw_targets = (parsed or {}).get("files") or []
     targets = _filter_planned_files(raw_targets, limit=6)
     req_files, req_dirs = _extract_requested_paths(instruction)
@@ -580,7 +588,7 @@ async def stream_iterate_project(
             + (f"Mevcut dosya içeriği:\n```\n{current_content[:_ITERATE_CONTENT_LIMIT]}\n```\n\n" if current_content else "")
             + "Bu dosyanın güncel ve EKSİKSİZ tüm içeriğini yaz."
         )
-        code = await _generate_and_write_file(ws_dir, model, fspec, edit_prompt)
+        code = await apply_edit(_generate_and_write_file, (ws_dir, model, edit_prompt), fspec, current_content)
         yield {"type": "file_done", "path": fpath, "size": len(code.encode("utf-8")), "index": idx, "total": len(targets)}
 
     repair_project(ws_dir)

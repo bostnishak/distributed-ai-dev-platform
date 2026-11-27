@@ -47,7 +47,7 @@ export function highlightCodeHtml(code, path) {
   if (ext === 'html' || ext === 'htm' || ext === 'svg') {
     html = html.replace(/(&lt;!--[\s\S]*?--&gt;)/g, (m) => stash('hl-comment', m));
     html = html.replace(/("[^"\n]*"|'[^'\n]*')/g, (m) => stash('hl-str', m));
-    html = html.replace(/(&lt;\/?[a-zA-Z0-9:-]+)/g, '<span class="hl-tag">$1</span>');
+    html = html.replace(/(&lt;\/?[a-zA-Z0-9:-]+)/g, (m) => stash('hl-tag', m)); // stashed so the attribute pass cannot rewrite our own class=
     html = html.replace(/\b([a-zA-Z-]+)(?=\x3d)/g, '<span class="hl-attr">$1</span>');
   } else {
     html = html.replace(/(\/\/[^\n]*|#[^\n]*|\/\*[\s\S]*?\*\/)/g, (m) => stash('hl-comment', m));

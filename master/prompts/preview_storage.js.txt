@@ -1,0 +1,24 @@
+(function () {
+  ['localStorage', 'sessionStorage'].forEach(function (name) {
+    try { window[name].getItem('probe'); return; } catch (e) { /* sandboxed preview: fall back to memory */ }
+    var data = {};
+    var store = {
+      getItem: function (k) { return Object.prototype.hasOwnProperty.call(data, k) ? data[k] : null; },
+      setItem: function (k, v) { data[k] = String(v); },
+      removeItem: function (k) { delete data[k]; },
+      clear: function () { data = {}; },
+      key: function (i) { return Object.keys(data)[i] || null; },
+      get length() { return Object.keys(data).length; }
+    };
+    Object.defineProperty(window, name, { configurable: true, value: store });
+  });
+})();
+(function () {
+  if (window.parent === window) return;
+  var send = function (type, message) { window.parent.postMessage({ type: type, message: String(message || '') }, '*'); };
+  send('preview-ready');
+  window.addEventListener('error', function (e) { send('preview-error', e.message + (e.lineno ? ' (satır ' + e.lineno + ')' : '')); });
+  window.addEventListener('unhandledrejection', function (e) { send('preview-error', e.reason && e.reason.message || e.reason); });
+  var original = console.error;
+  console.error = function () { send('preview-error', Array.prototype.join.call(arguments, ' ')); original.apply(console, arguments); };
+})();

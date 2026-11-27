@@ -13,12 +13,14 @@ from typing import Literal
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 import preview_server
+import preview_shim
 import process_utils
 import project_flow
+import run_trace
 import sandbox
 import workspace_builder as wb
 from access_control import require_local_or_admin
@@ -281,19 +283,24 @@ async def preview_workspace_file(id: str, filepath: str):
             raise HTTPException(status_code=404, detail="Önizleme dosyası bulunamadı.")
         target = found
     media, _ = mimetypes.guess_type(str(target))
-    return FileResponse(
-        target,
-        media_type=media or "application/octet-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "X-Content-Type-Options": "nosniff",
-            "Content-Security-Policy": (
-                "sandbox allow-scripts allow-forms allow-modals; "
-                "default-src 'self' 'unsafe-inline' data: blob:; "
-                "connect-src 'none'; frame-ancestors 'self'"
-            ),
-        },
-    )
+    headers = {
+        "Cache-Control": "no-cache",
+        "X-Content-Type-Options": "nosniff",
+        "Content-Security-Policy": (
+            "sandbox allow-scripts allow-forms allow-modals; "
+            "default-src 'self' 'unsafe-inline' data: blob:; "
+            "connect-src 'none'; frame-ancestors 'self'"
+        ),
+    }
+    if media == "text/html":
+        return HTMLResponse(preview_shim.with_storage(target), headers=headers)
+    return FileResponse(target, media_type=media or "application/octet-stream", headers=headers)
+
+
+@router.get("/runs/summary")
+async def runs_summary():
+    """Pass rate, median duration and slowest stages of the latest project runs."""
+    return run_trace.summary()
 
 
 @router.get("/workspaces/{id}/history")

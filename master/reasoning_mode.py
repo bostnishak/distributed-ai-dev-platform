@@ -6,6 +6,8 @@ import os
 import re
 from contextvars import ContextVar
 
+import z3_math
+
 THINK: ContextVar[bool] = ContextVar("think_before_answering", default=False)
 _RE = re.compile(
     r"(bulmaca|bilmece|puzzle|riddle|paradoks|paradox|kanıtla|ispat\w*|prove\b|olasıl\w*|probability|how\s+many\s+ways|kaç\s+farklı|kaç\s+yolla|"
@@ -147,6 +149,14 @@ async def solve(prompt: str) -> str:
     return await _vote(prompt, model, [d for d in (first, second) if d])
 
 
+_JUDGE_TALK_RE = re.compile(r"[^.\n]*\b(?:aday|candidate)(?:lar\w*|\s*\d|ın|s?\b)[^.\n]*(?:\.|$)", re.IGNORECASE | re.MULTILINE)
+
+
+def without_judge_talk(text: str) -> str:
+    """Drop sentences in which the judge talks about the drafts instead of answering."""
+    return re.sub(r"\n{3,}", "\n\n", _JUDGE_TALK_RE.sub("", text)).strip()
+
+
 async def _vote(prompt: str, model: str, known: list[str]) -> str:
     """Three independent drafts (two may already exist), then a judge pass that verifies them and writes the final answer."""
     import asyncio
@@ -161,7 +171,7 @@ async def _vote(prompt: str, model: str, known: list[str]) -> str:
         res = await gateway.default_client.chat([{"role": "system", "content": _JUDGE}, {"role": "user", "content": f"SORU:\n{prompt}\n\n{candidates}"}], model=model, profile="factual", num_predict=1100, timeout_s=300.0, feature="reasoning", max_retries=0)
     except (OSError, RuntimeError, ValueError, TypeError):
         return ""
-    return res.content.strip()
+    return without_judge_talk(res.content)
 
 
 async def fastpath(prompt: str, has_file: bool) -> object:
@@ -178,6 +188,8 @@ async def fastpath(prompt: str, has_file: bool) -> object:
     async def gen():
         yield sse({"type": "status", "message": "Zor bir mantık sorusu: derin akıl yürütme modeliyle çözülüyor, birkaç dakika sürebilir..."})
         answer = await solve(prompt)
+        if answer:
+            answer += await z3_math.confirm(prompt, answer)
         yield sse({"type": "token", "content": answer or "Bu soruyu güvenilir biçimde çözemedim; soruyu biraz daha ayrıntılı yazarsan tekrar deneyeyim."})
         yield sse({"type": "done", "model": "reasoning-verified", "task_type": "genel"})
 

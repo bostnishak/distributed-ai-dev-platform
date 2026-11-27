@@ -8,7 +8,7 @@ RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
 FROM python:3.12-slim AS runtime
 
 # Pull in fixed Debian security patches (Trivy SEC-19)
-RUN apt-get update && apt-get upgrade -y --no-install-recommends \n    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get upgrade -y --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --gid 10001 appgroup \
     && useradd --uid 10001 --gid appgroup --shell /usr/sbin/nologin --create-home appuser

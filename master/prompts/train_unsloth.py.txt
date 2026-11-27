@@ -1,0 +1,23 @@
+# Run on a cloud GPU (Colab or Kaggle, 16 GB): pip install unsloth trl datasets
+# Upload sft_verified.jsonl next to this file. Output: a Q4_K_M GGUF for "python scripts/ai_os.py import-gguf <file>".
+from datasets import load_dataset
+from trl import SFTConfig, SFTTrainer
+from unsloth import FastLanguageModel
+
+BASE = "unsloth/Qwen2.5-Coder-7B-Instruct-bnb-4bit"
+MIN_ROWS = 100
+
+rows = load_dataset("json", data_files="sft_verified.jsonl", split="train")
+if len(rows) < MIN_ROWS:
+    raise SystemExit(f"Only {len(rows)} verified examples; collect at least {MIN_ROWS} before training.")
+
+model, tokenizer = FastLanguageModel.from_pretrained(BASE, max_seq_length=8192, load_in_4bit=True)
+model = FastLanguageModel.get_peft_model(model, r=16, lora_alpha=16, use_gradient_checkpointing="unsloth")
+rows = rows.map(lambda r: {"text": tokenizer.apply_chat_template(r["messages"], tokenize=False)})
+split = rows.train_test_split(test_size=0.1, seed=7)
+SFTTrainer(
+    model=model, processing_class=tokenizer, train_dataset=split["train"], eval_dataset=split["test"],
+    args=SFTConfig(dataset_text_field="text", per_device_train_batch_size=1, gradient_accumulation_steps=4, num_train_epochs=2,
+                   learning_rate=2e-4, output_dir="out", logging_steps=10),
+).train()
+model.save_pretrained_gguf("platform-coder", tokenizer, quantization_method="q4_k_m")

@@ -13,9 +13,15 @@ from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import Any
 
+import agent_contracts
+import complexity_governor
 import json_repair
+import post_checks
+import skill_library
+import spec_contract
 import wiki_ground
 from prompt_loader import load_prompt
+from workspace_batches import wants_single_html
 from workspace_checks import extract_file
 
 _CODE_EXTS = (".js", ".html", ".py", ".css")
@@ -121,7 +127,7 @@ async def _coverage_pass(ws_dir: Path, info: dict[str, Any], gens: tuple[Any, An
 
     think, write = gens
     yield {"type": "status", "message": "Eksik özellik denetimi yapılıyor..."}
-    missing = await missing_features(ws_dir, info, think)
+    missing = await missing_features(ws_dir, info, think) if info.get("features") else []
     changed: list[str] = []
     if missing:
         yield {"type": "status", "message": f"{len(missing)} eksik özellik bulundu, tamamlanıyor..."}
@@ -131,13 +137,47 @@ async def _coverage_pass(ws_dir: Path, info: dict[str, Any], gens: tuple[Any, An
 
     ensure_theme_toggle(ws_dir, request)
     smoke_warning = ""  # the single browser/smoke run of the whole generation happens here, after the last file change
-    async for evt in smoke_and_repair(ws_dir, lambda _rel, ask: write(None, ask, 4096, 0.1), request=request):
+    fixer = think if wants_single_html(request) else write  # a whole page needs the stronger model and room for all of it
+    async for evt in smoke_and_repair(ws_dir, lambda _rel, ask: fixer(None, ask, min(14000, max(4096, len(ask) // 2)), 0.1), request=request):
         if evt["type"] == "status":
             yield evt
         else:
             smoke_warning = evt.get("warning", "")
     added = f"Eksik bulunan {len(missing)} özellik ikinci geçişte eklendi ({', '.join(changed) or 'dosya değişmedi'})." if missing else ""
     yield {"type": "coverage", "missing": len(missing), "warning": " ".join(w for w in (added, smoke_warning) if w)}
+
+
+async def _contract_events(prompt: str) -> AsyncIterator[dict[str, Any]]:
+    """Intake and Architect agents for detailed requests: status lines, then {"type": "contract"}."""
+    contract = await agent_contracts.intake(prompt)
+    yield {"type": "status", "message": f"Intake ajanı: {len(contract.colors)} renk, {len(contract.sizes)} ölçü, {len(contract.buttons)} buton davranışı çıkarıldı."}
+    for item in (await agent_contracts.review(prompt)).warnings:
+        yield {"type": "status", "message": f"Mimar uyarısı: {item.issue} Öneri: {item.alternative}"}
+    yield {"type": "contract", "contract": contract}
+
+
+async def _no_events() -> AsyncIterator[dict[str, Any]]:
+    return
+    yield {}
+
+
+async def _preparation_events(prompt: str, think: Any) -> AsyncIterator[dict[str, Any]]:
+    """Research, then Intake and Architect: status lines followed by {"type": "ready", info, contract, notes}."""
+    info: dict[str, Any] = dict(_EMPTY)
+    gear = complexity_governor.classify(prompt)
+    async for evt in _research_events(prompt, think) if gear.research else _no_events():
+        if evt["type"] == "info":
+            info = evt["info"]
+        else:
+            yield evt
+    info["request"] = prompt  # the user's own words: the scenario tests are written from them
+    contract = None
+    async for evt in _contract_events(prompt) if gear.agents else _no_events():
+        if evt["type"] == "contract":
+            contract = evt["contract"]
+        else:
+            yield evt
+    yield {"type": "ready", "info": info, "contract": contract, "notes": (agent_contracts.writer_notes(contract) if contract else "") + skill_library.reference(prompt)}
 
 
 async def stream_generate(prompt: str, project_type: str = "auto", model_override: str | None = None) -> AsyncIterator[dict[str, Any]]:
@@ -154,19 +194,21 @@ async def stream_generate(prompt: str, project_type: str = "auto", model_overrid
         return gen
 
     think, write = caller(reasoner), caller(model)
-    info: dict[str, Any] = dict(_EMPTY)
-    async for evt in _research_events(prompt, think):
-        if evt["type"] == "info":
-            info = evt["info"]
+    ready: dict[str, Any] = {}
+    async for evt in _preparation_events(prompt, think):
+        if evt["type"] == "ready":
+            ready = evt
         else:
             yield evt
-    info["request"] = prompt  # the user's own words: the scenario tests are written from them
+    info, contract, notes = ready["info"], ready["contract"], ready["notes"]
     done: dict[str, Any] = {}
-    async for evt in wb.stream_generate_project(prompt + brief_text(info), project_type=project_type, model_override=model_override, run_smoke=False):
+    async for evt in wb.stream_generate_project(prompt + brief_text(info) + notes, project_type=project_type, model_override=model_override, run_smoke=False):
         if evt["type"] == "done":
             done = evt
         else:
             yield evt
+    if done and contract:
+        (wb.safe_workspace_dir(done["workspace"]["id"]) / spec_contract.SPEC_FILE).write_text(contract.model_dump_json(indent=2), encoding="utf-8")
     if done:
         async for evt in _coverage_events(done, info, (think, write)):
             yield evt
@@ -174,6 +216,10 @@ async def stream_generate(prompt: str, project_type: str = "auto", model_overrid
 
 async def _research_events(prompt: str, think: Any) -> AsyncIterator[dict[str, Any]]:
     """Status lines of the research step, then {"type": "info", "info": ...} with the brief (empty when research failed)."""
+    if len(prompt) >= 700:  # a detailed description is the specification; invented "typical features" would only dilute it
+        yield {"type": "status", "message": "Tarif ayrıntılı: yazdığın şekilde uygulanacak."}
+        yield {"type": "info", "info": dict(_EMPTY)}
+        return
     yield {"type": "status", "message": "Konu araştırılıyor: ürünün gerçek dünyadaki işlevleri ve arayüzü çıkarılıyor..."}
     try:
         info = await research(prompt, think)
@@ -199,4 +245,4 @@ async def _coverage_events(done: dict[str, Any], info: dict[str, Any], callers: 
                 yield evt
     except (OSError, RuntimeError, ValueError, TypeError, KeyError) as exc:
         done = {**done, "warnings": [*done.get("warnings", []), f"Özellik denetimi tamamlanamadı: {exc}"]}
-    yield done
+    yield await post_checks.apply(ws_dir, str(info.get("request") or ""), done)

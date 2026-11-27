@@ -1,0 +1,52 @@
+def _sample(schema, defs):
+    if "$ref" in schema:
+        return _sample(defs.get(schema["$ref"].rsplit("/", 1)[-1], {}), defs)
+    if "anyOf" in schema:
+        return _sample(schema["anyOf"][0], defs)
+    if "enum" in schema:
+        return schema["enum"][0]
+    kind = schema.get("type")
+    if kind == "object" or "properties" in schema:
+        return {k: _sample(v, defs) for k, v in schema.get("properties", {}).items()}
+    if kind == "array":
+        return [_sample(schema.get("items", {}), defs)]
+    fmt = {"date": "2026-01-15", "date-time": "2026-01-15T10:00:00", "email": "a@b.co"}.get(schema.get("format"))
+    return fmt or {"integer": 1, "number": 1.5, "boolean": True}.get(kind, "deneme")
+
+
+def check_fastapi(app):
+    """Real requests against every path without parameters: valid body never 5xx, empty body of a required model is 4xx."""
+    from fastapi.testclient import TestClient
+
+    doc = app.openapi()
+    defs = doc.get("components", {}).get("schemas", {})
+    with TestClient(app, raise_server_exceptions=True) as client:
+        for path, ops in doc.get("paths", {}).items():
+            if "{" in path:
+                continue
+            for method, op in ops.items():
+                body = op.get("requestBody", {}).get("content", {}).get("application/json", {}).get("schema")
+                if method not in ("get", "post"):
+                    continue
+                params = {p["name"]: _sample(p.get("schema", {}), defs) for p in op.get("parameters", []) if p.get("required") and p.get("in") == "query"}
+                if body:
+                    required = defs.get(body.get("$ref", "").rsplit("/", 1)[-1], body).get("required")
+                    if required:
+                        bad = client.request(method.upper(), path, json={}, params=params)
+                        if not 400 <= bad.status_code < 500:
+                            raise RuntimeError("%s %s accepted an empty body (HTTP %s)" % (method.upper(), path, bad.status_code))
+                    got = client.request(method.upper(), path, json=_sample(body, defs), params=params)
+                else:
+                    got = client.request(method.upper(), path, params=params)
+                if got.status_code >= 500:
+                    raise RuntimeError("%s %s returned HTTP %s" % (method.upper(), path, got.status_code))
+                print("API %s %s -> %s" % (method.upper(), path, got.status_code))
+
+
+def check_flask_posts(app):
+    client = app.test_client()
+    for rule in app.url_map.iter_rules():
+        if "POST" in rule.methods and "<" not in rule.rule:
+            code = client.post(rule.rule, json={}).status_code
+            if code >= 500:
+                raise RuntimeError("POST %s with an empty body returned HTTP %s" % (rule.rule, code))

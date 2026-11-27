@@ -18,12 +18,17 @@ import assistant_cad_cnc as _cad
 import chat_guard
 import clarify as _clarify
 import config
+import followup
 import gcode_chat
 import image_chat as _img
+import office_verify
 import project_flow
 import reasoning_mode
 import reply_labels
+import revise_chat
+import run_trace
 import text_tools
+import untrusted
 from deck_flow import call_generator as _call_pptx_generator
 from document_chart import chart_series
 
@@ -141,7 +146,7 @@ async def _extract_upload_context(file: UploadFile | None, prompt: str) -> str:
     if not raw:
         return ""
     txt, _task, _note = _extract_document_bytes(file.filename, file.content_type or "", raw, prompt)
-    return txt.strip()
+    return untrusted.guard(txt.strip())
 
 
 async def _try_file_conversion_fastpath(
@@ -389,16 +394,15 @@ async def _try_media_doc_fastpath(
 
         return StreamingResponse(_chart_gen(), media_type=_MEDIA_SSE)
 
-    if mms.is_image_generation_request(prompt, has_file):
+    if mms.is_image_generation_request(prompt, has_file) or (not has_file and _img.is_image_revision(prompt, _img.parse_history(history))):
         return _img.build_image_gen_stream(prompt, history)
 
-    doc_fmt = df.detect_document_request(prompt, has_file)
+    full = prompt if has_file else followup.merged_request(prompt, history)
+    doc_fmt = df.detect_document_request(prompt, has_file) or df.detect_document_request(full, has_file)
     if doc_fmt:
-        extracted_ctx = await _extract_upload_context(file, prompt) if has_file else ""
-        return _build_doc_gen_stream(prompt, doc_fmt, context_text=extracted_ctx)
-    if not has_file and _img.is_image_revision(prompt, _img.parse_history(history)):
-        return _img.build_image_gen_stream(prompt, history)
-    return None
+        extracted_ctx = await _extract_upload_context(file, prompt) if has_file else followup.last_answer(prompt, history)
+        return _build_doc_gen_stream(full, doc_fmt, context_text=extracted_ctx)
+    return _img.build_image_gen_stream(full, history) if full != prompt and mms.is_image_generation_request(full, has_file) else None
 
 
 def _build_doc_gen_stream(prompt: str, doc_fmt: str, context_text: str = "") -> StreamingResponse:
@@ -406,7 +410,7 @@ def _build_doc_gen_stream(prompt: str, doc_fmt: str, context_text: str = "") -> 
 
     async def _gen():
         try:
-            res = await df.generate_document_deliverable(prompt, doc_fmt, context_text=context_text)
+            res = await office_verify.verified(df.generate_document_deliverable(prompt, doc_fmt, context_text=context_text), doc_fmt)
             lb = reply_labels.labels(prompt)
             md = [
                 f"## {res['title']} ({doc_fmt.upper()} {lb['file_ready']})", res.get("summary") or "", "",
@@ -485,11 +489,12 @@ def _flatten_tree_paths(nodes: Any, out: list[str], depth: int = 0) -> None:
             out.append(f"{'  ' * depth}- `{p}`")
 
 
-def _format_project_summary_links(ws_meta: dict[str, Any], ws_tree: Any, prompt: str) -> str:
+def _format_project_summary_links(ws_meta: dict[str, Any], ws_tree: Any, prompt: str, failed: str = "") -> str:
     ws_id = ws_meta["id"]
     lines = [
         "",
-        f"### Proje Hazır: **{ws_meta.get('name', ws_id)}**",
+        f"### {'Proje oluşturuldu ama TESTİ GEÇEMEDİ' if failed else 'Proje Hazır'}: **{ws_meta.get('name', ws_id)}**",
+        *([f"> {failed}", "> Sohbete hatayı yazarak düzelttirebilirsin."] if failed else []),
         f"- **ZIP İndirme:** [Projeyi İndir (.ZIP)](/api/studio/workspaces/{ws_id}/download.zip)",
     ]
     if ws_meta.get("has_web_preview"):
@@ -505,19 +510,28 @@ def _format_project_summary_links(ws_meta: dict[str, Any], ws_tree: Any, prompt:
     return "\n".join(lines) + "\n"
 
 
-def _try_project_build_fastpath(prompt: str, file: UploadFile | None, is_prompt_conv: bool) -> StreamingResponse | None:
+def _verdict(evt: dict[str, Any]) -> tuple[str, list[str]]:
+    """(why the run test failed or "", extra chat notes) from the warnings of a finished generation."""
+    warnings = [str(w) for w in evt.get("warnings") or []]
+    failed = next((w[w.index("Otomatik çalıştırma"):] for w in warnings if "Otomatik çalıştırma testi hata" in w), "")
+    return failed, [f"\n> {w}\n" for w in warnings if w.startswith(("Güvenlik taraması", "Görsel denetim", "Tasarım notu", "Görsel model"))]
+
+
+def _try_project_build_fastpath(prompt: str, file: UploadFile | None, history: str, is_prompt_conv: bool) -> StreamingResponse | None:
     if is_prompt_conv or not _cad.is_project_build_request(prompt, file):
         return None
     import workspace_builder as wb
 
+    prompt = followup.merged_request(prompt, history)
     detected_type, wants_exe = _cad.detect_project_type(prompt)
 
     async def _gen():
         ws_meta: dict[str, Any] | None = None
         ws_tree: Any = None
+        failed = ""
         used_model = config.STUDIO_CODER_MODEL
         try:
-            async for evt in project_flow.stream_generate(prompt.strip(), project_type=detected_type):
+            async for evt in run_trace.traced(project_flow.stream_generate(prompt.strip(), project_type=detected_type), prompt):
                 if (msg := _format_project_evt(evt)):
                     yield sse_event({"type": "token", "content": msg})
                 if evt.get("type") == "plan":
@@ -525,12 +539,14 @@ def _try_project_build_fastpath(prompt: str, file: UploadFile | None, is_prompt_
                     used_model = (ws_meta or {}).get("model") or used_model
                 elif evt.get("type") == "done":
                     ws_meta, ws_tree = evt["workspace"], evt["tree"]
+                    failed, notes = _verdict(evt)
+                    yield sse_event({"type": "token", "content": "".join(notes)})
             if ws_meta:
                 ws_meta, exe_tree, exe_notes = await _maybe_build_project_exe(wb, ws_meta, wants_exe)
                 for note in exe_notes:
                     yield sse_event({"type": "token", "content": note})
                 ws_evt = _attach_workspace_flags(wb, ws_meta, exe_tree or ws_tree)
-                yield sse_event({"type": "token", "content": _format_project_summary_links(ws_evt["workspace"], ws_evt["tree"], prompt)})
+                yield sse_event({"type": "token", "content": _format_project_summary_links(ws_evt["workspace"], ws_evt["tree"], prompt, failed)})
                 yield sse_event(ws_evt)
             yield sse_event({"type": "done", "model": used_model, "task_type": "proje"})
         except (httpx.HTTPError, subprocess.SubprocessError, OSError, ValueError, TypeError, KeyError, RuntimeError, ImportError) as exc:
@@ -553,7 +569,7 @@ async def dispatch_chat_fastpath(
 ) -> StreamingResponse | None:
     """Try deterministic/tool SSE fast paths before falling back to general LLM chat."""
     has_file = bool(file is not None and file.filename)
-    if (early := _try_guard_fastpaths(prompt, has_file)) is not None:
+    if (early := _try_guard_fastpaths(prompt, has_file) or revise_chat.fastpath(prompt, history, has_file)) is not None:
         return early
     if (res := _try_abstain_fastpath(prompt, history, has_file)) is not None:
         return res
@@ -561,13 +577,14 @@ async def dispatch_chat_fastpath(
         return single_token_stream(question, "clarify-policy", "clarify")
     if _cad.is_3d_cad_request(file):
         return single_token_stream(await _cad.run_3d_cad_cam_from_chat(file, prompt), "cnc-ballooner", "cad3d")  # type: ignore[arg-type]
+    full = prompt if has_file or is_prompt_conv else followup.merged_request(prompt, history)
     for maybe in (
-        await gcode_chat.fastpath(prompt, has_file),
+        await gcode_chat.fastpath(full, has_file),
         await reasoning_mode.fastpath(prompt, has_file),
         await _try_file_conversion_fastpath(prompt, file, has_file, is_prompt_conv),
         _try_mcp_fastpath(prompt, has_file, is_prompt_conv),
         await _try_rfq_zip_fastpath(prompt, file, has_file),
-        await _try_pptx_council_erp_fastpath(prompt, file, has_file, is_prompt_conv),
+        await _try_pptx_council_erp_fastpath(full, file, has_file, is_prompt_conv),
     ):
         if maybe is not None:
             return maybe
@@ -576,7 +593,7 @@ async def dispatch_chat_fastpath(
     for maybe in (
         await _try_zip_workspace_fastpath(prompt, file),
         await _try_media_doc_fastpath(prompt, file, history, has_file, is_prompt_conv),
-        _try_project_build_fastpath(prompt, file, is_prompt_conv),
+        _try_project_build_fastpath(prompt, file, history, is_prompt_conv),
     ):
         if maybe is not None:
             return maybe

@@ -516,10 +516,16 @@ async def _flow_spec(prompt: str) -> dict[str, Any] | None:
     if not flowchart_studio.is_flow_request(prompt):
         return None
     model = await pick_best_model("general")
-    for _ in range(2):
-        if flow := flowchart_studio.clean(await _llm_json_call(flowchart_studio.SYSTEM, prompt, model, 900)):
-            return flow
-    return None
+    best, gaps, ask = None, [], prompt
+    for _ in range(3):
+        if flow := flowchart_studio.clean(await _llm_json_call(flowchart_studio.SYSTEM, ask, model, 900)):
+            absent = flowchart_studio.missing_steps(prompt, flow)
+            if best is None or len(absent) < len(gaps):
+                best, gaps = flow, absent
+            if not absent:
+                break
+            ask = f"{prompt}\nÖnceki çizimde şu adımlar eksikti, mutlaka ekle: {'; '.join(absent)}"
+    return best
 
 
 async def generate_ai_image(prompt: str, history: list[dict[str, Any]] | None = None) -> dict[str, Any]:

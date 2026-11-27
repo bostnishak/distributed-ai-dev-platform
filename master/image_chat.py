@@ -13,6 +13,8 @@ from typing import Any
 import httpx
 from fastapi.responses import StreamingResponse
 
+import flowchart_studio
+
 _SSE = "text/event-stream"
 _MARKER_RE = re.compile(r"(Üretilen Görsel|/api/assistant/media/img-gen-)")
 _FOLLOWUP_RE = re.compile(
@@ -125,7 +127,7 @@ def build_image_gen_stream(prompt: str, history: str) -> StreamingResponse:
 
     async def _gen():
         try:
-            subject = None if is_image_revision(prompt, hist) else unsupported_subject(prompt)
+            subject = None if is_image_revision(prompt, hist) or flowchart_studio.is_flow_request(prompt) else unsupported_subject(prompt)
             if nsfw_requested(prompt) or (subject and not await photoreal_backend_available()):
                 yield _sse({"type": "token", "content": NSFW_MSG if nsfw_requested(prompt) else NO_SUBJECT_MSG.format(subject=subject)})
                 yield _sse({"type": "done", "model": "capability-check", "task_type": "gorsel"})

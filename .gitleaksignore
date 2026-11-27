@@ -1,0 +1,2 @@
+# False positive: `config.SECRET_KEY = new_secret_key.strip()` assigns a variable, no secret is in the file.
+fe349f3ace0e324fa4839d356e8d3eae5126f65f:master/secret_store.py:cm6453-secret-key:179

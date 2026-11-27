@@ -1,0 +1,161 @@
+# surum	bolum	madde	durum	not
+# durum: C=canlıda geçti, T=otomatik testle geçti, K=kısmi, Y=yok, X=dışarıda (kullanıcı onayladı), E=teknik engel
+v1	1 Yasalar	Sahte veri ve yer tutucu yasağı (statik tarama + tarayıcı kapısı)	C	workspace_smoke, jsdom_probe
+v1	1 Yasalar	Uydurma paket, dosya yolu, model adı engeli	K	workspace_requirements; paket kayıt denetimi yok
+v1	1 Yasalar	Eleştirel, onaylayıcı olmayan akıl yürütme	T	prompts/agent_architect.md
+v1	1 Yasalar	Renk, ölçü, etiket sadakati (spec.json)	C	spec_contract
+v1	1 Yasalar	Ham kaynak saflığı (vurgulayıcı artığı yok)	C	pure_source
+v1	2 Ajanlar	IntakeAgent, şemalı spec	T	agent_contracts
+v1	2 Ajanlar	ArchitectAgent, plan ve risk denetimi	T	agent_contracts
+v1	2 Ajanlar	Frontend ajanı, nokta atışı yama	T	patch_edit
+v1	2 Ajanlar	Backend ajanı, gerçek kalıcılık	C	workspace_batches
+v1	2 Ajanlar	Akış şeması ajanı, doğrulanmış diyagram	C	flowchart_studio
+v1	2 Ajanlar	PDF üretimi	C	document_factory
+v1	2 Ajanlar	Görsel üretimi, motoru bildirme	C	multimodal_studio
+v1	2 QA	HTML, JS, Python, JSON sözdizimi denetimi	T	workspace_checks
+v1	2 QA	Yer tutucu tarayıcı	T	workspace_smoke
+v1	2 QA	Spec uyum denetçisi	T	spec_contract
+v1	2 QA	Tarayıcıda davranış testi	C	jsdom_probe, workspace_behavior
+v1	2 QA	API'yi gerçek isteklerle sınama	C	api_probe
+v1	2 QA	PDF ve görsel bütünlük denetimi	T	office_verify, post_checks
+v1	2 QA	Sınırlı onarım döngüsü, dürüst başarısızlık bildirimi	C	workspace_builder
+v1	3 Ollama	Kurulu modelleri keşfetme ve role göre seçim, yedek model	T	gateway/registry
+v1	3 Ollama	Role göre sıcaklık ve şemalı çıktı	T	gateway/client_helpers
+v1	3 Ollama	Dosya dosya parçalı üretim	C	workspace_batches
+v1	3 Ollama	Ajan bazında TTFT ve token/sn göstergesi	K	run_trace aşama süresi tutuyor; TTFT arayüzde yok
+v1	4 Bellek	Son turlar ve takip isteği birleştirme	C	followup
+v1	4 Bellek	Proje durumu, sürüm anlık görüntüsü	T	workspace_builder_ops
+v1	4 Bellek	Uzun süreli tercih belleği	T	memory_engine
+v1	4 Bellek	Yıkıcı olmayan yineleme	C	revise_chat, tier0_edit
+v1	5 IDE	Yalıtılmış çalışma alanı, yol kaçışı koruması	T	workspace_builder_ops
+v1	5 IDE	Dosya gezgini, editör, diff, ZIP	K	diff sekmesi sürümler arası değil
+v1	5 IDE	Korumalı önizleme ve hata köprüsü	K	ide_error_bridge yalnız Node ile denendi
+v1	5 IDE	API test konsolu sekmesi	Y
+v1	6 Teslim	Uçtan uca testler ve çalışma kılavuzu	C	scripts/e2e_stress.py
+v2	2.1	Sabit önek önce istem düzeni	K	bazı istemlerde
+v2	2.1	keep_alive, num_ctx boyutlama	T	gateway/registry
+v2	2.1	Model yakınlığına göre görev gruplama	K	tek GPU kilidi var; DAG gruplama yok
+v2	2.2	Tier 0 modelsiz düzenleme	C	tier0_edit
+v2	2.2	Karmaşıklığa göre model basamağı	T	complexity_governor
+v2	2.2	Logprob/entropi ile yükseltme	E	Ollama yanıtında güvenilir logprob kullanılmıyor
+v2	2.3	Paralel DAG yürütücü, spekülatif ön hazırlık	Y	8 GB kartta paralel üretim hızlandırmaz; doğrulama adımları paralel yapılabilir
+v2	2.3	Yalnız etkilenen testleri koşma	Y
+v2	2.4	AST çapalı yama, tam yazıma geri düşme	T	patch_edit
+v2	2.4	L1 birebir önbellek	Y
+v2	2.4	L2 anlamsal, L3 bileşen önbelleği	Y
+v2	3.1	Yörünge toplama, sır temizleme	T	run_trace
+v2	3.1	Tercih çiftleri (başarısız/onarılmış)	K	training_pack yalnız başarılı kayıtları veriyor
+v2	3.2	Yerel LoRA/DPO/GRPO eğitimi	X	bellek ve veri yetersiz; yalnız betik
+v2	3.2	GGUF içe aktarma ve gölge değerlendirme kapısı	K	import-gguf var, gerçek GGUF ile denenmedi
+v2	3.3	Doğrulanmış beceri kütüphanesi	T	skill_library
+v2	3.3	Otomatik istem optimizasyonu	Y
+v2	4.1	Hipotez temelli nedensel hata ayıklama + regresyon testi	Y
+v2	4.2	En iyi N aday değerlendirme	K	tool_executor kurulu (yalnız akıl yürütmede)
+v2	4.3	Doğrulanmış/çıkarım/varsayım defteri	Y
+v2	4.4	API fuzz ve sınır testi	Y
+v2	4.4	Arayüz kaos, erişilebilirlik, üç ekran genişliği	K	visual_audit tek genişlik
+v2	4.4	Uydurma paket (slopsquatting) denetimi	Y
+v2	5.1	Depo haritası	K	code_graph (AST/regex); tree-sitter ve sıralama yok
+v2	5.2	Melez kod araması (graf+BM25+gömme)	K	hybrid_graph_rag belge için; kod için yok
+v2	5.2	Etki alanı (blast radius) analizi	Y
+v2	5.3	Anlık statik tanılama (ruff, node --check)	K	workspace_checks
+v2	5.3	LSP sunucuları	Y
+v2	6.1	Yalıtılmış çalıştırma (ağsız Docker, kaynak sınırı)	T	workspace_docker
+v2	6.1	gVisor/Firecracker	X	Windows'ta yok
+v2	6.2	Güvenilmeyen veri ayrımı	C	untrusted
+v2	6.2	Eylem yetki politikası kapısı	Y
+v2	6.3	Sır tarayıcı ve SAST	T	security_scan
+v2	7.1	Kalıcı iş akışı, kontrol noktasından devam	Y
+v2	7.2	MCP araç veri yolu ve izin kapsamları	K	mcp_server, mcp_connector
+v2	7.3	Öncelikli GPU kuyruğu	K	chat_queue bildirim veriyor; öncelik yok
+v2	7.3	WebSocket canlı DAG akışı	K	SSE ile aşama akışı var
+v2	8.1	İzleme (OpenTelemetry) ve pano	K	telemetry_otel, run_trace; pano yok
+v2	8.2	25+ senaryoluk altın test takımı	K	6 + 7 senaryo
+v2	8.3	Sürüm kapısı ölçütleri	T	eval_stats (hatta bağlı değil)
+v2	9	Çalışırken duraklatma ve yönlendirme	Y
+v2	9	Kanıt kartı (doğrulama özeti)	K	sonuç mesajında özet var
+v2	9	İki varyant yan yana	Y
+v2	9	Dürüst düşüş bildirimi	T	reply_labels
+v3	1.1	LAN çıkarım ağı ve zamanlayıcı	X	tek bilgisayar
+v3	1.2	Spekülatif çözme	X	Ollama denetim vermiyor
+v3	1.3	Radix KV önbellek havuzu	E	Ollama dışarıdan KV denetimi vermiyor
+v3	1.4	Şemaya zorlanmış JSON üretimi	T	Ollama format şeması
+v3	1.4	GBNF/XGrammar yama ve sözdizimi maskeleri	E	Ollama API'si özel dilbilgisi almıyor
+v3	2.1	Z3 ile sayısal doğrulama	C	z3_math
+v3	2.1	Z3 ile iş kuralı değişmezleri ve karşı örnek	Y
+v3	2.1	Durum makinesi tam tarama	Y
+v3	2.1	Durumlu özellik testi (Hypothesis)	Y
+v3	2.2	Mutasyon testi kapısı	Y	mutmut Windows'ta çalışmıyor; kendi motorumuz gerekir
+v3	2.3	Yerleşim geometrisi ve kontrast denetimi	T	visual_audit
+v3	2.3	Görsel model eleştirisi	C	vlm_critique; kusurların bir kısmını kaçırıyor
+v3	3.1	PRM eğitimi	X	eğitim
+v3	3.1	Bütçeli ağaç araması (MCTS)	Y
+v3	3.2	Boşta kendi kendine alıştırma (müfredat + kırmızı takım)	Y
+v3	3.3	Çoklu LoRA, TIES/DARE birleştirme	X	eğitim
+v3	3.4	Bilgi damıtma	X	eğitim
+v3	4.1	Ajan başına git worktree ve AST birleştirme	Y
+v3	4.2	Depolar arası sözleşme ve geri alınabilir göç	Y
+v3	4.3	Sertleştirilmiş Dockerfile/Compose üretimi ve denetimi	Y
+v3	4.3	Yük ve kaos testi	K	scripts/load_and_chaos_bench.py platform için
+v3	4.3	Çalışma anı bekçisi	Y
+v3	5.1	Ekran görüntüsünden koda	Y
+v3	5.2	Typst/WeasyPrint belge stüdyosu	K	PyMuPDF ile PDF; Typst yok
+v3	5.2	PDF sayfa sayfa görsel kanıtlama	Y
+v3	5.3	Çoklu diyagram biçimi	K	SVG ve Mermaid
+v3	5.3	Gerçek veriye bağlı grafik	K	document_chart
+v3	5.3	Yerel ses (ASR/TTS)	K	multimodal_studio_media STT; TTS yok
+v3	6.1	İki zamanlı bilgi grafiği	T	memory_timeline
+v3	6.2	Bağlam sayfalama	Y
+v3	6.3	Uyku birleştirmesi ve çelişki çözümü	K	memory_conflicts, memory_maintenance
+v3	6.3	Bellek denetim ve silme	T	memory_api, retention
+v3	7.1	WASM ve iş nesnesi yalıtımı	T	isolation (hatta bağlı değil)
+v3	7.2	Leke (taint) izleme ve yetki düşürme	Y
+v3	7.3	Kod olarak politika	Y	OPA/Cedar yerine yerel politika yapılabilir
+v3	7.4	İmzalı köken kaydı ve SBOM	C	provenance
+v3	7.4	Lisans uyum kapısı	Y
+v3	8	Kontrol/veri akışı analizi	Y
+v3	8	Performans profilleyici (SQL planı, N+1)	Y
+v3	8	Tüm projede sembol yeniden adlandırma	Y
+v3	9.1	Olay kaydı ve zaman yolculuğu	Y
+v3	9.2	LSP ve DAP veri yolu	Y
+v3	10	Önizlemede tıklayıp düzenleme	Y
+v3	10	DAG savaş odası ve zaman kaydırıcı	Y
+v3	10	Turnuva modu	K	media_lab_arena model puanlama
+v3	10	Köken ve bellek çekmeceleri	Y
+v3	10	Elle yapılan düzenlemeyi koruma	K	yama korur; tercih sinyali toplanmıyor
+v3	11.1	Parametrik benchmark üretici	Y
+v3	11.2	İstatistiksel sürüm kapısı, SPRT	T	eval_stats
+v3	11.2	Otomatik geri alma	Y
+v4	1.1	5 vitesli orantılılık freni	T	complexity_governor
+v4	1.2	Otomatik vites yükseltme ve süre bütçesi	Y
+v4	1.2	@fast/@deep komutları	T	complexity_governor
+v4	2.1	Web araması ve temiz metin çıkarma	K	research_context (DuckDuckGo); trafilatura/SearXNG bağlı değil
+v4	2.2	Çok adımlı derin araştırma ve çelişki tespiti	Y
+v4	2.2	Alıntı doğrulama kapısı	K	kaynak listesini kod yazıyor; iddia-kanıt denetimi yok
+v4	2.3	Sürüme bağlı belge kasası, çevrimdışı mod	Y
+v4	3.1	Üç sesli tartışma kurulu	K	tool_executor (yalnız bazı sorular)
+v4	3.2	Tasarım kuralları ve şablon görünüm dedektörü	T	design_slop
+v4	3.2	OKLCH palet derleyici	Y
+v4	3.3	Kişisel beğeni belleği	Y
+v4	4.1	Özet ağacı (RAPTOR)	Y
+v4	4.2	Belge gezinme ve eşle-indirge okuma	K	long_doc BM25 seçimi
+v4	5.1	Tarayıcı kullanan ajan (erişilebilirlik ağacı)	Y
+v4	5.2	Her eylemi doğrulama ve geri alınamaz eylemde onay	Y
+v4	6.1	Hesapların kodla yapılması	C	z3_math, data_lab, doc_calc
+v4	6.1	SymPy/SciPy çekirdeği	Y	paketler kurulu değil
+v4	6.2	Canlı formüllü Excel ve yeniden hesaplama	C	office_verify
+v4	6.3	Sunum üretimi	T	deck_flow
+v4	6.3	Slayt slayt görsel denetim	Y
+v4	6.4	DuckDB veri çalışması	C	data_lab
+v4	6.4	Otomatik EDA ve ML hattı	K	automl_studio
+v4	6.5	Uzun yazıda sayı tutarlılığı	T	doc_sanity, doc_proof
+v4	7	Karma buluta yükseltme (varsayılan kapalı)	Y
+v4	8	Uzmanlığa göre anlatım ve netleştirme sorusu	K	clarify
+v4	9	Dosya izleyici ve gelen kutusu tetikleyicisi	Y
+v4	9	Zamanlanmış görevler	T	cronjobs
+v4	10.1	Donanım profili ve doctor	C	scripts/ai_os.py
+v4	10.2	Tembel servisler ve boşta kapatma	K	gateway/local_gpu, power_manager
+v4	10.3	ai-os setup ve yapılandırma dosyası	Y
+v4	10.3	ai-os up, bench	T	bench ve up canlı denenmedi
+v4	10.3	Dockersız yerel mod	T	isolation
+v4	11	7 boşluk kapatma testi	K	bir kısmı e2e betiklerinde

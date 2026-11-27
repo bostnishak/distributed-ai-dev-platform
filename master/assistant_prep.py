@@ -21,6 +21,8 @@ import answer_sources
 import code_probe
 import config
 import extract as _extract_mod
+import long_doc
+import memory_timeline
 import reasoning_mode
 import reply_labels
 import research_context
@@ -301,10 +303,9 @@ def enrich_prompt_with_kb(prompt: str, extracted_text: str) -> str:
     """Attach extracted file text or Hybrid GraphRAG company knowledge snippets."""
     if extracted_text:
         limit = 16000
-        trunc = f"\n[Not: Dosya uzunluğu {len(extracted_text)} karakter; ilk {limit} karakter gösteriliyor.]" if len(extracted_text) > limit else ""
         return (
             f"{prompt}\n\n--- Eklenen dosya içeriği (GERÇEK VERİ - uydurma yapma, olmayan hata ekleme) ---\n"
-            f"{extracted_text[:limit]}{trunc}{table_stats.summary(extracted_text)}"
+            f"{long_doc.select(extracted_text, prompt, limit)}{table_stats.summary(extracted_text)}"
         )
     import company_rag
     import hybrid_graph_rag
@@ -392,7 +393,7 @@ def _append_history_messages(messages: list[dict[str, Any]], history: str, is_pr
         if isinstance(hist_items, list):
             for h_msg in hist_items[-hist_window:]:
                 if isinstance(h_msg, dict) and h_msg.get("role") in ("user", "assistant") and h_msg.get("text"):
-                    messages.append({"role": h_msg["role"], "content": str(h_msg["text"])[:3000]})
+                    messages.append({"role": h_msg["role"], "content": str(h_msg["text"])[:8000]})
     except (json.JSONDecodeError, TypeError) as exc:
         log.debug("History parse skipped: %s", exc)
 
@@ -463,6 +464,7 @@ def _collect_memory_blocks(ctx: dict[str, Any], prompt_conv_instruction: str) ->
     if isinstance(agent_prof, dict) and agent_prof.get("instructions"):
         blocks.append(f"--- ÖZEL AJAN TALİMATI ({agent_prof.get('name', 'Ajan')}) ---\n{agent_prof['instructions']}")
     if user_settings.get("auto_learn_facts"):
+        memory_timeline.install()
         mem.extract_and_upsert_memories(prompt, user_id=user_id)
     blocks.append(mem.build_memory_context_block(prompt, user_id=user_id))
     if user_settings.get("cross_chat_memory", True):
