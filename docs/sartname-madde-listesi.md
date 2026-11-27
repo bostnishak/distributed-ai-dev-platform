@@ -8,10 +8,10 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | Sürüm | canlı | test | kısmi | yok | dışarıda | teknik engel | Toplam |
 |---|---|---|---|---|---|---|---|
 | v1 | 17 | 13 | 2 | 0 | 0 | 0 | 32 |
-| v2 | 11 | 14 | 14 | 2 | 2 | 1 | 44 |
-| v3 | 11 | 17 | 14 | 1 | 5 | 2 | 50 |
+| v2 | 11 | 16 | 14 | 0 | 2 | 1 | 44 |
+| v3 | 12 | 17 | 14 | 0 | 5 | 2 | 50 |
 | v4 | 16 | 11 | 6 | 0 | 0 | 0 | 33 |
-| **Hepsi** | 55 | 55 | 36 | 3 | 7 | 3 | 159 |
+| **Hepsi** | 56 | 57 | 36 | 0 | 7 | 3 | 159 |
 
 ## v1
 
@@ -64,13 +64,13 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 2.3 | Yalnız etkilenen testleri koşma | test | repo_map.affected_tests; sohbet revizyonunda |
 | 2.4 | AST çapalı yama, tam yazıma geri düşme | test | patch_edit |
 | 2.4 | L1 birebir önbellek | test | exact_cache.py: sayfa/belge iddia çıkarımında |
-| 2.4 | L2 anlamsal, L3 bileşen önbelleği | yok |  |
+| 2.4 | L2 anlamsal, L3 bileşen önbelleği | test | semantic_cache.py (belge bazlı) ve skill_library (doğrulanmış bileşen) |
 | 3.1 | Yörünge toplama, sır temizleme | test | run_trace |
 | 3.1 | Tercih çiftleri (başarısız/onarılmış) | kısmi | training_pack yalnız başarılı kayıtları veriyor |
 | 3.2 | Yerel LoRA/DPO/GRPO eğitimi | dışarıda | bellek ve veri yetersiz; yalnız betik |
 | 3.2 | GGUF içe aktarma ve gölge değerlendirme kapısı | kısmi | import-gguf var, gerçek GGUF ile denenmedi |
 | 3.3 | Doğrulanmış beceri kütüphanesi | test | skill_library |
-| 3.3 | Otomatik istem optimizasyonu | yok |  |
+| 3.3 | Otomatik istem optimizasyonu | test | scripts/optimize_prompt.py: yalnız ölçülen iyileşmede tutar; canlıda koşulmadı |
 | 4.1 | Hipotez temelli nedensel hata ayıklama + regresyon testi | canlı | causal_debug + DAP durumu; regresyon testi üretmiyor |
 | 4.2 | En iyi N aday değerlendirme | kısmi | konsey; başarısız onarımda ikinci modele yükseltme |
 | 4.3 | Doğrulanmış/çıkarım/varsayım defteri | kısmi | Mimar ajanı varsayımları bildiriyor; her ajanda defter yok |
@@ -120,7 +120,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 3.2 | Boşta kendi kendine alıştırma (müfredat + kırmızı takım) | kısmi | SELF_EVAL_HOUR ile gece altın test; yeni görev üretmiyor |
 | 3.3 | Çoklu LoRA, TIES/DARE birleştirme | dışarıda | eğitim |
 | 3.4 | Bilgi damıtma | dışarıda | eğitim |
-| 4.1 | Ajan başına git worktree ve AST birleştirme | yok |  |
+| 4.1 | Ajan başına git worktree ve AST birleştirme | kısmi | merge3.py: elle değişiklik ile yapay zekâ çıktısını birleştirir; ajan başına worktree yok (tek ekran kartı, sıralı üretim) |
 | 4.2 | Depolar arası sözleşme ve geri alınabilir göç | kısmi | migration_check.py: up/down çiftleri; depolar arası sözleşme yok |
 | 4.3 | Sertleştirilmiş Dockerfile/Compose üretimi ve denetimi | test | deploy_kit.py: istenince Python web projesine; hadolint/trivy ile değil |
 | 4.3 | Yük ve kaos testi | canlı | sohbetten 'yük testi yap' (ağsız kutuda); kaos senaryosu yok |
@@ -149,7 +149,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 10 | DAG savaş odası ve zaman kaydırıcı | kısmi | sürüm zaman çizelgesi var; canlı graf yok |
 | 10 | Turnuva modu | kısmi | media_lab_arena model puanlama |
 | 10 | Köken ve bellek çekmeceleri | kısmi | kanıt çekmecesi var; bellek çekmecesi yok |
-| 10 | Elle yapılan düzenlemeyi koruma | kısmi | yama korur, geri al, tercih belleği; elle düzenlemeden sinyal yok |
+| 10 | Elle yapılan düzenlemeyi koruma | canlı | merge3 + geri al; elle düzenlemeden tercih öğrenmiyor |
 | 11.1 | Parametrik benchmark üretici | test | golden.py: tohumdan rastgele değerler |
 | 11.2 | İstatistiksel sürüm kapısı, SPRT | test | eval_stats |
 | 11.2 | Otomatik geri alma | test | release_guard.py: gerileyen koşuda istemleri geri alır (golden.py --auto-rollback); canlı trafik izlemiyor |

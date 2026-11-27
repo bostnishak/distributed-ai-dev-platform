@@ -4,8 +4,12 @@ from __future__ import annotations
 
 import os
 import re
+import tempfile
+from pathlib import Path
 from typing import Any
 
+import event_log
+import merge3
 import patch_edit
 from prompt_loader import load_prompt
 
@@ -80,6 +84,18 @@ def _patcher(model: str, tokens: int) -> Any:
     return generate
 
 
+def _store(ws_dir: Any, path: str, current: str, code: str) -> str:
+    """Write the model's version, merging in whatever the user changed on disk while it was being generated."""
+    target = ws_dir / path
+    on_disk = target.read_text(encoding="utf-8", errors="replace") if target.is_file() else current
+    if current and on_disk != current:
+        code, conflicts = merge3.merge(current, code, on_disk, path)
+        event_log.record(ws_dir, "elle değişiklik korundu", f"{path}" + (f", çakışan satırlar: {conflicts[:5]}" if conflicts else ""))
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(code, encoding="utf-8")
+    return code
+
+
 async def apply_edit(write: Any, target: tuple[Any, str, str], fspec: dict[str, Any], current: str) -> str:
     """Rewrite one existing file with a budget that fits it; a cut-off answer never replaces a working page."""
     ws_dir, model, ask = target
@@ -88,13 +104,14 @@ async def apply_edit(write: Any, target: tuple[Any, str, str], fspec: dict[str, 
         spec.update(model="qwen3.5:9b", system=load_prompt("b4_single_file_writer.txt"))
     patched = await patch_edit.try_patch(_patcher(spec.get("model") or model, spec["tokens"]), ask, current)
     if patched is not None:
-        (ws_dir / fspec["path"]).write_text(pure_source(patched), encoding="utf-8")
-        return patched
-    code = await write(ws_dir, model, spec, ask)
+        return _store(ws_dir, fspec["path"], current, pure_source(patched))
+    with tempfile.TemporaryDirectory(prefix="cm6453_edit_", ignore_cleanup_errors=True) as tmp:  # generated aside: the real file is touched only once
+        code = await write(Path(tmp), model, spec, ask)
     if "</html>" in current.lower() and "</html>" not in code.lower():
-        (ws_dir / fspec["path"]).write_text(current, encoding="utf-8")
+        if not (ws_dir / fspec["path"]).is_file():  # a working page is never replaced by a cut-off one
+            (ws_dir / fspec["path"]).write_text(current, encoding="utf-8")
         return current
-    return code
+    return _store(ws_dir, fspec["path"], current, pure_source(code))
 
 
 _HIGHLIGHT_RE = re.compile(r"<span class=\"hl-(?:tag|attr|str|kw|num|comment)\">(.*?)</span>", re.DOTALL)

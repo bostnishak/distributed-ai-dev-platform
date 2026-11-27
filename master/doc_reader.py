@@ -6,6 +6,7 @@ them their line numbers. Reduce: the answer is written from those claims only, b
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import re
@@ -18,6 +19,7 @@ import exact_cache
 import extract
 import long_doc
 import research
+import semantic_cache
 import untrusted
 
 _log = logging.getLogger(__name__)
@@ -111,7 +113,13 @@ def fastpath(prompt: str, file: UploadFile) -> StreamingResponse | None:
 
     async def gen():
         try:
+            if earlier := await asyncio.to_thread(semantic_cache.lookup, text, prompt):
+                yield sse({"type": "token", "content": earlier + "\n\n_Bu belge değişmediği için aynı sorunun önceki yanıtı gösterildi._"})
+                yield sse({"type": "done", "model": "doc-reader", "task_type": "dokuman"})
+                return
             async for kind, value in answer(prompt, text):
+                if kind == "report" and "## Alıntılar" in value:
+                    await asyncio.to_thread(semantic_cache.store, text, prompt, value)
                 yield sse({"type": "status", "message": value} if kind == "status" else {"type": "token", "content": value})
         except (OSError, RuntimeError, ValueError) as exc:
             _log.warning("document reading failed: %r", exc)

@@ -65,7 +65,7 @@ class Session:
         self.close()
 
 
-def _definition(root: Path, files: list[Path], symbol: str) -> tuple[Path, int, int] | None:
+def _definition(files: list[Path], symbol: str) -> tuple[Path, int, int] | None:
     pattern = re.compile(rf"^(\s*(?:async\s+)?(?:def|class)\s+){re.escape(symbol)}\b|^(){re.escape(symbol)}\s*=", re.MULTILINE)
     for path in files:
         text = path.read_text(encoding="utf-8", errors="replace")
@@ -78,7 +78,7 @@ def _definition(root: Path, files: list[Path], symbol: str) -> tuple[Path, int, 
 def references(root: Path, symbol: str) -> list[tuple[str, int, str]] | None:
     """(file, 1-based line, source line) for every use of a symbol; None when the project does not define it."""
     with Session(root) as session:
-        found = _definition(session.root, session.files(), symbol)
+        found = _definition(session.files(), symbol)
         if not found:
             return None
         path, line, column = found

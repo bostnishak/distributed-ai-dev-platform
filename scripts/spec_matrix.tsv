@@ -42,13 +42,13 @@ v2	2.3	Paralel DAG yürütücü, spekülatif ön hazırlık	K	dosya grupları ve
 v2	2.3	Yalnız etkilenen testleri koşma	T	repo_map.affected_tests; sohbet revizyonunda
 v2	2.4	AST çapalı yama, tam yazıma geri düşme	T	patch_edit
 v2	2.4	L1 birebir önbellek	T	exact_cache.py: sayfa/belge iddia çıkarımında
-v2	2.4	L2 anlamsal, L3 bileşen önbelleği	Y
+v2	2.4	L2 anlamsal, L3 bileşen önbelleği	T	semantic_cache.py (belge bazlı) ve skill_library (doğrulanmış bileşen)
 v2	3.1	Yörünge toplama, sır temizleme	T	run_trace
 v2	3.1	Tercih çiftleri (başarısız/onarılmış)	K	training_pack yalnız başarılı kayıtları veriyor
 v2	3.2	Yerel LoRA/DPO/GRPO eğitimi	X	bellek ve veri yetersiz; yalnız betik
 v2	3.2	GGUF içe aktarma ve gölge değerlendirme kapısı	K	import-gguf var, gerçek GGUF ile denenmedi
 v2	3.3	Doğrulanmış beceri kütüphanesi	T	skill_library
-v2	3.3	Otomatik istem optimizasyonu	Y
+v2	3.3	Otomatik istem optimizasyonu	T	scripts/optimize_prompt.py: yalnız ölçülen iyileşmede tutar; canlıda koşulmadı
 v2	4.1	Hipotez temelli nedensel hata ayıklama + regresyon testi	C	causal_debug + DAP durumu; regresyon testi üretmiyor
 v2	4.2	En iyi N aday değerlendirme	K	konsey; başarısız onarımda ikinci modele yükseltme
 v2	4.3	Doğrulanmış/çıkarım/varsayım defteri	K	Mimar ajanı varsayımları bildiriyor; her ajanda defter yok
@@ -93,7 +93,7 @@ v3	3.1	Bütçeli ağaç araması (MCTS)	C	tree_search.py: onarımda UCT, canlıd
 v3	3.2	Boşta kendi kendine alıştırma (müfredat + kırmızı takım)	K	SELF_EVAL_HOUR ile gece altın test; yeni görev üretmiyor
 v3	3.3	Çoklu LoRA, TIES/DARE birleştirme	X	eğitim
 v3	3.4	Bilgi damıtma	X	eğitim
-v3	4.1	Ajan başına git worktree ve AST birleştirme	Y
+v3	4.1	Ajan başına git worktree ve AST birleştirme	K	merge3.py: elle değişiklik ile yapay zekâ çıktısını birleştirir; ajan başına worktree yok (tek ekran kartı, sıralı üretim)
 v3	4.2	Depolar arası sözleşme ve geri alınabilir göç	K	migration_check.py: up/down çiftleri; depolar arası sözleşme yok
 v3	4.3	Sertleştirilmiş Dockerfile/Compose üretimi ve denetimi	T	deploy_kit.py: istenince Python web projesine; hadolint/trivy ile değil
 v3	4.3	Yük ve kaos testi	C	sohbetten 'yük testi yap' (ağsız kutuda); kaos senaryosu yok
@@ -122,7 +122,7 @@ v3	10	Önizlemede tıklayıp düzenleme	C	öğe seçici; gerçek Chromium'da den
 v3	10	DAG savaş odası ve zaman kaydırıcı	K	sürüm zaman çizelgesi var; canlı graf yok
 v3	10	Turnuva modu	K	media_lab_arena model puanlama
 v3	10	Köken ve bellek çekmeceleri	K	kanıt çekmecesi var; bellek çekmecesi yok
-v3	10	Elle yapılan düzenlemeyi koruma	K	yama korur, geri al, tercih belleği; elle düzenlemeden sinyal yok
+v3	10	Elle yapılan düzenlemeyi koruma	C	merge3 + geri al; elle düzenlemeden tercih öğrenmiyor
 v3	11.1	Parametrik benchmark üretici	T	golden.py: tohumdan rastgele değerler
 v3	11.2	İstatistiksel sürüm kapısı, SPRT	T	eval_stats
 v3	11.2	Otomatik geri alma	T	release_guard.py: gerileyen koşuda istemleri geri alır (golden.py --auto-rollback); canlı trafik izlemiyor
