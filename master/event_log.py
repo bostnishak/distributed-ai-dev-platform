@@ -9,11 +9,12 @@ import json
 import time
 from pathlib import Path
 
-FILE = ".events.jsonl"
+FILE = ".history/events.jsonl"  # inside the history folder: never a project file, never removed by a restore
 
 
 def record(ws_dir: Path, kind: str, detail: str) -> None:
     try:
+        (ws_dir / FILE).parent.mkdir(parents=True, exist_ok=True)
         with (ws_dir / FILE).open("a", encoding="utf-8") as handle:
             handle.write(json.dumps({"at": time.strftime("%Y-%m-%dT%H:%M:%S"), "kind": kind, "detail": detail[:160]}, ensure_ascii=False) + "\n")
     except OSError:
