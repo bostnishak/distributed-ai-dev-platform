@@ -29,22 +29,22 @@ _TOPICS: tuple[tuple[re.Pattern[str], str, tuple[str, ...]], ...] = (
     (
         re.compile(r"\b(logo\w*|poster\w*|afiş\w*|afis\w*|banner\w*|görsel\w*|gorsel\w*|resim\w*|fotoğraf\w*|fotograf\w*|illüstrasyon\w*|amblem\w*)\b", re.IGNORECASE),
         "görsel",
-        ("Görselde ne olmalı? (konu, marka veya yazı)", "Nasıl bir stil istersin? (gerçekçi, minimal, çizgi film, kurumsal...)", "Renk tercihin veya kullanım yerin var mı? (web, baskı, sosyal medya)"),
+        ("Ne için? a) marka/logo b) etkinlik afişi c) sosyal medya görseli d) başka (yaz) — adını ya da üzerindeki yazıyı da ekle", "Stil? a) sade/minimal b) kurumsal c) canlı/çizgi d) gerçekçi"),
     ),
     (
         re.compile(r"\b(web\s*sitesi\w*|site\w*|uygulama\w*|oyun\w*|program\w*|sayfa\w*|bot\w*)\b", re.IGNORECASE),
         "yazılım",
-        ("Ne işe yarayacak ve kim kullanacak?", "Hangi sayfa/ekran ve özellikler olmalı?", "Tercih ettiğin bir teknoloji veya tasarım yönü var mı?"),
+        ("Ne işe yarayacak? a) bir şeyi kaydedip listelemek b) tanıtım sayfası c) oyun/araç d) başka (yaz)", "Veriler nerede dursun? a) yalnız bu tarayıcıda b) sunucuda veritabanında c) veri yok"),
     ),
     (
         re.compile(r"\b(rapor\w*|sunum\w*|doküman\w*|dokuman\w*|belge\w*|makale\w*|ödev\w*|odev\w*|mektup\w*|özgeçmiş\w*|ozgecmis\w*|cv\b|yazı\w*|metin\w*|özet\w*|ozet\w*|excel\w*|tablo\w*)\b", re.IGNORECASE),
         "belge",
-        ("Konusu ne?", "Kim okuyacak ve hangi tonda olsun? (resmi, samimi, akademik)", "Uzunluk veya biçim beklentin var mı? (sayfa sayısı, başlıklar, dosya türü)"),
+        ("Konusu ne ve kim okuyacak? a) yönetici b) müşteri c) hoca/öğrenci d) ekip — konuyu yaz", "Biçim? a) 1 sayfa b) 3-5 sayfa c) sunum d) tablo"),
     ),
     (
         re.compile(r"\b(kod\w*|script\w*|fonksiyon\w*|algoritma\w*|sınıf\w*|sinif\w*|sorgu\w*)\b", re.IGNORECASE),
         "kod",
-        ("Ne yapmalı? (girdi ve beklenen çıktı)", "Hangi dil veya çerçeve?", "Özel bir kısıt var mı? (performans, kütüphane, mevcut kodla uyum)"),
+        ("Ne yapmalı? Girdiyi ve beklenen çıktıyı bir örnekle yaz", "Dil? a) Python b) JavaScript c) SQL d) başka (yaz)"),
     ),
 )
 
