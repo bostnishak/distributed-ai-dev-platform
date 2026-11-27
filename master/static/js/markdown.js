@@ -60,6 +60,7 @@ export function renderMarkdown(raw) {
     .replace(/^## (.*)$/gm, '<h2>$1</h2>')
     .replace(/^# (.*)$/gm, '<h1>$1</h1>')
     .replace(/!\[([^\]]*)\]\((\/api\/[a-zA-Z0-9_./?=&%-]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:8px;border:1px solid #e2e8f0;margin:8px 0;">')
+    .replace(/\[([^\]]+)\]\((\/api\/assistant\/media\/[a-zA-Z0-9_.-]+\.wav)\)/g, '<div>$1</div><audio controls preload="metadata" src="$2" style="width:100%;max-width:420px;"></audio>')
     .replace(/\[([^\]]+)\]\(((?:\/api\/|#\/)[a-zA-Z0-9_./?=&%-]+)\)/g, '<a href="$2" style="font-weight:600;">$1</a>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<em>$1</em>')

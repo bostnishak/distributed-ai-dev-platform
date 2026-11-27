@@ -21,6 +21,7 @@ import pymupdf as fitz
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
 
 import config
+import daemons
 import process_utils
 from scene_extra import _is_light_palette, _scene_nature_day_layers, _scene_sunset_layers
 
@@ -234,6 +235,7 @@ def _get_whisper_model() -> Any:
         from faster_whisper import WhisperModel  # type: ignore[import-not-found]
 
         _WHISPER_CACHE["model"] = WhisperModel("base", device="cpu", compute_type="int8")
+    daemons.touch("konuşma tanıma (Whisper)", lambda: _WHISPER_CACHE.update(model=None))
     return _WHISPER_CACHE["model"]
 
 

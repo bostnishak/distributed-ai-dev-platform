@@ -23,3 +23,5 @@ sympy
 scikit-learn
 python-lsp-server
 debugpy
+# Local Turkish text-to-speech (voice file goes in data/voices)
+piper-tts>=1.3

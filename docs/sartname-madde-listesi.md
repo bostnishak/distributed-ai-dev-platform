@@ -8,10 +8,10 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | Sürüm | canlı | test | kısmi | yok | dışarıda | teknik engel | Toplam |
 |---|---|---|---|---|---|---|---|
 | v1 | 19 | 13 | 0 | 0 | 0 | 0 | 32 |
-| v2 | 14 | 21 | 6 | 0 | 2 | 1 | 44 |
-| v3 | 17 | 18 | 8 | 0 | 5 | 2 | 50 |
-| v4 | 18 | 12 | 3 | 0 | 0 | 0 | 33 |
-| **Hepsi** | 68 | 64 | 17 | 0 | 7 | 3 | 159 |
+| v2 | 20 | 21 | 0 | 0 | 2 | 1 | 44 |
+| v3 | 25 | 18 | 0 | 0 | 5 | 2 | 50 |
+| v4 | 20 | 12 | 0 | 0 | 1 | 0 | 33 |
+| **Hepsi** | 84 | 64 | 0 | 0 | 8 | 3 | 159 |
 
 ## v1
 
@@ -54,13 +54,13 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 
 | Bölüm | Madde | Durum | Not |
 |---|---|---|---|
-| 2.1 | Sabit önek önce istem düzeni | kısmi | bazı istemlerde |
+| 2.1 | Sabit önek önce istem düzeni | canlı | prompt_layout.py: değişenler soruyla en sonda; ikinci turda istem okuma 1161 ms yerine 364 ms ölçüldü |
 | 2.1 | keep_alive, num_ctx boyutlama | test | gateway/registry |
 | 2.1 | Model yakınlığına göre görev gruplama | test | aynı modelli dosyalar art arda |
 | 2.2 | Tier 0 modelsiz düzenleme | canlı | tier0_edit |
 | 2.2 | Karmaşıklığa göre model basamağı | test | complexity_governor |
 | 2.2 | Logprob/entropi ile yükseltme | teknik engel | Ollama yanıtında güvenilir logprob kullanılmıyor |
-| 2.3 | Paralel DAG yürütücü, spekülatif ön hazırlık | kısmi | dosya grupları ve salt okunur denetimler paralel; genel DAG yürütücü yok |
+| 2.3 | Paralel DAG yürütücü, spekülatif ön hazırlık | canlı | dag.py ve build_dag.py: bağımlılık sırası, model yakınlığı, arka planda denetim ön hazırlığı; gerçek üretimde canlı |
 | 2.3 | Yalnız etkilenen testleri koşma | test | repo_map.affected_tests; sohbet revizyonunda |
 | 2.4 | AST çapalı yama, tam yazıma geri düşme | test | patch_edit |
 | 2.4 | L1 birebir önbellek | test | exact_cache.py: sayfa/belge iddia çıkarımında |
@@ -68,11 +68,11 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 3.1 | Yörünge toplama, sır temizleme | test | run_trace |
 | 3.1 | Tercih çiftleri (başarısız/onarılmış) | test | repair_pairs.py: başarılı onarımlardan çift |
 | 3.2 | Yerel LoRA/DPO/GRPO eğitimi | dışarıda | bellek ve veri yetersiz; yalnız betik |
-| 3.2 | GGUF içe aktarma ve gölge değerlendirme kapısı | kısmi | import-gguf var, gerçek GGUF ile denenmedi |
+| 3.2 | GGUF içe aktarma ve gölge değerlendirme kapısı | canlı | ai_os.py import-gguf gerçek GGUF ile denendi: zayıf aday reddedildi, eşit aday yayımlandı |
 | 3.3 | Doğrulanmış beceri kütüphanesi | test | skill_library |
 | 3.3 | Otomatik istem optimizasyonu | test | scripts/optimize_prompt.py: yalnız ölçülen iyileşmede tutar; canlıda koşulmadı |
 | 4.1 | Hipotez temelli nedensel hata ayıklama + regresyon testi | canlı | causal_debug + DAP durumu; regresyon testi üretmiyor |
-| 4.2 | En iyi N aday değerlendirme | kısmi | konsey; başarısız onarımda ikinci modele yükseltme |
+| 4.2 | En iyi N aday değerlendirme | canlı | best_of_n.py: 2-3 aday, eleştirmen ve kural puanı; canlı |
 | 4.3 | Doğrulanmış/çıkarım/varsayım defteri | test | ledger.py: kanıt çekmecesinde doğrulandı / varsayım / açık |
 | 4.4 | API fuzz ve sınır testi | canlı | api_probe; Docker kum havuzunda denendi |
 | 4.4 | Arayüz kaos, erişilebilirlik, üç ekran genişliği | canlı | ui_chaos + visual_audit |
@@ -90,11 +90,11 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 7.1 | Kalıcı iş akışı, kontrol noktasından devam | canlı | checkpoint.py; canlıda kesilip devam etti |
 | 7.2 | MCP araç veri yolu ve izin kapsamları | test | mcp_connector: yazan araçlar açık onay ister; SSRF ve gizli anahtar kapısı |
 | 7.3 | Öncelikli GPU kuyruğu | test | gateway/priority_gate.py: sohbet, bekleyen arka plan işlerinin önüne geçer |
-| 7.3 | WebSocket canlı DAG akışı | kısmi | SSE ile aşama akışı var |
+| 7.3 | WebSocket canlı DAG akışı | canlı | run_api.py /api/runs/ws; tarayıcıda canlı doğrulandı |
 | 8.1 | İzleme (OpenTelemetry) ve pano | canlı | perf_report: 'performans durumu' |
 | 8.2 | 25+ senaryoluk altın test takımı | canlı | scripts/golden.py: hızlı küme canlıda; --slow ile üretim senaryoları |
 | 8.3 | Sürüm kapısı ölçütleri | test | eval_stats: golden ve release_guard içinde |
-| 9 | Çalışırken duraklatma ve yönlendirme | kısmi | kesip 'devam et ama ...' ile kalan dosyaları yönlendirme; canlı duraklatma düğmesi yok |
+| 9 | Çalışırken duraklatma ve yönlendirme | canlı | Gerçek üretim 100 sn duraklatıldı, talimat eklendi, sonraki dosyaya uygulandı |
 | 9 | Kanıt kartı (doğrulama özeti) | canlı | IDE 'Kanıt' çekmecesi |
 | 9 | İki varyant yan yana | test | variants.py: iki üretim arka arkaya, iki kart |
 | 9 | Dürüst düşüş bildirimi | test | reply_labels |
@@ -110,18 +110,18 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 1.4 | GBNF/XGrammar yama ve sözdizimi maskeleri | teknik engel | Ollama API'si özel dilbilgisi almıyor |
 | 2.1 | Z3 ile sayısal doğrulama | canlı | z3_math |
 | 2.1 | Z3 ile iş kuralı değişmezleri ve karşı örnek | canlı | symbolic.py: tamsayı koşul/atama alt kümesinde ispat ya da karşı örnek; döngü ve çağrı içeren kodda ispat yok |
-| 2.1 | Durum makinesi tam tarama | kısmi | akış şemasında çıkışsız döngü taraması |
+| 2.1 | Durum makinesi tam tarama | canlı | statecheck.py: çıkmaz, livelock, yetim, yarış; en kısa yol örneğiyle |
 | 2.1 | Durumlu özellik testi (Hypothesis) | canlı | property_check.py: kuralı model yazıyor, canlıda 3/3 ihlal buldu; api_probe ekle-sil tutarlılığı |
 | 2.2 | Mutasyon testi kapısı | canlı | mutation.py; uyarı verir, teslimi engellemez |
 | 2.3 | Yerleşim geometrisi ve kontrast denetimi | test | visual_audit |
 | 2.3 | Görsel model eleştirisi | canlı | vlm_critique; kusurların bir kısmını kaçırıyor |
 | 3.1 | PRM eğitimi | dışarıda | eğitim |
 | 3.1 | Bütçeli ağaç araması (MCTS) | canlı | tree_search.py: onarımda UCT, canlıda 3 hatayı çözdü; PUCT/PRM yok |
-| 3.2 | Boşta kendi kendine alıştırma (müfredat + kırmızı takım) | kısmi | SELF_EVAL_HOUR ile gece altın test; yeni görev üretmiyor |
+| 3.2 | Boşta kendi kendine alıştırma (müfredat + kırmızı takım) | canlı | self_play.py: referansla tutarlı testler, tuzaklı görev, beceri kartı ve başarısızlık dosyası; PRM etiketi yok |
 | 3.3 | Çoklu LoRA, TIES/DARE birleştirme | dışarıda | eğitim |
 | 3.4 | Bilgi damıtma | dışarıda | eğitim |
-| 4.1 | Ajan başına git worktree ve AST birleştirme | kısmi | merge3.py: elle değişiklik ile yapay zekâ çıktısını birleştirir; ajan başına worktree yok (tek ekran kartı, sıralı üretim) |
-| 4.2 | Depolar arası sözleşme ve geri alınabilir göç | kısmi | migration_check.py: up/down çiftleri; depolar arası sözleşme yok |
+| 4.1 | Ajan başına git worktree ve AST birleştirme | canlı | swarm.py ve semantic_merge.py: iki ajan aynı dosyada, canlıda birleşti; Python sembol düzeyinde (tree-sitter değil, ast) |
+| 4.2 | Depolar arası sözleşme ve geri alınabilir göç | canlı | federation.py: etki alanı, kopyada ileri-geri-ileri kanıtı, hepsi ya da hiçbiri; iki projede canlı |
 | 4.3 | Sertleştirilmiş Dockerfile/Compose üretimi ve denetimi | test | deploy_kit.py: istenince Python web projesine; hadolint/trivy ile değil |
 | 4.3 | Yük ve kaos testi | canlı | sohbetten 'yük testi yap' (ağsız kutuda); kaos senaryosu yok |
 | 4.3 | Çalışma anı bekçisi | test | watchdog.py: duran proje sunucusunu olay kaydına yazar; otomatik düzeltme önermez |
@@ -130,9 +130,9 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 5.2 | PDF sayfa sayfa görsel kanıtlama | test | office_verify.proof_page: boş sayfa, taşma, çakışma, küçük punto |
 | 5.3 | Çoklu diyagram biçimi | canlı | SVG + Mermaid, Graphviz, PlantUML metni (D2 yok) |
 | 5.3 | Gerçek veriye bağlı grafik | canlı | data_chart.py: CSV'den çubuk grafik; etkileşimli Vega/Plotly değil |
-| 5.3 | Yerel ses (ASR/TTS) | kısmi | multimodal_studio_media STT; TTS yok |
+| 5.3 | Yerel ses (ASR/TTS) | canlı | tts.py (Piper tr_TR) + faster-whisper; üretilen ses geri çözülerek canlı doğrulandı; ses verisi lisansı ticari kullanıma kapalı |
 | 6.1 | İki zamanlı bilgi grafiği | test | memory_timeline |
-| 6.2 | Bağlam sayfalama | kısmi | context_pins: kullanıcının kuralları sıkıştırmada hiç düşmüyor; sayfa içeri/dışarı çağrıları yok |
+| 6.2 | Bağlam sayfalama | canlı | context_pager.py: pencere dışındaki ilgili turlar geri çağrılır; uzun sohbette canlı |
 | 6.3 | Uyku birleştirmesi ve çelişki çözümü | test | SELF_EVAL_HOUR gecesinde birleştirme; çelişkiler kullanıcıya sıraya alınır |
 | 6.3 | Bellek denetim ve silme | test | memory_api, retention |
 | 7.1 | WASM ve iş nesnesi yalıtımı | test | isolation.py: sohbetten başlatılan canlı sunucu iş nesnesiyle sınırlı |
@@ -146,8 +146,8 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 9.1 | Olay kaydı ve zaman yolculuğu | test | event_log.py + sürümler; çatallama yok |
 | 9.2 | LSP ve DAP veri yolu | canlı | lsp_client + debug_probe (debugpy, kum havuzunda canlı); ortak bir veri yolu soyutlaması yalnız mesaj çerçevesi |
 | 10 | Önizlemede tıklayıp düzenleme | canlı | öğe seçici; gerçek Chromium'da denendi |
-| 10 | DAG savaş odası ve zaman kaydırıcı | kısmi | sürüm zaman çizelgesi var; canlı graf yok |
-| 10 | Turnuva modu | kısmi | media_lab_arena model puanlama |
+| 10 | DAG savaş odası ve zaman kaydırıcı | canlı | war_room.js: canlı graf, süre ve yaklaşık tok/sn, zaman çubuğu, sürümden dallanma |
+| 10 | Turnuva modu | canlı | arena.py: aynı istek iki modelle, süre-denetim-renk tablosu ve önizlemeler; canlı |
 | 10 | Köken ve bellek çekmeceleri | canlı | IDE: Kanıt ve Bellek çekmeceleri |
 | 10 | Elle yapılan düzenlemeyi koruma | canlı | merge3 + geri al; elle düzenlemeden tercih öğrenmiyor |
 | 11.1 | Parametrik benchmark üretici | test | golden.py: tohumdan rastgele değerler |
@@ -181,13 +181,13 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 6.4 | DuckDB veri çalışması | canlı | data_lab |
 | 6.4 | Otomatik EDA ve ML hattı | canlı | eda.py: CSV için profil + 5 katlı çapraz doğrulama; Vega/Plotly grafik yok |
 | 6.5 | Uzun yazıda sayı tutarlılığı | test | doc_sanity, doc_proof |
-| 7 | Karma buluta yükseltme (varsayılan kapalı) | kısmi | escalation.py yalnız anonimleştirir; hiçbir yere göndermez |
+| 7 | Karma buluta yükseltme (varsayılan kapalı) | dışarıda | Kullanıcı istemedi (ücretli servis olmasın); yalnız ücretsiz yerel anonimleştirme komutu var, hiçbir yere gönderim yok |
 | 8 | Uzmanlığa göre anlatım ve netleştirme sorusu | canlı | pacing.audience_note + clarify |
 | 9 | Dosya izleyici ve gelen kutusu tetikleyicisi | canlı | triggers.py: data/inbox; pilde/sıcakta bekler. Git kancası yok |
 | 9 | Zamanlanmış görevler | test | cronjobs |
 | 10.1 | Donanım profili ve doctor | canlı | scripts/ai_os.py |
-| 10.2 | Tembel servisler ve boşta kapatma | kısmi | gateway/local_gpu, power_manager |
+| 10.2 | Tembel servisler ve boşta kapatma | canlı | daemons.py: arama kabı kapalıyken ihtiyaçta açıldı ve boşta kapandı; ses motorları boşta bırakılır; servis durumu komutu |
 | 10.3 | ai-os setup ve yapılandırma dosyası | canlı | scripts/ai_os.py setup, ai-os.config.json |
 | 10.3 | ai-os up, bench | test | bench ve up canlı denenmedi |
 | 10.3 | Dockersız yerel mod | test | isolation |
-| 11 | 7 boşluk kapatma testi | kısmi | bir kısmı e2e betiklerinde |
+| 11 | 7 boşluk kapatma testi | canlı | scripts/gap_suite.py: yedisi de canlı geçti; soğuk açılış 3.2 sn ve 214 MB |

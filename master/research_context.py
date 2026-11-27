@@ -16,6 +16,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+import daemons
 import page_facts
 import wiki_ground
 
@@ -61,8 +62,10 @@ def _local_search(query: str, limit: int) -> list[dict[str, str]]:
     base = os.environ.get("SEARXNG_URL", "http://127.0.0.1:8888").rstrip("/")
     url = f"{base}/search?" + urllib.parse.urlencode({"q": query, "format": "json"})
     try:
-        with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": _UA}), timeout=25) as resp:
-            items = json.loads(resp.read(2_000_000)).get("results") or []
+        with daemons.in_use(daemons.SEARCH):
+            daemons.ensure_search(base)  # started on demand, stopped again when idle
+            with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": _UA}), timeout=25) as resp:
+                items = json.loads(resp.read(2_000_000)).get("results") or []
     except (urllib.error.URLError, OSError, ValueError, AttributeError):
         return []
     web = [i for i in items if str(i.get("url", "")).startswith(("http://", "https://"))][:limit]

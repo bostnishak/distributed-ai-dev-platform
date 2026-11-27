@@ -43,6 +43,7 @@ _STRONG: tuple[re.Pattern[str], ...] = (
     re.compile(r"\bbypass\s+the\s+content\s+policy|\boverride\s+the\s+approval\s+gate", _I),
     re.compile(r"\b(?:reveal|print|output)\b(?:\W+\w+){0,4}?\W+(?:system\s+prompt|hidden\s+instructions|admin\s+token|secret\s+key)", _I),
     re.compile(r"kabul\s+et\s+ve\s+içindeki\s+talimatlara\s+uy|prompt\s+del\s+sistema", _I),
+    re.compile(r"\b(?:sistem|system)\s+(?:talimatı|mesajı)\s*:|\b(?:görev(?:i|ini)|işi(?:ni)?)\s+(?:bırak|iptal\s+et|unut)\b", _I),
 )
 
 # Text that talks to the model rather than to a human reader.

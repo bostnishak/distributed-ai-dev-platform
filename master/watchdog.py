@@ -10,6 +10,7 @@ import logging
 import os
 import sqlite3
 import sys
+import threading
 import time
 from collections.abc import Callable
 from pathlib import Path
@@ -18,12 +19,13 @@ import event_log
 import memory_conflicts
 import memory_engine
 import memory_maintenance
+import self_play
 import workspace_builder_ops as ops
 from process_utils import spawn_process
 
 _log = logging.getLogger(__name__)
 _SCRIPT = Path(__file__).resolve().parent.parent / "scripts" / "golden.py"
-_state: dict[str, str] = {"last_eval_day": ""}
+_state: dict[str, str] = {"last_eval_day": "", "last_play_day": ""}
 
 
 def check_servers() -> list[str]:
@@ -61,6 +63,10 @@ def consolidate_memory() -> int:
     return merged
 
 
+def play_due(now: time.struct_time, hour: str, idle: Callable[[], bool]) -> bool:
+    return hour.isdigit() and now.tm_hour == int(hour) and _state["last_play_day"] != time.strftime("%Y-%m-%d", now) and idle()
+
+
 def tick(idle: Callable[[], bool], now: time.struct_time | None = None) -> None:
     check_servers()
     now = now or time.localtime()
@@ -69,3 +75,7 @@ def tick(idle: Callable[[], bool], now: time.struct_time | None = None) -> None:
         consolidate_memory()
         spawn_process([sys.executable, str(_SCRIPT), "--auto-rollback"], cwd=_SCRIPT.parent.parent)
         _log.info("gece kalite ölçümü başlatıldı")
+    if play_due(now, os.environ.get("SELF_PLAY_HOUR", ""), idle):
+        _state["last_play_day"] = time.strftime("%Y-%m-%d", now)
+        threading.Thread(target=self_play.run_idle, args=(idle,), name="self-play", daemon=True).start()
+        _log.info("boşta alıştırma başlatıldı")

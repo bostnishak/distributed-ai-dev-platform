@@ -68,6 +68,7 @@ def is_resume(prompt: str) -> bool:
 
 async def stream_resume(ws_id: str, extra: str = "") -> AsyncIterator[dict[str, Any]]:
     import workspace_builder as wb
+    from workspace_batches import file_prompt
     from workspace_smoke import smoke_and_repair
 
     ws_dir = wb.safe_workspace_dir(ws_id)
@@ -86,7 +87,7 @@ async def stream_resume(ws_id: str, extra: str = "") -> AsyncIterator[dict[str, 
     for index, spec in enumerate(todo, start=1):
         yield {"type": "file_start", "path": spec["path"], "index": index, "total": len(todo)}
         request = data["request"] + (f"\n\nYARIDA EKLENEN TALİMAT (kalan dosyalarda uygula): {extra}" if extra else "")
-        prompt = wb._file_prompt(meta, request, tree, (contracts, snippets), spec)
+        prompt = file_prompt(meta, request, tree, (contracts, snippets), spec)
         code = await wb._generate_and_write_file(ws_dir, model, spec, prompt)
         contracts.append(wb._extract_file_contract(spec["path"], code))
         snippets.append(f"=== {spec['path']} ===\n{code[:1200]}")

@@ -42,3 +42,6 @@ training/cnc_ballooning/lora_adapter/
 # audit scratch output
 .audit_tmp/
 ai-os.config.json
+
+# written by ai_os.py import-gguf
+Modelfile.platform-coder

@@ -8,16 +8,32 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import contextvars
 import heapq
 import itertools
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Iterator
 
 INTERACTIVE, REPAIR, BACKGROUND = 0, 1, 2
 _BACKGROUND_FEATURES = frozenset({"self_eval", "inbox", "optimizer", "training", "benchmark", "property_check"})
 _REPAIR_FEATURES = frozenset({"debugger", "research", "doc_reader", "data_lab", "workspace_builder"})
 
 
+_AS_BACKGROUND: contextvars.ContextVar[bool] = contextvars.ContextVar("as_background", default=False)
+
+
+@contextlib.contextmanager
+def background() -> Iterator[None]:
+    """Everything called inside waits behind interactive requests, whatever feature name it uses."""
+    token = _AS_BACKGROUND.set(True)
+    try:
+        yield
+    finally:
+        _AS_BACKGROUND.reset(token)
+
+
 def priority_of(feature: str) -> int:
+    if _AS_BACKGROUND.get():
+        return BACKGROUND
     if feature in _BACKGROUND_FEATURES:
         return BACKGROUND
     return REPAIR if feature in _REPAIR_FEATURES else INTERACTIVE

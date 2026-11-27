@@ -23,6 +23,8 @@ CODE_ONLY_RE = re.compile(
     re.IGNORECASE,
 )
 
+_PAGE_NOUN_RE = re.compile(r"\b(?:tanıtım|açılış|karşılama|iniş|portfolyo)\s+sayfa(?:sı|s[ıi]n[ıi])?\b|\b(?:gösterge|gelir|satış|yönetim)\s+pano(?:su(?:nu)?)?\b|\blanding\s+page\b", re.IGNORECASE)
+
 _NON_CODE_PROJECT_RE = re.compile(
     r"\b(?:"
     r"(?:diyet|ders|egzersiz|spor|antrenman|antreman|beslenme|çalışma|calisma|eğitim|egitim|"
@@ -127,7 +129,8 @@ def is_project_build_request(prompt: str, file: UploadFile | None) -> bool:
     ):
         return False
     cleaned = _NON_CODE_PROJECT_RE.sub(" ", lower)
-    return bool(PROJECT_NOUN_RE.search(cleaned) and PROJECT_ACTION_RE.search(cleaned))
+    named = PROJECT_NOUN_RE.search(cleaned) or wants_single_html(prompt) or _PAGE_NOUN_RE.search(cleaned)
+    return bool(named and PROJECT_ACTION_RE.search(cleaned))
 
 
 def detect_project_type(prompt: str) -> tuple[str, bool]:

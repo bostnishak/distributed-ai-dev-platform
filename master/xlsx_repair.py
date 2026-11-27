@@ -20,6 +20,7 @@ _BUDGET_RES = (
     re.compile(r"(\d{1,3}(?:\.\d{3})+|\d+)\s*(?:TL|₺|lira)\s*(?:lik\s+|'lik\s+)?bütçe", re.IGNORECASE),
 )
 _TOTAL_RE = re.compile(r"(toplam\s*tutar|genel\s*toplam|toplam|total)", re.IGNORECASE)
+_SAFE_CALL_RE = re.compile(r"\b(?:IF|AND|OR|ROUND|ABS|SUM|AVERAGE|MIN|MAX)\(")
 _OPS_RE = re.compile(r"^[\s\d.+\-*/()<>=,\"A-Za-zÇĞİÖŞÜçğıöşü_%$@]*$")
 
 
@@ -79,7 +80,8 @@ def recover_text(sheet: dict[str, Any]) -> None:
         for h, i in names:
             expr = re.sub(rf"@?{re.escape(h)}", f"{{{i}}}", expr)
         expr = expr.replace("@", "")
-        if "{" in expr and _OPS_RE.match(expr.replace("{", "").replace("}", "")) and not re.search(r"[A-Za-zÇĞİÖŞÜçğıöşü]{3,}\(", expr.replace("IF(", "").replace("AND(", "").replace("OR(", "")):
+        expr = expr.lstrip("= ")
+        if "{" in expr and _OPS_RE.match(expr.replace("{", "").replace("}", "")) and not re.search(r"[A-Za-zÇĞİÖŞÜçğıöşü]{3,}\(", _SAFE_CALL_RE.sub("(", expr)):
             found[ci] = expr
 
 
@@ -182,8 +184,80 @@ def drop_duplicate_formulas(sheet: dict[str, Any]) -> None:
     sheet["formulas"] = [f for f in sheet.get("formulas", []) if f["header"].lower() not in seen]
 
 
+_NUMBER_RE = re.compile(r"\d{1,3}(?:\.\d{3})+|\d+")
+_SAMPLE_RE = re.compile(r"örnek|deneme|temsili|rastgele|sample|example|dummy", re.IGNORECASE)
+_TOTAL_ASKED_RE = re.compile(r"toplam|formül|total|\bsum\b", re.IGNORECASE)
+
+
+def _given_numbers(request: str) -> set[float]:
+    return {n for n in (float(m.replace(".", "")) for m in _NUMBER_RE.findall(request or "")) if n >= 100}
+
+
+def keep_given_data(spec: dict[str, Any], request: str) -> int:
+    """When the user wrote the figures, rows made only of other figures are the model's inventions: they are removed.
+
+    A row stays when at least one of its numbers is the user's (derived columns are fine) or it has no numbers; a sheet
+    that loses every row is removed. Requests that ask for sample data, or give fewer than two figures, are left alone.
+    """
+    given = _given_numbers(request)
+    if len(given) < 2 or _SAMPLE_RE.search(request):
+        return 0
+    removed = 0
+    for sheet in spec["sheets"]:
+        kept = []
+        for row in sheet["rows"]:
+            numbers = {n for n in (to_number(c) for c in row) if n}
+            if numbers and not numbers & given:
+                removed += 1
+            else:
+                kept.append(row)
+        sheet["rows"] = kept
+    if any(s["rows"] for s in spec["sheets"]):
+        spec["sheets"] = [s for s in spec["sheets"] if s["rows"]]
+    return removed
+
+
+def drop_invented_parts(spec: dict[str, Any], request: str) -> None:
+    """With the user's own figures: columns the model added but left empty or zero, and fixed numbers it made up for the summary, go."""
+    given = _given_numbers(request)
+    if len(given) < 2 or _SAMPLE_RE.search(request):
+        return
+    for sheet in spec["sheets"]:
+        def blank(cell: Any) -> bool:
+            return cell in (None, "", 0, "0") or (isinstance(cell, str) and bool(_PLACEHOLDER_RE.search(cell)))
+
+        keep = [ci for ci in range(len(sheet["headers"])) if ci == 0 or not all(blank(r[ci] if ci < len(r) else None) for r in sheet["rows"])]
+        if len(keep) >= 2 and len(keep) < len(sheet["headers"]):
+            sheet["headers"] = [sheet["headers"][ci] for ci in keep]
+            sheet["rows"] = [[r[ci] if ci < len(r) else "" for ci in keep] for r in sheet["rows"]]
+        sheet["summary"] = [s for s in sheet.get("summary") or [] if not (isinstance(s, dict) and isinstance(s.get("value"), int | float) and float(s["value"]) not in given)]
+
+
+def _has_total(sheet: dict[str, Any]) -> bool:
+    live = any(isinstance(s, dict) and str(s.get("function", "")).upper() == "SUM" and s.get("column") in sheet["headers"] for s in sheet.get("summary") or [])
+    return live or bool(sheet.get("formulas") or sheet.get("col_formulas"))
+
+
+def ensure_totals(spec: dict[str, Any], request: str) -> None:
+    """A total or a formula was asked for and a sheet has neither: add column totals (and their sum) as live formulas."""
+    if not _TOTAL_ASKED_RE.search(request or ""):
+        return
+    for sheet in spec["sheets"]:
+        if _has_total(sheet) or not sheet["rows"]:
+            continue
+        numeric = [h for ci, h in enumerate(sheet["headers"]) if ci and _column(sheet["rows"], ci) is not None]
+        if not numeric:
+            continue
+        totals = [{"label": f"Toplam {h}", "function": "SUM", "column": h} for h in numeric[:6]]
+        if len(numeric) > 1:
+            totals.append({"label": "Genel Toplam", "formula": "=" + "+".join(f"@Toplam {h}" for h in numeric[:6])})
+        sheet["summary"] = totals + list(sheet.get("summary") or [])
+
+
 def repair(spec: dict[str, Any], request: str) -> dict[str, Any]:
     fix_names(spec, request)
+    keep_given_data(spec, request)
+    drop_invented_parts(spec, request)
     for sheet in spec["sheets"]:
         drop_duplicate_formulas(sheet)
         recover_text(sheet)
@@ -191,5 +265,6 @@ def repair(spec: dict[str, Any], request: str) -> dict[str, Any]:
         apply_budget(sheet, request)
         drop_broken_cells(sheet)
         auto_chart(sheet)
+    ensure_totals(spec, request)
     auto_comparison(spec, request)
     return spec

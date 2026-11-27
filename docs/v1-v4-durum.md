@@ -1,59 +1,35 @@
-# v1-v4 şartnameleri: yapılanlar ve yapılamayanlar
+# v1-v4 şartnameleri: özet durum (27.11.2026)
 
-Durum sözcükleri: **canlı** = gerçek modellerle çalışan sunucuda denendi ve geçti; **test** = yalnız otomatik testle
-doğrulandı; **kısmi** = bir bölümü var; **yok** = yapılmadı. Makine: RTX 4060 Laptop 8 GB, 31 GB RAM.
+Madde madde liste: [sartname-madde-listesi.md](sartname-madde-listesi.md). Komutlar: [komutlar.md](komutlar.md).
+Makine: Windows 11, RTX 4060 Laptop 8 GB, 32 GB RAM. Ücretli servis ve anahtar kullanılmaz.
 
-## Yapılanlar
-
-| Konu | Durum | Nerede |
+| Durum | Sayı | Anlamı |
 |---|---|---|
-| Tek dosya web uygulaması, renk ve etiket uyumu | canlı | `workspace_batches.py`, `spec_contract.py` |
-| Sohbetten revizyon; basit renk/yazı değişikliği modelsiz | canlı | `revise_chat.py`, `tier0_edit.py` |
-| Akış şeması (listelenen her adım zorunlu), PDF, görsel | canlı | `flowchart_studio.py` |
-| FastAPI + SQLite küçük API, gerçek isteklerle sınanmış | canlı (3 başarısız denemeden sonra) | `workspace_batches.fixed_plan` |
-| Uzun belgede ilgili bölümü satır numarasıyla seçme | canlı | `long_doc.py` |
-| Belge içindeki talimatları ayırma | canlı | `untrusted.py` |
-| İmzalı köken kaydı ve bağımlılık listesi | canlı | `provenance.py` |
-| Aşama süreleri, başarı oranı, yörünge kaydı | canlı | `run_trace.py`, `/api/studio/runs/summary` |
-| Tarayıcı kapısı (ekleme, filtre, yer tutucu), onarım döngüsü | test + canlı üretimde | `workspace_smoke.py` |
-| Gerçek tarayıcıda taşma, kontrast, çakışma denetimi | test (Edge) | `visual_audit.py` |
-| Güvenlik ve gizli anahtar taraması | test | `security_scan.py` |
-| Nokta atışı yama, Intake ve Mimar ajanları, API istek testi | test | `patch_edit.py`, `agent_contracts.py` |
-| Orantılılık freni (`@fast`, `@deep`) | test | `complexity_governor.py` |
-| Şablon tasarım uyarıları | test | `design_slop.py` |
-| IDE hata köprüsü | test (Node); gerçek tarayıcıda denenmedi | `ide_error_bridge.js` |
-| Donanım doktoru, başlatma, GPU belleği boşaltma | `doctor` canlı; `up`, `unload` denenmedi | `scripts/ai_os.py` |
+| canlı | 84 | gerçek modellerle çalışan sistemde denendi ve geçti |
+| test | 64 | yalnız otomatik testle doğrulandı |
+| kısmi / yok | 0 | |
+| dışarıda | 8 | kullanıcı onayıyla kapsam dışı |
+| teknik engel | 3 | bu araçlarla yapılamıyor |
+| **toplam** | **159** | |
 
-## İndirmelerden sonra eklenenler
+## Yapılamayanlar
 
-| Konu | Durum | Nerede |
-|---|---|---|
-| Excel, Word, sunum dosyalarını LibreOffice ile açıp yeniden hesaplama | canlı (Excel) | `office_verify.py` |
-| Sayısal sorularda Z3 doğrulaması | canlı | `z3_math.py` |
-| CSV sorularında DuckDB ile gerçek SQL | canlı | `data_lab.py` |
-| Görsel modelle ekran görüntüsü eleştirisi (`@derin`) | canlı; bozuk sayfada kusurun bir kısmını kaçırdı | `vlm_critique.py` |
-| CPU'da gömme, tek model GPU kilidi | canlı | `gateway/local_gpu.py` |
-| Zamanlı bellek, doğrulanmış beceri kütüphanesi, yayın istatistikleri | test | `memory_timeline.py`, `skill_library.py`, `eval_stats.py` |
-| Windows iş nesnesi ve WASM izolasyonu (henüz hatta bağlı değil) | test | `isolation.py` |
-| Bulut eğitim paketi ve GGUF içe aktarma | dışa aktarma çalıştı; içe aktarma gerçek GGUF ile denenmedi | `training_pack.py` |
+**Teknik engel (Ollama bu denetimi vermiyor):**
+- Logprob/entropi ile büyük modele yükseltme
+- Radix KV önbellek havuzu
+- GBNF/XGrammar sözdizimi maskeleri
 
-Güncel ve madde madde liste: [sartname-madde-listesi.md](sartname-madde-listesi.md). Aşağıdaki tablolar ilk turun özetidir.
+**Kapsam dışı:**
+- Çoklu bilgisayar (LAN) çıkarım ağı
+- Spekülatif çözme
+- Yerel model eğitimi (LoRA/DPO/GRPO), PRM eğitimi, çoklu LoRA birleştirme, bilgi damıtma (yalnız veri ve betik hazırlanır)
+- gVisor/Firecracker (Windows'ta yok)
+- Ücretli buluta yükseltme (istenmedi; hiçbir yere veri gönderilmez)
 
-## Bu makinede yapılmayacaklar (kullanıcı onayladı)
+## Bilinmesi gerekenler
 
-Çoklu makine dağıtımı; 32B-70B modeller ve spekülatif çözme; yerel model eğitimi ve GRPO; gVisor ve Firecracker.
-
-## Sınırlar
-
-- Yerel 7-9B modeller aynı istekte farklı sonuç üretir; bir senaryonun bir kez geçmesi her zaman geçeceğini göstermez.
-- Tek bir proje üretimi 3-7 dakika sürüyor; en uzun aşama çalıştırma testi ve onarım turlarıdır.
-
-## Yeniden doğrulama
-
-```powershell
-python scripts/e2e_stress.py
-```
-
-```powershell
-python scripts/e2e_features.py
-```
+- "test" durumundaki 64 madde canlı modelle ayrıca denenmedi.
+- 7 boşluk testi `scripts/gap_suite.py` ile canlı çalışır; yerel modeller her koşuda aynı yanıtı vermez.
+- Soğuk açılış 3,2 sn ve boşta 214 MB ölçüldü.
+- Türkçe ses verisinin lisansı (CC BY-NC-SA 4.0) ticari kullanıma kapalıdır.
+- Küçük modeller hata yapabilir; üretilen kodu, sayıları ve belgeleri kullanmadan önce gözden geçirin.

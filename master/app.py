@@ -55,6 +55,7 @@ import privacy
 import productivity_api
 import projects_api
 import rag
+import run_api
 import scheduler
 import security_extensions
 import security_middleware
@@ -135,6 +136,7 @@ app.include_router(perf_api.router)
 app.include_router(cnc_api.router)
 app.include_router(studio_api.router)
 app.include_router(workspace_inspect.router)
+app.include_router(run_api.router)
 app.include_router(user_api.router)
 app.include_router(memory_api.router)
 app.include_router(memory_conflicts.router)

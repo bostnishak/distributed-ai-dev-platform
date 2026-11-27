@@ -15,6 +15,7 @@ import { bindGlobalEvent, startManagedInterval, storageGet, storageSet } from '.
 import { renderStudio } from './studio.js';
 import { closeSidebar, isDesktop, openSidebar } from './util.js';
 import { announceAriaLive, fetchHealthWizardStatus } from './ux_shell.js';
+import { initWarRoom } from './war_room.js';
 
 const appStore = createReactiveStore();
 window.__DADP_STORE__ = appStore;
@@ -133,5 +134,6 @@ initChatEnhancements();
 initPersonalSpace();
 initAuthUi();
 initPalette();
+initWarRoom();
 fetchHealthWizardStatus().then((hw) => { if (hw) window.__DADP_HEALTH_WIZARD__ = hw; }).catch(() => {});
 route();

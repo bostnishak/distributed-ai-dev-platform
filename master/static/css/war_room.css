@@ -1,0 +1,36 @@
+/* War room: live agent graph. */
+.war-toggle {
+  position: fixed;
+  right: 14px;
+  bottom: 84px;
+  z-index: 1200;
+  padding: 6px 12px;
+  border: 1px solid #475569;
+  border-radius: 999px;
+  background: #fff;
+  color: #0f172a;
+  cursor: pointer;
+}
+.war-panel {
+  position: fixed;
+  right: 14px;
+  bottom: 128px;
+  z-index: 1200;
+  width: min(760px, calc(100vw - 28px));
+  max-height: 70vh;
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid #475569;
+  border-radius: 12px;
+  background: #fff;
+  color: #0f172a;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+}
+.war-panel[hidden], .war-toggle[hidden], .war-row[hidden] { display: none; }
+.war-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; }
+.war-note { flex: 1; min-width: 180px; }
+.war-graph { overflow: auto; margin: 8px 0; }
+.war-graph g { cursor: pointer; }
+.war-slider { width: 100%; }
+.war-small { margin-top: 6px; font-size: 12px; }
+.war-purpose { width: 70%; }

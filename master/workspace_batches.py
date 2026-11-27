@@ -43,6 +43,25 @@ def fixed_plan(prompt: str) -> dict[str, Any] | None:
     return None
 
 
+def _same_role(path: str) -> tuple[str, str]:
+    """"css/styles.css" and "style.css" play the same part: same stem (plural ignored) and extension."""
+    name = path.rsplit("/", 1)[-1].lower()
+    stem, _dot, ext = name.rpartition(".")
+    return stem.rstrip("s"), ext
+
+
+def merge_requested(planned: list[dict[str, Any]], requested: list[str]) -> None:
+    """Add the files the user named; a planned file that is the same thing under a folder takes the user's name instead of being written twice."""
+    for wanted in requested:
+        if any(f["path"] == wanted for f in planned):
+            continue
+        twin = next((f for f in planned if "/" in f["path"] and "/" not in wanted and f["path"] not in requested and _same_role(f["path"]) == _same_role(wanted)), None)
+        if twin:
+            twin["path"] = wanted
+        else:
+            planned.append({"path": wanted, "purpose": "Kullanıcı isteğinde belirtilen dosya"})
+
+
 def single_html_plan() -> list[dict[str, Any]]:
     purpose = "TÜM uygulama tek dosyada: <style> ve <script> içeride, harici dosya/kütüphane yok; istenen renkler, yerleşim, butonlar ve örnek veriler birebir"
     return [{"path": "index.html", "purpose": purpose, "tokens": 9000, "model": "qwen3.5:9b", "system": load_prompt("b4_single_file_writer.txt")}]

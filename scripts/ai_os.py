@@ -5,6 +5,7 @@ Heavy parts (Docker sandbox, headless browser) start only when a task needs them
 """
 
 import argparse
+import asyncio
 import json
 import os
 import shutil
@@ -18,9 +19,12 @@ import psutil
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "master"))
+import arena  # noqa: E402
 import config  # noqa: E402
 import training_pack  # noqa: E402
+import verified_tasks  # noqa: E402
 import visual_audit  # noqa: E402
+import workspace_docker  # noqa: E402
 
 PROFILES = (("WORKSTATION_48GB+", 32_000), ("PRO_16_24GB", 12_000), ("NANO_8GB", 0))
 
@@ -133,11 +137,31 @@ def unload():
     return 0
 
 
+def import_model(body: str, baseline: str) -> int:
+    """Create the GGUF as a candidate and give it the platform name only if it passes the shadow evaluation."""
+    target = ROOT / "Modelfile.platform-coder"
+    target.write_text(body, encoding="utf-8")
+    if subprocess.call(["ollama", "create", "platform-coder-candidate", "-f", str(target)]):
+        return 1
+    if not workspace_docker.available():
+        print("Kod kutusu kapalı: aday ölçülemedi, platform-coder olarak YAYINLANMADI (aday: platform-coder-candidate).")
+        return 2
+    scores = {m: asyncio.run(verified_tasks.score(m)) for m in (baseline, "platform-coder-candidate")}
+    promote, line = arena.verdict(scores["platform-coder-candidate"], scores[baseline])
+    print(f"Gölge değerlendirme: {line}")
+    if not promote:
+        print("KAPI KAPALI: platform-coder değiştirilmedi (aday: platform-coder-candidate).")
+        return 3
+    print("KAPI AÇIK: aday platform-coder olarak yayınlanıyor.")
+    return subprocess.call(["ollama", "cp", "platform-coder-candidate", "platform-coder"])
+
+
 def main():
     parser = argparse.ArgumentParser(prog="ai-os")
     parser.add_argument("command", choices=["doctor", "setup", "up", "unload", "bench", "export-training", "import-gguf"])
     parser.add_argument("path", nargs="?", help="export-training: output folder; import-gguf: model file")
     parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("--baseline", default="qwen2.5-coder:7b", help="import-gguf: model the candidate must not be worse than")
     parser.add_argument("--pull", action="store_true", help="setup: download missing models")
     parser.add_argument("--lan", action="store_true", help="listen on all interfaces (teammates can reach it)")
     args = parser.parse_args()
@@ -157,9 +181,7 @@ def main():
         except ValueError as exc:
             print(exc)
             return 1
-        target = ROOT / "Modelfile.platform-coder"
-        target.write_text(body, encoding="utf-8")
-        return subprocess.call(["ollama", "create", "platform-coder", "-f", str(target)])
+        return import_model(body, args.baseline)
     if args.command == "bench":
         return subprocess.call([sys.executable, str(ROOT / "scripts" / "e2e_stress.py"), "web", "image"])
     python = ROOT / "master" / "venv" / "Scripts" / "python.exe"

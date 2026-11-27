@@ -95,8 +95,29 @@ def solve_text(operation: str, text: str) -> str:
         return ""
 
 
+_POWER_RE = re.compile(
+    r"^\s*(?P<n>\d{1,12}(?:[.,]\d{1,6})?)\s*(?:['\u2019]?\s*(?:n?[iıuü]n)|\s+sayısının)?\s+(?P<op>karekökü|küpkökü|küp\s+kökü|kare\s+kökü|karesi|küpü)\s*(?:kaçtır|kaç|nedir)?\s*\??\s*$", re.IGNORECASE)
+
+
+def number_question(prompt: str) -> str:
+    """"144'ün karekökü kaç?" computed here: small models mix up the root and the square when they word it."""
+    match = _POWER_RE.match(prompt)
+    if not match:
+        return ""
+    from sympy import Rational, cbrt, sqrt
+
+    written, op = match["n"], " ".join(match["op"].casefold().split())
+    value = Rational(written.replace(",", "."))
+    action = {"karekökü": sqrt, "kare kökü": sqrt, "küpkökü": cbrt, "küp kökü": cbrt, "karesi": lambda v: v**2, "küpü": lambda v: v**3}[op]
+    result = action(value)
+    shown = str(result) if result.is_Integer else ("" if result.is_Rational else "≈ ") + f"{float(result):.10g}".replace(".", ",")
+    return f"{written} sayısının {op}: **{shown}**"
+
+
 def answer(prompt: str) -> str:
     """Complete reply for a maths request, '' for everything else."""
+    if direct := number_question(prompt):
+        return direct
     parsed = parse(prompt)
     if not parsed:
         return ""

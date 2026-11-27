@@ -59,9 +59,14 @@ def _listing(elements: list[dict]) -> str:
     return "\n".join(f"[{e['id']}] {'YAZI ALANI ' if _writable(e) else ''}{e['tag']}{'/' + e['type'] if e['type'] else ''} \"{e['label']}\"" + (f" = {e['value']!r}" if e["value"] else "") for e in elements)
 
 
+async def _visible_text(page) -> str:
+    """Text a person could read on the page; hidden text never reaches the model."""
+    return await page.evaluate(load_prompt("page_visible_text.js.txt"))
+
+
 async def _state(page) -> tuple[str, list[dict], str]:
     elements = await page.evaluate(load_prompt("page_elements.js.txt"))
-    return page.url, elements, (await page.inner_text("body"))[:3000]
+    return page.url, elements, (await _visible_text(page))[:3000]
 
 
 async def _perform(page, action: Action) -> None:
@@ -160,7 +165,7 @@ async def _drive(browser, task: str, url: str, approved: tuple[str, ...], chat: 
             break
         except PlaywrightError as exc:
             history.append(f"eylem başarısız: {str(exc).splitlines()[0][:80]}")
-    final = (await page.inner_text("body"))[:500].strip()
+    final = (await _visible_text(page))[:500].strip()
     note = f"\n\nEngellenen dış istekler: {', '.join(sorted(blocked))}" if blocked else ""
     yield "result", f"{outcome}\n\nSon adres: {page.url}\nSayfada görünen: {final}{note}"
 
