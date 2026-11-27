@@ -100,8 +100,8 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [x] İndirilen DevDocs araştırmada kullanılıyor; web kapalıyken de yanıt veriyor (canlı geçti)
 - [x] Tipografi ölçeği ve dikey ritim: yazım notu ve tarayıcı denetimi
 - [~] Kullanıcı zevkini öğrenme — turnuva seçimi kaydediliyor, elle düzenlemeden öğrenme yok
-- [ ] Belge araçları: içindekiler, sayfa aralığı, tablo çıkarma, alıntı doğrulama
-- [ ] Diske yazılan özet ağacı
+- [x] Belge araçları: içindekiler, sayfa aralığı, tablo çıkarma, alıntı doğrulama
+- [x] Diske yazılan özet ağacı (aynı belgede model çağrılmadan yeniden kullanılıyor)
 - [x] NumPy / SciPy ve duyarlılık analizi (`duyarlılık: ...`, `sayısal kök / integral: ...`)
 - [x] Excel: XLOOKUP, NPV, IRR
 - [x] Excel: döngüsel başvuru ve kırpılan sütun denetimi (üretilen dosyalarda gerçek bir kırpılma hatası bulundu, düzeltildi)

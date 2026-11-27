@@ -945,3 +945,74 @@ def test_definition_hover_and_conditional_breakpoint_come_from_the_real_servers(
     hit = workspace_commands._inspect(tmp_path, "koşullu kesme: hesap.py:6 tutar > 400")
     assert "kesme noktasında durdu" in hit and "tutar=500" in hit and "sonuc=490" in hit, hit
     assert "durulmadı" in workspace_commands._inspect(tmp_path, "koşullu kesme: hesap.py:6 tutar > 9000")
+
+
+def test_document_commands_read_contents_pages_tables_and_check_quotes(tmp_path):
+    import pymupdf
+
+    import doc_tools
+
+    doc = pymupdf.open()
+    for number, body in enumerate(("Depo raporu. Stok devir hizi 2026 yilinda 7,4 oldu.", "Ikinci sayfa: iade orani yuzde 3."), 1):
+        page = doc.new_page()
+        page.insert_text((50, 60), body, fontsize=11)
+        if number == 2:
+            for row, cells in enumerate((("Urun", "Adet"), ("Kalem", "12"), ("Defter", "30"))):
+                for col, cell in enumerate(cells):
+                    rect = pymupdf.Rect(50 + col * 100, 100 + row * 20, 150 + col * 100, 120 + row * 20)
+                    page.draw_rect(rect)
+                    page.insert_text((rect.x0 + 4, rect.y1 - 5), cell, fontsize=10)
+    doc.set_toc([[1, "Giris", 1], [2, "Iadeler", 2]])
+    raw = doc.tobytes()
+    doc.close()
+    assert "- Giris (sayfa 1)\n  - Iadeler (sayfa 2)" in doc_tools.answer("içindekiler", "r.pdf", raw)
+    second = doc_tools.answer("sayfa 2", "r.pdf", raw)
+    assert "iade orani" in second and "Depo raporu" not in second
+    assert "geçersiz" in doc_tools.answer("sayfa 5-9", "r.pdf", raw)
+    table = doc_tools.answer("tabloları çıkar", "r.pdf", raw)
+    assert "| Urun | Adet |" in table and "| Defter | 30 |" in table, table
+    assert "birebir var**: sayfa 1" in doc_tools.answer('alıntıyı doğrula: "Stok devir hizi 2026 yilinda 7,4 oldu."', "r.pdf", raw)
+    wrong = doc_tools.answer('alıntıyı doğrula: "Stok devir hizi 2026 yilinda 9,9 oldu."', "r.pdf", raw)
+    assert "birebir yok" in wrong and "7,4" in wrong
+    assert doc_tools.answer("belgeyi anlat", "r.pdf", raw) == ""
+    assert "- Başlık (satır 1)" in doc_tools.answer("içindekiler", "n.md", "# Başlık\nmetin\n".encode())
+
+
+def test_summary_tree_is_written_to_disk_and_reused(tmp_path, monkeypatch):
+    import asyncio
+    import json
+
+    import config
+    import doc_tree
+
+    monkeypatch.setattr(config, "data_dir", lambda: tmp_path)
+    calls = []
+
+    async def chat(system, user, schema):
+        calls.append(1)
+        return json.dumps({"summary": "Depo düzeni anlatılıyor.", "quotes": []})
+
+    text = ("Depo düzeni anlatılıyor. " * 40 + "\n") * 12
+
+    async def run(model):
+        reports = [value async for kind, value in doc_tree.summarise(text, model) if kind == "report"]
+        return reports[-1]
+
+    first = asyncio.run(run(chat))
+    stored = list((tmp_path / "doc_trees").glob("*.json"))
+    assert len(stored) == 1 and calls and json.loads(stored[0].read_text(encoding="utf-8"))["leaves"]
+    monkeypatch.setattr(doc_tree.research, "_ask", lambda *a: pytest.fail("model yeniden çağrıldı"))
+    assert asyncio.run(run(None)) == first
+
+
+def test_a_two_or_three_slide_request_can_be_satisfied():
+    import deep_research
+
+    def spec(count):
+        return {"slides": [{"title": f"Başlık {i}", "bullets": ["Raf düzeni gözden geçirildi", "Toplama yolu kısaltıldı"]} for i in range(count)]}
+
+    assert deep_research._parse_slide_count("Depo verimliliği üzerine 3 slaytlık sunum hazırla.") == 2
+    assert deep_research._slides_are_real(spec(2), "Depo verimliliği üzerine 3 slaytlık sunum hazırla.")
+    assert not deep_research._slides_are_real(spec(1), "Depo verimliliği üzerine 3 slaytlık sunum hazırla.")
+    assert not deep_research._slides_are_real(spec(2), "Depo verimliliği üzerine sunum hazırla.")
+    assert deep_research._slides_are_real(spec(3), "Depo verimliliği üzerine sunum hazırla.")

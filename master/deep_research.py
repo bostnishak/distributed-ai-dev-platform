@@ -191,7 +191,8 @@ def _slide_has_content(sl: dict[str, Any]) -> bool:
 def _slides_are_real(spec: dict[str, Any], prompt: str) -> bool:
     """A usable deck has several slides with their own content; slides that just repeat the request or keep schema placeholders are rejected."""
     slides = spec.get("slides")
-    if not isinstance(slides, list) or len(slides) < 3 or _PLACEHOLDER_RE.search(json.dumps(slides, ensure_ascii=False).replace("<br>", "")):
+    least = min(3, _parse_slide_count(prompt))  # "3 slides" means a cover and two content slides
+    if not isinstance(slides, list) or len(slides) < least or _PLACEHOLDER_RE.search(json.dumps(slides, ensure_ascii=False).replace("<br>", "")):
         return False  # an <angle-bracket> field means the model copied the schema placeholders
     echo = " ".join(prompt.lower().split())[:40]
     filled = 0
@@ -202,7 +203,7 @@ def _slides_are_real(spec: dict[str, Any], prompt: str) -> bool:
         if any(echo and echo in " ".join(x.lower().split()) for x in bullets):
             return False
         filled += 1 if _slide_has_content(sl) else 0
-    return filled >= max(3, len(slides) - 1)
+    return filled >= max(least, len(slides) - 1)
 
 
 async def _fetch_pptx_spec(sys_prompt: str, user_msg: str, model: str, prompt: str = "") -> dict[str, Any]:

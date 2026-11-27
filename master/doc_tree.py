@@ -6,11 +6,16 @@ level below. Every section of the result says which lines it covers, so any sent
 
 from __future__ import annotations
 
+import hashlib
+import json
 import logging
 from collections.abc import AsyncIterator
+from pathlib import Path
 
 from pydantic import BaseModel, ValidationError
 
+import atomic_io
+import config
 import doc_reader
 import research
 import untrusted
@@ -53,8 +58,29 @@ def _checked(summary: str, source: str) -> str:
     return ". ".join(kept).rstrip(".") + "." if kept else ""
 
 
+def _tree_file(text: str) -> Path:
+    return config.data_dir() / "doc_trees" / f"{hashlib.sha256(text.encode('utf-8')).hexdigest()[:32]}.json"
+
+
+def _load(path: Path) -> dict | None:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+
+def _store(path: Path, tree: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    atomic_io.write_text(path, json.dumps(tree, ensure_ascii=False, indent=1))
+
+
 async def summarise(text: str, chat: research.Chat | None = None) -> AsyncIterator[tuple[str, str]]:
     """("status", message) while working, then one ("report", markdown)."""
+    stored = _tree_file(text)
+    if chat is None and (tree := _load(stored)):
+        yield "status", "Bu belgenin özet ağacı diskte; model çağrılmadan kullanılıyor."
+        yield "report", tree["report"]
+        return
     ask = chat or research._ask
     pieces = doc_reader.parts(text)[: doc_reader._MAX_PARTS]
     spans = _spans(pieces)
@@ -90,4 +116,8 @@ async def summarise(text: str, chat: research.Chat | None = None) -> AsyncIterat
     if failed:
         out += ["", f"UYARI: {failed} parça özetlenemedi; o satır aralıkları yukarıda işaretli."]
     out += ["", f"_{len(pieces)} parçanın hepsi okundu; özet katmanlı (parça → bölüm → bütün) kuruldu. Kaynakta olmayan sayı içeren cümleler çıkarıldı._"]
-    yield "report", "\n".join(out)
+    report = "\n".join(out)
+    if not failed:
+        _store(stored, {"report": report, "sections": [{"lines": list(span), "summary": s} for span, s in sections],
+                        "leaves": [{"lines": list(span), "summary": s, "quotes": q} for span, s, q in leaves]})
+    yield "report", report

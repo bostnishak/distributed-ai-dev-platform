@@ -16,6 +16,7 @@ import decisions
 import dependency_audit
 import design_from_image
 import doc_reader
+import doc_tools
 import eda
 import federation
 import math_kernel
@@ -74,7 +75,7 @@ def _agents(prompt: str, history: str) -> StreamingResponse | None:
 
 def fastpath(prompt: str, file: UploadFile | None, history: str = "") -> StreamingResponse | None:
     if file is not None and file.filename:
-        return design_from_image.fastpath(prompt, file) or data_chart.fastpath(prompt, file) or eda.fastpath(prompt, file) or doc_reader.fastpath(prompt, file)
+        return doc_tools.fastpath(prompt, file) or design_from_image.fastpath(prompt, file) or data_chart.fastpath(prompt, file) or eda.fastpath(prompt, file) or doc_reader.fastpath(prompt, file)
     preferences.remember(prompt)
     if result := _command(prompt, history):
         import assistant_stream_fastpaths as fp
