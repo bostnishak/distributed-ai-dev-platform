@@ -62,6 +62,7 @@ import studio_api
 import studios
 import tasks_api
 import telemetry_otel
+import triggers
 import updater
 import user_api
 import ux_api
@@ -107,8 +108,10 @@ async def lifespan(_app: FastAPI):
     preview_server.start_preview_server_background()
     ops.startup()
     cron_task = asyncio.create_task(cronjobs.loop(productivity_api.assistant_runner))
+    inbox_task = asyncio.create_task(triggers.loop())
     yield
     cron_task.cancel()
+    inbox_task.cancel()
     ops.shutdown()
 
 

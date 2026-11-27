@@ -17,6 +17,7 @@ from collections.abc import AsyncIterator, Awaitable, Callable
 from pathlib import Path
 from typing import Any
 
+import causal_debug
 import spec_contract
 import workspace_behavior
 import workspace_docker
@@ -85,21 +86,19 @@ def _run_probe(ws_dir: Path, entry: Path) -> tuple[bool, str, list[str]]:
     return "SMOKE_OK" in proc.stdout, (proc.stderr or proc.stdout)[-2500:], routes
 
 
-def _tests_problem(ws_dir: Path) -> str:
-    """Run the project's own tests once; a failure becomes a warning (generated tests are often wrong themselves)."""
+def _tests_log(ws_dir: Path) -> str:
+    """Run the project's own tests once; '' when they pass or there are none, else the end of the output."""
     tests = ws_dir / "tests"
     if not tests.is_dir() or not any(tests.glob("test_*.py")):
         return ""
     if workspace_docker.available():
-        last = workspace_docker.run_tests(ws_dir, _safe_requirements(ws_dir))
-        return f"Projenin kendi testleri başarısız: {last[:160]}" if last else ""
+        return workspace_docker.test_log(ws_dir, _safe_requirements(ws_dir))
     py = _sandbox_python()
     run_process([str(py), "-m", "pip", "install", "-q", "--disable-pip-version-check", "pytest"], timeout_s=180)
-    proc = run_process([str(py), "-m", "pytest", "-x", "-q", "--no-header", "-p", "no:cacheprovider"], cwd=ws_dir, timeout_s=60, max_output_chars=1500, env=_clean_env())
+    proc = run_process([str(py), "-m", "pytest", "-x", "-q", "--no-header", "-p", "no:cacheprovider"], cwd=ws_dir, timeout_s=60, max_output_chars=3000, env=_clean_env())
     if proc.timed_out or proc.returncode == 0:
         return ""
-    last = (proc.stdout.strip().splitlines() or ["test başarısız"])[-1]
-    return f"Projenin kendi testleri başarısız: {last[:160]}"
+    return proc.stdout.strip()[-3000:] or "test başarısız"
 
 
 def _diagnose(ws_dir: Path, ok: bool, log: str, routes: list[str]) -> tuple[bool, Path | None, str]:
@@ -170,7 +169,8 @@ async def smoke_and_repair(ws_dir: Path, regenerate: _Regenerate, rounds: int = 
             elif result and (scenario := await _scenario_problem(ws_dir, request, regenerate, scenarios)):
                 passed, target, log = False, scenario[0], scenario[1]
         if passed:
-            test_warning = await asyncio.to_thread(_tests_problem, ws_dir) if entry else ""
+            yield {"type": "status", "message": "Projenin kendi testleri çalıştırılıyor..."}
+            _ok, test_warning = await causal_debug.repair(ws_dir, lambda: _tests_log(ws_dir), regenerate) if entry else (True, "")
             yield {"type": "smoke", "ok": True, "warning": test_warning}
             return
         if attempt == rounds or target is None:

@@ -22,6 +22,7 @@ from pydantic import BaseModel
 
 import config
 import dbconn
+import policy
 import secret_store
 from access_control import require_local_or_admin
 from audit_log import AuditTrail
@@ -288,6 +289,9 @@ async def call_connector_tool(connector_id: str, tool_name: str, arguments: dict
         raise KeyError("MCP bağlayıcı bulunamadı.")
     if not row["enabled"]:
         raise ValueError("Bu MCP bağlayıcısı pasif durumda.")
+    gate = policy.check("mcp_call", payload=json.dumps(arguments or {}, ensure_ascii=False))
+    if not gate.allowed:
+        raise ValueError(gate.reason)
     headers = _build_headers(row)
     endpoint = (row["url"], headers)
     async with httpx.AsyncClient(timeout=30.0) as client:

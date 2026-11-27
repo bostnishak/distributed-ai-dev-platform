@@ -1,7 +1,7 @@
 # surum	bolum	madde	durum	not
 # durum: C=canlıda geçti, T=otomatik testle geçti, K=kısmi, Y=yok, X=dışarıda (kullanıcı onayladı), E=teknik engel
 v1	1 Yasalar	Sahte veri ve yer tutucu yasağı (statik tarama + tarayıcı kapısı)	C	workspace_smoke, jsdom_probe
-v1	1 Yasalar	Uydurma paket, dosya yolu, model adı engeli	K	workspace_requirements; paket kayıt denetimi yok
+v1	1 Yasalar	Uydurma paket, dosya yolu, model adı engeli	C	package_check gerçek PyPI ile denendi
 v1	1 Yasalar	Eleştirel, onaylayıcı olmayan akıl yürütme	T	prompts/agent_architect.md
 v1	1 Yasalar	Renk, ölçü, etiket sadakati (spec.json)	C	spec_contract
 v1	1 Yasalar	Ham kaynak saflığı (vurgulayıcı artığı yok)	C	pure_source
@@ -49,23 +49,23 @@ v2	3.2	Yerel LoRA/DPO/GRPO eğitimi	X	bellek ve veri yetersiz; yalnız betik
 v2	3.2	GGUF içe aktarma ve gölge değerlendirme kapısı	K	import-gguf var, gerçek GGUF ile denenmedi
 v2	3.3	Doğrulanmış beceri kütüphanesi	T	skill_library
 v2	3.3	Otomatik istem optimizasyonu	Y
-v2	4.1	Hipotez temelli nedensel hata ayıklama + regresyon testi	Y
+v2	4.1	Hipotez temelli nedensel hata ayıklama + regresyon testi	K	causal_debug.py canlıda zincirdeki 3 hatanın 2'sini çözdü; regresyon testi üretmiyor
 v2	4.2	En iyi N aday değerlendirme	K	tool_executor kurulu (yalnız akıl yürütmede)
 v2	4.3	Doğrulanmış/çıkarım/varsayım defteri	Y
-v2	4.4	API fuzz ve sınır testi	Y
+v2	4.4	API fuzz ve sınır testi	C	api_probe; Docker kum havuzunda denendi
 v2	4.4	Arayüz kaos, erişilebilirlik, üç ekran genişliği	K	visual_audit tek genişlik
-v2	4.4	Uydurma paket (slopsquatting) denetimi	Y
-v2	5.1	Depo haritası	K	code_graph (AST/regex); tree-sitter ve sıralama yok
+v2	4.4	Uydurma paket (slopsquatting) denetimi	C	package_check
+v2	5.1	Depo haritası	C	repo_map.py (AST/regex + PageRank; tree-sitter değil); düzenlemede kullanılıyor, birim testli
 v2	5.2	Melez kod araması (graf+BM25+gömme)	K	hybrid_graph_rag belge için; kod için yok
-v2	5.2	Etki alanı (blast radius) analizi	Y
+v2	5.2	Etki alanı (blast radius) analizi	T	repo_map.dependents_note
 v2	5.3	Anlık statik tanılama (ruff, node --check)	K	workspace_checks
 v2	5.3	LSP sunucuları	Y
 v2	6.1	Yalıtılmış çalıştırma (ağsız Docker, kaynak sınırı)	T	workspace_docker
 v2	6.1	gVisor/Firecracker	X	Windows'ta yok
 v2	6.2	Güvenilmeyen veri ayrımı	C	untrusted
-v2	6.2	Eylem yetki politikası kapısı	Y
+v2	6.2	Eylem yetki politikası kapısı	T	policy.py; MCP ve araştırmaya bağlı
 v2	6.3	Sır tarayıcı ve SAST	T	security_scan
-v2	7.1	Kalıcı iş akışı, kontrol noktasından devam	Y
+v2	7.1	Kalıcı iş akışı, kontrol noktasından devam	C	checkpoint.py; canlıda kesilip devam etti
 v2	7.2	MCP araç veri yolu ve izin kapsamları	K	mcp_server, mcp_connector
 v2	7.3	Öncelikli GPU kuyruğu	K	chat_queue bildirim veriyor; öncelik yok
 v2	7.3	WebSocket canlı DAG akışı	K	SSE ile aşama akışı var
@@ -85,7 +85,7 @@ v3	2.1	Z3 ile sayısal doğrulama	C	z3_math
 v3	2.1	Z3 ile iş kuralı değişmezleri ve karşı örnek	Y
 v3	2.1	Durum makinesi tam tarama	Y
 v3	2.1	Durumlu özellik testi (Hypothesis)	Y
-v3	2.2	Mutasyon testi kapısı	Y	mutmut Windows'ta çalışmıyor; kendi motorumuz gerekir
+v3	2.2	Mutasyon testi kapısı	C	mutation.py; uyarı verir, teslimi engellemez
 v3	2.3	Yerleşim geometrisi ve kontrast denetimi	T	visual_audit
 v3	2.3	Görsel model eleştirisi	C	vlm_critique; kusurların bir kısmını kaçırıyor
 v3	3.1	PRM eğitimi	X	eğitim
@@ -109,8 +109,8 @@ v3	6.2	Bağlam sayfalama	Y
 v3	6.3	Uyku birleştirmesi ve çelişki çözümü	K	memory_conflicts, memory_maintenance
 v3	6.3	Bellek denetim ve silme	T	memory_api, retention
 v3	7.1	WASM ve iş nesnesi yalıtımı	T	isolation (hatta bağlı değil)
-v3	7.2	Leke (taint) izleme ve yetki düşürme	Y
-v3	7.3	Kod olarak politika	Y	OPA/Cedar yerine yerel politika yapılabilir
+v3	7.2	Leke (taint) izleme ve yetki düşürme	T	policy.Context; çalışma düzeyinde, bayt düzeyinde değil
+v3	7.3	Kod olarak politika	T	policy.py (OPA/Cedar değil)
 v3	7.4	İmzalı köken kaydı ve SBOM	C	provenance
 v3	7.4	Lisans uyum kapısı	Y
 v3	8	Kontrol/veri akışı analizi	Y
@@ -129,9 +129,9 @@ v3	11.2	Otomatik geri alma	Y
 v4	1.1	5 vitesli orantılılık freni	T	complexity_governor
 v4	1.2	Otomatik vites yükseltme ve süre bütçesi	Y
 v4	1.2	@fast/@deep komutları	T	complexity_governor
-v4	2.1	Web araması ve temiz metin çıkarma	K	research_context (DuckDuckGo); trafilatura/SearXNG bağlı değil
-v4	2.2	Çok adımlı derin araştırma ve çelişki tespiti	Y
-v4	2.2	Alıntı doğrulama kapısı	K	kaynak listesini kod yazıyor; iddia-kanıt denetimi yok
+v4	2.1	Web araması ve temiz metin çıkarma	C	DuckDuckGo + trafilatura
+v4	2.2	Çok adımlı derin araştırma ve çelişki tespiti	K	research.py canlıda geçti; tek tur arama, ikinci tur yok
+v4	2.2	Alıntı doğrulama kapısı	C	research.py; çeviri hatasını yakalayamaz
 v4	2.3	Sürüme bağlı belge kasası, çevrimdışı mod	Y
 v4	3.1	Üç sesli tartışma kurulu	K	tool_executor (yalnız bazı sorular)
 v4	3.2	Tasarım kuralları ve şablon görünüm dedektörü	T	design_slop
@@ -151,11 +151,11 @@ v4	6.4	Otomatik EDA ve ML hattı	K	automl_studio
 v4	6.5	Uzun yazıda sayı tutarlılığı	T	doc_sanity, doc_proof
 v4	7	Karma buluta yükseltme (varsayılan kapalı)	Y
 v4	8	Uzmanlığa göre anlatım ve netleştirme sorusu	K	clarify
-v4	9	Dosya izleyici ve gelen kutusu tetikleyicisi	Y
+v4	9	Dosya izleyici ve gelen kutusu tetikleyicisi	C	triggers.py: data/inbox; pilde/sıcakta bekler. Git kancası yok
 v4	9	Zamanlanmış görevler	T	cronjobs
 v4	10.1	Donanım profili ve doctor	C	scripts/ai_os.py
 v4	10.2	Tembel servisler ve boşta kapatma	K	gateway/local_gpu, power_manager
-v4	10.3	ai-os setup ve yapılandırma dosyası	Y
+v4	10.3	ai-os setup ve yapılandırma dosyası	C	scripts/ai_os.py setup, ai-os.config.json
 v4	10.3	ai-os up, bench	T	bench ve up canlı denenmedi
 v4	10.3	Dockersız yerel mod	T	isolation
 v4	11	7 boşluk kapatma testi	K	bir kısmı e2e betiklerinde

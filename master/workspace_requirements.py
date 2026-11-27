@@ -56,6 +56,13 @@ def fix_requirements(ws_dir: Path) -> bool:
 _TEMPLATE_CALL_RE = re.compile(r"render_template\(\s*['\"]([^'\"]+)['\"]")
 
 
+def declared_packages(ws_dir: Path) -> list[str]:
+    """The known runtime packages the project imports (what a sandbox needs to run its tests)."""
+    known = set(_PIP_NAMES.values()) | {"httpx", "requests", "pytest"}
+    found = [_PIP_NAMES.get(m, m) for m in _third_party_imports(ws_dir)]
+    return sorted({*(p for p in found if p in known), "pytest", *(["httpx"] if "fastapi" in found else [])})
+
+
 def _py_files(ws_dir: Path) -> list[Path]:
     return [p for p in ws_dir.rglob("*.py") if ".history" not in p.parts and "venv" not in p.parts]
 

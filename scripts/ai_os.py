@@ -1,6 +1,6 @@
 """Local launch kernel: doctor (hardware and dependencies), up (start the core only), unload (free GPU memory), bench.
 
-Usage: python scripts/ai_os.py doctor | up [--port 8000] [--lan] | unload | bench | export-training [dir] | import-gguf <file>
+Usage: python scripts/ai_os.py doctor | setup [--pull] | up [--port 8000] [--lan] | unload | bench | export-training [dir] | import-gguf <file>
 Heavy parts (Docker sandbox, headless browser) start only when a task needs them and exit with it.
 """
 
@@ -93,6 +93,33 @@ def doctor():
     return sum(not ok for _n, ok, _f in checks)
 
 
+CONFIG_FILE = ROOT / "ai-os.config.json"
+
+
+def setup(pull: bool = False):
+    """Write the profile for this machine, create the local folders and databases, and list (or pull) missing models."""
+    vram, models = vram_mb(), ollama_models()
+    profile = profile_for(vram)
+    wanted = {config.MASTER_MODEL, config.PROJECT_CODER_MODEL, "bge-m3:latest"}
+    missing = sorted(m for m in wanted if m not in set(models or []) and m.removesuffix(":latest") not in set(models or []))
+    settings = {"profile": profile, "vram_mb": vram, "ram_gb": psutil.virtual_memory().total // 2**30,
+                "one_model_at_a_time": profile != "WORKSTATION_48GB+", "required_models": sorted(wanted)}
+    CONFIG_FILE.write_text(json.dumps(settings, indent=2), encoding="utf-8")
+    config.data_dir().mkdir(parents=True, exist_ok=True)
+    (config.data_dir() / "inbox").mkdir(exist_ok=True)
+    print(f"Profil {profile} -> {CONFIG_FILE}")
+    if models is None:
+        print("Ollama'ya ulaşılamadı; uygulamayı başlatıp tekrar çalıştır.")
+        return 1
+    for name in missing:
+        if not pull:
+            print(f"Eksik model: ollama pull {name}")
+        elif subprocess.call(["ollama", "pull", name]):
+            return 1
+    print("Modeller tamam." if not missing else ("İndirildi." if pull else "İndirmek için: python scripts/ai_os.py setup --pull"))
+    return doctor()
+
+
 def unload():
     """Ask Ollama to drop every loaded model so another GPU job can run."""
     try:
@@ -108,13 +135,16 @@ def unload():
 
 def main():
     parser = argparse.ArgumentParser(prog="ai-os")
-    parser.add_argument("command", choices=["doctor", "up", "unload", "bench", "export-training", "import-gguf"])
+    parser.add_argument("command", choices=["doctor", "setup", "up", "unload", "bench", "export-training", "import-gguf"])
     parser.add_argument("path", nargs="?", help="export-training: output folder; import-gguf: model file")
     parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("--pull", action="store_true", help="setup: download missing models")
     parser.add_argument("--lan", action="store_true", help="listen on all interfaces (teammates can reach it)")
     args = parser.parse_args()
     if args.command == "doctor":
         return doctor()
+    if args.command == "setup":
+        return setup(args.pull)
     if args.command == "unload":
         return unload()
     if args.command == "export-training":

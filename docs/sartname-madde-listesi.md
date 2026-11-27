@@ -7,18 +7,18 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 
 | Sürüm | canlı | test | kısmi | yok | dışarıda | teknik engel | Toplam |
 |---|---|---|---|---|---|---|---|
-| v1 | 14 | 13 | 4 | 1 | 0 | 0 | 32 |
-| v2 | 2 | 9 | 15 | 15 | 2 | 1 | 44 |
-| v3 | 3 | 6 | 8 | 26 | 5 | 2 | 50 |
-| v4 | 4 | 8 | 8 | 13 | 0 | 0 | 33 |
-| **Hepsi** | 23 | 36 | 35 | 55 | 7 | 3 | 159 |
+| v1 | 15 | 13 | 3 | 1 | 0 | 0 | 32 |
+| v2 | 6 | 11 | 15 | 9 | 2 | 1 | 44 |
+| v3 | 4 | 8 | 8 | 23 | 5 | 2 | 50 |
+| v4 | 8 | 8 | 7 | 10 | 0 | 0 | 33 |
+| **Hepsi** | 33 | 40 | 33 | 43 | 7 | 3 | 159 |
 
 ## v1
 
 | Bölüm | Madde | Durum | Not |
 |---|---|---|---|
 | 1 Yasalar | Sahte veri ve yer tutucu yasağı (statik tarama + tarayıcı kapısı) | canlı | workspace_smoke, jsdom_probe |
-| 1 Yasalar | Uydurma paket, dosya yolu, model adı engeli | kısmi | workspace_requirements; paket kayıt denetimi yok |
+| 1 Yasalar | Uydurma paket, dosya yolu, model adı engeli | canlı | package_check gerçek PyPI ile denendi |
 | 1 Yasalar | Eleştirel, onaylayıcı olmayan akıl yürütme | test | prompts/agent_architect.md |
 | 1 Yasalar | Renk, ölçü, etiket sadakati (spec.json) | canlı | spec_contract |
 | 1 Yasalar | Ham kaynak saflığı (vurgulayıcı artığı yok) | canlı | pure_source |
@@ -71,23 +71,23 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 3.2 | GGUF içe aktarma ve gölge değerlendirme kapısı | kısmi | import-gguf var, gerçek GGUF ile denenmedi |
 | 3.3 | Doğrulanmış beceri kütüphanesi | test | skill_library |
 | 3.3 | Otomatik istem optimizasyonu | yok |  |
-| 4.1 | Hipotez temelli nedensel hata ayıklama + regresyon testi | yok |  |
+| 4.1 | Hipotez temelli nedensel hata ayıklama + regresyon testi | kısmi | causal_debug.py canlıda zincirdeki 3 hatanın 2'sini çözdü; regresyon testi üretmiyor |
 | 4.2 | En iyi N aday değerlendirme | kısmi | tool_executor kurulu (yalnız akıl yürütmede) |
 | 4.3 | Doğrulanmış/çıkarım/varsayım defteri | yok |  |
-| 4.4 | API fuzz ve sınır testi | yok |  |
+| 4.4 | API fuzz ve sınır testi | canlı | api_probe; Docker kum havuzunda denendi |
 | 4.4 | Arayüz kaos, erişilebilirlik, üç ekran genişliği | kısmi | visual_audit tek genişlik |
-| 4.4 | Uydurma paket (slopsquatting) denetimi | yok |  |
-| 5.1 | Depo haritası | kısmi | code_graph (AST/regex); tree-sitter ve sıralama yok |
+| 4.4 | Uydurma paket (slopsquatting) denetimi | canlı | package_check |
+| 5.1 | Depo haritası | canlı | repo_map.py (AST/regex + PageRank; tree-sitter değil); düzenlemede kullanılıyor, birim testli |
 | 5.2 | Melez kod araması (graf+BM25+gömme) | kısmi | hybrid_graph_rag belge için; kod için yok |
-| 5.2 | Etki alanı (blast radius) analizi | yok |  |
+| 5.2 | Etki alanı (blast radius) analizi | test | repo_map.dependents_note |
 | 5.3 | Anlık statik tanılama (ruff, node --check) | kısmi | workspace_checks |
 | 5.3 | LSP sunucuları | yok |  |
 | 6.1 | Yalıtılmış çalıştırma (ağsız Docker, kaynak sınırı) | test | workspace_docker |
 | 6.1 | gVisor/Firecracker | dışarıda | Windows'ta yok |
 | 6.2 | Güvenilmeyen veri ayrımı | canlı | untrusted |
-| 6.2 | Eylem yetki politikası kapısı | yok |  |
+| 6.2 | Eylem yetki politikası kapısı | test | policy.py; MCP ve araştırmaya bağlı |
 | 6.3 | Sır tarayıcı ve SAST | test | security_scan |
-| 7.1 | Kalıcı iş akışı, kontrol noktasından devam | yok |  |
+| 7.1 | Kalıcı iş akışı, kontrol noktasından devam | canlı | checkpoint.py; canlıda kesilip devam etti |
 | 7.2 | MCP araç veri yolu ve izin kapsamları | kısmi | mcp_server, mcp_connector |
 | 7.3 | Öncelikli GPU kuyruğu | kısmi | chat_queue bildirim veriyor; öncelik yok |
 | 7.3 | WebSocket canlı DAG akışı | kısmi | SSE ile aşama akışı var |
@@ -112,7 +112,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 2.1 | Z3 ile iş kuralı değişmezleri ve karşı örnek | yok |  |
 | 2.1 | Durum makinesi tam tarama | yok |  |
 | 2.1 | Durumlu özellik testi (Hypothesis) | yok |  |
-| 2.2 | Mutasyon testi kapısı | yok | mutmut Windows'ta çalışmıyor; kendi motorumuz gerekir |
+| 2.2 | Mutasyon testi kapısı | canlı | mutation.py; uyarı verir, teslimi engellemez |
 | 2.3 | Yerleşim geometrisi ve kontrast denetimi | test | visual_audit |
 | 2.3 | Görsel model eleştirisi | canlı | vlm_critique; kusurların bir kısmını kaçırıyor |
 | 3.1 | PRM eğitimi | dışarıda | eğitim |
@@ -136,8 +136,8 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 6.3 | Uyku birleştirmesi ve çelişki çözümü | kısmi | memory_conflicts, memory_maintenance |
 | 6.3 | Bellek denetim ve silme | test | memory_api, retention |
 | 7.1 | WASM ve iş nesnesi yalıtımı | test | isolation (hatta bağlı değil) |
-| 7.2 | Leke (taint) izleme ve yetki düşürme | yok |  |
-| 7.3 | Kod olarak politika | yok | OPA/Cedar yerine yerel politika yapılabilir |
+| 7.2 | Leke (taint) izleme ve yetki düşürme | test | policy.Context; çalışma düzeyinde, bayt düzeyinde değil |
+| 7.3 | Kod olarak politika | test | policy.py (OPA/Cedar değil) |
 | 7.4 | İmzalı köken kaydı ve SBOM | canlı | provenance |
 | 7.4 | Lisans uyum kapısı | yok |  |
 | 8 | Kontrol/veri akışı analizi | yok |  |
@@ -161,9 +161,9 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 1.1 | 5 vitesli orantılılık freni | test | complexity_governor |
 | 1.2 | Otomatik vites yükseltme ve süre bütçesi | yok |  |
 | 1.2 | @fast/@deep komutları | test | complexity_governor |
-| 2.1 | Web araması ve temiz metin çıkarma | kısmi | research_context (DuckDuckGo); trafilatura/SearXNG bağlı değil |
-| 2.2 | Çok adımlı derin araştırma ve çelişki tespiti | yok |  |
-| 2.2 | Alıntı doğrulama kapısı | kısmi | kaynak listesini kod yazıyor; iddia-kanıt denetimi yok |
+| 2.1 | Web araması ve temiz metin çıkarma | canlı | DuckDuckGo + trafilatura |
+| 2.2 | Çok adımlı derin araştırma ve çelişki tespiti | kısmi | research.py canlıda geçti; tek tur arama, ikinci tur yok |
+| 2.2 | Alıntı doğrulama kapısı | canlı | research.py; çeviri hatasını yakalayamaz |
 | 2.3 | Sürüme bağlı belge kasası, çevrimdışı mod | yok |  |
 | 3.1 | Üç sesli tartışma kurulu | kısmi | tool_executor (yalnız bazı sorular) |
 | 3.2 | Tasarım kuralları ve şablon görünüm dedektörü | test | design_slop |
@@ -183,11 +183,11 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 6.5 | Uzun yazıda sayı tutarlılığı | test | doc_sanity, doc_proof |
 | 7 | Karma buluta yükseltme (varsayılan kapalı) | yok |  |
 | 8 | Uzmanlığa göre anlatım ve netleştirme sorusu | kısmi | clarify |
-| 9 | Dosya izleyici ve gelen kutusu tetikleyicisi | yok |  |
+| 9 | Dosya izleyici ve gelen kutusu tetikleyicisi | canlı | triggers.py: data/inbox; pilde/sıcakta bekler. Git kancası yok |
 | 9 | Zamanlanmış görevler | test | cronjobs |
 | 10.1 | Donanım profili ve doctor | canlı | scripts/ai_os.py |
 | 10.2 | Tembel servisler ve boşta kapatma | kısmi | gateway/local_gpu, power_manager |
-| 10.3 | ai-os setup ve yapılandırma dosyası | yok |  |
+| 10.3 | ai-os setup ve yapılandırma dosyası | canlı | scripts/ai_os.py setup, ai-os.config.json |
 | 10.3 | ai-os up, bench | test | bench ve up canlı denenmedi |
 | 10.3 | Dockersız yerel mod | test | isolation |
 | 11 | 7 boşluk kapatma testi | kısmi | bir kısmı e2e betiklerinde |

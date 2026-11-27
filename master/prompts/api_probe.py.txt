@@ -14,6 +14,26 @@ def _sample(schema, defs):
     return fmt or {"integer": 1, "number": 1.5, "boolean": True}.get(kind, "deneme")
 
 
+_HOSTILE = ("", "   ", "x" * 20000, "'; DROP TABLE t;--", "<script>alert(1)</script>", "ğüşİö 😀", -1, 0, 10**18, 1.5, None, [], {})
+
+
+def _fuzz(client, method, path, body, params):
+    """Boundary and hostile values, one field at a time: the app may refuse them (4xx) but must not crash."""
+    if not isinstance(body, dict):
+        return 0
+    sent = 0
+    for field in list(body)[:6]:
+        for value in _HOSTILE:
+            got = client.request(method, path, json={**body, field: value}, params=params)
+            sent += 1
+            if got.status_code >= 500:
+                raise RuntimeError("%s %s returned HTTP %s for field %r = %.40r" % (method, path, got.status_code, field, value))
+    broken = client.request(method, path, content=b"{not json", params=params, headers={"content-type": "application/json"})
+    if broken.status_code >= 500:
+        raise RuntimeError("%s %s returned HTTP %s for malformed JSON" % (method, path, broken.status_code))
+    return sent + 1
+
+
 def check_fastapi(app):
     """Real requests against every path without parameters: valid body never 5xx, empty body of a required model is 4xx."""
     from fastapi.testclient import TestClient
@@ -36,6 +56,8 @@ def check_fastapi(app):
                         if not 400 <= bad.status_code < 500:
                             raise RuntimeError("%s %s accepted an empty body (HTTP %s)" % (method.upper(), path, bad.status_code))
                     got = client.request(method.upper(), path, json=_sample(body, defs), params=params)
+                    schema = defs.get(body.get("$ref", "").rsplit("/", 1)[-1], body)
+                    print("API fuzz %s %s: %s requests" % (method.upper(), path, _fuzz(client, method.upper(), path, _sample(schema, defs), params)))
                 else:
                     got = client.request(method.upper(), path, params=params)
                 if got.status_code >= 500:

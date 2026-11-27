@@ -70,10 +70,16 @@ def run_probe(ws_dir: Path, entry: Path, probe: str, pkgs: list[str]) -> tuple[b
 
 def run_tests(ws_dir: Path, pkgs: list[str]) -> str:
     """The project's own pytest run inside the sandbox; returns the last output line on failure, else ''."""
+    log = test_log(ws_dir, pkgs)
+    return log.splitlines()[-1] if log else ""
+
+
+def test_log(ws_dir: Path, pkgs: list[str]) -> str:
+    """The same run, returning the end of the output (what a repair needs to see) on failure, else ''."""
     with tempfile.TemporaryDirectory(prefix="cm6453_ws_") as tmp:
         stage = Path(tmp) / "ws"
         _stage(ws_dir, pkgs, stage)
         res = runner.run_workspace_command(stage, _sandbox_command(["python", "-m", "pytest", "-x", "-q", "--no-header", "-p", "no:cacheprovider"]), read_only_mount=False, timeout_s=60)
     if res["timed_out"] or res["ok"]:
         return ""
-    return (res["stdout"].strip().splitlines() or ["test başarısız"])[-1]
+    return res["stdout"].strip()[-3000:] or "test başarısız"

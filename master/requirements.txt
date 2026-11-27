@@ -17,3 +17,4 @@ pyzipper>=0.3.6
 z3-solver
 duckdb
 playwright
+trafilatura

@@ -14,6 +14,7 @@ from typing import Any
 import httpx
 from fastapi.responses import StreamingResponse
 
+import checkpoint
 import spec_contract
 import tier0_edit
 
@@ -54,6 +55,8 @@ def last_workspace_id(history: str) -> str:
 
 
 def fastpath(prompt: str, history: str, has_file: bool) -> StreamingResponse | None:
+    if not has_file and (resumed := checkpoint.fastpath(prompt, history)) is not None:
+        return resumed
     ws_id = "" if has_file or not is_revision(prompt) else last_workspace_id(history)
     if not ws_id:
         return None

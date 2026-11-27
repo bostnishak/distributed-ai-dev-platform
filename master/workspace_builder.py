@@ -24,7 +24,9 @@ from typing import Any
 
 import httpx
 
+import checkpoint
 import config
+import repo_map
 from prompt_loader import load_prompt
 from workspace_batches import apply_edit, fixed_plan, pure_source
 from workspace_batches import file_batches as _file_batches
@@ -447,20 +449,6 @@ async def _generate_and_write_file(
     return code
 
 
-def _build_existing_contracts(ws_dir: Path, rel_files: list[str], limit: int = 20) -> str:
-    lines: list[str] = []
-    for rel in rel_files[:limit]:
-        p = ws_dir / rel
-        if not p.is_file() or p.suffix.lower() in _BINARY_EXTS:
-            continue
-        try:
-            text = p.read_text(encoding="utf-8", errors="replace")
-        except OSError:
-            continue
-        lines.append(_extract_file_contract(rel, text))
-    return "\n".join(lines)
-
-
 async def _no_events() -> AsyncIterator[dict[str, Any]]:
     """Empty async stream (used when the run/repair step is left to the caller)."""
     return
@@ -490,6 +478,7 @@ async def stream_generate_project(
         plan = _fallback_architecture_plan(prompt, project_type)
 
     ws_dir, meta, planned_files = _prepare_workspace_from_plan(plan, prompt, model)
+    checkpoint.save(ws_dir, prompt, model, planned_files)
     yield {"type": "plan", "workspace": meta, "files": planned_files}
 
     tree_summary = "\n".join(f"- {f['path']}: {f['purpose']}" for f in planned_files)
@@ -505,6 +494,7 @@ async def stream_generate_project(
         for fspec, code in zip(batch, codes, strict=True):
             contracts.append(_extract_file_contract(fspec["path"], code))
             written_snippets.append(f"=== {fspec['path']} ===\n{code[:1200]}")
+            checkpoint.done(ws_dir, fspec["path"])
             yield {"type": "file_done", "path": fspec["path"], "size": len(code.encode("utf-8")), "index": order[fspec["path"]], "total": len(planned_files)}
 
     repair_project(ws_dir)
@@ -519,6 +509,7 @@ async def stream_generate_project(
     meta["versions"] = list_snapshots(ws_dir)
     meta["updated_at"] = datetime.now(UTC).isoformat()
     save_workspace_meta(ws_dir, meta)
+    checkpoint.clear(ws_dir)
     yield {"type": "done", "workspace": meta, "tree": build_file_tree(ws_dir), "warnings": warnings}
 
 
@@ -574,7 +565,7 @@ async def stream_iterate_project(
         temperature=0.15,
     )
     targets = _select_iterate_targets(ws_dir, _extract_json_obj(raw_plan), existing_files, meta, instruction)
-    contract_manifest = _build_existing_contracts(ws_dir, existing_files)
+    contract_manifest = repo_map.build(ws_dir, instruction)
 
     for idx, fspec in enumerate(targets, start=1):
         fpath = fspec["path"]
@@ -592,7 +583,7 @@ async def stream_iterate_project(
         yield {"type": "file_done", "path": fpath, "size": len(code.encode("utf-8")), "index": idx, "total": len(targets)}
 
     repair_project(ws_dir)
-    warnings = verify_workspace_files(ws_dir)
+    warnings = verify_workspace_files(ws_dir) + [n for n in (repo_map.dependents_note(ws_dir, [f['path'] for f in targets]),) if n]
     create_snapshot(ws_dir, instruction[:60])
     meta["versions"] = list_snapshots(ws_dir)
     meta["updated_at"] = datetime.now(UTC).isoformat()
