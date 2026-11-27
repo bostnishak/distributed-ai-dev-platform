@@ -1199,3 +1199,17 @@ def test_the_judge_needs_both_orders_to_agree_and_pictures_are_scored_by_code():
         raise OSError("model yok")
 
     assert asyncio.run(judge.image_adherence("kedi", b"x", down)) is None
+
+
+def test_no_product_research_for_specified_apis_or_design_variants():
+    import complexity_governor as governor
+
+    specified = "FastAPI ile /health ve /api/sayi uçları olan küçük bir API yap; Dockerfile ve docker-compose da ekle."
+    assert governor.classify(specified).level == 2 and not governor.classify(specified).research
+    assert not governor.classify("GET /notes ve POST /notes/{id} olan bir servis yap").research
+    assert governor.classify("küçük bir kütüphane uygulaması yap").research
+    assert governor.classify("müşteri/ürün takibi için uygulama yap").research  # a slash between words is not a route
+    assert governor.classify("logo.png dosyasını gösteren bir site yap /resimler/a.png").research
+    with governor.without_research():
+        assert not governor.classify("küçük bir kütüphane uygulaması yap").research
+    assert governor.classify("küçük bir kütüphane uygulaması yap").research

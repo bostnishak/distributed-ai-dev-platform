@@ -7,11 +7,13 @@ import logging
 import re
 import shutil
 import subprocess
+import time
 from pathlib import Path
 
 import httpx
 from fastapi.responses import StreamingResponse
 
+import complexity_governor
 import config
 import design_system
 import revise_chat
@@ -76,18 +78,28 @@ def merge_winner(name: str) -> str:
     return f"Varyant {name.upper()} ana projeye (`{target.name}`) alındı. Eski hali sürüm geçmişinde duruyor."
 
 
+async def _build(request: str):
+    """One variant, without product research: both variants are designs of the same words."""
+    import project_flow
+
+    with complexity_governor.without_research():
+        async for event in project_flow.stream_generate(request, project_type="web"):
+            yield event
+
+
 async def _stream(base: str, main: str = ""):
     import assistant_stream_fastpaths as fp
-    import project_flow
     import workspace_builder as wb
 
     ids: dict[str, str] = {}
     built = 0
     for name, request in requests_for(base):
         yield fp.sse_event({"type": "token", "content": f"\n### Varyant {name} hazırlanıyor...\n"})
+        started = time.monotonic()
         try:
-            async for evt in project_flow.stream_generate(request, project_type="web"):
+            async for evt in _build(request):
                 if evt["type"] == "done":
+                    yield fp.sse_event({"type": "token", "content": f"Süre: {time.monotonic() - started:.0f} sn.\n"})
                     _failed, notes = fp._verdict(evt)
                     yield fp.sse_event({"type": "token", "content": "".join(notes)})
                     yield fp.sse_event(fp._attach_workspace_flags(wb, evt["workspace"], evt["tree"]))

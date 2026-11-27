@@ -6,6 +6,9 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Iterator
+from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass
 
 _FAST_RE = re.compile(r"(?<!\w)@(?:fast|hızlı|hizli)\b", re.IGNORECASE)
@@ -15,6 +18,18 @@ _BUILD_RE = re.compile(r"\b(?:uygulama|proje|site|api|oyun|panel|dashboard|app|p
 _MAKE_RE = re.compile(r"\b(?:tasarla|kur|yap|geliştir|oluştur|hazırla|design|build|create|implement)\w*", re.IGNORECASE)
 _TWEAK_RE = re.compile(r"\b(?:rengi\w*|renk|yazı\w*|font|boyut\w*|colou?r|text)\b|#[0-9a-fA-F]{6}", re.IGNORECASE)
 _DETAILED_CHARS = 300
+_ENDPOINT_RE = re.compile(r"(?<![\w.])/(?:api/)?[a-zçğıöşü_]{2,}(?:/\{?\w+\}?)?(?![\w/]*\.)", re.IGNORECASE)  # "/health", "/api/x/{id}": the request is a specification
+_NO_RESEARCH: ContextVar[bool] = ContextVar("no_research", default=False)
+
+
+@contextmanager
+def without_research() -> Iterator[None]:
+    """For builds that already know what to make (design variants of one request): no product research."""
+    token = _NO_RESEARCH.set(True)
+    try:
+        yield
+    finally:
+        _NO_RESEARCH.reset(token)
 
 
 @dataclass(frozen=True)
@@ -43,4 +58,5 @@ def classify(prompt: str, *, editing: bool = False) -> Gear:
     if _HEAVY_RE.search(prompt):
         return Gear(3, True, True, "güvenlik ya da çok parçalı sistem")
     detailed = len(prompt) >= _DETAILED_CHARS
-    return Gear(2, not detailed, detailed, "ayrıntılı tarif" if detailed else "standart üretim")
+    specified = detailed or bool(_ENDPOINT_RE.search(prompt))  # there is no product to look up when the parts are named
+    return Gear(2, not specified and not _NO_RESEARCH.get(), detailed, "ayrıntılı tarif" if detailed else "uçları verilmiş" if specified else "standart üretim")
