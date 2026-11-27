@@ -2,7 +2,7 @@
 // Run: ./master/venv/Scripts/python.exe scripts/gen_api_types.py
 
 export const API_CONTRACT_VERSION = "0.1.0";
-export const API_ROUTE_COUNT = 342;
+export const API_ROUTE_COUNT = 344;
 
 /** @typedef {AccountingResponse} AccountingResponse_Contract
  * @property {*} [ok]

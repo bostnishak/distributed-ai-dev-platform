@@ -1041,3 +1041,33 @@ def test_marked_values_never_reach_documents_logs_or_training_data(monkeypatch):
     assert "silindi" in confidential.observe("gizli verileri unut")
     assert security_scan.redact("mavi fil projesi") == "mavi fil projesi"
     confidential._cache.clear()
+
+
+def test_a_branch_is_compared_with_its_origin_and_proofs_are_listed(tmp_path, monkeypatch):
+    import json
+
+    import config
+    import run_api
+    import run_evidence
+    import workspace_builder as wb
+
+    monkeypatch.setattr(config, "WORKSPACES_DIR", tmp_path)
+    source = wb.safe_workspace_dir("asil")
+    source.mkdir()
+    (source / "a.py").write_text("x = 1\n", encoding="utf-8")
+    wb.save_workspace_meta(source, {"id": "asil", "name": "Asil"})
+    version = wb.create_snapshot(source, "ilk")["version"]
+    branch = run_api.branch_workspace("asil", version)
+    target = wb.safe_workspace_dir(branch["id"])
+    (target / "a.py").write_text("x = 2\n", encoding="utf-8")
+    (target / "yeni.py").write_text("y = 1\n", encoding="utf-8")
+    result = run_evidence.compare_with_origin(branch["id"])
+    assert [(f["path"], f["status"]) for f in result["files"]] == [("a.py", "değişti"), ("yeni.py", "eklendi")]
+    assert "-x = 1" in result["files"][0]["diff"] and "+x = 2" in result["files"][0]["diff"]
+    with pytest.raises(ValueError, match="dal değil"):
+        run_evidence.compare_with_origin("asil")
+    (target / ".ai-os").mkdir(exist_ok=True)
+    (target / ".ai-os" / "proof.json").write_text(json.dumps({"proofs": {"A": ["geçti", "temiz"]}}), encoding="utf-8")
+    (target / ".provenance.json").write_text(json.dumps({"warnings": ["Mutasyon testi: 8 hatanın 7'si yakalandı.", "başka bir not"]}), encoding="utf-8")
+    shown = run_evidence.proofs(branch["id"])
+    assert shown["stages"] == {"A": ["geçti", "temiz"]} and shown["evidence"] == ["Mutasyon testi: 8 hatanın 7'si yakalandı."]

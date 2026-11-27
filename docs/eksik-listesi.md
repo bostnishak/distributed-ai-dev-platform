@@ -84,10 +84,10 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [x] DOM, dinleyici ve bellek sızıntısı ölçümü (canlı tarayıcıda sınandı)
 - [x] Modül ayırma aracı (`X, Y fonksiyonlarını Z modülüne taşı`)
 - [x] İmza taşıma aracı (parametre ekleme / adını değiştirme)
-- [~] İki zaman çizgisini yan yana karşılaştırma — dal var, fark görünümü yok
+- [x] İki zaman çizgisini karşılaştırma: dalın asıl projeden dosya dosya farkı (savaş odasında)
 - [x] LSP: tanıma git (`X nerede tanımlı`), imza bilgisi (`X imzası`)
 - [x] DAP: koşullu kesme noktası (`koşullu kesme: dosya.py:12 x > 5`; Docker içinde canlı geçti)
-- [ ] Savaş odasında Z3 ve mutasyon kanıtları
+- [x] Savaş odasında kanıtlar: teslim aşamaları, biçimsel/mutasyon denetimleri, doğrulanan ve açık maddeler (tarayıcıda denendi)
 - [ ] Pareto sınırı izleme
 - [ ] Ölçüm bozulunca geri alma ve olay raporu
 - [ ] Zorluk basamaklı (L1–L5) benchmark

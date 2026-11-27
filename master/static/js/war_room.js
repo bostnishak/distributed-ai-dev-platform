@@ -1,5 +1,6 @@
 // War room: the live graph of a running build, pause/resume, course corrections, a time slider and branching.
 import { bindGlobalEvent, safeFetchJson } from './storage.js';
+import { extraButtons } from './war_extras.js';
 
 const COLORS = { waiting: '#e2e8f0', running: '#fde68a', done: '#bbf7d0', failed: '#fecaca', skipped: '#f1f5f9' };
 const LABELS = { waiting: 'bekliyor', running: 'çalışıyor', done: 'bitti', failed: 'hata', skipped: 'atlandı' };
@@ -136,8 +137,9 @@ async function showVersions(wsId, row) {
   go.addEventListener('click', async () => {
     const done = await post(`/api/runs/branch/${encodeURIComponent(wsId)}`, { version: select.value });
     out.textContent = done.ok ? `Yeni çalışma alanı: ${done.data.workspace.name}` : 'Dallanamadı.';
+    if (done.ok) out.append(...extraButtons(done.data.workspace.id));
   });
-  row.append(el('span', 'Kontrol noktaları:'), select, go, out);
+  row.append(el('span', 'Kontrol noktaları:'), select, go, out, ...extraButtons(wsId));
   return true;
 }
 

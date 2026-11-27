@@ -34,3 +34,4 @@
 .war-slider { width: 100%; }
 .war-small { margin-top: 6px; font-size: 12px; }
 .war-purpose { width: 70%; }
+.war-diff { max-height: 220px; overflow: auto; font-size: 11px; white-space: pre; }

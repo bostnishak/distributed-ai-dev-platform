@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field
 
 import config
 import run_control
+import run_evidence
 import workspace_builder as wb
 from access_control import LOCAL_HOSTS, require_local_or_admin
 
@@ -107,6 +108,22 @@ def versions(ws_id: str) -> dict[str, Any]:
     try:
         return {"versions": wb.list_snapshots(wb.safe_workspace_dir(ws_id))}
     except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.get("/compare/{ws_id}", dependencies=[Depends(require_local_or_admin)])
+def compare(ws_id: str) -> dict[str, Any]:
+    try:
+        return run_evidence.compare_with_origin(ws_id)
+    except (ValueError, OSError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.get("/proof/{ws_id}", dependencies=[Depends(require_local_or_admin)])
+def proof(ws_id: str) -> dict[str, Any]:
+    try:
+        return run_evidence.proofs(ws_id)
+    except (ValueError, OSError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
