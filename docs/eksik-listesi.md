@@ -9,6 +9,8 @@ Bu dosya "ne kaldı" sorusunun tek cevabıdır. Bir madde, kod testi **ve** canl
 
 ## Çalışma sırası: 3 parça
 
+**Kaldığım yer (27.11.2026):** 1. parça sürüyor, bitmedi. Sıradakiler: Dockerfile ve sunum canlı denemeleri, tam test, main'e PR (güvenlik düzeltmesi içerir), sonra açık kalan 1. parça maddeleri.
+
 Dizüstü bilgisayar kesintisiz yüklenmesin diye iş üçe bölündü. Bir parça bitince **durulur**; sen "devam" demeden sonrakine geçilmez.
 
 | Parça | İçerik | Tahmini süre |
@@ -88,9 +90,9 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [x] LSP: tanıma git (`X nerede tanımlı`), imza bilgisi (`X imzası`)
 - [x] DAP: koşullu kesme noktası (`koşullu kesme: dosya.py:12 x > 5`; Docker içinde canlı geçti)
 - [x] Savaş odasında kanıtlar: teslim aşamaları, biçimsel/mutasyon denetimleri, doğrulanan ve açık maddeler (tarayıcıda denendi)
-- [ ] Pareto sınırı izleme
-- [ ] Ölçüm bozulunca geri alma ve olay raporu
-- [ ] Zorluk basamaklı (L1–L5) benchmark
+- [x] Pareto sınırı izleme (ölçüm geçmişi; yalnız otomatik testle)
+- [x] Ölçüm bozulunca geri alma ve olay raporu (yalnız otomatik testle)
+- [~] Zorluk basamaklı (L1–L5) benchmark: `scripts/ladder.py` yazıldı, canlı koşulmadı
 
 ## 4. v4
 
@@ -124,8 +126,8 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [x] Yetki kapısı ve leke politikası
 - [x] Yörünge toplama ve sır temizleme
 - [x] İki varyant yan yana (canlı geçti; ama 30 dakika sürdü, aşağıdaki hız maddesine bak)
-- [ ] Dockerfile / Compose ve gerçek derleme
-- [ ] Belge üretimi
+- [ ] Dockerfile / Compose ve gerçek derleme: canlı deneme kaldı, yeniden koşturulup nedeni incelenecek
+- [~] Belge üretimi: 2–3 slaytlık her sunumun başarısız olduğu hata bulundu ve düzeltildi; canlı yeniden denenmedi
 - [x] Zamanlanmış görevler (canlı geçti)
 - [x] Öncelik kuyruğu (canlı geçti)
 - [x] Gözcü

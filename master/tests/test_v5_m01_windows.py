@@ -1071,3 +1071,20 @@ def test_a_branch_is_compared_with_its_origin_and_proofs_are_listed(tmp_path, mo
     (target / ".provenance.json").write_text(json.dumps({"warnings": ["Mutasyon testi: 8 hatanın 7'si yakalandı.", "başka bir not"]}), encoding="utf-8")
     shown = run_evidence.proofs(branch["id"])
     assert shown["stages"] == {"A": ["geçti", "temiz"]} and shown["evidence"] == ["Mutasyon testi: 8 hatanın 7'si yakalandı."]
+
+
+def test_pareto_frontier_and_incident_report(tmp_path, monkeypatch):
+    import config
+    import release_history
+
+    monkeypatch.setattr(config, "data_dir", lambda: tmp_path)
+
+    def run(ok, total, seconds):
+        return [{"name": f"s{i}", "ok": i < ok, "seconds": seconds, "note": "zaman aşımı" if i >= ok else ""} for i in range(total)]
+
+    for ok, seconds, label in ((6, 30.0, "a"), (8, 60.0, "b"), (5, 45.0, "c")):
+        release_history.add(run(ok, 10, seconds), label)
+    assert [p["label"] for p in release_history.frontier(release_history.points())] == ["a", "b"]
+    assert "sınırın gerisinde" in release_history.describe()
+    text = release_history.incident(["s9"], run(9, 10, 1.0), ["agent_intake.md"], ["agent_intake.md"]).read_text(encoding="utf-8")
+    assert "s9: zaman aşımı" in text and "- agent_intake.md" in text and "Geri alınan dosyalar: agent_intake.md" in text

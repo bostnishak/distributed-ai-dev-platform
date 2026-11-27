@@ -22,6 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "master"))
 import eval_stats  # noqa: E402
 import release_guard  # noqa: E402
+import release_history  # noqa: E402
 
 BASE = "http://127.0.0.1:8000"
 REPORT = ROOT / "eval" / "reports" / "golden.json"
@@ -280,7 +281,7 @@ def run(categories: list[str], seed: int, slow: bool) -> list[dict]:
 
 def pass_at_three(results: list[dict], seed: int) -> int:
     """Scenarios that pass at least once in three tries: the failed ones get two more, with new values."""
-    scenarios = {fn.__name__: fn for group in (*SCENARIOS.values(), *SLOW.values()) for fn in group}
+    scenarios = {fn.__name__: fn for group in (*FAST.values(), *SLOW.values()) for fn in group}
     solved = sum(r["ok"] for r in results)
     for failed in (r for r in results if not r["ok"]):
         function = scenarios.get(failed["name"].rsplit("/", 1)[-1])
@@ -317,13 +318,18 @@ def main() -> int:
         ok, why = eval_stats.gate([previous[r["name"]] for r in shared], [r["ok"] for r in shared])
         print(f"Önceki koşuya göre sürüm kapısı: {'GEÇTİ' if ok else 'KALDI'} ({why})")
     outcomes = {r["name"]: r["ok"] for r in results}
+    release_history.add(results, "golden")
+    print(release_history.describe())
     verdict, lost, detail = release_guard.compare(outcomes)
     print(f"Şampiyonla karşılaştırma: {verdict} {detail} {', '.join(lost)}")
     if verdict == "promote":
         release_guard.promote(outcomes)
-    elif verdict == "regressed" and args.auto_rollback:
-        restored = release_guard.rollback()
-        print("Geri alınan istemler: " + ", ".join(restored) if restored else "İstemler değişmemiş; gerileme istemlerden kaynaklanmıyor.")
+    elif verdict == "regressed":
+        changed = release_guard.changed_prompts()
+        restored = release_guard.rollback() if args.auto_rollback else []
+        if args.auto_rollback:
+            print("Geri alınan istemler: " + ", ".join(restored) if restored else "İstemler değişmemiş; gerileme istemlerden kaynaklanmıyor.")
+        print(f"Olay raporu: {release_history.incident(lost, results, changed, restored)}")
     REPORT.parent.mkdir(parents=True, exist_ok=True)
     REPORT.write_text(json.dumps({"seed": args.seed, "at": time.strftime("%Y-%m-%dT%H:%M:%S"), "results": results}, ensure_ascii=False, indent=2), encoding="utf-8")
     return 0 if passed == len(results) else 1

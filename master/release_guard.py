@@ -13,6 +13,7 @@ from pathlib import Path
 
 import config
 import eval_stats
+import release_history
 
 PROMPTS = Path(__file__).resolve().parent / "prompts"
 
@@ -85,4 +86,6 @@ def status() -> str:
         lines.append("Kalan senaryolar: " + ", ".join(failed))
     if changed:
         lines.append("Bu ölçümden sonra değişen istemler (yeniden ölçülmeli): " + ", ".join(changed[:6]))
+    if release_history.points():
+        lines += ["", release_history.describe()]
     return "\n".join(lines)
