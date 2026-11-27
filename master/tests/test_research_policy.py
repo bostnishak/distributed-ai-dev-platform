@@ -107,3 +107,52 @@ def test_a_secret_in_the_question_is_removed_before_anything_else(monkeypatch):
     events = asyncio.run(run())
     assert not any(key in text for text in seen) and not any(key in text for _kind, text in events)
     assert "iptal" in events[1][1] or "iptal" in events[0][1]
+
+
+class _Page:
+    def __init__(self, body):
+        self.body = body.encode()
+
+    def read(self, *_):
+        return self.body
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        return None
+
+
+def test_a_human_check_page_is_not_retried_and_the_local_search_answers(monkeypatch):
+    asked = []
+
+    def opener(request, timeout=0):
+        asked.append(request.full_url)
+        if "duckduckgo" in request.full_url:
+            return _Page('<form id="challenge-form">anomaly</form>')
+        return _Page('{"results": [{"url": "https://www.rfc-editor.org/rfc/rfc2324", "title": "RFC 2324", "content": "teapot"}, {"url": "javascript:x"}]}')
+
+    context = research.research_context
+    monkeypatch.setattr(context, "web_enabled", lambda: True)
+    monkeypatch.setattr(context.urllib.request, "urlopen", opener)
+    monkeypatch.setattr(context, "_CACHE", {})
+    found = context.web_search("http 418")
+    assert [f["url"] for f in found] == ["https://www.rfc-editor.org/rfc/rfc2324"]
+    assert sum("duckduckgo" in u for u in asked) == 1
+
+
+def test_no_search_results_is_said_as_such(monkeypatch):
+    monkeypatch.setattr(research.research_context, "web_enabled", lambda: True)
+
+    async def gather(queries, run):
+        return []
+
+    monkeypatch.setattr(research, "_gather", gather)
+
+    async def chat(system, user, schema):
+        return '{"queries": ["x"]}'
+
+    async def run():
+        return [e async for e in research.investigate("derin araştır: bir konu", chat)]
+
+    assert "Arama servisi sonuç döndürmedi" in asyncio.run(run())[-1][1]

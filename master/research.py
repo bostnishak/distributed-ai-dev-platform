@@ -226,6 +226,10 @@ async def investigate(question: str, chat: Chat | None = None) -> AsyncIterator[
     claims: dict[int, Claim] = {}
     async for event in _read(pages, question, chat, claims):
         yield event
+    if not pages:
+        yield "report", ("Arama servisi sonuç döndürmedi (herkese açık arama sayfası insan doğrulaması isteyebiliyor ve yerel arama servisi kapalı olabilir). "
+                         "Yerel servisi başlatmak için: `docker compose --profile web-search up -d searxng`. Kaynaksız araştırma yazmıyorum.")
+        return
     if not claims:
         yield "report", f"{len(pages)} sayfa okundu ama soruyu yanıtlayan, alıntıyla doğrulanabilen bir bilgi bulamadım. Soruyu daha dar sorabilirsin."
         return

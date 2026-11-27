@@ -119,13 +119,16 @@ services:
 
   searxng:
     image: searxng/searxng:latest
-    container_name: dadp-searxng
+    container_name: dadp-searxng-json
     profiles: ["web-search"]
     restart: unless-stopped
     ports:
       - "127.0.0.1:8888:8080"
     environment:
       SEARXNG_BASE_URL: http://127.0.0.1:8888/
+      SEARXNG_SECRET: ${SEARXNG_SECRET:-}
+    volumes:
+      - ./docker/searxng/settings.yml:/etc/searxng/settings.yml:ro
     security_opt:
       - no-new-privileges:true
 
