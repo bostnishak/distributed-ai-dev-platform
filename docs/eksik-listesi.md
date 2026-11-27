@@ -141,7 +141,7 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [x] Ücretli hiçbir şey yok
 - [x] Ollama ayarları (`ai-os doctor` denetliyor, üçü de doğru)
 - [x] Windows + 8 GB uygunluk raporu: [windows-uygunluk.md](windows-uygunluk.md)
-- [ ] Her aşama için `verify_milestone_XX.py` (01–03 var)
+- [x] Aşama doğrulama betikleri: 01–03 var (04–16 kendi aşamasında yazılacak, aşağıda M16 altında)
 
 ### M01 — Windows dayanıklılığı (ana kısım tamam)
 
@@ -301,6 +301,7 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 
 ### M16 — Son istemler ve sertifikasyon
 
+- [ ] `verify_milestone_04.py` – `verify_milestone_16.py` (her biri kendi aşamasında)
 - [ ] `prompts/v5/*.md`
 - [ ] v1–v5'in tamamını bir arada sınayan son test
 
