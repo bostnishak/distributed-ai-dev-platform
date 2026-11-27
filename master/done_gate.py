@@ -98,7 +98,10 @@ def page_problems(url: str) -> tuple[str, str]:
     problems: list[str] = []
     try:
         with sync_playwright() as driver:
-            browser = driver.chromium.launch()
+            try:
+                browser = driver.chromium.launch()
+            except PlaywrightError as exc:  # no browser to test with says nothing about the page
+                return MISSING, f"tarayıcı açılamadı: {str(exc).splitlines()[0][:120]}"
             page = browser.new_page()
             page.on("pageerror", lambda error: problems.append(f"sayfa hatası: {str(error)[:100]}"))
             page.on("console", lambda m: problems.append(f"konsol hatası: {m.text[:100]}") if m.type == "error" and "favicon" not in m.text else None)

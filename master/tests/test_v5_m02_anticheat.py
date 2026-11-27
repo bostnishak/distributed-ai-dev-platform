@@ -118,3 +118,19 @@ def test_a_delivery_without_tests_says_so_and_writes_a_signed_record(tmp_path, d
     record = json.loads((ws / done_gate.RECORD).read_text(encoding="utf-8"))
     assert len(record["signature"]) == 128 and "index.html" in record["files"]
     assert not any(f.startswith(".ai-os") for f in done_gate.wb.list_relative_files(ws))
+
+
+def test_a_missing_browser_is_not_reported_as_a_broken_page(tmp_path, monkeypatch):
+    pytest.importorskip("playwright")
+    from playwright.sync_api import Error as PlaywrightError
+    from playwright.sync_api import sync_playwright
+
+    monkeypatch.setenv("PLAYWRIGHT_BROWSERS_PATH", str(tmp_path / "yok"))
+    with sync_playwright() as driver:
+        try:
+            driver.chromium.launch().close()
+            pytest.skip("tarayıcı yolu değiştirilemedi")
+        except PlaywrightError as exc:  # confirms the launch really fails here
+            assert "Executable" in str(exc)
+    status, detail = done_gate.page_problems((tmp_path / "x.html").as_uri())
+    assert status == done_gate.MISSING and "tarayıcı açılamadı" in detail
