@@ -8,10 +8,10 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | Sürüm | canlı | test | kısmi | yok | dışarıda | teknik engel | Toplam |
 |---|---|---|---|---|---|---|---|
 | v1 | 17 | 13 | 2 | 0 | 0 | 0 | 32 |
-| v2 | 11 | 16 | 14 | 0 | 2 | 1 | 44 |
+| v2 | 11 | 21 | 9 | 0 | 2 | 1 | 44 |
 | v3 | 12 | 17 | 14 | 0 | 5 | 2 | 50 |
 | v4 | 16 | 11 | 6 | 0 | 0 | 0 | 33 |
-| **Hepsi** | 56 | 57 | 36 | 0 | 7 | 3 | 159 |
+| **Hepsi** | 56 | 62 | 31 | 0 | 7 | 3 | 159 |
 
 ## v1
 
@@ -39,7 +39,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 3 Ollama | Kurulu modelleri keşfetme ve role göre seçim, yedek model | test | gateway/registry |
 | 3 Ollama | Role göre sıcaklık ve şemalı çıktı | test | gateway/client_helpers |
 | 3 Ollama | Dosya dosya parçalı üretim | canlı | workspace_batches |
-| 3 Ollama | Ajan bazında TTFT ve token/sn göstergesi | kısmi | run_trace aşama süresi tutuyor; TTFT arayüzde yok |
+| 3 Ollama | Ajan bazında TTFT ve token/sn göstergesi | kısmi | model bazında token/sn ve süre var; ilk token süresi (TTFT) yok |
 | 4 Bellek | Son turlar ve takip isteği birleştirme | canlı | followup |
 | 4 Bellek | Proje durumu, sürüm anlık görüntüsü | test | workspace_builder_ops |
 | 4 Bellek | Uzun süreli tercih belleği | test | memory_engine |
@@ -66,14 +66,14 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 2.4 | L1 birebir önbellek | test | exact_cache.py: sayfa/belge iddia çıkarımında |
 | 2.4 | L2 anlamsal, L3 bileşen önbelleği | test | semantic_cache.py (belge bazlı) ve skill_library (doğrulanmış bileşen) |
 | 3.1 | Yörünge toplama, sır temizleme | test | run_trace |
-| 3.1 | Tercih çiftleri (başarısız/onarılmış) | kısmi | training_pack yalnız başarılı kayıtları veriyor |
+| 3.1 | Tercih çiftleri (başarısız/onarılmış) | test | repair_pairs.py: başarılı onarımlardan çift |
 | 3.2 | Yerel LoRA/DPO/GRPO eğitimi | dışarıda | bellek ve veri yetersiz; yalnız betik |
 | 3.2 | GGUF içe aktarma ve gölge değerlendirme kapısı | kısmi | import-gguf var, gerçek GGUF ile denenmedi |
 | 3.3 | Doğrulanmış beceri kütüphanesi | test | skill_library |
 | 3.3 | Otomatik istem optimizasyonu | test | scripts/optimize_prompt.py: yalnız ölçülen iyileşmede tutar; canlıda koşulmadı |
 | 4.1 | Hipotez temelli nedensel hata ayıklama + regresyon testi | canlı | causal_debug + DAP durumu; regresyon testi üretmiyor |
 | 4.2 | En iyi N aday değerlendirme | kısmi | konsey; başarısız onarımda ikinci modele yükseltme |
-| 4.3 | Doğrulanmış/çıkarım/varsayım defteri | kısmi | Mimar ajanı varsayımları bildiriyor; her ajanda defter yok |
+| 4.3 | Doğrulanmış/çıkarım/varsayım defteri | test | ledger.py: kanıt çekmecesinde doğrulandı / varsayım / açık |
 | 4.4 | API fuzz ve sınır testi | canlı | api_probe; Docker kum havuzunda denendi |
 | 4.4 | Arayüz kaos, erişilebilirlik, üç ekran genişliği | kısmi | üç genişlik, adsız denetim, kontrast, taşma; kaos tıklaması yok |
 | 4.4 | Uydurma paket (slopsquatting) denetimi | canlı | package_check |
@@ -88,10 +88,10 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 6.2 | Eylem yetki politikası kapısı | test | policy.py; MCP ve araştırmaya bağlı |
 | 6.3 | Sır tarayıcı ve SAST | test | security_scan |
 | 7.1 | Kalıcı iş akışı, kontrol noktasından devam | canlı | checkpoint.py; canlıda kesilip devam etti |
-| 7.2 | MCP araç veri yolu ve izin kapsamları | kısmi | mcp_server, mcp_connector |
-| 7.3 | Öncelikli GPU kuyruğu | kısmi | chat_queue bildirim veriyor; öncelik yok |
+| 7.2 | MCP araç veri yolu ve izin kapsamları | test | mcp_connector: yazan araçlar açık onay ister; SSRF ve gizli anahtar kapısı |
+| 7.3 | Öncelikli GPU kuyruğu | test | gateway/priority_gate.py: sohbet, bekleyen arka plan işlerinin önüne geçer |
 | 7.3 | WebSocket canlı DAG akışı | kısmi | SSE ile aşama akışı var |
-| 8.1 | İzleme (OpenTelemetry) ve pano | kısmi | telemetry_otel, run_trace; pano yok |
+| 8.1 | İzleme (OpenTelemetry) ve pano | test | perf_report: 'performans durumu' (model ve iş bazında süre, token/sn) |
 | 8.2 | 25+ senaryoluk altın test takımı | canlı | scripts/golden.py: hızlı küme canlıda; --slow ile üretim senaryoları |
 | 8.3 | Sürüm kapısı ölçütleri | test | eval_stats: golden ve release_guard içinde |
 | 9 | Çalışırken duraklatma ve yönlendirme | kısmi | kesip 'devam et ama ...' ile kalan dosyaları yönlendirme; canlı duraklatma düğmesi yok |

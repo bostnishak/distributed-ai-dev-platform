@@ -36,6 +36,9 @@ async function showProof(wsId, body) {
   body.replaceChildren(
     section('Kayıt', [state]),
     section('Teslimden sonra değişen dosyalar', data.changed),
+    section('Doğrulandı (denetim çalıştı, sorun yok)', (data.ledger && data.ledger.verified) || []),
+    section('Varsayım (doğrulanmadı)', (data.ledger && data.ledger.assumed) || []),
+    section('Açık kalan', (data.ledger && data.ledger.open) || []),
     section('Denetim uyarıları', data.warnings),
     section('Bağımlılıklar', data.dependencies),
     section('Olay kaydı', (data.events || []).map((e) => `${e.at.replace('T', ' ')} · ${e.kind} · ${e.detail}`)),

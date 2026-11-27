@@ -6,15 +6,19 @@ import re
 
 import config
 import escalation
+import perf_report
 import release_guard
 import training_pack
 
+_PERF_RE = re.compile(r"^\s*(?:performans\s+(?:durumu|raporu)|performance\s+report)\s*\??\s*$", re.IGNORECASE)
 _QUALITY_RE = re.compile(r"^\s*(?:kalite\s+durumu|quality\s+status)\s*\??\s*$", re.IGNORECASE)
 _EXPORT_RE = re.compile(r"^\s*(?:eğitim\s+(?:paketini|verisini)\s+dışa\s+aktar|export\s+training\s+data)\s*[.!]*\s*$", re.IGNORECASE)
 
 
 def answer(prompt: str) -> str:
     """The reply for a platform command, '' for anything else."""
+    if _PERF_RE.match(prompt):
+        return perf_report.report()
     if _QUALITY_RE.match(prompt):
         return release_guard.status()
     if _EXPORT_RE.match(prompt):

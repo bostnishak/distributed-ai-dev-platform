@@ -282,7 +282,7 @@ async def discover_connector_tools(connector_id: str) -> dict[str, Any]:
         return {"ok": False, "error": err_status}
 
 
-async def call_connector_tool(connector_id: str, tool_name: str, arguments: dict[str, Any] | None = None) -> dict[str, Any]:
+async def call_connector_tool(connector_id: str, tool_name: str, arguments: dict[str, Any] | None = None, approved: bool = False) -> dict[str, Any]:
     """Execute a live MCP tools/call on the connected external server using its encrypted API key."""
     row = _get_raw_connector(connector_id)
     if not row:
@@ -292,6 +292,8 @@ async def call_connector_tool(connector_id: str, tool_name: str, arguments: dict
     gate = policy.check("mcp_call", payload=json.dumps(arguments or {}, ensure_ascii=False))
     if not gate.allowed:
         raise ValueError(gate.reason)
+    if policy.tool_scope(tool_name) == "write" and not approved:
+        raise ValueError(f"'{tool_name}' dış sistemde değişiklik yapıyor; çalıştırmak için açık onay gerekiyor.")
     headers = _build_headers(row)
     endpoint = (row["url"], headers)
     async with httpx.AsyncClient(timeout=30.0) as client:
@@ -357,6 +359,7 @@ class MCPUpdateReq(BaseModel):
 class MCPCallReq(BaseModel):
     tool_name: str
     arguments: dict[str, Any] = {}
+    approved: bool = False
 
 
 @router.get("/connectors")
@@ -407,7 +410,7 @@ async def api_discover_connector(connector_id: str):
 @router.post("/connectors/{connector_id}/call", dependencies=[Depends(require_local_or_admin)])
 async def api_call_connector(connector_id: str, req: MCPCallReq):
     try:
-        return await call_connector_tool(connector_id, req.tool_name, req.arguments)
+        return await call_connector_tool(connector_id, req.tool_name, req.arguments, req.approved)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:

@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 import config
+import repair_pairs
 import security_scan
 
 _SOURCE_EXTS = (".html", ".css", ".js", ".py", ".json", ".md", ".txt")
@@ -56,7 +57,7 @@ def build() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         sft[request] = {"messages": [{"role": "user", "content": request}, {"role": "assistant", "content": text}]}
         if request in failed:
             preferences.append({"prompt": request, "chosen": text, "rejected": failed.pop(request)})
-    return list(sft.values()), preferences
+    return list(sft.values()), preferences + repair_pairs.load()
 
 
 def export(out_dir: Path) -> dict[str, int]:

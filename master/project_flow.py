@@ -18,6 +18,7 @@ import complexity_governor
 import design_system
 import docs_vault
 import json_repair
+import ledger
 import post_checks
 import preferences
 import skill_library
@@ -194,6 +195,13 @@ async def _preparation_events(prompt: str, think: Any) -> AsyncIterator[dict[str
            + design_system.brief(prompt) + await asyncio.to_thread(docs_vault.brief, prompt) + preferences.brief()}
 
 
+def _note_assumptions(ws_id: str, assumed: list[str]) -> None:
+    import workspace_builder as wb
+
+    if assumed:
+        ledger.assume(wb.safe_workspace_dir(ws_id), assumed)
+
+
 async def stream_generate(prompt: str, project_type: str = "auto", model_override: str | None = None) -> AsyncIterator[dict[str, Any]]:
     """Drop-in replacement for workspace_builder.stream_generate_project with research and a coverage pass."""
     import workspace_builder as wb
@@ -209,13 +217,16 @@ async def stream_generate(prompt: str, project_type: str = "auto", model_overrid
 
     think, write = caller(reasoner), caller(model)
     ready: dict[str, Any] = {}
+    spoken: list[str] = []
     async for evt in _preparation_events(prompt, think):
         if evt["type"] == "ready":
             ready = evt
         else:
+            spoken.append(str(evt.get("message") or ""))
             yield evt
     info, contract, notes = ready["info"], ready["contract"], ready["notes"]
     done: dict[str, Any] = {}
+    assumed = ledger.assumption_lines(spoken)
     async for evt in wb.stream_generate_project(prompt + brief_text(info) + notes, project_type=project_type, model_override=model_override, run_smoke=False):
         if evt["type"] == "done":
             done = evt
@@ -224,6 +235,7 @@ async def stream_generate(prompt: str, project_type: str = "auto", model_overrid
     if done and contract:
         (wb.safe_workspace_dir(done["workspace"]["id"]) / spec_contract.SPEC_FILE).write_text(contract.model_dump_json(indent=2), encoding="utf-8")
     if done:
+        _note_assumptions(done["workspace"]["id"], assumed)
         async for evt in _coverage_events(done, info, (think, write)):
             yield evt
 

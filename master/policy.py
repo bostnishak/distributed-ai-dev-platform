@@ -6,6 +6,7 @@ privileged action without a person's approval, secrets never leave the machine, 
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 import security_scan
@@ -26,6 +27,22 @@ class Decision:
 
 class PolicyError(PermissionError):
     """The action was refused; the message says why."""
+
+
+_WRITE_VERBS = frozenset({"create", "update", "delete", "remove", "write", "send", "post", "put", "patch", "insert", "drop", "execute", "run", "publish",
+                          "upload", "move", "rename", "merge", "push", "pay", "buy", "add", "set", "edit", "cancel", "approve", "close"})
+_READ_VERBS = frozenset({"get", "list", "search", "read", "find", "fetch", "view", "describe", "count", "check", "show", "query", "lookup"})
+
+
+def tool_scope(name: str) -> str:
+    """"read" or "write", from the verb in the tool's name; a name with no recognisable read verb that mentions a write verb is write."""
+    words = [w.lower() for w in re.split(r"[_\-.\s]+|(?<=[a-z])(?=[A-Z])", name) if w]
+    for word in words:
+        if word in _READ_VERBS:
+            return "read"
+        if word in _WRITE_VERBS:
+            return "write"
+    return "read"
 
 
 def has_secret(text: str) -> bool:

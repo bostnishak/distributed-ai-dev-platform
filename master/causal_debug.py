@@ -19,6 +19,7 @@ from pydantic import BaseModel, ValidationError
 
 import gateway
 import patch_edit
+import repair_pairs
 import tree_search
 from prompt_loader import load_prompt
 from workspace_checks import extract_file
@@ -232,6 +233,7 @@ async def repair(ws_dir: Path, run_tests: Callable[[], str], regenerate: Regener
         _write(ws_dir, changes)
         after = await asyncio.to_thread(run_tests)
         if not after:
+            repair_pairs.record(first, originals, sources(ws_dir))
             return True, f"Testler başta başarısızdı; kök neden bulundu ve düzeltildi ({'; '.join([*causes, cause])})."
         if _headline(after) in seen:  # no progress: take this attempt back
             _write(ws_dir, {path: before[path] for path in changes})

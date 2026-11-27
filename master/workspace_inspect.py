@@ -18,6 +18,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 import event_log
+import ledger
 import provenance
 import workspace_builder as wb
 import workspace_docker
@@ -99,6 +100,7 @@ def proof(ws_dir: Path) -> dict[str, Any]:
         "warnings": record.get("warnings", []), "files": len(record.get("files", {})),
         "dependencies": [c.get("name", "") for c in record.get("sbom", {}).get("components", [])],
         "events": event_log.read(ws_dir),
+        "ledger": ledger.read(ws_dir),
         "timeline": [{"version": v["version"], "label": v.get("label", ""), "at": v.get("created_at", ""), "files": v.get("files_count", 0)} for v in wb.list_snapshots(ws_dir)],
     }
 

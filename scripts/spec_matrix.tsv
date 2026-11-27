@@ -22,7 +22,7 @@ v1	2 QA	Sınırlı onarım döngüsü, dürüst başarısızlık bildirimi	C	wor
 v1	3 Ollama	Kurulu modelleri keşfetme ve role göre seçim, yedek model	T	gateway/registry
 v1	3 Ollama	Role göre sıcaklık ve şemalı çıktı	T	gateway/client_helpers
 v1	3 Ollama	Dosya dosya parçalı üretim	C	workspace_batches
-v1	3 Ollama	Ajan bazında TTFT ve token/sn göstergesi	K	run_trace aşama süresi tutuyor; TTFT arayüzde yok
+v1	3 Ollama	Ajan bazında TTFT ve token/sn göstergesi	K	model bazında token/sn ve süre var; ilk token süresi (TTFT) yok
 v1	4 Bellek	Son turlar ve takip isteği birleştirme	C	followup
 v1	4 Bellek	Proje durumu, sürüm anlık görüntüsü	T	workspace_builder_ops
 v1	4 Bellek	Uzun süreli tercih belleği	T	memory_engine
@@ -44,14 +44,14 @@ v2	2.4	AST çapalı yama, tam yazıma geri düşme	T	patch_edit
 v2	2.4	L1 birebir önbellek	T	exact_cache.py: sayfa/belge iddia çıkarımında
 v2	2.4	L2 anlamsal, L3 bileşen önbelleği	T	semantic_cache.py (belge bazlı) ve skill_library (doğrulanmış bileşen)
 v2	3.1	Yörünge toplama, sır temizleme	T	run_trace
-v2	3.1	Tercih çiftleri (başarısız/onarılmış)	K	training_pack yalnız başarılı kayıtları veriyor
+v2	3.1	Tercih çiftleri (başarısız/onarılmış)	T	repair_pairs.py: başarılı onarımlardan çift
 v2	3.2	Yerel LoRA/DPO/GRPO eğitimi	X	bellek ve veri yetersiz; yalnız betik
 v2	3.2	GGUF içe aktarma ve gölge değerlendirme kapısı	K	import-gguf var, gerçek GGUF ile denenmedi
 v2	3.3	Doğrulanmış beceri kütüphanesi	T	skill_library
 v2	3.3	Otomatik istem optimizasyonu	T	scripts/optimize_prompt.py: yalnız ölçülen iyileşmede tutar; canlıda koşulmadı
 v2	4.1	Hipotez temelli nedensel hata ayıklama + regresyon testi	C	causal_debug + DAP durumu; regresyon testi üretmiyor
 v2	4.2	En iyi N aday değerlendirme	K	konsey; başarısız onarımda ikinci modele yükseltme
-v2	4.3	Doğrulanmış/çıkarım/varsayım defteri	K	Mimar ajanı varsayımları bildiriyor; her ajanda defter yok
+v2	4.3	Doğrulanmış/çıkarım/varsayım defteri	T	ledger.py: kanıt çekmecesinde doğrulandı / varsayım / açık
 v2	4.4	API fuzz ve sınır testi	C	api_probe; Docker kum havuzunda denendi
 v2	4.4	Arayüz kaos, erişilebilirlik, üç ekran genişliği	K	üç genişlik, adsız denetim, kontrast, taşma; kaos tıklaması yok
 v2	4.4	Uydurma paket (slopsquatting) denetimi	C	package_check
@@ -66,10 +66,10 @@ v2	6.2	Güvenilmeyen veri ayrımı	C	untrusted
 v2	6.2	Eylem yetki politikası kapısı	T	policy.py; MCP ve araştırmaya bağlı
 v2	6.3	Sır tarayıcı ve SAST	T	security_scan
 v2	7.1	Kalıcı iş akışı, kontrol noktasından devam	C	checkpoint.py; canlıda kesilip devam etti
-v2	7.2	MCP araç veri yolu ve izin kapsamları	K	mcp_server, mcp_connector
-v2	7.3	Öncelikli GPU kuyruğu	K	chat_queue bildirim veriyor; öncelik yok
+v2	7.2	MCP araç veri yolu ve izin kapsamları	T	mcp_connector: yazan araçlar açık onay ister; SSRF ve gizli anahtar kapısı
+v2	7.3	Öncelikli GPU kuyruğu	T	gateway/priority_gate.py: sohbet, bekleyen arka plan işlerinin önüne geçer
 v2	7.3	WebSocket canlı DAG akışı	K	SSE ile aşama akışı var
-v2	8.1	İzleme (OpenTelemetry) ve pano	K	telemetry_otel, run_trace; pano yok
+v2	8.1	İzleme (OpenTelemetry) ve pano	T	perf_report: 'performans durumu' (model ve iş bazında süre, token/sn)
 v2	8.2	25+ senaryoluk altın test takımı	C	scripts/golden.py: hızlı küme canlıda; --slow ile üretim senaryoları
 v2	8.3	Sürüm kapısı ölçütleri	T	eval_stats: golden ve release_guard içinde
 v2	9	Çalışırken duraklatma ve yönlendirme	K	kesip 'devam et ama ...' ile kalan dosyaları yönlendirme; canlı duraklatma düğmesi yok

@@ -11,6 +11,7 @@ import code_audit
 import complexity_governor
 import deploy_kit
 import design_slop
+import ledger
 import migration_check
 import mutation
 import package_check
@@ -31,6 +32,12 @@ async def apply(ws_dir: Path, request: str, done: dict[str, Any]) -> dict[str, A
     found = await asyncio.gather(  # read-only checks are independent of each other, so they run at the same time
         asyncio.to_thread(security_scan.report, ws_dir), asyncio.to_thread(visual_audit.report, ws_dir), asyncio.to_thread(design_slop.report, ws_dir, request),
         asyncio.to_thread(package_check.report, ws_dir), asyncio.to_thread(code_audit.report, ws_dir, request), asyncio.to_thread(migration_check.report, ws_dir))
+    names = ("Gizli anahtar ve güvensiz kalıp taraması", "Gerçek tarayıcıda yerleşim denetimi", "Şablon tasarım denetimi", "Bağımlılık denetimi",
+             "Statik tanılama, veri akışı, performans ve lisans", "Veritabanı göçü denetimi")
+    checks = dict(zip(names, found, strict=True))
+    if not (ws_dir / "index.html").is_file():
+        checks.pop(names[1]), checks.pop(names[2])
+    ledger.write(ws_dir, ledger.build(checks))
     for result in (*found, deployment):
         warnings += result if isinstance(result, list) else [result] if result else []
     if property_check.rules(request) and (checked := await property_check.report(ws_dir, request, workspace_requirements.declared_packages(ws_dir))):
