@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.15-slim
 LABEL cm6453=sandbox
 
 # SEC-13: Hardened non-root, offline execution sandbox image
