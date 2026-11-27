@@ -8,6 +8,7 @@ While it runs the user can pause, add a course correction, rewrite what a waitin
 from __future__ import annotations
 
 import asyncio
+import difflib
 import importlib.util
 import os
 from collections.abc import AsyncIterator
@@ -63,6 +64,16 @@ def _file_event(kind: str, path: str, order: list[str], code: str = "") -> dict[
     return event
 
 
+def _text(path: Path) -> str:
+    return path.read_text(encoding="utf-8", errors="replace") if path.is_file() else ""
+
+
+def file_diff(path: str, old: str, new: str, limit: int = 4000) -> str:
+    """The unified diff shown in the live stream; "" when nothing changed."""
+    lines = difflib.unified_diff(old.splitlines(), new.splitlines(), fromfile=f"önce/{path}", tofile=f"sonra/{path}", lineterm="", n=2)
+    return "\n".join(lines)[:limit]
+
+
 _PAUSED = {"type": "status", "message": "Duraklatıldı. Savaş odasından devam ettirebilir ya da talimat ekleyebilirsin."}
 
 
@@ -110,6 +121,13 @@ async def edit_files(ws_dir: Path, instruction: str, model: str, targets: list[d
 
     nodes = [dag.Node(s["path"], work_for(s), deps=(order[i - 1],) if i else (), model=str(s.get("model") or model), title=s["path"], purpose=str(s.get("purpose", "")))
              for i, s in enumerate(targets)]
+    before = {path: _text(ws_dir / path) for path in order}
     yield {"type": "run", "run_id": run.id}
     async for kind, path, result in _drive(run, nodes, 1, order):
-        yield _PAUSED if kind == "paused" else _file_event(kind, path, order, result or "")
+        if kind == "paused":
+            yield _PAUSED
+            continue
+        event = _file_event(kind, path, order, result or "")
+        if kind == "done":
+            event["diff"] = file_diff(path, before[path], _text(ws_dir / path))
+        yield event

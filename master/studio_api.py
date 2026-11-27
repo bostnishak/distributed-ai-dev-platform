@@ -23,6 +23,7 @@ import process_utils
 import project_flow
 import run_trace
 import sandbox
+import taste
 import workspace_builder as wb
 from access_control import require_local_or_admin
 from audit_log import AuditTrail
@@ -152,8 +153,10 @@ async def save_workspace_file(id: str, body: SaveFileRequest):
     if _HIGHLIGHT_RE.search(body.content) and target.suffix.lower() != ".md":
         raise HTTPException(status_code=400, detail="Dosyada kod renklendirme etiketi var (class=\"hl-...\"); ham kaynak kaydedilmeli.")
     target.parent.mkdir(parents=True, exist_ok=True)
-    if target.is_file() and target.read_text(encoding="utf-8", errors="replace") != body.content:
+    previous = target.read_text(encoding="utf-8", errors="replace") if target.is_file() else body.content
+    if previous != body.content:
         feedback.record(ws_dir, "elle düzenleme", body.path)  # a correction by hand is a signal about what the model got wrong
+        taste.learn(previous, body.content, target.suffix)
     target.write_text(body.content, encoding="utf-8")
     meta = wb.load_workspace_meta(ws_dir)
     meta["updated_at"] = datetime.now(UTC).isoformat()

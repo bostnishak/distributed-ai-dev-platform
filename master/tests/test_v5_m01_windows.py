@@ -1094,3 +1094,33 @@ def test_pareto_frontier_and_incident_report(tmp_path, monkeypatch):
     assert "sınırın gerisinde" in release_history.describe()
     text = release_history.incident(["s9"], run(9, 10, 1.0), ["agent_intake.md"], ["agent_intake.md"]).read_text(encoding="utf-8")
     assert "s9: zaman aşımı" in text and "- agent_intake.md" in text and "Geri alınan dosyalar: agent_intake.md" in text
+
+
+def test_every_finished_file_of_a_change_carries_its_diff():
+    import build_dag
+
+    diff = build_dag.file_diff("a.js", "const a = 1;\nconst b = 2;\n", "const a = 1;\nconst b = 3;\n")
+    assert "-const b = 2;" in diff and "+const b = 3;" in diff and "sonra/a.js" in diff
+    assert build_dag.file_diff("a.js", "x", "x") == ""
+
+
+def test_taste_is_learned_only_from_repeated_hand_edits(tmp_path, monkeypatch):
+    import config
+    import taste
+
+    monkeypatch.setattr(config, "data_dir", lambda: tmp_path)
+    old = "body { background: #ffffff; } .k { border-radius: 8px; color: red; } :root { --accent: #3b5bdb; }"
+    new = "body { background: #0b0f14; } .k { border-radius: 2px; color: blue; } :root { --accent: #d9480f; }"
+    assert dict(taste.added(old, new)) == {"köşe yuvarlaklığı": "2px", "ana renk": "#d9480f", "arka plan rengi": "#0b0f14"}
+    assert taste.learn(old, new, ".py") == 0 and taste.learn(old, new, ".css") == 3
+    assert taste.brief() == ""
+    taste.learn(".a { color: red }", ".a { color: red; border-radius: 2px }", ".css")
+    assert "köşe yuvarlaklığı: 2px (elle 2 kez" in taste.brief() and "ana renk" not in taste.brief()
+
+
+def test_the_active_isolation_layer_is_named_honestly():
+    import run_evidence
+
+    assert "Docker kutusu" in run_evidence.isolation_tier(ready=lambda: (True, ""))
+    assert "çalıştırılmıyor" in run_evidence.isolation_tier(ready=lambda: (False, ""), platform="win32")
+    assert run_evidence.isolation_tier(ready=lambda: (False, ""), platform="linux").startswith("Yalıtım yok")

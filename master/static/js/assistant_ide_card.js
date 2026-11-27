@@ -1,4 +1,5 @@
 // UX-02 Modular Split: Inline IDE Workbench card controller (<= 400 lines).
+import { createChangeLog } from './ide_change_log.js';
 import { attachInspector } from './assistant_ide_inspect.js';
 import {
   buildCodePane,
@@ -233,17 +234,23 @@ export function buildInlineWorkspaceCard(wsMeta, wsTree) {
   bindInspectTools(ctx, ctrl);
   bindEditTools(ctx, ctrl);
 
+  const changes = createChangeLog();
+  const reloadPreview = () => { if (st.viewMode === 'preview' || st.viewMode === 'split') pp.iframe.src = `/api/studio/workspaces/${wsId}/preview/index.html?t=${Date.now()}`; };
   const iterBar = createIterationBar(wsId, async (evt) => {
-    if (evt.type === 'file_done') st.fileCache.delete(evt.path);
-    else if (evt.type === 'done' && evt.tree) {
+    if (evt.type === 'run') changes.clear();
+    if (evt.type === 'file_done') {
+      st.fileCache.delete(evt.path);
+      changes.add(evt);
+      reloadPreview(); // console errors of the half-finished change show up while the work is still running
+    } else if (evt.type === 'done' && evt.tree) {
       st.currentTree = evt.tree;
       ctrl.renderTree();
       if (st.activePath) { st.fileCache.delete(st.activePath); await ctrl.selectFile(st.activePath); }
-      if (st.viewMode === 'preview' || st.viewMode === 'split') pp.iframe.src = `/api/studio/workspaces/${wsId}/preview/index.html?t=${Date.now()}`;
+      reloadPreview();
       tb.refreshVersions();
     }
   });
-  card.append(iterBar, status.statusBar);
+  card.append(changes.box, iterBar, status.statusBar);
   attachErrorBridge(pp.iframe, iterBar, card);
   attachInspector(card, {
     wsId, iframe: pp.iframe, iterBar, toolbar: dom.editToggleBtn.parentElement, hasPreview: Boolean(wsMeta.has_web_preview),

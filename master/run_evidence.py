@@ -5,14 +5,26 @@ from __future__ import annotations
 import difflib
 import json
 import re
+import sys
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
 import ledger
 import workspace_builder as wb
+from sandbox import runner
 
 _PROOF_WORDS = re.compile(r"mutasyon|z3|biçimsel|iş kuralı|karşı örnek|teslim durumu|özellik testi|veri akışı|sızıntı", re.IGNORECASE)
 _MAX_DIFF = 6000
+
+
+def isolation_tier(ready: Callable[[], tuple[bool, str]] = runner.docker_daemon_ready, platform: str = sys.platform) -> str:
+    """Where generated code runs right now: the strongest layer that is actually available."""
+    if ready()[0]:
+        return "Yalıtım: Docker kutusu (ağsız, yetkisiz kullanıcı)"
+    if platform == "win32":
+        return "Yalıtım: yalnız Windows süreç sınırı — Docker kapalı, proje kodu çalıştırılmıyor"
+    return "Yalıtım yok — Docker kapalı, proje kodu çalıştırılmıyor"
 
 
 def _read(path: Path) -> list[str]:

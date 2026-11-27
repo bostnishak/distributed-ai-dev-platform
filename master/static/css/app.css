@@ -791,6 +791,9 @@ ul.plain { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.6; }
 .ide-iter-spark { font-size: 14px; }
 .ide-error-box { display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 8px 12px; background: #3b1114; color: #fecaca; font-size: 13px; }
 .ide-error-box[hidden] { display: none; }
+.ide-change-log { max-height: 180px; overflow: auto; padding: 4px 12px; font-size: 12px; }
+.ide-change-log[hidden] { display: none; }
+.ide-change-log pre { white-space: pre; overflow: auto; font-size: 11px; }
 .ide-iter-bar input {
   flex: 1; background: #121214; border: 1px solid #34343a; border-radius: 7px;
   color: #f4f4f5; padding: 6px 11px; font-size: 12.5px; font-family: inherit;

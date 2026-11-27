@@ -27,6 +27,7 @@ import preferences
 import security_scan
 import skill_library
 import spec_contract
+import taste
 import wiki_ground
 from prompt_loader import load_prompt
 from workspace_batches import wants_single_html
@@ -196,7 +197,7 @@ async def _preparation_events(prompt: str, think: Any) -> AsyncIterator[dict[str
         else:
             yield evt
     yield {"type": "ready", "info": info, "contract": contract, "notes": (agent_contracts.writer_notes(contract) if contract else "") + skill_library.reference(prompt)
-           + design_system.brief(prompt) + await asyncio.to_thread(docs_vault.brief, prompt) + preferences.brief()}
+           + design_system.brief(prompt) + await asyncio.to_thread(docs_vault.brief, prompt) + preferences.brief() + taste.brief()}
 
 
 def _note_assumptions(ws_id: str, assumed: list[str]) -> None:

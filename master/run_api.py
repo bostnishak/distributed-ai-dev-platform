@@ -47,7 +47,7 @@ def _live(run_id: str) -> run_control.Run:
 
 @router.get("", dependencies=[Depends(require_local_or_admin)])
 def runs() -> dict[str, Any]:
-    return {"runs": run_control.recent()}
+    return {"runs": run_control.recent(), "isolation": run_evidence.isolation_tier()}
 
 
 @router.get("/{run_id}/events", dependencies=[Depends(require_local_or_admin)])

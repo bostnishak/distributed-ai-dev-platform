@@ -77,6 +77,15 @@ function drawGraph(nodes, onPick) {
   return root;
 }
 
+// Which isolation layer generated code runs in; asked each time the panel is opened.
+function showTier(target, panel) {
+  new MutationObserver(async () => {
+    if (panel.hidden) return;
+    const res = await safeFetchJson('/api/runs');
+    target.textContent = (res.data && res.data.isolation) || '';
+  }).observe(panel, { attributes: true, attributeFilter: ['hidden'] });
+}
+
 // Builds the toggle button and the panel; returns the parts the behaviour below drives.
 function buildDom() {
   const toggle = el('button', 'Ajan grafiği', 'war-toggle');
@@ -107,7 +116,9 @@ function buildDom() {
   head.append(picker, status, pauseBtn);
   const steerRow = el('div', undefined, 'war-row');
   steerRow.append(note, send);
-  panel.append(head, steerRow, graph, sliderLabel, slider, detail, branchRow);
+  const tier = el('div', '', 'war-small');
+  showTier(tier, panel);
+  panel.append(head, tier, steerRow, graph, sliderLabel, slider, detail, branchRow);
   document.body.append(toggle, panel);
   return { toggle, panel, picker, status, pauseBtn, note, send, graph, slider, sliderLabel, detail, branchRow, steerRow };
 }

@@ -51,8 +51,8 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 
 - [x] KV önbellek ayarının denetlenmesi (`ai-os doctor`, zaten vardı)
 - [ ] Görsel ve akıl yürütme için karşılaştırmalı model yargıç
-- [ ] Canlı akışta dosya farkı
-- [ ] Canlı akışta önizleme konsol hataları
+- [x] Canlı akışta dosya farkı (bileşen tarayıcıda denendi; modelle uçtan uca denenecek)
+- [x] Canlı akışta önizleme konsol hataları (her dosyadan sonra önizleme yenileniyor, hata kutusu gösteriyor)
 - [x] Sıfır modelle lint düzeltme
 - [x] %60 üstü yamada tam yazıma dönme
 - [x] Beğen / beğenme ve elle düzenleme geri bildirimi
@@ -101,7 +101,7 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [x] Araştırma kaynaklarında yayın tarihi
 - [x] İndirilen DevDocs araştırmada kullanılıyor; web kapalıyken de yanıt veriyor (canlı geçti)
 - [x] Tipografi ölçeği ve dikey ritim: yazım notu ve tarayıcı denetimi
-- [~] Kullanıcı zevkini öğrenme — turnuva seçimi kaydediliyor, elle düzenlemeden öğrenme yok
+- [x] Kullanıcı zevkini öğrenme: turnuva seçimi ve elle stil düzeltmeleri
 - [x] Belge araçları: içindekiler, sayfa aralığı, tablo çıkarma, alıntı doğrulama
 - [x] Diske yazılan özet ağacı (aynı belgede model çağrılmadan yeniden kullanılıyor)
 - [x] NumPy / SciPy ve duyarlılık analizi (`duyarlılık: ...`, `sayısal kök / integral: ...`)
@@ -113,7 +113,7 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [x] Günlük özet (`gece özeti` ve gece saatinde dosyaya)
 - [x] Bağımlılık açığı denetimi (OSV; canlı geçti)
 - [x] `ai-os.config` özellik bayrakları, `up --profile`
-- [ ] Etkin yalıtım katmanının arayüzde gösterilmesi
+- [x] Etkin yalıtım katmanı savaş odasında yazıyor
 - [~] En çok 2 çoktan seçmeli netleştirme sorusu — canlı denenecek
 - [~] Üç sesli kurul — canlı denenecek
 - [—] Karma bulut köprüsü: istemedin (ücretli servis olmasın)
@@ -140,7 +140,7 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 
 - [x] Ücretli hiçbir şey yok
 - [x] Ollama ayarları (`ai-os doctor` denetliyor, üçü de doğru)
-- [ ] Windows + 8 GB için yazılı teknik uygunluk raporu (hangi paket sorunlu, kurulum yolu)
+- [x] Windows + 8 GB uygunluk raporu: [windows-uygunluk.md](windows-uygunluk.md)
 - [ ] Her aşama için `verify_milestone_XX.py` (01–03 var)
 
 ### M01 — Windows dayanıklılığı (ana kısım tamam)
