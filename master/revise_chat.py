@@ -85,6 +85,21 @@ def _page_errors(ws_id: str, prompt: str) -> list[str]:
     return gaps + [str(e)[:220] for e in (workspace_web.probe(ws_dir) or {}).get("errors", [])]
 
 
+def _test_errors(ws_id: str, changed: list[str]) -> list[str]:
+    """Run only the project tests that depend on the edited files."""
+    import repo_map
+    import workspace_builder as wb
+    import workspace_docker
+    import workspace_requirements
+
+    ws_dir = wb.safe_workspace_dir(ws_id)
+    only = repo_map.affected_tests(ws_dir, changed)
+    if not only or not workspace_docker.available():
+        return []
+    log = workspace_docker.test_log(ws_dir, workspace_requirements.declared_packages(ws_dir), tuple(only))
+    return [f"Etkilenen testler başarısız ({', '.join(only)}): {log.splitlines()[-1][:160]}"] if log else []
+
+
 async def _stream(ws_id: str, prompt: str):
     import assistant_stream_fastpaths as fp
     import workspace_builder as wb
@@ -104,7 +119,7 @@ async def _stream(ws_id: str, prompt: str):
                 yield fp.sse_event({"type": "token", "content": f"- `{evt['path']}` güncellendi\n"})
             elif evt["type"] == "done":
                 yield fp.sse_event({"type": "token", "content": "\nDeğişiklik tarayıcı ortamında test ediliyor...\n"})
-                broken = await asyncio.to_thread(_page_errors, ws_id, prompt)
+                broken = await asyncio.to_thread(_page_errors, ws_id, prompt) + await asyncio.to_thread(_test_errors, ws_id, changed)
                 warnings = [*broken, *(str(w) for w in evt.get("warnings") or [])]
                 note = "\n".join(f"> {w}" for w in warnings[:3])
                 verdict = "Değişiklik yazıldı ama TEST GEÇMEDİ" if broken else "Değişiklik uygulandı"

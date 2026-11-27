@@ -74,12 +74,12 @@ def run_tests(ws_dir: Path, pkgs: list[str]) -> str:
     return log.splitlines()[-1] if log else ""
 
 
-def test_log(ws_dir: Path, pkgs: list[str]) -> str:
+def test_log(ws_dir: Path, pkgs: list[str], only: tuple[str, ...] = ()) -> str:
     """The same run, returning the end of the output (what a repair needs to see) on failure, else ''."""
     with tempfile.TemporaryDirectory(prefix="cm6453_ws_") as tmp:
         stage = Path(tmp) / "ws"
         _stage(ws_dir, pkgs, stage)
-        res = runner.run_workspace_command(stage, _sandbox_command(["python", "-m", "pytest", "-x", "-q", "--no-header", "-p", "no:cacheprovider"]), read_only_mount=False, timeout_s=60)
+        res = runner.run_workspace_command(stage, _sandbox_command(["python", "-m", "pytest", "-x", "-q", "--no-header", "-p", "no:cacheprovider", *only]), read_only_mount=False, timeout_s=60)
     if res["timed_out"] or res["ok"]:
         return ""
     return res["stdout"].strip()[-3000:] or "test başarısız"

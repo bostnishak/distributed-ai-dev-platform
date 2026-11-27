@@ -7,8 +7,10 @@ import re
 import refactor
 import repo_map
 import revise_chat
+import workspace_inspect
 
 _UNDO_RE = re.compile(r"^\s*(?:(?:son\s+)?(?:değişikliği|degisikligi)?\s*geri\s+al|önceki\s+(?:sürüme|hale)\s+(?:dön|geri dön)|undo)\s*[.!]*\s*$", re.IGNORECASE)
+_LOAD_RE = re.compile(r"^\s*(?:(?:api\s+)?yük\s+testi(?:\s+yap)?|load\s+test)\s*[.!]*\s*$", re.IGNORECASE)
 _VERSION_RE = re.compile(r"^\s*(?:v(?P<a>\d+)\s*['\u2019]?\s*(?:ye|ya|e|a)?\s*(?:geri\s+)?dön|restore\s+v(?P<b>\d+)|sürüm\s+(?P<c>\d+)\s*['\u2019]?\s*(?:e|a|ye|ya)\s*(?:geri\s+)?dön)\s*[.!]*\s*$", re.IGNORECASE)
 
 
@@ -18,6 +20,8 @@ def parse(prompt: str) -> tuple[str, str] | None:
         return "undo", ""
     if match := _VERSION_RE.match(prompt):
         return "version", "v" + (match["a"] or match["b"] or match["c"])
+    if _LOAD_RE.match(prompt):
+        return "load", ""
     if pair := refactor.parse(prompt):
         return "rename", " ".join(pair)
     return None
@@ -37,6 +41,8 @@ def run(ws_id: str, command: str, value: str) -> str:
 
     ws_dir = wb.safe_workspace_dir(ws_id)
     meta = wb.load_workspace_meta(ws_dir)
+    if command == "load":
+        return load_summary(workspace_inspect.run_load(ws_dir))
     if command == "rename":
         old, new = value.split(" ")
         changed = refactor.rename(ws_dir, old, new)
@@ -53,6 +59,14 @@ def run(ws_id: str, command: str, value: str) -> str:
         return "Geri dönülecek bir önceki sürüm yok." if command == "undo" else f"{target} adında bir sürüm yok. Olanlar: {', '.join(sorted(v['version'] for v in versions))}"
     wb.restore_snapshot(ws_id, target)
     return f"Proje **{target}** sürümüne döndürüldü. Sonraki sürümler silinmedi; istersen onlara da dönebilirim."
+
+
+def load_summary(result: dict) -> str:
+    if not result.get("requests"):
+        return "Yük testi için parametresiz bir GET uç noktası bulamadım."
+    return (f"**Yük testi** ({result['requests']} istek, aynı anda {result['workers']}; yalıtılmış kutuda, ağ gecikmesi hariç)\n"
+            f"- Uç noktalar: {', '.join(result['paths'])}\n- Saniyede istek: {result['rps']}\n"
+            f"- Gecikme p50/p95/p99: {result['p50']} / {result['p95']} / {result['p99']} ms\n- 5xx hata: {result['errors']}")
 
 
 def fastpath(prompt: str, history: str):

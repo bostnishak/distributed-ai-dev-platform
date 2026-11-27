@@ -19,6 +19,7 @@ import design_system
 import docs_vault
 import json_repair
 import post_checks
+import preferences
 import skill_library
 import spec_contract
 import wiki_ground
@@ -190,7 +191,7 @@ async def _preparation_events(prompt: str, think: Any) -> AsyncIterator[dict[str
         else:
             yield evt
     yield {"type": "ready", "info": info, "contract": contract, "notes": (agent_contracts.writer_notes(contract) if contract else "") + skill_library.reference(prompt)
-           + design_system.brief(prompt) + await asyncio.to_thread(docs_vault.brief, prompt)}
+           + design_system.brief(prompt) + await asyncio.to_thread(docs_vault.brief, prompt) + preferences.brief()}
 
 
 async def stream_generate(prompt: str, project_type: str = "auto", model_override: str | None = None) -> AsyncIterator[dict[str, Any]]:

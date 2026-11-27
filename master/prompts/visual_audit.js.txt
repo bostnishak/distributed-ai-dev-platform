@@ -49,6 +49,11 @@ window.addEventListener('load', function () {
         if (w > 0 && h > 0 && w * h > 0.25 * Math.min(x.width * x.height, y.width * y.height)) found.push('üst üste binen öğeler: ' + name(a) + ' ile ' + name(b));
       });
     });
+    controls.forEach(function (el) {
+      if (el.type === 'hidden') return;
+      var label = (el.labels && el.labels.length && el.labels[0].textContent) || el.getAttribute('aria-label') || el.getAttribute('title') || el.textContent || el.getAttribute('placeholder') || (el.type === 'submit' || el.type === 'button' ? el.value : '');
+      if (!String(label).trim()) found.push('adı olmayan denetim (ekran okuyucu okuyamaz): ' + name(el));
+    });
     Array.prototype.forEach.call(document.images, function (img) {
       if (img.complete && !img.naturalWidth) found.push('yüklenmeyen görsel: ' + (img.getAttribute('src') || '').slice(0, 60));
     });

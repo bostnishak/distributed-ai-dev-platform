@@ -67,6 +67,13 @@ def build(ws_dir: Path, request: str, budget: int = 6000) -> str:
     return "\n".join(parts)
 
 
+def affected_tests(ws_dir: Path, changed: list[str]) -> list[str]:
+    """Test files that import a changed file directly or indirectly, plus changed test files."""
+    graph = code_graph.build_workspace_code_graph(ws_dir)
+    reached = [*changed, *affected(graph["edges"], set(changed))]
+    return sorted({p for p in reached if Path(p).name.startswith("test_") and p.endswith(".py")})
+
+
 def dependents_note(ws_dir: Path, changed: list[str]) -> str:
     """A warning line naming unchanged files that depend on what was edited."""
     graph = code_graph.build_workspace_code_graph(ws_dir)

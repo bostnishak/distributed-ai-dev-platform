@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any
 
 import config
+import event_log
 import safe_archive
 from process_utils import run_process, spawn_process
 
@@ -302,6 +303,7 @@ def create_snapshot(ws_dir: Path, label: str = "") -> dict[str, Any]:
         "created_at": datetime.now(UTC).isoformat(),
     }
     (snap_dir / ".snapshot.json").write_text(json.dumps(info, ensure_ascii=False, indent=2), encoding="utf-8")
+    event_log.record(ws_dir, "sürüm", f"{ver}: {info['label']}")
     return info
 
 
@@ -350,6 +352,7 @@ def restore_snapshot(ws_id: str, version: str) -> dict[str, Any]:
 
     meta = load_workspace_meta(ws_dir)
     meta["active_version"] = version
+    event_log.record(ws_dir, "geri dönüş", version)
     meta["versions"] = list_snapshots(ws_dir)
     meta["updated_at"] = datetime.now(UTC).isoformat()
     save_workspace_meta(ws_dir, meta)

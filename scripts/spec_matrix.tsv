@@ -39,7 +39,7 @@ v2	2.2	Tier 0 modelsiz düzenleme	C	tier0_edit
 v2	2.2	Karmaşıklığa göre model basamağı	T	complexity_governor
 v2	2.2	Logprob/entropi ile yükseltme	E	Ollama yanıtında güvenilir logprob kullanılmıyor
 v2	2.3	Paralel DAG yürütücü, spekülatif ön hazırlık	Y	8 GB kartta paralel üretim hızlandırmaz; doğrulama adımları paralel yapılabilir
-v2	2.3	Yalnız etkilenen testleri koşma	Y
+v2	2.3	Yalnız etkilenen testleri koşma	T	repo_map.affected_tests; sohbet revizyonunda
 v2	2.4	AST çapalı yama, tam yazıma geri düşme	T	patch_edit
 v2	2.4	L1 birebir önbellek	Y
 v2	2.4	L2 anlamsal, L3 bileşen önbelleği	Y
@@ -50,10 +50,10 @@ v2	3.2	GGUF içe aktarma ve gölge değerlendirme kapısı	K	import-gguf var, ge
 v2	3.3	Doğrulanmış beceri kütüphanesi	T	skill_library
 v2	3.3	Otomatik istem optimizasyonu	Y
 v2	4.1	Hipotez temelli nedensel hata ayıklama + regresyon testi	K	causal_debug.py canlıda zincirdeki 3 hatanın 2'sini çözdü; regresyon testi üretmiyor
-v2	4.2	En iyi N aday değerlendirme	K	tool_executor kurulu (yalnız akıl yürütmede)
-v2	4.3	Doğrulanmış/çıkarım/varsayım defteri	Y
+v2	4.2	En iyi N aday değerlendirme	K	konsey; başarısız onarımda ikinci modele yükseltme
+v2	4.3	Doğrulanmış/çıkarım/varsayım defteri	K	Mimar ajanı varsayımları bildiriyor; her ajanda defter yok
 v2	4.4	API fuzz ve sınır testi	C	api_probe; Docker kum havuzunda denendi
-v2	4.4	Arayüz kaos, erişilebilirlik, üç ekran genişliği	K	visual_audit tek genişlik
+v2	4.4	Arayüz kaos, erişilebilirlik, üç ekran genişliği	K	üç genişlik, adsız denetim, kontrast, taşma; kaos tıklaması yok
 v2	4.4	Uydurma paket (slopsquatting) denetimi	C	package_check
 v2	5.1	Depo haritası	C	repo_map.py (AST/regex + PageRank; tree-sitter değil); düzenlemede kullanılıyor, birim testli
 v2	5.2	Melez kod araması (graf+BM25+gömme)	K	hybrid_graph_rag belge için; kod için yok
@@ -74,7 +74,7 @@ v2	8.2	25+ senaryoluk altın test takımı	C	scripts/golden.py: hızlı küme ca
 v2	8.3	Sürüm kapısı ölçütleri	T	eval_stats (hatta bağlı değil)
 v2	9	Çalışırken duraklatma ve yönlendirme	Y
 v2	9	Kanıt kartı (doğrulama özeti)	C	IDE 'Kanıt' çekmecesi
-v2	9	İki varyant yan yana	Y
+v2	9	İki varyant yan yana	T	variants.py: iki üretim arka arkaya, iki kart
 v2	9	Dürüst düşüş bildirimi	T	reply_labels
 v3	1.1	LAN çıkarım ağı ve zamanlayıcı	X	tek bilgisayar
 v3	1.2	Spekülatif çözme	X	Ollama denetim vermiyor
@@ -82,9 +82,9 @@ v3	1.3	Radix KV önbellek havuzu	E	Ollama dışarıdan KV denetimi vermiyor
 v3	1.4	Şemaya zorlanmış JSON üretimi	T	Ollama format şeması
 v3	1.4	GBNF/XGrammar yama ve sözdizimi maskeleri	E	Ollama API'si özel dilbilgisi almıyor
 v3	2.1	Z3 ile sayısal doğrulama	C	z3_math
-v3	2.1	Z3 ile iş kuralı değişmezleri ve karşı örnek	Y
+v3	2.1	Z3 ile iş kuralı değişmezleri ve karşı örnek	K	property_check rastgele karşı örnek arıyor; Z3 ile ispat değil
 v3	2.1	Durum makinesi tam tarama	K	akış şemasında çıkışsız döngü taraması
-v3	2.1	Durumlu özellik testi (Hypothesis)	K	api_probe ekle-listele-sil tutarlılığı; Hypothesis ile rastgele dizi yok
+v3	2.1	Durumlu özellik testi (Hypothesis)	C	property_check.py: kuralı model yazıyor, canlıda 3/3 ihlal buldu; api_probe ekle-sil tutarlılığı
 v3	2.2	Mutasyon testi kapısı	C	mutation.py; uyarı verir, teslimi engellemez
 v3	2.3	Yerleşim geometrisi ve kontrast denetimi	T	visual_audit
 v3	2.3	Görsel model eleştirisi	C	vlm_critique; kusurların bir kısmını kaçırıyor
@@ -94,13 +94,13 @@ v3	3.2	Boşta kendi kendine alıştırma (müfredat + kırmızı takım)	Y
 v3	3.3	Çoklu LoRA, TIES/DARE birleştirme	X	eğitim
 v3	3.4	Bilgi damıtma	X	eğitim
 v3	4.1	Ajan başına git worktree ve AST birleştirme	Y
-v3	4.2	Depolar arası sözleşme ve geri alınabilir göç	Y
+v3	4.2	Depolar arası sözleşme ve geri alınabilir göç	K	migration_check.py: up/down çiftleri; depolar arası sözleşme yok
 v3	4.3	Sertleştirilmiş Dockerfile/Compose üretimi ve denetimi	T	deploy_kit.py: istenince Python web projesine; hadolint/trivy ile değil
-v3	4.3	Yük ve kaos testi	K	scripts/load_and_chaos_bench.py platform için
+v3	4.3	Yük ve kaos testi	C	sohbetten 'yük testi yap' (ağsız kutuda); kaos senaryosu yok
 v3	4.3	Çalışma anı bekçisi	Y
 v3	5.1	Ekran görüntüsünden koda	C	design_from_image.py: ölçülen renk/yerleşim + görsel model; canlıda yerleşim %87, renk %97
 v3	5.2	Typst/WeasyPrint belge stüdyosu	K	PyMuPDF ile PDF; Typst yok
-v3	5.2	PDF sayfa sayfa görsel kanıtlama	Y
+v3	5.2	PDF sayfa sayfa görsel kanıtlama	T	office_verify.proof_page: boş sayfa, taşma, çakışma, küçük punto
 v3	5.3	Çoklu diyagram biçimi	K	SVG ve Mermaid
 v3	5.3	Gerçek veriye bağlı grafik	K	document_chart
 v3	5.3	Yerel ses (ASR/TTS)	K	multimodal_studio_media STT; TTS yok
@@ -116,18 +116,18 @@ v3	7.4	Lisans uyum kapısı	T	code_audit.licence_conflicts
 v3	8	Kontrol/veri akışı analizi	T	code_audit.flows (fonksiyon içi girdi-hedef akışı); fonksiyonlar arası değil
 v3	8	Performans profilleyici (SQL planı, N+1)	T	code_audit: N+1 ve SQLite sorgu planı; çalışma anı profili yok
 v3	8	Tüm projede sembol yeniden adlandırma	C	refactor.py (Python), sohbetten
-v3	9.1	Olay kaydı ve zaman yolculuğu	Y
+v3	9.1	Olay kaydı ve zaman yolculuğu	T	event_log.py + sürümler; çatallama yok
 v3	9.2	LSP ve DAP veri yolu	Y
 v3	10	Önizlemede tıklayıp düzenleme	C	öğe seçici; gerçek Chromium'da denendi
 v3	10	DAG savaş odası ve zaman kaydırıcı	K	sürüm zaman çizelgesi var; canlı graf yok
 v3	10	Turnuva modu	K	media_lab_arena model puanlama
 v3	10	Köken ve bellek çekmeceleri	K	kanıt çekmecesi var; bellek çekmecesi yok
-v3	10	Elle yapılan düzenlemeyi koruma	K	yama korur, geri al ve sürüme dön canlı; tercih sinyali toplanmıyor
+v3	10	Elle yapılan düzenlemeyi koruma	K	yama korur, geri al, tercih belleği; elle düzenlemeden sinyal yok
 v3	11.1	Parametrik benchmark üretici	T	golden.py: tohumdan rastgele değerler
 v3	11.2	İstatistiksel sürüm kapısı, SPRT	T	eval_stats
 v3	11.2	Otomatik geri alma	Y
 v4	1.1	5 vitesli orantılılık freni	T	complexity_governor
-v4	1.2	Otomatik vites yükseltme ve süre bütçesi	Y
+v4	1.2	Otomatik vites yükseltme ve süre bütçesi	K	onarım yükseltmesi var; süre bütçesi yok
 v4	1.2	@fast/@deep komutları	T	complexity_governor
 v4	2.1	Web araması ve temiz metin çıkarma	C	DuckDuckGo + trafilatura
 v4	2.2	Çok adımlı derin araştırma ve çelişki tespiti	C	research.py: yanıtsız kalanlar için ikinci tur
@@ -136,7 +136,7 @@ v4	2.3	Sürüme bağlı belge kasası, çevrimdışı mod	T	docs_vault.py: sür�
 v4	3.1	Üç sesli tartışma kurulu	C	tool_executor: 'konseyde tartış'; canlıda denendi
 v4	3.2	Tasarım kuralları ve şablon görünüm dedektörü	T	design_slop
 v4	3.2	OKLCH palet derleyici	T	design_system.py: renk verilmeyen görsel isteklerde
-v4	3.3	Kişisel beğeni belleği	Y
+v4	3.3	Kişisel beğeni belleği	C	preferences.py: açık kalıcı ifadeler; örtük beğeni öğrenmiyor
 v4	4.1	Özet ağacı (RAPTOR)	K	doc_reader eşle-indirge; çok katmanlı özet ağacı ve gömme indeksi yok
 v4	4.2	Belge gezinme ve eşle-indirge okuma	C	doc_reader.py: 'belgenin tamamını' isteklerinde; satır numaralı doğrulanmış alıntı
 v4	5.1	Tarayıcı kullanan ajan (erişilebilirlik ağacı)	C	browser_agent.py: @tarayıcı <adres> <görev>; DOM öğe listesi, görsel model yedeği yok
@@ -145,9 +145,9 @@ v4	6.1	Hesapların kodla yapılması	C	z3_math, data_lab, doc_calc
 v4	6.1	SymPy/SciPy çekirdeği	C	math_kernel.py (SymPy); SciPy yok
 v4	6.2	Canlı formüllü Excel ve yeniden hesaplama	C	office_verify
 v4	6.3	Sunum üretimi	T	deck_flow
-v4	6.3	Slayt slayt görsel denetim	Y
+v4	6.3	Slayt slayt görsel denetim	T	aynı denetim slaytlarda (LibreOffice ile PDF'e çevirip)
 v4	6.4	DuckDB veri çalışması	C	data_lab
-v4	6.4	Otomatik EDA ve ML hattı	K	automl_studio
+v4	6.4	Otomatik EDA ve ML hattı	C	eda.py: CSV için profil + 5 katlı çapraz doğrulama; Vega/Plotly grafik yok
 v4	6.5	Uzun yazıda sayı tutarlılığı	T	doc_sanity, doc_proof
 v4	7	Karma buluta yükseltme (varsayılan kapalı)	Y
 v4	8	Uzmanlığa göre anlatım ve netleştirme sorusu	K	clarify

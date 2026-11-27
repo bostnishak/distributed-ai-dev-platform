@@ -38,6 +38,7 @@ async function showProof(wsId, body) {
     section('Teslimden sonra değişen dosyalar', data.changed),
     section('Denetim uyarıları', data.warnings),
     section('Bağımlılıklar', data.dependencies),
+    section('Olay kaydı', (data.events || []).map((e) => `${e.at.replace('T', ' ')} · ${e.kind} · ${e.detail}`)),
     section('Zaman çizelgesi', data.timeline.map((t) => `${t.version} · ${t.label} · ${t.at.slice(0, 19).replace('T', ' ')}`)),
   );
 }

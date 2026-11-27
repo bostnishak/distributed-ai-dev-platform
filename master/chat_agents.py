@@ -10,15 +10,18 @@ import design_from_image
 import doc_reader
 import eda
 import math_kernel
+import preferences
 import research
+import variants
 import workspace_commands
 
 
 def fastpath(prompt: str, file: UploadFile | None, history: str = "") -> StreamingResponse | None:
     if file is not None and file.filename:
         return design_from_image.fastpath(prompt, file) or eda.fastpath(prompt, file) or doc_reader.fastpath(prompt, file)
-    if result := math_kernel.answer(prompt):
+    preferences.remember(prompt)
+    if result := preferences.command(prompt) or math_kernel.answer(prompt):
         import assistant_stream_fastpaths as fp
 
-        return fp.single_token_stream(result, "sympy", "hesaplama")
-    return browser_agent.fastpath(prompt, False) or workspace_commands.fastpath(prompt, history) or research.fastpath(prompt, False)
+        return fp.single_token_stream(result, "kod", "hesaplama")
+    return variants.fastpath(prompt) or browser_agent.fastpath(prompt, False) or workspace_commands.fastpath(prompt, history) or research.fastpath(prompt, False)

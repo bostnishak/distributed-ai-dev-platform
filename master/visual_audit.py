@@ -23,7 +23,7 @@ _BROWSERS = (
     r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
     r"C:\Program Files\Google\Chrome\Application\chrome.exe",
 )
-VIEWPORTS = {"dar": "500,900", "geniş": "1440,900"}
+VIEWPORTS = {"dar": "500,900", "tablet": "820,1000", "geniş": "1440,900"}
 _POLICY = '<meta http-equiv="Content-Security-Policy" content="default-src \'self\' \'unsafe-inline\' data: blob: file:; connect-src \'none\'; form-action \'none\'">'
 _RESULT_RE = re.compile(r'<pre id="__audit">(.*?)</pre>', re.DOTALL)
 

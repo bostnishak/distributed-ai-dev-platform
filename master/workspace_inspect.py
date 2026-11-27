@@ -17,6 +17,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+import event_log
 import provenance
 import workspace_builder as wb
 import workspace_docker
@@ -70,6 +71,23 @@ def run_console(ws_dir: Path, requests: list[dict[str, Any]]) -> list[dict[str, 
     return json.loads(found.group(1))
 
 
+def run_load(ws_dir: Path, total: int = 300, workers: int = 10) -> dict[str, Any]:
+    """Concurrent GET requests against the project's API inside the offline sandbox; latency percentiles and errors."""
+    entry = workspace_smoke._find_entry(ws_dir)
+    if entry is None or not workspace_docker.available():
+        raise ValueError("Yük testi için bir Python API projesi ve çalışan Docker gerekir")
+    pkgs = sorted({*workspace_smoke._safe_requirements(ws_dir), "httpx"})
+    with tempfile.TemporaryDirectory(prefix="cm6453_load_") as tmp:
+        stage = Path(tmp) / "ws"
+        workspace_docker._stage(ws_dir, pkgs, stage)
+        command = ["python", "-c", load_prompt("api_load.py.txt"), f"/sandbox/{entry.relative_to(ws_dir).as_posix()}", str(total), str(workers)]
+        res = workspace_docker.runner.run_workspace_command(stage, workspace_docker._sandbox_command(command), read_only_mount=False, timeout_s=60)
+    found = re.search(r"^RESULT=(.*)$", res["stdout"], re.MULTILINE)
+    if not found:
+        raise ValueError("Yük testi tamamlanamadı: " + (res["stderr"] or "süre aşımı").strip().splitlines()[-1][:200])
+    return json.loads(found.group(1))
+
+
 def proof(ws_dir: Path) -> dict[str, Any]:
     try:
         record = json.loads((ws_dir / provenance.FILE_NAME).read_text(encoding="utf-8"))
@@ -80,6 +98,7 @@ def proof(ws_dir: Path) -> dict[str, Any]:
         "recorded": bool(record), "created": record.get("created", ""), "signed": check["signed"], "changed": check["changed"],
         "warnings": record.get("warnings", []), "files": len(record.get("files", {})),
         "dependencies": [c.get("name", "") for c in record.get("sbom", {}).get("components", [])],
+        "events": event_log.read(ws_dir),
         "timeline": [{"version": v["version"], "label": v.get("label", ""), "at": v.get("created_at", ""), "files": v.get("files_count", 0)} for v in wb.list_snapshots(ws_dir)],
     }
 
