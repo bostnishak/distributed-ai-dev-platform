@@ -46,7 +46,8 @@ def _run(tmp_path, page):
 def test_correct_page_survives_every_check(tmp_path):
     results = _run(tmp_path, GOOD)
     assert torture.failures(results) == []
-    assert sum(passed is True for passed, _ in results.values()) == len(results)
+    skipped = {name for name, (passed, _) in results.items() if passed is None}
+    assert skipped == set(torture.torture_files.CHECKS), "bu sayfada dışa aktarma ve tarih alanı yok"
 
 
 @pytest.mark.parametrize(("page", "check"), [(FLOAT_MONEY, "para hesabı"), (DOUBLE_SUBMIT, "çift gönderim"), (ASCII_SEARCH, "Türkçe arama"), (UNSAFE, "özel karakter ve XSS"), (NAN_TOTAL, "sayı ve tarih sınırları")])
@@ -71,3 +72,28 @@ def test_data_bugs_block_delivery_and_network_manners_only_warn():
     status, detail = torture.judged(("geçti", "ok"), {"yavaş ağ": (False, "kilit yok"), "para hesabı": (True, "")}, "kaldı")
     assert status == "geçti" and "uyarısı" in detail and "kilit yok" in detail
     assert torture.judged(("geçti", "ok"), None, "kaldı") == ("geçti", "ok")
+
+
+_EXPORTING = GOOD.replace('<button id="e">Ekle</button>', '<button id="e">Ekle</button><input id="d" type="date" aria-label="Tarih"><button id="x">CSV indir</button>').replace(
+    "items.push({text, cents: Math.round(Number($('t').value || 0) * 100)});", "items.push({text, cents: Math.round(Number($('t').value || 0) * 100), day: $('d').value.split('-').reverse().join('.')});").replace(
+    "li.textContent = x.text + ' — '", "li.textContent = x.text + ' ' + x.day + ' — '").replace(
+    "$('a').addEventListener('input', render);",
+    "$('a').addEventListener('input', render); $('x').addEventListener('click', () => { const a = document.createElement('a'); "
+    "a.href = URL.createObjectURL(new Blob(['\\ufeff' + items.map(x => x.text).join('\\n')], {type: 'text/csv'})); a.download = 'kayitlar.csv'; a.click(); });")
+
+
+def test_exports_and_dates_survive_turkish_and_time_zones(tmp_path):
+    results = _run(tmp_path, _EXPORTING)
+    assert results["dışa aktarılan dosyalar"][0] is True, results["dışa aktarılan dosyalar"]
+    assert results["saat dilimi ve tarih"][0] is True, results["saat dilimi ve tarih"]
+
+
+@pytest.mark.parametrize(("change", "check", "word"), [
+    (("'\\ufeff' + ", ""), "dışa aktarılan dosyalar", "BOM"),
+    (("items.map(x => x.text)", "items.map(x => x.text.normalize('NFD').replace(/[^\\x00-\\x7f]/g, ''))"), "dışa aktarılan dosyalar", "bozuk"),
+    (("day: $('d').value.split('-').reverse().join('.')", "day: $('d').value ? new Date($('d').value).toLocaleDateString('tr-TR') : ''"), "saat dilimi ve tarih", "28"),
+])
+def test_broken_export_or_shifted_date_is_caught(tmp_path, change, check, word):
+    assert change[0] in _EXPORTING
+    results = _run(tmp_path, _EXPORTING.replace(*change))
+    assert results[check][0] is False and word in results[check][1], results[check]

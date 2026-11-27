@@ -9,7 +9,7 @@ Bu dosya "ne kaldı" sorusunun tek cevabıdır. Bir madde, kod testi **ve** canl
 
 ## Çalışma sırası: 3 parça
 
-**Kaldığım yer (27.11.2026, gece):** 1. parça bitti. Açık kalan tek ölçüm sonucu: zorluk merdiveninde yerel model L4'e kadar çıkıyor. 2. parça (M04–M08) sen "devam" deyince başlayacak.
+**Kaldığım yer (28.11.2026):** 1. parça bitti ve birleştirildi. 2. parça (M04–M08) yapılıyor. 3. parça (M09–M16) sen "devam" deyince başlayacak. Zorluk merdiveninde yerel model L4'e kadar çıkıyor.
 
 Dizüstü bilgisayar kesintisiz yüklenmesin diye iş üçe bölündü. Bir parça bitince **durulur**; sen "devam" demeden sonrakine geçilmez.
 
@@ -188,61 +188,62 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [x] Yüklenemeyen varlık (400 ve üstü)
 - [x] Kanıt dosyasında HTTP izleri, satır sayıları, süreler, ekran görüntüsü listesi
 
-### M04 — Küçük model destekleri
+### M04 — Küçük model destekleri (`verify_milestone_04.py` 4/4)
 
-- [~] `REQ-001…` gereksinim defteri — numaralar var; her birine makine denetimi bağlanacak
-- [ ] Dilim dilim kurma (yerleşim → veri → etkileşim) ve her dilimde defter denetimi
-- [ ] Yalnız eksik `REQ` numaralarına nokta atışı yama
-- [ ] İki başarısız onarımdan sonra temiz bağlamla yeniden başlama
-- [ ] "Denenip başarısız olan" yasak listesi
-- [ ] Akışta tekrar / döngü / boşluk / kod bloğu kayması bekçisi, anında kesme ve ayar değiştirip yeniden deneme
-- [~] Önce kesin (sembolik) eleştiri
-- [~] Eleştiriyi başka model ailesine yaptırma — altyapıda seçenek var, zorunlu dönüşüm yok
-- [ ] 250 satırı aşan dosyada önce iskelet, sonra bölüm bölüm doldurma
-- [ ] Çıkış kanıtı: 15 koşullu istek küçük modelde %100
+- [x] `REQ-001…` defteri: her madde bir makine denetimine bağlı (`req_ledger.py`, `req_checks.py`; gerçek tarayıcı)
+- [x] Dilim dilim kurma (yerleşim → veri → etkileşim), her dilimde defter denetimi (`slice_build.py`)
+- [x] Yalnız eksik `REQ` numaralarına nokta atışı yama; daha kötü sürüm saklanmaz
+- [x] İki başarısız onarımdan sonra temiz bağlamla yeniden başlama (`clean_slate.py`)
+- [x] "Denenip başarısız olan" yasak listesi
+- [x] Akış bekçisi: döngü / boşluk / kod bloğu kayması, kesme ve ayar değiştirip yeniden deneme (gerçek modelde 840 karakterde kesti)
+- [x] Önce kesin (sembolik) eleştiri: defter, mimari, güvenlik ve tarayıcı denetimleri modelden önce karar verir
+- [x] Eleştiri başka model ailesine (yazan qwen, eleştiren deepseek-r1) (`critic_models.py`)
+- [x] Uzun dosyada önce iskelet, sonra fonksiyon fonksiyon (`chunked_code.py`; otomatik testle, canlı büyük dosya denemesi yapılmadı)
+- [x] Çıkış kanıtı: 19 koşullu istek qwen2.5-coder:7b ile 19/19
 
-### M05 — Ajan sürüsü yönetimi
+### M05 — Ajan sürüsü yönetimi (`verify_milestone_05.py` 4/4)
 
-- [ ] Ajanlara serbest özet değil, değişmez `spec.json` + `REQ` alt kümesi
-- [ ] Söz dizimi ağacı özetiyle salınım (A→B→A) kesici ve o yamayı yasaklama
-- [ ] Dosya ve sembol düzeyinde yazma kirası
-- [~] Düğüm / aşama / koşu bütçeleri — yalnız günlük jeton bütçesi ve devre kesici var
-- [ ] Bütçe aşımında son doğrulanmış kayda dönme
-- [ ] Çıkış kanıtı: salınım ve yazma çakışması canlı denemesi
+- [x] Değişmez `spec.json` + dosyaya ait `REQ` alt kümesi (`spec_pointer.py`)
+- [x] Söz dizimi ağacı özetiyle A→B→A kesici ve o yamayı yasaklama (`oscillation.py`)
+- [x] Dosya ve sembol düzeyinde yazma kirası (`write_lease.py`)
+- [x] Koşu ve adım bütçeleri: jeton, süre, deneme (`budgets.py`)
+- [x] Bütçe aşımında değişiklik öncesine dönme
+- [x] Çıkış kanıtı: enjekte salınım gerçek kum havuzunda kesildi; eşzamanlı yazmada kayıp ve kilitlenme yok
 
-### M06 — Gerçek dünya zorlama testleri
+### M06 — Gerçek dünya zorlama testleri (`verify_milestone_06.py` 7/7)
 
-- [~] Sert yenileme ve yeniden başlatmada kalıcılık — M03'te var
-- [ ] Üçlü tıklama ve 10 eşzamanlı yazma
-- [ ] Gönderirken düğmenin kilitlenmesi / yükleniyor durumu
-- [ ] Yavaş 3G, çevrimdışı, sahte 500/503
-- [ ] Geri / ileri, derin bağlantı, filtrenin korunması
-- [ ] Türkçe (`İ/ı`), emoji, sağdan sola, özel karakter, tarih sınırları
-- [ ] Para hesabında kesin ondalık
-- [ ] 0, 1 ve 1.000–10.000 kayıt; 200 ms sınırı
-- [ ] 50 tekrarda bellek / dinleyici sızıntısı
-- [ ] Çıkış kanıtı: `0.1+0.2`, çift gönderim ve `İ/ı` hatalarını yakalama
+- [x] Sert yenileme ve sunucu yeniden başlatmada kalıcılık
+- [x] Üçlü tıklama ve 10 eşzamanlı yazma
+- [x] Gönderirken düğme kilidi / yükleniyor durumu
+- [x] Yavaş 3G, çevrimdışı, sahte 503
+- [x] Geri / ileri, derin bağlantı, filtre korunması
+- [x] Türkçe (`İ/ı`), emoji, sağdan sola, özel karakter, artık yıl tarihi, eksi / sıfır / dev sayı
+- [x] Para hesabında kesin ondalık
+- [x] Boş, tek kayıt ve 1.000 kayıt; 200 ms sınırı
+- [x] 50 tekrarda tarayıcı sızıntısı ve sunucu belleği
+- [x] Çıkış kanıtı: `0.1+0.2`, çift gönderim, `İ/ı` ve sessiz kayıt hatası yakalandı
+- Sınır: 1.000 kayıt yükü yalnız tarayıcıda çalışan sayfalara basılır (10.000 denenmedi); ağ davranışı bulguları teslimi engellemez, uyarı yazar
 
 ### M07 — Mimari sağlık
 
-- [ ] Üretilen projede karmaşıklık, fonksiyon ve dosya uzunluğu sınırı
-- [ ] Sınır aşılınca doğrulanmış bölme
-- [ ] Kopya kod bulucu ve ortak yardımcıya çıkarma
-- [ ] Ölü kod, kullanılmayan CSS, yetim uç nokta ve dosya temizliği
-- [ ] Katman kuralları ve döngüsel içe aktarma
-- [ ] `axe-core` erişilebilirlik denetimi, klavye sırası, modal tuzağı
-- [ ] Çıkış kanıtı: 10 turluk düzenleme sonunda bozulma yok
+- [x] Karmaşıklık, fonksiyon ve dosya uzunluğu sınırı (`arch_scan.py`)
+- [x] Sınır aşılınca doğrulanmış bölme (`arch_heal.py`)
+- [x] Kopya kod bulucu ve ortak yardımcıya çıkarma
+- [x] Ölü kod, kullanılmayan CSS, yetim uç nokta ve dosya (otomatik silme yalnız düzenlemenin sahipsiz bıraktığını siler)
+- [x] Katman kuralları ve döngüsel içe aktarma (teslimi engeller)
+- [x] `axe-core`, klavye sırası, modal tuzağı (`a11y.py`)
+- [~] Çıkış kanıtı: 10 turluk gerçek düzenleme (`verify_milestone_07.py`) koşuluyor
 
-### M08 — Çevrimdışı varlık kasası
+### M08 — Çevrimdışı varlık kasası (`verify_milestone_08.py`)
 
-- [~] Dosyalar indirildi (Inter, JetBrains Mono, lucide, chart.js, mermaid, katex, axe, DevDocs)
-- [ ] Plus Jakarta Sans (indirme için onay isteyeceğim)
-- [ ] Kasayı yerel adresten sunma
-- [ ] ZIP dışa aktarımda varlıkları pakete koyma
-- [ ] Dış CDN bağlantısını reddeden kalite kapısı
-- [ ] DevDocs dizinleyici
-- [~] SQLite + DuckDB + DiskCache — kurulu; DiskCache kullanımda değil
-- [ ] Çıkış kanıtı: ağ kapalıyken grafikli pano ve diyagramlar
+- [x] Dosyalar indirildi (Inter, JetBrains Mono, Plus Jakarta Sans, lucide, chart.js, mermaid, katex, axe, DevDocs)
+- [x] Satır içi SVG ikon kaydı
+- [x] Kasayı yerel adresten sunma
+- [x] ZIP dışa aktarımda varlıklar pakette
+- [x] Dış CDN bağlantısını reddeden kalite kapısı
+- [x] DevDocs tam metin dizinleyici (11.930 sayfa)
+- [x] SQLite + DuckDB + DiskCache
+- [x] Çıkış kanıtı: ağ kesikken grafik, diyagram, formül ve yazı tipleri hatasız
 
 ### M09 — Çok biçimli girdi
 

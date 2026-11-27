@@ -25,6 +25,7 @@ import a11y  # noqa: E402
 import arch_heal  # noqa: E402
 import arch_scan  # noqa: E402
 import config  # noqa: E402
+import torture_probe  # noqa: E402
 import workspace_builder as wb  # noqa: E402
 
 PROOF = ROOT / "eval" / "reports" / "milestone_07.json"
@@ -108,7 +109,7 @@ def _page_errors(index: Path) -> list[str]:
             errors: list[str] = []
             page.on("pageerror", lambda error: errors.append(str(error)[:160]))
             page.goto(index.as_uri())
-            page.locator("input:not([type=search]):not([type=checkbox])").first.fill("kanıt notu 77")
+            torture_probe.text_field(page).fill("kanıt notu 77")
             page.get_by_role("button", name="Ekle").first.click()
             page.wait_for_timeout(300)
             if "kanıt notu 77" not in page.inner_text("body"):
@@ -127,17 +128,17 @@ async def ten_edits() -> str:
     for number, instruction in enumerate(EDITS, 1):
         started, cleaned = time.time(), []
         async for event in wb.stream_iterate_project(ws_dir.name, instruction, os.environ.get("EDIT_MODEL") or "qwen3.5:9b"):
-            if event.get("type") == "status" and any(word in event.get("message", "") for word in ("bölündü", "silindi", "alındı")):
+            if event.get("type") == "status" and any(word in event.get("message", "") for word in ("bölündü", "silindi", "alındı", "onarıldı", "uygulanmadı")):
                 cleaned.append(event["message"])
-        turn = {"turn": number, "seconds": round(time.time() - started), "findings": [f.line() for f in arch_scan.scan(ws_dir)], "cleaned": cleaned, "page_errors": _page_errors(ws_dir / "index.html")}
+        turn = {"turn": number, "seconds": round(time.time() - started), "findings": [f.line() for f in arch_scan.scan(ws_dir)], "cleaned": cleaned, "page_errors": await asyncio.to_thread(_page_errors, ws_dir / "index.html")}
         turns.append(turn)
         print(json.dumps(turn, ensure_ascii=False), flush=True)
     arch_heal.heal(ws_dir)  # the explicit clean-up at the end: nothing dead is left behind
     rot = [f.line() for f in arch_scan.scan(ws_dir)]
-    faults = a11y.audit((ws_dir / "index.html").as_uri())
+    faults = await asyncio.to_thread(a11y.audit, (ws_dir / "index.html").as_uri())
     assert faults is not None, "erişilebilirlik denetimi koşulamadı"
     critical = [line for line in faults if line.startswith("critical")]
-    errors = _page_errors(ws_dir / "index.html")
+    errors = await asyncio.to_thread(_page_errors, ws_dir / "index.html")
     (PROOF.parent / "milestone_07_page.html").write_text((ws_dir / "index.html").read_text(encoding="utf-8"), encoding="utf-8")
     (PROOF.parent / "milestone_07_turns.json").write_text(json.dumps({"turns": turns, "rot": rot, "a11y": faults, "errors": errors}, ensure_ascii=False, indent=2), encoding="utf-8")
     assert not rot and not critical and not errors, f"bozulma: {rot}\nkritik erişilebilirlik: {critical}\nsayfa hataları: {errors}"

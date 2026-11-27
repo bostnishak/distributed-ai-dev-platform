@@ -13,6 +13,7 @@ desktop apps, full-stack apps) directly into real workspace directories on disk,
 from __future__ import annotations
 
 import ast
+import asyncio
 import json
 import logging
 import re
@@ -28,6 +29,7 @@ import build_dag
 import checkpoint
 import chunked_code
 import config
+import edit_guard
 import repo_map
 import security_scan
 from prompt_loader import load_prompt
@@ -574,14 +576,19 @@ async def stream_iterate_project(
         return current_content, edit_prompt
 
     used_before = arch_heal.alive(ws_dir)
+    working = await asyncio.to_thread(edit_guard.snapshot, ws_dir)  # what works now must still work after the change
     async for evt in build_dag.edit_files(ws_dir, instruction, model, targets, prompt_for):
         yield evt
-    split = await arch_heal.decompose(ws_dir, lambda system, user: _ollama_generate(model, system, user, temperature=0.1))
-    for line in [*split, *arch_heal.heal(ws_dir, used_before=used_before)]:
+    def fix(system: str, user: str) -> Any:
+        return _ollama_generate(model, system, user, num_predict=9000, temperature=0.1)
+
+    guarded = await edit_guard.guard(ws_dir, working, instruction, fix)
+    split = await arch_heal.decompose(ws_dir, fix)
+    for line in [*guarded, *split, *arch_heal.heal(ws_dir, used_before=used_before)]:
         yield {"type": "status", "message": line}
 
     repair_project(ws_dir)
-    warnings = verify_workspace_files(ws_dir) + [n for n in (repo_map.dependents_note(ws_dir, [f['path'] for f in targets]),) if n]
+    warnings = [line for line in guarded if line.startswith("Uyarı")] + verify_workspace_files(ws_dir) + [n for n in (repo_map.dependents_note(ws_dir, [f['path'] for f in targets]),) if n]
     create_snapshot(ws_dir, instruction[:60])
     meta["versions"] = list_snapshots(ws_dir)
     meta["updated_at"] = datetime.now(UTC).isoformat()

@@ -9,9 +9,9 @@ Kalan her şeyin alt başlıklı listesi: [eksik-listesi.md](eksik-listesi.md).
 | 01 | Windows dayanıklılığı ve çürümeye karşı çekirdek | tamam | `tests/test_v5_m01_windows.py`, `python scripts/verify_milestone_01.py` (5/5) |
 | 02 | Hile engeli ve değişmez test kehaneti | tamam | `tests/test_v5_m02_anticheat.py`, `python scripts/verify_milestone_02.py` (4/4) |
 | 03 | Canlı kanıt çalıştırıcısı | tamam | `python scripts/verify_milestone_03.py` (5/5) |
-| 04 | Küçük model destekleri | bekliyor | |
-| 05 | Ajan sürüsü yönetimi | bekliyor | |
-| 06 | Gerçek dünya zorlama testleri | bekliyor | |
+| 04 | Küçük model destekleri | tamam | `tests/test_v5_m04_prosthetics.py`, `python scripts/verify_milestone_04.py` (4/4) |
+| 05 | Ajan sürüsü yönetimi | tamam | `tests/test_v5_m05_governance.py`, `python scripts/verify_milestone_05.py` (4/4) |
+| 06 | Gerçek dünya zorlama testleri | tamam | `tests/test_v5_m06_torture.py`, `python scripts/verify_milestone_06.py` (7/7) |
 | 07 | Mimari sağlık ve erişilebilirlik | bekliyor | |
 | 08 | Çevrimdışı varlık kasası | bekliyor (dosyalar indirildi: `scripts/vendor_fetch.py`) | |
 | 09 | Çoklu ortam alımı | bekliyor | |

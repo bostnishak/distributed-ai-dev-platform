@@ -130,3 +130,57 @@ def test_oversized_function_is_split_only_when_the_split_helps(tmp_path):
     done = asyncio.run(arch_heal.decompose(tmp_path, generate))
     assert len(done) == 1 and (tmp_path / "a.py").read_text(encoding="utf-8").strip() == small.strip()
     assert arch_scan.ceilings(tmp_path) == []
+
+
+_NOTES = """<!doctype html><html lang="tr"><head><meta charset="utf-8"><title>N</title></head><body>
+<input id="q" placeholder="Ara"><input id="n" aria-label="Not"><button id="e">Ekle</button><ul id="l"></ul>
+<script>
+const items = JSON.parse(localStorage.getItem('n') || '[]');
+function render() { document.getElementById('l').replaceChildren(...items.map(x => { const li = document.createElement('li'); li.textContent = x; return li; })); }
+document.getElementById('e').addEventListener('click', () => { const v = document.getElementById('n').value.trim(); if (!v) return; items.push(v); localStorage.setItem('n', JSON.stringify(items)); render(); });
+render();
+</script></body></html>"""
+_BROKEN = _NOTES.replace("if (!v) return;", "if (!v) { return;")
+
+
+def _health(tmp_path, page):
+    import edit_guard
+
+    (tmp_path / "index.html").write_text(page, encoding="utf-8")
+    measured = edit_guard.health(tmp_path)
+    if measured is None:
+        pytest.skip("tarayıcı çalıştırılamadı")
+    return measured
+
+
+def test_health_sees_what_a_change_broke(tmp_path):
+    import edit_guard
+
+    good = _health(tmp_path, _NOTES)
+    assert (good.errors, good.adds, good.persists) == ((), True, True), "arama kutusu not alanı sanılmaz"
+    broken = _health(tmp_path, _BROKEN)
+    said = edit_guard.worse(good, broken)
+    assert "JavaScript hatası" in said and "ekleme" in said
+    assert "betik1.js" not in edit_guard.syntax_error(_BROKEN) and edit_guard.syntax_error(_NOTES) == ""
+    assert edit_guard.worse(good, _health(tmp_path, _NOTES.replace("localStorage.setItem('n', JSON.stringify(items)); ", ""))) == "kayıtlar artık yenileyince kayboluyor"
+    assert edit_guard.worse(broken, good) == ""
+
+
+@pytest.mark.parametrize(("answers", "kept", "word"), [([_NOTES.replace("<title>N", "<title>Onarıldı")], "Onarıldı", "onarıldı"), ([_BROKEN, _BROKEN], "<title>N<", "uygulanmadı")])
+def test_breaking_change_is_repaired_or_rolled_back(tmp_path, answers, kept, word):
+    import asyncio
+
+    import edit_guard
+
+    before = (_health(tmp_path, _NOTES), _NOTES)
+    (tmp_path / "index.html").write_text(_BROKEN, encoding="utf-8")
+    replies = iter(answers)
+    asked: list[str] = []
+
+    async def generate(system, user):
+        asked.append(user)
+        return "```html\n" + next(replies) + "\n```"
+
+    lines = asyncio.run(edit_guard.guard(tmp_path, before, "başlığı değiştir", generate))
+    assert word in lines[0] and kept in (tmp_path / "index.html").read_text(encoding="utf-8")
+    assert "ÖLÇÜLEN SORUN" in asked[0] and (len(asked) < 2 or "TEKRARLAMA" in asked[1])

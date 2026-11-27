@@ -18,6 +18,7 @@ from typing import Any
 import httpx
 
 import leak_check
+import torture_files
 import torture_probe as probe
 from process_utils import run_process
 from prompt_loader import load_prompt
@@ -218,7 +219,7 @@ def _boundaries(session: probe.Session, _url: str) -> Outcome:
 
 QUICK: dict[str, Callable[[probe.Session, str], Outcome]] = {
     "çift gönderim": _double_submit, "Türkçe arama": _turkish_search, "özel karakter ve XSS": _hostile_text, "para hesabı": _exact_money,
-    "boş durum": _empty_state, "sayı ve tarih sınırları": _boundaries, "geri/ileri ve derin bağlantı": _history,
+    "boş durum": _empty_state, "sayı ve tarih sınırları": _boundaries, **torture_files.CHECKS, "geri/ileri ve derin bağlantı": _history,
 }
 NETWORK: dict[str, Callable[[probe.Session, str], Outcome]] = {"sunucu hatası": _server_error, "çevrimdışı": _offline, "yavaş ağ": _slow_network, "10 eşzamanlı yazma": _concurrent_writes}
 HEAVY: dict[str, Callable[[probe.Session, str], Outcome]] = {"1000 kayıt": _scale}

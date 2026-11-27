@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import contextlib
+import re
 from collections.abc import Iterator
 from dataclasses import dataclass
 from typing import Any
 
 import req_checks
 
+_SEARCH_WORDS = re.compile(r"search|\bara\b|\barama|\bara:|filtre|filter|süz", re.IGNORECASE)
 _SEARCH = "input[type=search]:visible, input[placeholder*='ara' i]:visible, input[placeholder*='search' i]:visible, input[aria-label*='ara' i]:visible"
 _TEXT_FIELDS = "input:visible:not([type=search]):not([type=number]):not([type=date]):not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]), textarea:visible"
 
@@ -40,9 +42,16 @@ def opened(browser: Any, url: str) -> Iterator[Session]:
         context.close()
 
 
+def _is_search(field: Any) -> bool:
+    """A search box written as a plain text input is still a search box."""
+    label = field.evaluate("e => [e.id, e.name, e.placeholder, e.getAttribute('aria-label'), ...[...(e.labels || [])].map(l => l.innerText)].join(' ')")
+    return bool(_SEARCH_WORDS.search(label or ""))
+
+
 def text_field(page: Any) -> Any:
-    found = page.locator(_TEXT_FIELDS)
-    return found.first if found.count() else None
+    """The field a record is typed into: the first text field that is not a search or filter box."""
+    found = page.locator(_TEXT_FIELDS).all()
+    return next((field for field in found if not _is_search(field)), found[0] if found else None)
 
 
 def search_field(page: Any) -> Any:
