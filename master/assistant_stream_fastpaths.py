@@ -569,7 +569,7 @@ async def dispatch_chat_fastpath(
 ) -> StreamingResponse | None:
     """Try deterministic/tool SSE fast paths before falling back to general LLM chat."""
     has_file = bool(file is not None and file.filename)
-    if (early := _try_guard_fastpaths(prompt, has_file) or revise_chat.fastpath(prompt, history, has_file) or chat_agents.fastpath(prompt, has_file)) is not None:
+    if (early := _try_guard_fastpaths(prompt, has_file) or revise_chat.fastpath(prompt, history, has_file) or chat_agents.fastpath(prompt, has_file, history)) is not None:
         return early
     if (res := _try_abstain_fastpath(prompt, history, has_file)) is not None:
         return res

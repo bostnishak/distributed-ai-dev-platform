@@ -58,7 +58,7 @@ v2	4.4	Uydurma paket (slopsquatting) denetimi	C	package_check
 v2	5.1	Depo haritası	C	repo_map.py (AST/regex + PageRank; tree-sitter değil); düzenlemede kullanılıyor, birim testli
 v2	5.2	Melez kod araması (graf+BM25+gömme)	K	hybrid_graph_rag belge için; kod için yok
 v2	5.2	Etki alanı (blast radius) analizi	T	repo_map.dependents_note
-v2	5.3	Anlık statik tanılama (ruff, node --check)	K	workspace_checks
+v2	5.3	Anlık statik tanılama (ruff, node --check)	C	code_audit.diagnostics (ruff, node --check), üretim sonunda
 v2	5.3	LSP sunucuları	Y
 v2	6.1	Yalıtılmış çalıştırma (ağsız Docker, kaynak sınırı)	T	workspace_docker
 v2	6.1	gVisor/Firecracker	X	Windows'ta yok
@@ -112,17 +112,17 @@ v3	7.1	WASM ve iş nesnesi yalıtımı	T	isolation (hatta bağlı değil)
 v3	7.2	Leke (taint) izleme ve yetki düşürme	T	policy.Context; çalışma düzeyinde, bayt düzeyinde değil
 v3	7.3	Kod olarak politika	T	policy.py (OPA/Cedar değil)
 v3	7.4	İmzalı köken kaydı ve SBOM	C	provenance
-v3	7.4	Lisans uyum kapısı	Y
-v3	8	Kontrol/veri akışı analizi	Y
-v3	8	Performans profilleyici (SQL planı, N+1)	Y
-v3	8	Tüm projede sembol yeniden adlandırma	Y
+v3	7.4	Lisans uyum kapısı	T	code_audit.licence_conflicts
+v3	8	Kontrol/veri akışı analizi	T	code_audit.flows (fonksiyon içi girdi-hedef akışı); fonksiyonlar arası değil
+v3	8	Performans profilleyici (SQL planı, N+1)	T	code_audit: N+1 ve SQLite sorgu planı; çalışma anı profili yok
+v3	8	Tüm projede sembol yeniden adlandırma	C	refactor.py (Python), sohbetten
 v3	9.1	Olay kaydı ve zaman yolculuğu	Y
 v3	9.2	LSP ve DAP veri yolu	Y
 v3	10	Önizlemede tıklayıp düzenleme	Y
 v3	10	DAG savaş odası ve zaman kaydırıcı	Y
 v3	10	Turnuva modu	K	media_lab_arena model puanlama
 v3	10	Köken ve bellek çekmeceleri	Y
-v3	10	Elle yapılan düzenlemeyi koruma	K	yama korur; tercih sinyali toplanmıyor
+v3	10	Elle yapılan düzenlemeyi koruma	K	yama korur, geri al ve sürüme dön canlı; tercih sinyali toplanmıyor
 v3	11.1	Parametrik benchmark üretici	Y
 v3	11.2	İstatistiksel sürüm kapısı, SPRT	T	eval_stats
 v3	11.2	Otomatik geri alma	Y
@@ -142,7 +142,7 @@ v4	4.2	Belge gezinme ve eşle-indirge okuma	K	long_doc BM25 seçimi
 v4	5.1	Tarayıcı kullanan ajan (erişilebilirlik ağacı)	C	browser_agent.py: @tarayıcı <adres> <görev>; DOM öğe listesi, görsel model yedeği yok
 v4	5.2	Her eylemi doğrulama ve geri alınamaz eylemde onay	C	browser_agent.py: düğme adıyla onay; yerel gizli talimat testinde geçti
 v4	6.1	Hesapların kodla yapılması	C	z3_math, data_lab, doc_calc
-v4	6.1	SymPy/SciPy çekirdeği	Y	paketler kurulu değil
+v4	6.1	SymPy/SciPy çekirdeği	C	math_kernel.py (SymPy); SciPy yok
 v4	6.2	Canlı formüllü Excel ve yeniden hesaplama	C	office_verify
 v4	6.3	Sunum üretimi	T	deck_flow
 v4	6.3	Slayt slayt görsel denetim	Y

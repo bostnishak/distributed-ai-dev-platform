@@ -8,10 +8,10 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | Sürüm | canlı | test | kısmi | yok | dışarıda | teknik engel | Toplam |
 |---|---|---|---|---|---|---|---|
 | v1 | 15 | 13 | 3 | 1 | 0 | 0 | 32 |
-| v2 | 6 | 11 | 15 | 9 | 2 | 1 | 44 |
-| v3 | 4 | 8 | 8 | 23 | 5 | 2 | 50 |
-| v4 | 10 | 8 | 7 | 8 | 0 | 0 | 33 |
-| **Hepsi** | 35 | 40 | 33 | 41 | 7 | 3 | 159 |
+| v2 | 7 | 11 | 14 | 9 | 2 | 1 | 44 |
+| v3 | 5 | 11 | 8 | 19 | 5 | 2 | 50 |
+| v4 | 11 | 8 | 7 | 7 | 0 | 0 | 33 |
+| **Hepsi** | 38 | 43 | 32 | 36 | 7 | 3 | 159 |
 
 ## v1
 
@@ -80,7 +80,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 5.1 | Depo haritası | canlı | repo_map.py (AST/regex + PageRank; tree-sitter değil); düzenlemede kullanılıyor, birim testli |
 | 5.2 | Melez kod araması (graf+BM25+gömme) | kısmi | hybrid_graph_rag belge için; kod için yok |
 | 5.2 | Etki alanı (blast radius) analizi | test | repo_map.dependents_note |
-| 5.3 | Anlık statik tanılama (ruff, node --check) | kısmi | workspace_checks |
+| 5.3 | Anlık statik tanılama (ruff, node --check) | canlı | code_audit.diagnostics (ruff, node --check), üretim sonunda |
 | 5.3 | LSP sunucuları | yok |  |
 | 6.1 | Yalıtılmış çalıştırma (ağsız Docker, kaynak sınırı) | test | workspace_docker |
 | 6.1 | gVisor/Firecracker | dışarıda | Windows'ta yok |
@@ -139,17 +139,17 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 7.2 | Leke (taint) izleme ve yetki düşürme | test | policy.Context; çalışma düzeyinde, bayt düzeyinde değil |
 | 7.3 | Kod olarak politika | test | policy.py (OPA/Cedar değil) |
 | 7.4 | İmzalı köken kaydı ve SBOM | canlı | provenance |
-| 7.4 | Lisans uyum kapısı | yok |  |
-| 8 | Kontrol/veri akışı analizi | yok |  |
-| 8 | Performans profilleyici (SQL planı, N+1) | yok |  |
-| 8 | Tüm projede sembol yeniden adlandırma | yok |  |
+| 7.4 | Lisans uyum kapısı | test | code_audit.licence_conflicts |
+| 8 | Kontrol/veri akışı analizi | test | code_audit.flows (fonksiyon içi girdi-hedef akışı); fonksiyonlar arası değil |
+| 8 | Performans profilleyici (SQL planı, N+1) | test | code_audit: N+1 ve SQLite sorgu planı; çalışma anı profili yok |
+| 8 | Tüm projede sembol yeniden adlandırma | canlı | refactor.py (Python), sohbetten |
 | 9.1 | Olay kaydı ve zaman yolculuğu | yok |  |
 | 9.2 | LSP ve DAP veri yolu | yok |  |
 | 10 | Önizlemede tıklayıp düzenleme | yok |  |
 | 10 | DAG savaş odası ve zaman kaydırıcı | yok |  |
 | 10 | Turnuva modu | kısmi | media_lab_arena model puanlama |
 | 10 | Köken ve bellek çekmeceleri | yok |  |
-| 10 | Elle yapılan düzenlemeyi koruma | kısmi | yama korur; tercih sinyali toplanmıyor |
+| 10 | Elle yapılan düzenlemeyi koruma | kısmi | yama korur, geri al ve sürüme dön canlı; tercih sinyali toplanmıyor |
 | 11.1 | Parametrik benchmark üretici | yok |  |
 | 11.2 | İstatistiksel sürüm kapısı, SPRT | test | eval_stats |
 | 11.2 | Otomatik geri alma | yok |  |
@@ -174,7 +174,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 5.1 | Tarayıcı kullanan ajan (erişilebilirlik ağacı) | canlı | browser_agent.py: @tarayıcı <adres> <görev>; DOM öğe listesi, görsel model yedeği yok |
 | 5.2 | Her eylemi doğrulama ve geri alınamaz eylemde onay | canlı | browser_agent.py: düğme adıyla onay; yerel gizli talimat testinde geçti |
 | 6.1 | Hesapların kodla yapılması | canlı | z3_math, data_lab, doc_calc |
-| 6.1 | SymPy/SciPy çekirdeği | yok | paketler kurulu değil |
+| 6.1 | SymPy/SciPy çekirdeği | canlı | math_kernel.py (SymPy); SciPy yok |
 | 6.2 | Canlı formüllü Excel ve yeniden hesaplama | canlı | office_verify |
 | 6.3 | Sunum üretimi | test | deck_flow |
 | 6.3 | Slayt slayt görsel denetim | yok |  |

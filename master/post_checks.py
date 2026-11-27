@@ -7,6 +7,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
+import code_audit
 import complexity_governor
 import design_slop
 import mutation
@@ -25,6 +26,7 @@ async def apply(ws_dir: Path, request: str, done: dict[str, Any]) -> dict[str, A
     warnings = [str(w) for w in done.get("warnings") or []]
     warnings += [w for w in (security_scan.report(ws_dir), await asyncio.to_thread(visual_audit.report, ws_dir), design_slop.report(ws_dir, request)) if w]
     warnings += [w for w in (await asyncio.to_thread(package_check.report, ws_dir),) if w]
+    warnings += await asyncio.to_thread(code_audit.report, ws_dir, request)
     if complexity_governor.classify(request).level >= 3:
         pkgs = workspace_requirements.declared_packages(ws_dir)
         deep = (await vlm_critique.report(ws_dir, request), await asyncio.to_thread(mutation.report, ws_dir, pkgs))

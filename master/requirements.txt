@@ -18,3 +18,5 @@ z3-solver
 duckdb
 playwright
 trafilatura
+ruff
+sympy
