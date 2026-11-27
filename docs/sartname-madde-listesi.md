@@ -7,11 +7,11 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 
 | Sürüm | canlı | test | kısmi | yok | dışarıda | teknik engel | Toplam |
 |---|---|---|---|---|---|---|---|
-| v1 | 31 | 1 | 0 | 0 | 0 | 0 | 32 |
+| v1 | 32 | 0 | 0 | 0 | 0 | 0 | 32 |
 | v2 | 41 | 0 | 0 | 0 | 2 | 1 | 44 |
 | v3 | 43 | 0 | 0 | 0 | 5 | 2 | 50 |
-| v4 | 29 | 3 | 0 | 0 | 1 | 0 | 33 |
-| **Hepsi** | 144 | 4 | 0 | 0 | 8 | 3 | 159 |
+| v4 | 31 | 1 | 0 | 0 | 1 | 0 | 33 |
+| **Hepsi** | 147 | 1 | 0 | 0 | 8 | 3 | 159 |
 
 ## v1
 
@@ -19,7 +19,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 |---|---|---|---|
 | 1 Yasalar | Sahte veri ve yer tutucu yasağı (statik tarama + tarayıcı kapısı) | canlı | workspace_smoke, jsdom_probe |
 | 1 Yasalar | Uydurma paket, dosya yolu, model adı engeli | canlı | package_check gerçek PyPI ile denendi |
-| 1 Yasalar | Eleştirel, onaylayıcı olmayan akıl yürütme | test | prompts/agent_architect.md |
+| 1 Yasalar | Eleştirel, onaylayıcı olmayan akıl yürütme | canlı | canlı deneme: scripts/live_items.py server |
 | 1 Yasalar | Renk, ölçü, etiket sadakati (spec.json) | canlı | spec_contract |
 | 1 Yasalar | Ham kaynak saflığı (vurgulayıcı artığı yok) | canlı | pure_source |
 | 2 Ajanlar | IntakeAgent, şemalı spec | canlı | canlı deneme: scripts/live_items.py |
@@ -176,8 +176,8 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 6.1 | Hesapların kodla yapılması | canlı | z3_math, data_lab, doc_calc |
 | 6.1 | SymPy/SciPy çekirdeği | canlı | math_kernel.py (SymPy); SciPy yok |
 | 6.2 | Canlı formüllü Excel ve yeniden hesaplama | canlı | office_verify |
-| 6.3 | Sunum üretimi | test | deck_flow |
-| 6.3 | Slayt slayt görsel denetim | test | aynı denetim slaytlarda (LibreOffice ile PDF'e çevirip) |
+| 6.3 | Sunum üretimi | canlı | canlı deneme: scripts/live_items.py server |
+| 6.3 | Slayt slayt görsel denetim | canlı | canlı deneme: scripts/live_items.py server |
 | 6.4 | DuckDB veri çalışması | canlı | data_lab |
 | 6.4 | Otomatik EDA ve ML hattı | canlı | eda.py: CSV için profil + 5 katlı çapraz doğrulama; Vega/Plotly grafik yok |
 | 6.5 | Uzun yazıda sayı tutarlılığı | test | doc_sanity, doc_proof |

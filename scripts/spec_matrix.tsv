@@ -2,7 +2,7 @@
 # durum: C=canlıda geçti, T=otomatik testle geçti, K=kısmi, Y=yok, X=dışarıda (kullanıcı onayladı), E=teknik engel
 v1	1 Yasalar	Sahte veri ve yer tutucu yasağı (statik tarama + tarayıcı kapısı)	C	workspace_smoke, jsdom_probe
 v1	1 Yasalar	Uydurma paket, dosya yolu, model adı engeli	C	package_check gerçek PyPI ile denendi
-v1	1 Yasalar	Eleştirel, onaylayıcı olmayan akıl yürütme	T	prompts/agent_architect.md
+v1	1 Yasalar	Eleştirel, onaylayıcı olmayan akıl yürütme	C	canlı deneme: scripts/live_items.py server
 v1	1 Yasalar	Renk, ölçü, etiket sadakati (spec.json)	C	spec_contract
 v1	1 Yasalar	Ham kaynak saflığı (vurgulayıcı artığı yok)	C	pure_source
 v1	2 Ajanlar	IntakeAgent, şemalı spec	C	canlı deneme: scripts/live_items.py
@@ -144,8 +144,8 @@ v4	5.2	Her eylemi doğrulama ve geri alınamaz eylemde onay	C	browser_agent.py: 
 v4	6.1	Hesapların kodla yapılması	C	z3_math, data_lab, doc_calc
 v4	6.1	SymPy/SciPy çekirdeği	C	math_kernel.py (SymPy); SciPy yok
 v4	6.2	Canlı formüllü Excel ve yeniden hesaplama	C	office_verify
-v4	6.3	Sunum üretimi	T	deck_flow
-v4	6.3	Slayt slayt görsel denetim	T	aynı denetim slaytlarda (LibreOffice ile PDF'e çevirip)
+v4	6.3	Sunum üretimi	C	canlı deneme: scripts/live_items.py server
+v4	6.3	Slayt slayt görsel denetim	C	canlı deneme: scripts/live_items.py server
 v4	6.4	DuckDB veri çalışması	C	data_lab
 v4	6.4	Otomatik EDA ve ML hattı	C	eda.py: CSV için profil + 5 katlı çapraz doğrulama; Vega/Plotly grafik yok
 v4	6.5	Uzun yazıda sayı tutarlılığı	T	doc_sanity, doc_proof

@@ -1213,3 +1213,23 @@ def test_no_product_research_for_specified_apis_or_design_variants():
     with governor.without_research():
         assert not governor.classify("küçük bir kütüphane uygulaması yap").research
     assert governor.classify("küçük bir kütüphane uygulaması yap").research
+
+
+def test_council_calls_have_time_to_finish_on_a_small_card(monkeypatch):
+    import asyncio
+
+    import gateway
+    import tool_executor
+
+    seen = {}
+
+    class Reply:
+        content = "yanıt"
+
+    async def chat(messages, **options):
+        seen.update(options)
+        return Reply()
+
+    monkeypatch.setattr(gateway.default_client, "chat", chat)
+    assert asyncio.run(tool_executor._call_model("m", "s", "p", num_predict=2560)) == "yanıt"
+    assert seen["timeout_s"] >= 2560 / 7 and seen["max_retries"] == 0

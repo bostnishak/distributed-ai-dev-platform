@@ -96,7 +96,7 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 
 ## 4. v4
 
-- [~] 5. vites: `arka planda: <istek>`, `arka plan işleri` — otomatik testle geçti, modelle canlı denenecek
+- [x] 5. vites: `arka planda: <istek>` (canlı geçti; iş sürerken sohbet 31 sn'de yanıt verdi)
 - [x] Araştırma bağlayıcıları: arXiv, GitHub (saatlik sınır var), PyPI, npm, MDN
 - [x] Araştırma kaynaklarında yayın tarihi
 - [x] İndirilen DevDocs araştırmada kullanılıyor; web kapalıyken de yanıt veriyor (canlı geçti)
@@ -115,7 +115,7 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [x] `ai-os.config` özellik bayrakları, `up --profile`
 - [x] Etkin yalıtım katmanı savaş odasında yazıyor
 - [x] En çok 2 çoktan seçmeli netleştirme sorusu (3 açık uçlu soru soruluyordu, düzeltildi)
-- [~] Üç sesli kurul — canlı denenecek
+- [~] Üç sesli kurul: 120 sn süre sınırı yüzünden kalıyordu, düzeltildi; canlı yeniden denenecek
 - [—] Karma bulut köprüsü: istemedin (ücretli servis olmasın)
 
 ## 5. Canlı denenmemiş maddeler (yalnız otomatik testle geçenler)
@@ -127,12 +127,12 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [x] Yörünge toplama ve sır temizleme
 - [x] İki varyant yan yana (canlı geçti; ama 30 dakika sürdü, aşağıdaki hız maddesine bak)
 - [x] Dockerfile / Compose ve gerçek derleme (canlı geçti; 21 dakika sürdü — 12 model çağrısı)
-- [~] Belge üretimi: 2–3 slaytlık her sunumun başarısız olduğu hata bulundu ve düzeltildi; canlı yeniden denenmedi
+- [x] Belge üretimi: sunum canlı geçti (slayt denetimi raporlanıyor)
 - [x] Zamanlanmış görevler (canlı geçti)
 - [x] Öncelik kuyruğu (canlı geçti)
 - [x] Gözcü
 - [ ] Listenin kalan "yalnız testle" maddeleri
-- [ ] İki varyant üretimi 30 dakika sürüyor: sebebi ölçülüp kısaltılacak
+- [~] İki varyant: araştırma kaldırıldı; son canlı deneme başka bir eğitim işi kartı kullanırken zaman aşımına uğradı, yeniden denenecek
 
 ## 6. v5
 
