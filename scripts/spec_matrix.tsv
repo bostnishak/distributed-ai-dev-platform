@@ -98,7 +98,7 @@ v3	4.2	Depolar arası sözleşme ve geri alınabilir göç	Y
 v3	4.3	Sertleştirilmiş Dockerfile/Compose üretimi ve denetimi	Y
 v3	4.3	Yük ve kaos testi	K	scripts/load_and_chaos_bench.py platform için
 v3	4.3	Çalışma anı bekçisi	Y
-v3	5.1	Ekran görüntüsünden koda	Y
+v3	5.1	Ekran görüntüsünden koda	C	design_from_image.py: ölçülen renk/yerleşim + görsel model; canlıda yerleşim %87, renk %97
 v3	5.2	Typst/WeasyPrint belge stüdyosu	K	PyMuPDF ile PDF; Typst yok
 v3	5.2	PDF sayfa sayfa görsel kanıtlama	Y
 v3	5.3	Çoklu diyagram biçimi	K	SVG ve Mermaid

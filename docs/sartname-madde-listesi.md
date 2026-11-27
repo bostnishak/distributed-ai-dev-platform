@@ -9,9 +9,9 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 |---|---|---|---|---|---|---|---|
 | v1 | 15 | 13 | 3 | 1 | 0 | 0 | 32 |
 | v2 | 7 | 11 | 14 | 9 | 2 | 1 | 44 |
-| v3 | 5 | 11 | 8 | 19 | 5 | 2 | 50 |
+| v3 | 6 | 11 | 8 | 18 | 5 | 2 | 50 |
 | v4 | 11 | 8 | 7 | 7 | 0 | 0 | 33 |
-| **Hepsi** | 38 | 43 | 32 | 36 | 7 | 3 | 159 |
+| **Hepsi** | 39 | 43 | 32 | 35 | 7 | 3 | 159 |
 
 ## v1
 
@@ -125,7 +125,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 4.3 | Sertleştirilmiş Dockerfile/Compose üretimi ve denetimi | yok |  |
 | 4.3 | Yük ve kaos testi | kısmi | scripts/load_and_chaos_bench.py platform için |
 | 4.3 | Çalışma anı bekçisi | yok |  |
-| 5.1 | Ekran görüntüsünden koda | yok |  |
+| 5.1 | Ekran görüntüsünden koda | canlı | design_from_image.py: ölçülen renk/yerleşim + görsel model; canlıda yerleşim %87, renk %97 |
 | 5.2 | Typst/WeasyPrint belge stüdyosu | kısmi | PyMuPDF ile PDF; Typst yok |
 | 5.2 | PDF sayfa sayfa görsel kanıtlama | yok |  |
 | 5.3 | Çoklu diyagram biçimi | kısmi | SVG ve Mermaid |

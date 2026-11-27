@@ -2,19 +2,21 @@
 
 from __future__ import annotations
 
+from fastapi import UploadFile
 from fastapi.responses import StreamingResponse
 
 import browser_agent
+import design_from_image
 import math_kernel
 import research
 import workspace_commands
 
 
-def fastpath(prompt: str, has_file: bool, history: str = "") -> StreamingResponse | None:
-    if has_file:
-        return None
+def fastpath(prompt: str, file: UploadFile | None, history: str = "") -> StreamingResponse | None:
+    if file is not None and file.filename:
+        return design_from_image.fastpath(prompt, file)
     if result := math_kernel.answer(prompt):
         import assistant_stream_fastpaths as fp
 
         return fp.single_token_stream(result, "sympy", "hesaplama")
-    return browser_agent.fastpath(prompt, has_file) or workspace_commands.fastpath(prompt, history) or research.fastpath(prompt, has_file)
+    return browser_agent.fastpath(prompt, False) or workspace_commands.fastpath(prompt, history) or research.fastpath(prompt, False)
