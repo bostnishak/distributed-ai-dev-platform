@@ -14,6 +14,7 @@ import httpx
 from fastapi.responses import StreamingResponse
 
 import flowchart_studio
+import judge
 
 _SSE = "text/event-stream"
 _MARKER_RE = re.compile(r"(Üretilen Görsel|/api/assistant/media/img-gen-)")
@@ -137,6 +138,10 @@ def build_image_gen_stream(prompt: str, history: str) -> StreamingResponse:
                 yield _sse({"type": "done", "model": "capability-check", "task_type": "gorsel"})
                 return
             res = await mms.generate_ai_image(prompt, history=hist)
+            if str(res.get("engine", "")).startswith("stable-diffusion"):  # vector designs are exact by construction
+                png = mms.media_dir() / str(res["png_url"]).rsplit("/", 1)[-1]
+                yield _sse({"type": "status", "message": "Görsel isteme uyum için inceleniyor..."})
+                res = judge.image_report(res, await judge.image_adherence(prompt, png.read_bytes()))
             preview_url = res.get("svg_url") or res["png_url"]
             meta = [f"**Motor:** `{res['engine']}`"]
             if res.get("brand_name"):

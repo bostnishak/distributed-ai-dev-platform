@@ -1166,3 +1166,36 @@ def test_a_background_build_runs_behind_the_chat_and_can_be_stopped(tmp_path, mo
     asyncio.run(go())
     assert seen == [priority_gate.BACKGROUND]
     assert marathon.fastpath("arka planda ne var") is None
+
+
+def test_the_judge_needs_both_orders_to_agree_and_pictures_are_scored_by_code():
+    import asyncio
+    import json
+
+    import judge
+
+    def judge_that(prefers):
+        async def ask(system, user, schema):
+            first = user.split("ANSWER 1:\n<<<\n")[1].split("\n>>>")[0]
+            return json.dumps({"better": prefers(first), "reason": "r"})
+
+        return ask
+
+    def run(ask):
+        return asyncio.run(judge.compare("soru", "iyi yanıt", "kötü", ask))
+
+    assert run(judge_that(lambda first: "1" if first == "iyi yanıt" else "2")) == ("A", "r")
+    assert run(judge_that(lambda first: "1"))[0] == "belirsiz"  # always the first it reads
+    assert run(judge_that(lambda first: "3"))[0] == "belirsiz"
+    assert judge.requested_items("Bir kırmızı bisiklet ve mavi gökyüzü, yeşil ağaç çiz") == ["kırmızı bisiklet", "mavi gökyüzü", "yeşil ağaç"]
+
+    async def look(prompt, png, schema):
+        return json.dumps({"items": [{"item": "kırmızı bisiklet", "present": True}, {"item": "mavi gökyüzü", "present": True}, {"item": "uydurma", "present": True}], "problems": ["tekerlek yamuk"]})
+
+    share, note = asyncio.run(judge.image_adherence("kırmızı bisiklet ve mavi gökyüzü, yeşil ağaç çiz", b"png", look))
+    assert round(share, 2) == 0.67 and "2/3" in note and "görülmeyen: yeşil ağaç" in note and "tekerlek yamuk" in note
+
+    async def down(prompt, png, schema):
+        raise OSError("model yok")
+
+    assert asyncio.run(judge.image_adherence("kedi", b"x", down)) is None
