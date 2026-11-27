@@ -7,6 +7,7 @@ from fastapi.responses import StreamingResponse
 
 import browser_agent
 import design_from_image
+import doc_reader
 import math_kernel
 import research
 import workspace_commands
@@ -14,7 +15,7 @@ import workspace_commands
 
 def fastpath(prompt: str, file: UploadFile | None, history: str = "") -> StreamingResponse | None:
     if file is not None and file.filename:
-        return design_from_image.fastpath(prompt, file)
+        return design_from_image.fastpath(prompt, file) or doc_reader.fastpath(prompt, file)
     if result := math_kernel.answer(prompt):
         import assistant_stream_fastpaths as fp
 

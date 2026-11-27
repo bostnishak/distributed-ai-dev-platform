@@ -119,8 +119,18 @@ def _flat(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip().casefold()
 
 
+def _canonical(number: str) -> str:
+    """One spelling per value: "480.000", "480,000" and "480000" are the same; "3,5" and "3.5" are the same."""
+    number = number.rstrip(".,")
+    if re.fullmatch(r"\d{1,3}(?:\.\d{3})+(?:,\d+)?", number):
+        number = number.replace(".", "")
+    elif re.fullmatch(r"\d{1,3}(?:,\d{3})+(?:\.\d+)?", number):
+        number = number.replace(",", "")
+    return number.replace(",", ".")
+
+
 def _numbers(text: str) -> set[str]:
-    return {n.replace(",", ".").rstrip(".") for n in _NUMBER_RE.findall(text)}
+    return {_canonical(n) for n in _NUMBER_RE.findall(text)}
 
 
 def verified(raw: list[RawClaim], page: str) -> list[RawClaim]:
@@ -179,8 +189,24 @@ async def _gather(queries: list[str], run: policy.Context) -> list[tuple[str, st
     return [(u, found[u], t) for u, t in zip(urls, texts, strict=True) if len(t) > 200]
 
 
+async def _read(pages: list[tuple[str, str, str]], question: str, chat: Chat, claims: dict[int, Claim]) -> AsyncIterator[tuple[str, str]]:
+    """Extract verified claims from each page into `claims`."""
+    for index, (url, title, text) in enumerate(pages, start=1):
+        yield "status", f"Okunuyor {index}/{len(pages)}: {title[:70]}"
+        passage = untrusted.guard(long_doc.select(text, question, _PAGE_BUDGET))
+        found = await _structured(chat, "agent_research_claims.md", f"SORU: {question}\n\nSAYFA METNİ:\n{passage}", Claims)
+        for item in verified(found.claims if found else [], text)[:4]:
+            claims[len(claims) + 1] = Claim(len(claims) + 1, item.claim, item.quote.strip(), url, title[:90])
+
+
+async def _write_report(question: str, claims: dict[int, Claim], chat: Chat) -> Report:
+    listing = "\n".join(f"{c.number}. {c.text} (alıntı: \"{c.quote}\") — {c.url}" for c in claims.values())
+    report = await _structured(chat, "agent_research_report.md", f"SORU: {question}\n\nDOĞRULANMIŞ İDDİALAR:\n{listing}", Report)
+    return report or Report(summary=[Point(text=c.text, ids=[c.number]) for c in list(claims.values())[:6]])
+
+
 async def investigate(question: str, chat: Chat = _ask) -> AsyncIterator[tuple[str, str]]:
-    """("status", message) while working, then one ("report", markdown)."""
+    """("status", message) while working, then one ("report", markdown). Unanswered points get a second search round."""
     question = _TRIGGER_RE.sub(" ", question).strip(" :,-") or question
     if not research_context.web_enabled():
         yield "report", "Web araması kapalı olduğu için araştırma yapamıyorum; güncel olmayan bilgiyi araştırma sonucu gibi sunmuyorum."
@@ -192,19 +218,26 @@ async def investigate(question: str, chat: Chat = _ask) -> AsyncIterator[tuple[s
     run = policy.Context()
     pages = await _gather(queries, run)
     claims: dict[int, Claim] = {}
-    for index, (url, title, text) in enumerate(pages, start=1):
-        yield "status", f"Okunuyor {index}/{len(pages)}: {title[:70]}"
-        passage = untrusted.guard(long_doc.select(text, question, _PAGE_BUDGET))
-        found = await _structured(chat, "agent_research_claims.md", f"SORU: {question}\n\nSAYFA METNİ:\n{passage}", Claims)
-        for item in verified(found.claims if found else [], text)[:4]:
-            claims[len(claims) + 1] = Claim(len(claims) + 1, item.claim, item.quote.strip(), url, title[:90])
+    async for event in _read(pages, question, chat, claims):
+        yield event
     if not claims:
         yield "report", f"{len(pages)} sayfa okundu ama soruyu yanıtlayan, alıntıyla doğrulanabilen bir bilgi bulamadım. Soruyu daha dar sorabilirsin."
         return
     yield "status", f"{len(claims)} doğrulanmış iddiadan rapor yazılıyor..."
-    listing = "\n".join(f"{c.number}. {c.text} (alıntı: \"{c.quote}\") — {c.url}" for c in claims.values())
-    report = await _structured(chat, "agent_research_report.md", f"SORU: {question}\n\nDOĞRULANMIŞ İDDİALAR:\n{listing}", Report)
-    yield "report", render(report or Report(summary=[Point(text=c.text, ids=[c.number]) for c in list(claims.values())[:6]]), claims, question, len(pages))
+    report = await _write_report(question, claims, chat)
+    total = len(pages)
+    if gaps := [q for q in report.open_questions if q.strip()][:2]:
+        yield "status", "İkinci tur, yanıtsız kalanlar: " + " | ".join(gaps)
+        seen = {url for url, _t, _x in pages}
+        # queries are built from model output over web text: they pass the same egress check as the first round
+        extra = [p for p in await _gather(gaps, run) if p[0] not in seen][:4]
+        before = len(claims)
+        async for event in _read(extra, question, chat, claims):
+            yield event
+        total += len(extra)
+        if len(claims) > before:
+            report = await _write_report(question, claims, chat)
+    yield "report", render(report, claims, question, total)
 
 
 def fastpath(prompt: str, has_file: bool) -> StreamingResponse | None:

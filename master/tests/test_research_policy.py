@@ -74,3 +74,13 @@ def test_irreversible_actions_always_ask():
     decision = policy.check("browser_submit")
     assert not decision.allowed and decision.needs_approval
     assert policy.check("browser_submit", approved=True).allowed
+
+
+@pytest.mark.parametrize(("first", "second"), [("480.000 TL", "480000 TL"), ("1,250,000", "1250000"), ("%3,5", "%3.5"), ("1.234,56", "1234,56")])
+def test_the_same_number_written_two_ways(first, second):
+    assert research._numbers(first) == research._numbers(second)
+
+
+def test_different_numbers_stay_different():
+    assert research._numbers("480.000") != research._numbers("48.000")
+    assert research._numbers("07.10.2024") != research._numbers("7102024")

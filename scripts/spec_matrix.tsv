@@ -130,15 +130,15 @@ v4	1.1	5 vitesli orantılılık freni	T	complexity_governor
 v4	1.2	Otomatik vites yükseltme ve süre bütçesi	Y
 v4	1.2	@fast/@deep komutları	T	complexity_governor
 v4	2.1	Web araması ve temiz metin çıkarma	C	DuckDuckGo + trafilatura
-v4	2.2	Çok adımlı derin araştırma ve çelişki tespiti	K	research.py canlıda geçti; tek tur arama, ikinci tur yok
+v4	2.2	Çok adımlı derin araştırma ve çelişki tespiti	C	research.py: yanıtsız kalanlar için ikinci tur
 v4	2.2	Alıntı doğrulama kapısı	C	research.py; çeviri hatasını yakalayamaz
 v4	2.3	Sürüme bağlı belge kasası, çevrimdışı mod	Y
 v4	3.1	Üç sesli tartışma kurulu	K	tool_executor (yalnız bazı sorular)
 v4	3.2	Tasarım kuralları ve şablon görünüm dedektörü	T	design_slop
 v4	3.2	OKLCH palet derleyici	Y
 v4	3.3	Kişisel beğeni belleği	Y
-v4	4.1	Özet ağacı (RAPTOR)	Y
-v4	4.2	Belge gezinme ve eşle-indirge okuma	K	long_doc BM25 seçimi
+v4	4.1	Özet ağacı (RAPTOR)	K	doc_reader eşle-indirge; çok katmanlı özet ağacı ve gömme indeksi yok
+v4	4.2	Belge gezinme ve eşle-indirge okuma	C	doc_reader.py: 'belgenin tamamını' isteklerinde; satır numaralı doğrulanmış alıntı
 v4	5.1	Tarayıcı kullanan ajan (erişilebilirlik ağacı)	C	browser_agent.py: @tarayıcı <adres> <görev>; DOM öğe listesi, görsel model yedeği yok
 v4	5.2	Her eylemi doğrulama ve geri alınamaz eylemde onay	C	browser_agent.py: düğme adıyla onay; yerel gizli talimat testinde geçti
 v4	6.1	Hesapların kodla yapılması	C	z3_math, data_lab, doc_calc

@@ -10,8 +10,8 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | v1 | 15 | 13 | 3 | 1 | 0 | 0 | 32 |
 | v2 | 7 | 11 | 14 | 9 | 2 | 1 | 44 |
 | v3 | 6 | 11 | 8 | 18 | 5 | 2 | 50 |
-| v4 | 11 | 8 | 7 | 7 | 0 | 0 | 33 |
-| **Hepsi** | 39 | 43 | 32 | 35 | 7 | 3 | 159 |
+| v4 | 13 | 8 | 6 | 6 | 0 | 0 | 33 |
+| **Hepsi** | 41 | 43 | 31 | 34 | 7 | 3 | 159 |
 
 ## v1
 
@@ -162,15 +162,15 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 1.2 | Otomatik vites yükseltme ve süre bütçesi | yok |  |
 | 1.2 | @fast/@deep komutları | test | complexity_governor |
 | 2.1 | Web araması ve temiz metin çıkarma | canlı | DuckDuckGo + trafilatura |
-| 2.2 | Çok adımlı derin araştırma ve çelişki tespiti | kısmi | research.py canlıda geçti; tek tur arama, ikinci tur yok |
+| 2.2 | Çok adımlı derin araştırma ve çelişki tespiti | canlı | research.py: yanıtsız kalanlar için ikinci tur |
 | 2.2 | Alıntı doğrulama kapısı | canlı | research.py; çeviri hatasını yakalayamaz |
 | 2.3 | Sürüme bağlı belge kasası, çevrimdışı mod | yok |  |
 | 3.1 | Üç sesli tartışma kurulu | kısmi | tool_executor (yalnız bazı sorular) |
 | 3.2 | Tasarım kuralları ve şablon görünüm dedektörü | test | design_slop |
 | 3.2 | OKLCH palet derleyici | yok |  |
 | 3.3 | Kişisel beğeni belleği | yok |  |
-| 4.1 | Özet ağacı (RAPTOR) | yok |  |
-| 4.2 | Belge gezinme ve eşle-indirge okuma | kısmi | long_doc BM25 seçimi |
+| 4.1 | Özet ağacı (RAPTOR) | kısmi | doc_reader eşle-indirge; çok katmanlı özet ağacı ve gömme indeksi yok |
+| 4.2 | Belge gezinme ve eşle-indirge okuma | canlı | doc_reader.py: 'belgenin tamamını' isteklerinde; satır numaralı doğrulanmış alıntı |
 | 5.1 | Tarayıcı kullanan ajan (erişilebilirlik ağacı) | canlı | browser_agent.py: @tarayıcı <adres> <görev>; DOM öğe listesi, görsel model yedeği yok |
 | 5.2 | Her eylemi doğrulama ve geri alınamaz eylemde onay | canlı | browser_agent.py: düğme adıyla onay; yerel gizli talimat testinde geçti |
 | 6.1 | Hesapların kodla yapılması | canlı | z3_math, data_lab, doc_calc |
