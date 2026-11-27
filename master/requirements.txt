@@ -14,3 +14,14 @@ python-pptx>=1.0
 cryptography>=44.0
 keyring>=25.0
 pyzipper>=0.3.6
+z3-solver
+duckdb
+playwright
+trafilatura
+ruff
+sympy
+scikit-learn
+python-lsp-server
+debugpy
+# Local Turkish text-to-speech (voice file goes in data/voices)
+piper-tts>=1.3

@@ -13,7 +13,6 @@ desktop apps, full-stack apps) directly into real workspace directories on disk,
 from __future__ import annotations
 
 import ast
-import asyncio
 import json
 import logging
 import re
@@ -24,10 +23,12 @@ from typing import Any
 
 import httpx
 
+import build_dag
+import checkpoint
 import config
+import repo_map
 from prompt_loader import load_prompt
-from workspace_batches import file_batches as _file_batches
-from workspace_batches import file_prompt as _file_prompt
+from workspace_batches import fixed_plan, merge_requested, pure_source
 from workspace_builder_ops import (
     _RUNNING_SERVERS,
     META_FILENAME,
@@ -100,7 +101,7 @@ _FILE_PATH_RE = re.compile(
     r"(?<![A-Za-z0-9_./:-])([A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\."
     r"(?:py|js|mjs|ts|tsx|jsx|html|css|scss|json|md|txt|yml|yaml|toml|sql|sh|cfg|ini|svg|xml|csv))\b"
 )
-_DIR_PATH_RE = re.compile(r"(?<![A-Za-z0-9_./:-])([A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*/)")
+_DIR_PATH_RE = re.compile(r"(?<![\w./:-])([A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*/)(?!\w)")  # "Duraklat/Devam" is not a folder
 _SPECIAL_FILES = ("Dockerfile", "Makefile", ".gitignore", ".env.example")
 _ITERATE_CONTENT_LIMIT = 24000
 _verify_workspace_files = verify_workspace_files
@@ -282,24 +283,24 @@ def _ensure_requested_tests(planned: list[dict[str, str]], prompt: str) -> None:
 def _prepare_workspace_from_plan(
     plan: dict[str, Any], prompt: str, model: str
 ) -> tuple[Path, dict[str, Any], list[dict[str, str]]]:
+    request = prompt.split("\n\n--- ARAŞTIRILMIŞ ÜRÜN TANIMI")[0]
+    fixed = fixed_plan(request)
+    if fixed:
+        plan = {**plan, **fixed}
     ws_name = str(plan.get("name") or "Yeni Proje").strip()
     ws_id = make_workspace_id(ws_name)
     ws_dir = safe_workspace_dir(ws_id)
     ws_dir.mkdir(parents=True, exist_ok=True)
 
     raw_files = plan.get("files") if isinstance(plan.get("files"), list) else []
-    planned_files = _filter_planned_files(raw_files, limit=16)
+    planned_files = fixed["files"] if fixed else _filter_planned_files(raw_files, limit=16)
     if not planned_files:
         fb = _fallback_architecture_plan(prompt, str(plan.get("project_type") or "auto"))
         planned_files = _filter_planned_files(fb["files"], limit=16)
-    _ensure_requested_tests(planned_files, prompt.split("\n\n--- ARAŞTIRILMIŞ ÜRÜN TANIMI")[0])
+    _ensure_requested_tests(planned_files, "" if fixed else request)
 
-    req_files, req_dirs = _extract_requested_paths(prompt)
-    existing_paths = {f["path"] for f in planned_files}
-    for rf in req_files:
-        if rf not in existing_paths:
-            planned_files.append({"path": rf, "purpose": "Kullanıcı isteğinde belirtilen dosya"})
-            existing_paths.add(rf)
+    req_files, req_dirs = ([], []) if fixed else _extract_requested_paths(prompt)
+    merge_requested(planned_files, req_files)
     for rd in req_dirs:
         try:
             safe_file_path(ws_dir, rd).mkdir(parents=True, exist_ok=True)
@@ -424,7 +425,7 @@ def _write_workspace_file(ws_dir: Path, fpath: str, code: str) -> Path:
     if target.is_dir():
         target = target / "__init__.py"
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(code, encoding="utf-8")
+    target.write_text(pure_source(code), encoding="utf-8")
     return target
 
 
@@ -435,24 +436,11 @@ async def _generate_and_write_file(
     file_prompt: str,
 ) -> str:
     fpath = fspec["path"]
-    raw_code = await _ollama_generate(model=model, system=FILE_WRITER_SYSTEM_PROMPT, user=file_prompt, num_predict=4096, temperature=0.2)
+    model = await pick_coder_model(fspec["model"]) if fspec.get("model") else model  # missing model: best installed one
+    raw_code = await _ollama_generate(model=model, system=fspec.get("system") or FILE_WRITER_SYSTEM_PROMPT, user=file_prompt, num_predict=fspec.get("tokens", 4096), temperature=0.2)
     code = await _validate_and_fix_code(model, fpath, _strip_code_fences(raw_code))
     _write_workspace_file(ws_dir, fpath, code)
     return code
-
-
-def _build_existing_contracts(ws_dir: Path, rel_files: list[str], limit: int = 20) -> str:
-    lines: list[str] = []
-    for rel in rel_files[:limit]:
-        p = ws_dir / rel
-        if not p.is_file() or p.suffix.lower() in _BINARY_EXTS:
-            continue
-        try:
-            text = p.read_text(encoding="utf-8", errors="replace")
-        except OSError:
-            continue
-        lines.append(_extract_file_contract(rel, text))
-    return "\n".join(lines)
 
 
 async def _no_events() -> AsyncIterator[dict[str, Any]]:
@@ -484,22 +472,11 @@ async def stream_generate_project(
         plan = _fallback_architecture_plan(prompt, project_type)
 
     ws_dir, meta, planned_files = _prepare_workspace_from_plan(plan, prompt, model)
+    checkpoint.save(ws_dir, prompt, model, planned_files)
     yield {"type": "plan", "workspace": meta, "files": planned_files}
 
-    tree_summary = "\n".join(f"- {f['path']}: {f['purpose']}" for f in planned_files)
-    written_snippets: list[str] = []
-    contracts: list[str] = []
-
-    order = {f["path"]: i for i, f in enumerate(planned_files, start=1)}
-    for batch in _file_batches(planned_files):
-        for fspec in batch:
-            yield {"type": "file_start", "path": fspec["path"], "index": order[fspec["path"]], "total": len(planned_files)}
-        prompts = [_file_prompt(meta, prompt, tree_summary, (contracts, written_snippets), fspec) for fspec in batch]
-        codes = await asyncio.gather(*(_generate_and_write_file(ws_dir, model, f, p) for f, p in zip(batch, prompts, strict=True)))
-        for fspec, code in zip(batch, codes, strict=True):
-            contracts.append(_extract_file_contract(fspec["path"], code))
-            written_snippets.append(f"=== {fspec['path']} ===\n{code[:1200]}")
-            yield {"type": "file_done", "path": fspec["path"], "size": len(code.encode("utf-8")), "index": order[fspec["path"]], "total": len(planned_files)}
+    async for evt in build_dag.generate_files(ws_dir, meta, prompt, model, planned_files):
+        yield evt
 
     repair_project(ws_dir)
     smoke_warning = ""
@@ -513,12 +490,15 @@ async def stream_generate_project(
     meta["versions"] = list_snapshots(ws_dir)
     meta["updated_at"] = datetime.now(UTC).isoformat()
     save_workspace_meta(ws_dir, meta)
+    checkpoint.clear(ws_dir)
     yield {"type": "done", "workspace": meta, "tree": build_file_tree(ws_dir), "warnings": warnings}
 
 
 def _select_iterate_targets(
     ws_dir: Path, parsed: dict[str, Any] | None, existing_files: list[str], meta: dict[str, Any], instruction: str
 ) -> list[dict[str, str]]:
+    if existing_files == ["index.html"]:  # a one-page app: every change belongs in that page
+        return [{"path": "index.html", "purpose": instruction}]
     raw_targets = (parsed or {}).get("files") or []
     targets = _filter_planned_files(raw_targets, limit=6)
     req_files, req_dirs = _extract_requested_paths(instruction)
@@ -566,25 +546,26 @@ async def stream_iterate_project(
         temperature=0.15,
     )
     targets = _select_iterate_targets(ws_dir, _extract_json_obj(raw_plan), existing_files, meta, instruction)
-    contract_manifest = _build_existing_contracts(ws_dir, existing_files)
+    contract_manifest = repo_map.build(ws_dir, instruction)
 
-    for idx, fspec in enumerate(targets, start=1):
+    def prompt_for(fspec: dict[str, str], wanted: str) -> tuple[str, str]:
         fpath = fspec["path"]
-        yield {"type": "file_start", "path": fpath, "index": idx, "total": len(targets)}
         target = safe_file_path(ws_dir, fpath)
         current_content = target.read_text(encoding="utf-8", errors="replace") if target.is_file() else ""
         edit_prompt = (
             f"Proje: {meta.get('name')}\nMevcut dosyalar: {', '.join(existing_files)}\n"
             + (f"Proje Dosya Sözleşmeleri:\n{contract_manifest}\n\n" if contract_manifest else "")
-            + f"Değişiklik isteği: {instruction}\nHedef dosya: `{fpath}` ({fspec.get('purpose', '')})\n\n"
+            + f"Değişiklik isteği: {wanted}\nHedef dosya: `{fpath}` ({fspec.get('purpose', '')})\n\n"
             + (f"Mevcut dosya içeriği:\n```\n{current_content[:_ITERATE_CONTENT_LIMIT]}\n```\n\n" if current_content else "")
             + "Bu dosyanın güncel ve EKSİKSİZ tüm içeriğini yaz."
         )
-        code = await _generate_and_write_file(ws_dir, model, fspec, edit_prompt)
-        yield {"type": "file_done", "path": fpath, "size": len(code.encode("utf-8")), "index": idx, "total": len(targets)}
+        return current_content, edit_prompt
+
+    async for evt in build_dag.edit_files(ws_dir, instruction, model, targets, prompt_for):
+        yield evt
 
     repair_project(ws_dir)
-    warnings = verify_workspace_files(ws_dir)
+    warnings = verify_workspace_files(ws_dir) + [n for n in (repo_map.dependents_note(ws_dir, [f['path'] for f in targets]),) if n]
     create_snapshot(ws_dir, instruction[:60])
     meta["versions"] = list_snapshots(ws_dir)
     meta["updated_at"] = datetime.now(UTC).isoformat()

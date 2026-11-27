@@ -40,6 +40,16 @@ def _extract_frontend_routes(js_dir: Path) -> set[str]:
     return routes
 
 
+def _all_routes(routes):
+    """Every route, including those of included routers (kept as nested objects by newer FastAPI versions)."""
+    for route in routes:
+        inner = getattr(route, "original_router", None)
+        if inner is None:
+            yield route
+        else:
+            yield from _all_routes(inner.routes)
+
+
 def _extract_backend_routes(app) -> set[str]:
     """Return all normalized /api/ route paths registered with the FastAPI app (including included routers)."""
     routes: set[str] = set()
@@ -50,7 +60,7 @@ def _extract_backend_routes(app) -> set[str]:
         for path in (paths or {}):
             if path.startswith("/api/"):
                 routes.add(_normalize_path(path))
-    for route in app.routes:
+    for route in _all_routes(app.routes):  # WebSocket routes are not in the OpenAPI schema
         path = getattr(route, "path", "")
         if path.startswith("/api/"):
             routes.add(_normalize_path(path))

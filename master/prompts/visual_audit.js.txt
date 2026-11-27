@@ -1,0 +1,65 @@
+window.addEventListener('load', function () {
+  setTimeout(function () {
+    var found = [];
+    var visible = function (el) {
+      var r = el.getBoundingClientRect(), s = getComputedStyle(el);
+      return r.width > 1 && r.height > 1 && s.visibility !== 'hidden' && s.display !== 'none' && +s.opacity > 0.1;
+    };
+    var name = function (el) {
+      return (el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') + ' "' + (el.textContent || el.value || el.placeholder || '').trim().slice(0, 24) + '"');
+    };
+    var rgb = function (v) {
+      var m = String(v).match(/rgba?\(([^)]+)\)/);
+      if (!m) return null;
+      var p = m[1].split(/[ ,/]+/).map(Number);
+      return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 };
+    };
+    var lum = function (c) {
+      var f = function (x) { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); };
+      return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b);
+    };
+    var background = function (el) {
+      for (var node = el; node; node = node.parentElement) {
+        var s = getComputedStyle(node);
+        if (s.backgroundImage !== 'none') return null;
+        var c = rgb(s.backgroundColor);
+        if (c && c.a > 0.9) return c;
+        if (c && c.a > 0) return null;
+      }
+      return { r: 255, g: 255, b: 255 };
+    };
+    if (document.documentElement.scrollWidth > window.innerWidth + 2) {
+      found.push('yatay taşma: sayfa ' + document.documentElement.scrollWidth + 'px, pencere ' + window.innerWidth + 'px');
+    }
+    var all = Array.prototype.slice.call(document.body.querySelectorAll('*'), 0, 600).filter(visible);
+    all.forEach(function (el) {
+      var ownText = Array.prototype.some.call(el.childNodes, function (n) { return n.nodeType === 3 && n.textContent.trim().length > 1; });
+      if (!ownText || /^(SCRIPT|STYLE|OPTION)$/.test(el.tagName) || el.disabled) return;
+      var fg = rgb(getComputedStyle(el).color), bg = background(el);
+      if (!fg || !bg || fg.a < 0.9) return;
+      var a = lum(fg), b = lum(bg), ratio = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+      if (ratio < 3) found.push('okunmayan yazı (kontrast ' + ratio.toFixed(1) + ':1): ' + name(el));
+    });
+    var controls = all.filter(function (el) { return /^(BUTTON|INPUT|SELECT|TEXTAREA|A)$/.test(el.tagName); }).slice(0, 80);
+    controls.forEach(function (a, i) {
+      controls.slice(i + 1).forEach(function (b) {
+        if (a.contains(b) || b.contains(a)) return;
+        var x = a.getBoundingClientRect(), y = b.getBoundingClientRect();
+        var w = Math.min(x.right, y.right) - Math.max(x.left, y.left), h = Math.min(x.bottom, y.bottom) - Math.max(x.top, y.top);
+        if (w > 0 && h > 0 && w * h > 0.25 * Math.min(x.width * x.height, y.width * y.height)) found.push('üst üste binen öğeler: ' + name(a) + ' ile ' + name(b));
+      });
+    });
+    controls.forEach(function (el) {
+      if (el.type === 'hidden') return;
+      var label = (el.labels && el.labels.length && el.labels[0].textContent) || el.getAttribute('aria-label') || el.getAttribute('title') || el.textContent || el.getAttribute('placeholder') || (el.type === 'submit' || el.type === 'button' ? el.value : '');
+      if (!String(label).trim()) found.push('adı olmayan denetim (ekran okuyucu okuyamaz): ' + name(el));
+    });
+    Array.prototype.forEach.call(document.images, function (img) {
+      if (img.complete && !img.naturalWidth) found.push('yüklenmeyen görsel: ' + (img.getAttribute('src') || '').slice(0, 60));
+    });
+    var out = document.createElement('pre');
+    out.id = '__audit';
+    out.textContent = JSON.stringify(found.filter(function (v, i) { return found.indexOf(v) === i; }).slice(0, 10));
+    document.body.appendChild(out);
+  }, 400);
+});

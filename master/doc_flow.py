@@ -17,6 +17,7 @@ import doc_research
 import doc_sanity
 import doc_spec
 import json_repair
+import typst_render
 from prompt_loader import load_prompt
 
 MAX_ATTEMPTS = 3
@@ -117,7 +118,9 @@ async def _attempt(prompt: str, fmt: str, ctx: tuple[str, str, list[dict[str, st
     if unsure := doc_sanity.implausible_results(spec):  # never hand over absurd figures silently
         spec["blocks"].append({"type": "para", "text": "Not: Bu belgedeki bazı hesap sonuçları otomatik tutarlılık denetiminden geçemedi (" + unsure[0][:160] + "). Kullanmadan önce rakamları doğrulayın."})
     spec["blocks"] += doc_research.bibliography(sources)
-    pages = _build_pdf_fitting(out_path, spec, fonts, prompt) if fmt == "pdf" else 0
+    pages = 0
+    if fmt == "pdf":
+        pages = typst_render.build(out_path, spec) if typst_render.wanted(prompt) else _build_pdf_fitting(out_path, spec, fonts, prompt)
     if fmt != "pdf":
         doc_render_docx.build(out_path, spec, fonts)
     score, issues = deliverable_score.score_document(spec, prompt, _requested_pages(prompt), pages)

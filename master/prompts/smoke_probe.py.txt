@@ -16,7 +16,10 @@ try:
                 code = client.get(rule.rule).status_code
                 if code >= 500:
                     raise RuntimeError("GET %s returned HTTP %s" % (rule.rule, code))
+        check_flask_posts(app)
         print("ROUTES=" + json.dumps([r.rule for r in app.url_map.iter_rules()]))
+    elif app is not None and hasattr(app, "openapi"):
+        check_fastapi(app)
     print("SMOKE_OK")
 except SystemExit:
     print("SMOKE_OK")

@@ -1,0 +1,34 @@
+(seed) => {
+  let state = seed;
+  const random = () => {
+    state = (state * 1103515245 + 12345) % 2147483648;
+    return state / 2147483648;
+  };
+  const texts = ['', '   ', 'a', 'ğüşİöç 😀', '-1', '0', '99999999999999999999', '<img src=x onerror=1>', "'; --", 'x'.repeat(2000)];
+  const controls = Array.from(document.querySelectorAll('button, input, select, textarea, a[href^="#"], [onclick], [role="button"]'))
+    .filter((el) => el.offsetParent !== null);
+  if (!controls.length) return 0;
+  let done = 0;
+  for (let step = 0; step < 60; step += 1) {
+    const el = controls[Math.floor(random() * controls.length)];
+    if (!el.isConnected) continue;
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+      if (!['checkbox', 'radio', 'button', 'submit', 'file'].includes(el.type)) {
+        el.value = texts[Math.floor(random() * texts.length)];
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      } else {
+        el.click();
+      }
+    } else if (el.tagName === 'SELECT') {
+      el.selectedIndex = Math.floor(random() * el.options.length);
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    } else {
+      el.click();
+      if (random() < 0.3) el.click();
+    }
+    done += 1;
+  }
+  document.querySelectorAll('form').forEach((form) => { if (form.requestSubmit) form.requestSubmit(); });
+  return done;
+}

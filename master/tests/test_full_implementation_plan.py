@@ -136,7 +136,14 @@ def test_build_pipelines_visual_verifier_and_rfq_batch(tmp_path: Path):
     assert rfq["part_count"] == 2
 
 
-def test_agent_vram_heartbeat_and_assistant_new_routes(client, auth_headers):
+def test_agent_vram_heartbeat_and_assistant_new_routes(client, auth_headers, monkeypatch):
+    import deep_research
+
+    async def outline(*_args):  # CI has no model: this test checks the route and the file builder, not the writing
+        points = ["Takım yolu doğrulaması çevrimdışı yapılır", "Ölçüm sonuçları tezgaha geri beslenir", "Duruş süreleri vardiya bazında izlenir"]
+        return {"title": "CNC otomasyonu", "slides": [{"title": f"Başlık {i}", "bullets": points} for i in range(1, 4)]}
+
+    monkeypatch.setattr(deep_research, "_fetch_pptx_spec", outline)
     # 1. Agent VRAM & warm-model heartbeat telemetry
     reg = client.post(
         "/api/agents/register",

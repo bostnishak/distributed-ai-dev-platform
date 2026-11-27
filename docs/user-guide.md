@@ -8,6 +8,8 @@ Bu platform bir yazılım gereksinim dokümanını (SRS) alır, onu görevlere a
 
 ---
 
+> Sohbette özel işler için yazılan komutların tamamı: [komutlar.md](komutlar.md).
+
 ## Hızlı Başlangıç
 
 ### 1. Depoyu klonlayın

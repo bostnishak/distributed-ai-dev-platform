@@ -45,12 +45,22 @@ def fix_requirements(ws_dir: Path) -> bool:
     if not any(p for p in ws_dir.rglob("*.py") if ".history" not in p.parts):
         return False
     pkgs = [_PIP_NAMES.get(m, m) for m in _third_party_imports(ws_dir)]
+    sources = "".join(p.read_text(encoding="utf-8", errors="replace") for p in _py_files(ws_dir))
+    if "sqlalchemy.ext.asyncio" in sources or "+aiosqlite" in sources:
+        pkgs += [p for p in ("greenlet", "aiosqlite") if p not in pkgs]  # needed at run time, never imported directly
     body = "\n".join(pkgs) + "\n" if pkgs else "# Ek bağımlılık yok: proje yalnızca Python standart kütüphanesini kullanıyor.\n"
     (ws_dir / "requirements.txt").write_text(body, encoding="utf-8")
     return True
 
 
 _TEMPLATE_CALL_RE = re.compile(r"render_template\(\s*['\"]([^'\"]+)['\"]")
+
+
+def declared_packages(ws_dir: Path) -> list[str]:
+    """The known runtime packages the project imports (what a sandbox needs to run its tests)."""
+    known = set(_PIP_NAMES.values()) | {"httpx", "requests", "pytest"}
+    found = [_PIP_NAMES.get(m, m) for m in _third_party_imports(ws_dir)]
+    return sorted({*(p for p in found if p in known), "pytest", *(["httpx"] if "fastapi" in found else [])})
 
 
 def _py_files(ws_dir: Path) -> list[Path]:
@@ -234,9 +244,22 @@ def _sync_key_labels(ws_dir: Path) -> None:
             html.write_text(fixed, encoding="utf-8")
 
 
+_ROOT_FILE_RE = re.compile(r"""(["'])/([\w-]+\.(?:log|db|sqlite3?|json|txt|csv))\1""")
+
+
+def _relative_data_paths(ws_dir: Path) -> None:
+    """"/server.log" is the root of the disk: not writable and never what was meant; make it a file of the project."""
+    for py in _py_files(ws_dir):
+        text = py.read_text(encoding="utf-8", errors="replace")
+        fixed = _ROOT_FILE_RE.sub(r"\1\2\1", text)
+        if fixed != text:
+            py.write_text(fixed, encoding="utf-8")
+
+
 def repair_project(ws_dir: Path) -> None:
     """Fixes for typical integration slips in model-written projects (run right after generation)."""
     _use_sqlite(ws_dir)
+    _relative_data_paths(ws_dir)
     fix_requirements(ws_dir)
     _fix_flask_templates(ws_dir)
     inject_theme(ws_dir)

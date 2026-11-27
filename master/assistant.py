@@ -24,8 +24,10 @@ from pydantic import BaseModel
 
 import code_verify
 import config
+import data_lab
 import db
 import reasoning_mode
+import untrusted
 from access_control import require_local_or_admin
 from assistant_cad_cnc import (  # noqa: F401
     CNC_BALLOON_KEYWORDS,
@@ -263,8 +265,11 @@ async def _prepare_chat_request(
     extracted_text, image_b64, forced_task_type, file_note = "", None, None, ""
     if file is not None and file.filename:
         extracted_text, image_b64, forced_task_type, file_note = await process_uploaded_attachment(file, prompt)
+        extracted_text = untrusted.guard(extracted_text)
     file_note += build_domain_enrichment_notes(prompt, extracted_text)
     full_prompt = enrich_prompt_with_kb(prompt, extracted_text) + file_note
+    if file is not None and file.filename:
+        full_prompt += await data_lab.verified_facts(prompt, file.filename, extracted_text)
     keyword_task = forced_task_type or keyword_category_override(prompt)
     inappropriate = False
     if not keyword_task:

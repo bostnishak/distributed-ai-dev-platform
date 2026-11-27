@@ -1,0 +1,23 @@
+() => {
+  const picked = [];
+  const nodes = document.querySelectorAll('a[href], button, input, select, textarea, [role="button"], [role="tab"], [onclick]');
+  let id = 0;
+  for (const el of nodes) {
+    const box = el.getBoundingClientRect();
+    const style = getComputedStyle(el);
+    if (box.width < 2 || box.height < 2 || style.visibility === "hidden" || style.display === "none" || el.type === "hidden") continue;
+    id += 1;
+    el.setAttribute("data-agent-id", String(id));
+    const label = (el.labels && el.labels[0] && el.labels[0].innerText) || el.getAttribute("aria-label") || el.innerText || el.placeholder || el.name || el.value || "";
+    picked.push({
+      id: id,
+      tag: el.tagName.toLowerCase(),
+      type: (el.getAttribute("type") || "").toLowerCase(),
+      label: String(label).replace(/\s+/g, " ").trim().slice(0, 80),
+      value: el.type === "password" ? "" : String(el.value || "").slice(0, 60),
+      submits: Boolean(el.form) && (el.type === "submit" || (el.tagName === "BUTTON" && !el.getAttribute("type")) || el.type === "image"),
+    });
+    if (id >= 60) break;
+  }
+  return picked;
+}

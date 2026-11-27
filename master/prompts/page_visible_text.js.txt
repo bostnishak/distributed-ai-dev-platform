@@ -1,0 +1,29 @@
+() => {
+  // Only what a person looking at the page can read: tiny, transparent, same-colour and off-page text is left out.
+  const skip = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "TEMPLATE", "OPTION"]);
+  const background = (el) => {
+    for (let node = el; node; node = node.parentElement) {
+      const colour = getComputedStyle(node).backgroundColor;
+      if (colour && colour !== "transparent" && !/,\s*0\)$/.test(colour)) return colour;
+    }
+    return "rgb(255, 255, 255)";
+  };
+  const hidden = (el) => {
+    const style = getComputedStyle(el);
+    if (style.visibility === "hidden" || parseFloat(style.fontSize) < 6 || el.getClientRects().length === 0) return true;
+    if (style.color === background(el) && getComputedStyle(el).backgroundImage === "none") return true;
+    for (let node = el; node; node = node.parentElement) {
+      if (parseFloat(getComputedStyle(node).opacity) < 0.1 || node.getAttribute("aria-hidden") === "true") return true;
+    }
+    const box = el.getBoundingClientRect();
+    return box.right <= 0 || box.bottom + window.scrollY <= 0;
+  };
+  const lines = [];
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    const el = node.parentElement;
+    const text = node.textContent.replace(/\s+/g, " ").trim();
+    if (el && text && !skip.has(el.tagName) && !hidden(el)) lines.push(text);
+  }
+  return lines.join("\n");
+}

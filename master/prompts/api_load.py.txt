@@ -1,0 +1,38 @@
+import importlib.util
+import json
+import os
+import sys
+import time
+from concurrent.futures import ThreadPoolExecutor
+
+entry, total, workers = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
+os.chdir("/sandbox")
+sys.path[:0] = ["/sandbox", os.path.dirname(entry)]
+spec = importlib.util.spec_from_file_location(os.path.splitext(os.path.basename(entry))[0], entry)
+module = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = module
+spec.loader.exec_module(module)
+from fastapi.testclient import TestClient
+
+with TestClient(module.app, raise_server_exceptions=False) as client:
+    paths = [p for p, ops in module.app.openapi().get("paths", {}).items() if "get" in ops and "{" not in p
+             and not any(q.get("required") for q in ops["get"].get("parameters", []))][:5]
+
+    def one(index):
+        path = paths[index % len(paths)]
+        started = time.perf_counter()
+        status = client.get(path).status_code
+        return (time.perf_counter() - started) * 1000, status
+
+    results = []
+    if paths:
+        began = time.perf_counter()
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            results = list(pool.map(one, range(total)))
+        took = time.perf_counter() - began
+times = sorted(t for t, _ in results)
+summary = {"paths": paths, "requests": len(results), "workers": workers,
+           "errors": sum(1 for _, s in results if s >= 500),
+           "p50": round(times[len(times) // 2], 1) if times else 0, "p95": round(times[int(len(times) * 0.95) - 1], 1) if times else 0,
+           "p99": round(times[int(len(times) * 0.99) - 1], 1) if times else 0, "rps": round(len(results) / took) if results else 0}
+print("RESULT=" + json.dumps(summary))

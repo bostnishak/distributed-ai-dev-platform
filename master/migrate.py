@@ -37,13 +37,26 @@ class Migration:
         return self.path.read_text(encoding="utf-8")
 
 
+def _lf(path: Path) -> bytes:
+    return path.read_bytes().replace(b"\r\n", b"\n")
+
+
+def _digest(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def _same_file(stored: str, migration: Migration) -> bool:
+    """Line endings are not an edit: a database migrated from a CRLF checkout must still open from an LF one."""
+    return stored in (migration.checksum, _digest(_lf(migration.path).replace(b"\n", b"\r\n")))
+
+
 def discover(directory: Path) -> list[Migration]:
     found: list[Migration] = []
     for path in sorted(directory.glob("*.sql")):
         match = FILE_NAME.match(path.name)
         if match is None:
             raise MigrationError(f"{path.name}: dosya adı 'NNNN_ad.sql' biçiminde olmalı")
-        checksum = hashlib.sha256(path.read_bytes()).hexdigest()
+        checksum = _digest(_lf(path))
         found.append(Migration(int(match.group(1)), match.group(2), path, checksum))
     versions = [m.version for m in found]
     if len(set(versions)) != len(versions):
@@ -68,7 +81,7 @@ def pending(conn: sqlite3.Connection, directory: Path) -> list[Migration]:
     todo: list[Migration] = []
     for migration in discover(directory):
         if migration.version in done:
-            if done[migration.version][1] != migration.checksum:
+            if not _same_file(done[migration.version][1], migration):
                 raise MigrationError(
                     f"{migration.path.name}: uygulanmış göç sonradan değiştirilmiş; yeni bir göç dosyası ekleyin"
                 )

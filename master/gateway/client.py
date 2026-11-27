@@ -20,6 +20,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, ValidationError
 
 import config
+from gateway import first_token, priority_gate
 from gateway import prompts as gw_prompts
 from gateway import registry as gw_registry
 from gateway.client_helpers import (
@@ -90,7 +91,7 @@ class LLMClient:
         self._cache_hits = 0
         self._cache_misses = 0
         self._active_requests = 0
-        self._sem = asyncio.Semaphore(4)
+        self._sem = priority_gate.PriorityGate(4)
         self.daily_token_budget: int = 0
         init_gateway_db()
 
@@ -305,7 +306,7 @@ class LLMClient:
 
         candidates = [prep.chosen_model, *(call.fallback_models or [])]
         last_err: GatewayError | None = None
-        async with self._sem:
+        async with self._sem.slot(call.feature):
             self._active_requests += 1
             try:
                 for cand_idx, cand_model in enumerate(candidates):
@@ -348,6 +349,7 @@ class LLMClient:
                 if call.cancel_token and call.cancel_token.cancelled:
                     break
                 if evt.get("type") == "token":
+                    acc or first_token.note(prep.chosen_model, t0, time.perf_counter())
                     acc.append(str(evt.get("content") or ""))
                 elif evt.get("type") == "done":
                     tok_in = int(evt.get("tokens_in") or prep.est_in)

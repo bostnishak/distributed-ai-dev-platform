@@ -15,6 +15,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+import context_pins
 import dbconn
 import dbindexes
 from prompt_loader import load_prompt
@@ -171,7 +172,7 @@ def search_episodic_memory(query: str, limit: int = 5) -> list[dict[str, Any]]:
     return [dict(r) for r in rows]
 
 
-def compact_conversation_context(messages: list[dict[str, str]], max_chars: int = 12000) -> list[dict[str, str]]:
+def compact_conversation_context(messages: list[dict[str, str]], max_chars: int = 24000) -> list[dict[str, str]]:
     """Lossless hierarchical context compactor: preserves system prompt, pinned facts, and recent turns."""
     total = sum(len(m.get("content", "")) for m in messages)
     if total <= max_chars or len(messages) <= 4:
@@ -186,11 +187,13 @@ def compact_conversation_context(messages: list[dict[str, str]], max_chars: int 
         role = m.get("role", "user")
         txt = m.get("content", "").strip().replace("\n", " ")
         if txt:
-            summary_points.append(f"[{role.upper()}]: {txt[:180]}")
+            summary_points.append(f"[{role.upper()}]: {txt[:2500 if role == 'user' else 400]}")  # what the user asked for must survive
 
+    rules = context_pins.pinned(older)
+    header = f"Kullanıcının önceki turlarda koyduğu kurallar (aynen geçerli):\n{rules}\n\n" if rules else ""
     compacted_msg = {
         "role": "system",
-        "content": "Önceki konuşma turlarının sıkıştırılmış özeti:\n" + "\n".join(summary_points[-12:]),
+        "content": header + "Önceki konuşma turlarının sıkıştırılmış özeti:\n" + "\n".join(summary_points[-12:]),
     }
     return [*head, compacted_msg, *recent]
 

@@ -29,6 +29,9 @@ export const PRODUCTIVITY_TOOLS = [
     params: { ws_id: 'demo' }
   },
   {
+    id: 'studio-runs', group: 'Kod & Geliştirme', title: 'Üretim Süreleri ve Başarı Oranı', method: 'GET', path: '/api/studio/runs/summary',
+  },
+  {
     id: 'studio-actions', group: 'Kod & Geliştirme', title: 'Kod Stüdyosu Aksiyonu Çalıştır', method: 'POST', path: '/api/studio/workspaces/{id}/actions',
     params: { id: 'demo' }, body: { action: 'run_tests' }
   },

@@ -108,7 +108,7 @@ def _value(cell: Any) -> tuple[Any, str | None]:
         return cell, "#,##0"
     if isinstance(cell, float):
         return cell, "#,##0.00"
-    text = str(cell).strip()
+    text = re.sub(r"^=+", "=", str(cell).strip())  # "==B5-C5" is a typing slip, not text
     if text.startswith(("=", "+", "-", "@")) and not re.fullmatch(r"-?\d+(?:\.\d+)?", text) and not (text.startswith("=") and _safe_formula(text)):
         text = text.lstrip("=+-@ ")  # a cell that is not a whitelisted formula must never be executed by Excel
     num = re.fullmatch(r"-?\d+(?:\.\d+)?", text)

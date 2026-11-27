@@ -9,6 +9,8 @@ from typing import Any
 
 from fastapi import UploadFile
 
+from workspace_batches import wants_single_html
+
 CNC_BALLOON_KEYWORDS = (
     "balonla", "balonlama", "teknik çizim", "teknik cizim", "as9102", "fai",
     "tolerans tablosu", "cnc parça", "cnc parca", "cnc çizim", "cnc cizim",
@@ -20,6 +22,8 @@ CODE_ONLY_RE = re.compile(
     r"(kodunu\s*(ver|yaz|göster|goster|at)|kod\s*halini|sadece\s*kod|kodu\s*(ver|yaz))",
     re.IGNORECASE,
 )
+
+_PAGE_NOUN_RE = re.compile(r"\b(?:tanıtım|açılış|karşılama|iniş|portfolyo)\s+sayfa(?:sı|s[ıi]n[ıi])?\b|\b(?:gösterge|gelir|satış|yönetim)\s+pano(?:su(?:nu)?)?\b|\blanding\s+page\b", re.IGNORECASE)
 
 _NON_CODE_PROJECT_RE = re.compile(
     r"\b(?:"
@@ -125,16 +129,20 @@ def is_project_build_request(prompt: str, file: UploadFile | None) -> bool:
     ):
         return False
     cleaned = _NON_CODE_PROJECT_RE.sub(" ", lower)
-    return bool(PROJECT_NOUN_RE.search(cleaned) and PROJECT_ACTION_RE.search(cleaned))
+    named = PROJECT_NOUN_RE.search(cleaned) or wants_single_html(prompt) or _PAGE_NOUN_RE.search(cleaned)
+    return bool(named and PROJECT_ACTION_RE.search(cleaned))
 
 
 def detect_project_type(prompt: str) -> tuple[str, bool]:
     """Return (project_type, wants_exe) for a project build prompt."""
     lower = prompt.lower()
-    wants_exe = bool(re.search(r"(?:\.exe\b|\b(?:exe|masaüstü|masaustu|bilgisayarda|desktop)\b)", lower))
+    if wants_single_html(prompt):
+        return "web", False
+    # "masaüstünde 260px" is responsive layout, not a request for a desktop program
+    wants_exe = bool(re.search(r"(?:\.exe\b|\bexe\b|\b(?:masaüstü|masaustu) (?:için|icin|uygulama|program|oyun|yazılım)|\bbilgisayarda\b|\bdesktop (?:app|application|program|game))", lower))
     explicit_py_desktop = wants_exe or bool(re.search(r"\b(?:python|tkinter|pygame)\b", lower))
     is_fullstack = bool(
-        re.search(r"\b(?:fullstack|full[\s-]stack|fastapi|backend|rest\s*api|api|flask|django|veritabanı|veritabani)\b", lower)
+        re.search(r"\b(?:fullstack|full[\s-]stack|fastapi|backend|rest\s*api|api|flask|django|veritabanı|veritabani)\b", re.sub(r'"[^"\n]*"', " ", lower))  # quoted sample data ("API Gateway") is not a requirement
     )
     is_cli = bool(re.search(r"\b(?:cli|terminal|komut\s*satır\w*|komut\s*satir\w*|konsol|scripts?|bot)\b", lower))
     is_game = bool(re.search(r"\b(?:oyun\w*|games?|arcade|snake|yılan|yilan|tetris|pong)\b", lower))

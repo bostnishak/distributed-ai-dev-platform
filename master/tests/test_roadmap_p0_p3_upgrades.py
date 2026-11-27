@@ -137,7 +137,7 @@ def test_p2_ann_index_pg_adapter_and_turkish_benchmark(client, monkeypatch):
 
 
 @pytest.mark.unit
-@settings(max_examples=25)
+@settings(max_examples=25, deadline=None)  # the first example pays the import
 @given(st.lists(st.floats(min_value=-10.0, max_value=10.0, allow_nan=False, allow_infinity=False), min_size=8, max_size=8))
 def test_p2_ann_index_self_similarity_pbt(vec_vals: list[float]):
     """P2 Property-Based Test (Hypothesis): any non-zero vector added to ANN must match itself with similarity ~1.0."""

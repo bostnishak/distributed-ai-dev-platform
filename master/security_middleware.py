@@ -45,7 +45,7 @@ APP_CSP = (
 )
 
 PREVIEW_CSP = (
-    "sandbox allow-scripts; "
+    "sandbox allow-scripts allow-forms allow-modals; form-action 'none'; "  # forms fire submit events but can never be sent anywhere
     "default-src 'self' 'unsafe-inline' data: blob:; "
     "connect-src 'none'; "
     "frame-ancestors 'self'"

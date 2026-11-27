@@ -25,8 +25,9 @@ def _parse(text: str) -> tuple[list[str], list[list[str]]] | None:
 
 
 def _fmt(x: float) -> str:
+    """Turkish notation (3.104 and 2.345,5): the model copies the figure as it reads it."""
     text = f"{x:,.2f}".rstrip("0").rstrip(".")
-    return text.replace(",", " ")
+    return text.translate(str.maketrans(",.", ".,"))
 
 
 def _numeric_columns(headers: list[str], rows: list[list[str]]) -> dict[int, list[float | None]]:

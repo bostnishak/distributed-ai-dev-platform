@@ -1,4 +1,5 @@
 // UX-02 Modular Split: Inline IDE Workbench card controller (<= 400 lines).
+import { attachInspector } from './assistant_ide_inspect.js';
 import {
   buildCodePane,
   buildPreviewPane,
@@ -17,6 +18,7 @@ import {
   highlightCodeHtml,
 } from './assistant_ide_render.js';
 import { setSanitizedHtml } from './sanitizer.js';
+import { attachErrorBridge } from './ide_error_bridge.js';
 import { safeFetchJson } from './storage.js';
 import { uiPrompt } from './ui_dialog.js';
 
@@ -242,9 +244,15 @@ export function buildInlineWorkspaceCard(wsMeta, wsTree) {
     }
   });
   card.append(iterBar, status.statusBar);
+  attachErrorBridge(pp.iframe, iterBar, card);
+  attachInspector(card, {
+    wsId, iframe: pp.iframe, iterBar, toolbar: dom.editToggleBtn.parentElement, hasPreview: Boolean(wsMeta.has_web_preview),
+    openPreview: () => { if (st.viewMode === 'code') tb.btnModeSplit.click(); },
+  });
 
   const flatPaths = collectWorkspaceFiles(st.currentTree);
   ctrl.renderTree();
+  if (wsMeta.has_web_preview) ctrl.setViewMode('preview'); // show the running app first, not its source
   const entry = (wsMeta.entry_point && flatPaths.includes(wsMeta.entry_point))
     ? wsMeta.entry_point
     : (flatPaths.find((p) => p === 'index.html' || p === 'main.py') || flatPaths[0]);

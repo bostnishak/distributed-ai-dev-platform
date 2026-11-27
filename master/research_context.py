@@ -8,6 +8,7 @@ Only the search words leave the machine; set WEB_GROUNDING=0 to turn the web par
 from __future__ import annotations
 
 import html
+import json
 import os
 import re
 import time
@@ -15,6 +16,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+import daemons
 import page_facts
 import wiki_ground
 
@@ -55,6 +57,21 @@ def _real_url(href: str) -> str:
     return urllib.parse.unquote(qs["uddg"][0]) if "uddg" in qs else href
 
 
+def _local_search(query: str, limit: int) -> list[dict[str, str]]:
+    """The user's own SearXNG, when it is running; [] otherwise."""
+    base = os.environ.get("SEARXNG_URL", "http://127.0.0.1:8888").rstrip("/")
+    url = f"{base}/search?" + urllib.parse.urlencode({"q": query, "format": "json"})
+    try:
+        with daemons.in_use(daemons.SEARCH):
+            daemons.ensure_search(base)  # started on demand, stopped again when idle
+            with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": _UA}), timeout=25) as resp:
+                items = json.loads(resp.read(2_000_000)).get("results") or []
+    except (urllib.error.URLError, OSError, ValueError, AttributeError):
+        return []
+    web = [i for i in items if str(i.get("url", "")).startswith(("http://", "https://"))][:limit]
+    return [{"id": f"S{n}", "title": _clean(str(i.get("title") or ""))[:120], "url": str(i["url"]), "snippet": _clean(str(i.get("content") or ""))[:380]} for n, i in enumerate(web, 1)]
+
+
 def web_search(query: str, limit: int = 5) -> list[dict[str, str]]:
     """[{id, title, url, snippet}] from a live web search; [] when the web is off or unreachable."""
     if not web_enabled() or not query.strip():
@@ -75,7 +92,10 @@ def web_search(query: str, limit: int = 5) -> list[dict[str, str]]:
         ]
         if out:
             break
+        if "anomaly" in page or "challenge-form" in page:
+            break  # the public page is asking for a human check: not something to retry or work around
         time.sleep(1.5 * (attempt + 1))
+    out = out or _local_search(query, limit)
     if out:
         _CACHE[query] = out
     return out

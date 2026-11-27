@@ -789,6 +789,8 @@ ul.plain { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.6; }
   background: #1c1c1f; border-top: 1px solid #2b2b2f;
 }
 .ide-iter-spark { font-size: 14px; }
+.ide-error-box { display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 8px 12px; background: #3b1114; color: #fecaca; font-size: 13px; }
+.ide-error-box[hidden] { display: none; }
 .ide-iter-bar input {
   flex: 1; background: #121214; border: 1px solid #34343a; border-radius: 7px;
   color: #f4f4f5; padding: 6px 11px; font-size: 12.5px; font-family: inherit;
@@ -901,3 +903,10 @@ ul.plain { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.6; }
 .studio-breadcrumb { font-size: 12.5px; color: var(--muted); font-family: Consolas, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cnc-workspace { display: flex; flex-direction: column; gap: 16px; margin-top: 14px; }
 .cnc-viewer-card, .cnc-table-card { overflow: hidden; }
+
+.ide-drawer { border-top: 1px solid #30363d; background: #0d1117; color: #e6edf3; max-height: 260px; overflow: auto; font-size: 12px; }
+.ide-drawer-head { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; border-bottom: 1px solid #30363d; position: sticky; top: 0; background: #161b22; }
+.ide-drawer-body { padding: 8px 10px; display: flex; flex-direction: column; gap: 8px; }
+.ide-drawer-section { display: flex; flex-direction: column; gap: 2px; overflow-wrap: anywhere; }
+.ide-api-input { width: 100%; font-family: monospace; background: #010409; color: #e6edf3; border: 1px solid #30363d; border-radius: 6px; padding: 6px; }
+.ide-api-output { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }

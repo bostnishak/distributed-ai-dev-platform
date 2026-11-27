@@ -1,0 +1,32 @@
+import importlib.util
+import json
+import os
+import sys
+
+entry, requests = sys.argv[1], json.loads(sys.argv[2])
+os.chdir("/sandbox")
+sys.path[:0] = ["/sandbox", os.path.dirname(entry)]
+spec = importlib.util.spec_from_file_location(os.path.splitext(os.path.basename(entry))[0], entry)
+module = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = module
+spec.loader.exec_module(module)
+app = getattr(module, "app", None) or module.create_app()
+
+if hasattr(app, "test_client"):
+    client = app.test_client()
+    send = lambda r: (lambda x: (x.status_code, x.get_data(as_text=True)))(client.open(r["path"], method=r["method"], json=r["json"]))
+    context = None
+else:
+    from fastapi.testclient import TestClient
+
+    context = TestClient(app, raise_server_exceptions=False)
+    context.__enter__()
+    send = lambda r: (lambda x: (x.status_code, x.text))(context.request(r["method"], r["path"], json=r["json"]))
+
+out = []
+for request in requests:
+    status, text = send(request)
+    out.append({"method": request["method"], "path": request["path"], "status": status, "body": text[:2000]})
+if context is not None:
+    context.__exit__(None, None, None)
+print("RESULT=" + json.dumps(out))

@@ -22,6 +22,27 @@ SYSTEM = (
 W, H, DH, GX, GY = 200, 62, 84, 70, 56
 
 
+def missing_steps(prompt: str, flow: dict[str, Any]) -> list[str]:
+    """Clauses the user listed ("...: a, b, c") that no box of the drawing mentions."""
+    listed = prompt.split(":", 1)[1] if ":" in prompt else ""
+    labels = " ".join(s["label"] for s in flow["steps"]).casefold()
+    clauses = [c.strip() for c in re.split(r"[,;.→\n]|->", listed) if len(c.strip()) > 3]
+    return [c for c in clauses if not any(w[:4] in labels for w in re.findall(r"\w{4,}", c.casefold()))]
+
+
+def stuck_steps(flow: dict[str, Any]) -> list[str]:
+    """Steps from which no end can be reached: the process would loop for ever there (checked over every path)."""
+    finishing = {s["id"] for s in flow["steps"] if s["type"] == "end"}
+    grew = True
+    while grew:
+        grew = False
+        for e in flow["edges"]:
+            if e["to"] in finishing and e["from"] not in finishing:
+                finishing.add(e["from"])
+                grew = True
+    return [s["label"] for s in flow["steps"] if s["id"] not in finishing]
+
+
 def is_flow_request(prompt: str) -> bool:
     return bool(_FLOW_RE.search(prompt or "")) and not _NOT_FLOW_RE.search(prompt or "")
 
@@ -174,6 +195,23 @@ def _arrow_head(e: dict[str, str], pos: dict[str, tuple[int, int]], ty: int, pal
         tx = x2 + W // 2
         pts = f"{tx},{y2} {tx + 13},{y2 - 7} {tx + 13},{y2 + 7}"
     return f'<polygon points="{pts}" fill="{pal["muted"]}"/>'
+
+
+def exports(spec: dict[str, Any]) -> dict[str, str]:
+    """The same steps and arrows as Mermaid, Graphviz and PlantUML text, for editing in other tools."""
+    def clean_label(text: str) -> str:
+        return re.sub(r'["\[\]{}|<>\n]', " ", text).strip()
+
+    ids = {s["id"]: f"n{i}" for i, s in enumerate(spec["steps"], start=1)}
+    shapes = {"start": ("([", "])"), "end": ("([", "])"), "decision": ("{", "}"), "process": ("[", "]")}
+    mermaid = ["flowchart TD"] + [f'  {ids[s["id"]]}{shapes[s["type"]][0]}"{clean_label(s["label"])}"{shapes[s["type"]][1]}' for s in spec["steps"]]
+    mermaid += [f'  {ids[e["from"]]} -->' + (f'|{clean_label(e["label"])}|' if e.get("label") else "") + f' {ids[e["to"]]}' for e in spec["edges"]]
+    kinds = {"start": "oval", "end": "oval", "decision": "diamond", "process": "box"}
+    dot = ["digraph akis {", "  rankdir=TB;"] + [f'  {ids[s["id"]]} [shape={kinds[s["type"]]}, label="{clean_label(s["label"])}"];' for s in spec["steps"]]
+    dot += [f'  {ids[e["from"]]} -> {ids[e["to"]]}' + (f' [label="{clean_label(e["label"])}"]' if e.get("label") else "") + ";" for e in spec["edges"]] + ["}"]
+    puml = ["@startuml"] + [f'rectangle "{clean_label(s["label"])}" as {ids[s["id"]]}' for s in spec["steps"]]
+    puml += [f'{ids[e["from"]]} --> {ids[e["to"]]}' + (f' : {clean_label(e["label"])}' if e.get("label") else "") for e in spec["edges"]] + ["@enduml"]
+    return {"mmd": "\n".join(mermaid) + "\n", "dot": "\n".join(dot) + "\n", "puml": "\n".join(puml) + "\n"}
 
 
 def render(spec: dict[str, Any], pal: dict[str, str]) -> str:

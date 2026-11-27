@@ -13,12 +13,14 @@ from typing import Literal
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 import preview_server
+import preview_shim
 import process_utils
 import project_flow
+import run_trace
 import sandbox
 import workspace_builder as wb
 from access_control import require_local_or_admin
@@ -281,19 +283,24 @@ async def preview_workspace_file(id: str, filepath: str):
             raise HTTPException(status_code=404, detail="Önizleme dosyası bulunamadı.")
         target = found
     media, _ = mimetypes.guess_type(str(target))
-    return FileResponse(
-        target,
-        media_type=media or "application/octet-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "X-Content-Type-Options": "nosniff",
-            "Content-Security-Policy": (
-                "sandbox allow-scripts allow-forms allow-modals; "
-                "default-src 'self' 'unsafe-inline' data: blob:; "
-                "connect-src 'none'; frame-ancestors 'self'"
-            ),
-        },
-    )
+    headers = {
+        "Cache-Control": "no-cache",
+        "X-Content-Type-Options": "nosniff",
+        "Content-Security-Policy": (
+            "sandbox allow-scripts allow-forms allow-modals; "
+            "default-src 'self' 'unsafe-inline' data: blob:; "
+            "connect-src 'none'; frame-ancestors 'self'"
+        ),
+    }
+    if media == "text/html":
+        return HTMLResponse(preview_shim.with_storage(target), headers=headers)
+    return FileResponse(target, media_type=media or "application/octet-stream", headers=headers)
+
+
+@router.get("/runs/summary")
+async def runs_summary():
+    """Pass rate, median duration and slowest stages of the latest project runs."""
+    return run_trace.summary()
 
 
 @router.get("/workspaces/{id}/history")
@@ -334,11 +341,11 @@ def start_workspace_live_server(id: str):
 
 
 @router.get("/workspaces/{id}/diff")
-async def get_workspace_file_diff(id: str, path: str = Query(...), base_version: str = Query("v1")):
-    """Return a unified line diff between base_version (default v1) and current file content."""
+async def get_workspace_file_diff(id: str, path: str = Query(...), base_version: str = Query("")):
+    """Unified diff against base_version; by default the version before the latest one."""
     import difflib
 
-    if not re.fullmatch(r"v\d+", base_version):
+    if base_version and not re.fullmatch(r"v\d+", base_version):
         raise HTTPException(status_code=400, detail="Geçersiz sürüm adı.")
     try:
         ws_dir = wb.safe_workspace_dir(id)
@@ -347,6 +354,9 @@ async def get_workspace_file_diff(id: str, path: str = Query(...), base_version:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     if not target.is_file():
         raise HTTPException(status_code=404, detail="Dosya bulunamadı.")
+    if not base_version:
+        versions = wb.list_snapshots(ws_dir)  # newest first
+        base_version = versions[1]["version"] if len(versions) > 1 else "v1"
 
     current_lines = target.read_text(encoding="utf-8", errors="replace").splitlines()
     safe_rel = target.relative_to(ws_dir.resolve()).as_posix()

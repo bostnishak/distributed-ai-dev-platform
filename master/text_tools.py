@@ -54,7 +54,10 @@ def _count_words(prompt: str) -> str | None:
     m = _WORD_COUNT_RE.search(prompt)
     if not m:
         return None
-    body = re.sub(r"\s+(?:bu|şu)$", "", prompt[: m.start()].strip()).strip()
+    quoted = re.search(r"[\"“]([^\"“”]+)[\"”]", prompt)
+    if quoted and len(quoted.group(1).split()) >= 2:  # the quotes say exactly which text is meant
+        return f"Metinde **{len(quoted.group(1).split())}** kelime var."
+    body = re.sub(r"\s+(?:bu|şu|metninde|metninin|yazısında|cümlesinde|paragrafında)$", "", prompt[: m.start()].strip()).strip()
     if len(body.split()) < 2:
         body = prompt[m.end():].strip()
     words = body.split()

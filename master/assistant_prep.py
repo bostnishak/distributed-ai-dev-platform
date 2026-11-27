@@ -20,7 +20,13 @@ from fastapi.responses import FileResponse, StreamingResponse
 import answer_sources
 import code_probe
 import config
+import context_pager
+import context_pins
 import extract as _extract_mod
+import long_doc
+import memory_timeline
+import pacing
+import prompt_layout
 import reasoning_mode
 import reply_labels
 import research_context
@@ -33,6 +39,7 @@ log = logging.getLogger("master.assistant")
 
 _MEDIA_TYPES: dict[str, tuple[str | None, bool]] = {
     ".svg": ("image/svg+xml", False),
+    ".wav": ("audio/wav", False),
     ".png": ("image/png", False),
     ".pptx": ("application/vnd.openxmlformats-officedocument.presentationml.presentation", True),
     ".docx": ("application/vnd.openxmlformats-officedocument.wordprocessingml.document", True),
@@ -301,10 +308,9 @@ def enrich_prompt_with_kb(prompt: str, extracted_text: str) -> str:
     """Attach extracted file text or Hybrid GraphRAG company knowledge snippets."""
     if extracted_text:
         limit = 16000
-        trunc = f"\n[Not: Dosya uzunluğu {len(extracted_text)} karakter; ilk {limit} karakter gösteriliyor.]" if len(extracted_text) > limit else ""
         return (
             f"{prompt}\n\n--- Eklenen dosya içeriği (GERÇEK VERİ - uydurma yapma, olmayan hata ekleme) ---\n"
-            f"{extracted_text[:limit]}{trunc}{table_stats.summary(extracted_text)}"
+            f"{long_doc.select(extracted_text, prompt, limit)}{table_stats.summary(extracted_text)}"
         )
     import company_rag
     import hybrid_graph_rag
@@ -385,16 +391,24 @@ def _build_research_context(prompt: str, has_file: bool, is_prompt_conv: bool) -
     return research_context.build(prompt, chat_contracts.is_grounded_research_request(prompt, has_file))
 
 
-def _append_history_messages(messages: list[dict[str, Any]], history: str, is_prompt_conv: bool) -> None:
+def _append_history_messages(messages: list[dict[str, Any]], history: str, is_prompt_conv: bool, query: str = "") -> str:
+    """Add the recent turns; returns earlier exchanges the question refers to, brought back from beyond the window."""
     hist_window = 40 if is_prompt_conv else 16
     try:
         hist_items = json.loads(history) if history else []
         if isinstance(hist_items, list):
+            if note := context_pins.from_older_turns(hist_items, hist_window):
+                if messages and messages[0]["role"] == "system":  # part of the system prompt, so compaction cannot drop it
+                    messages[0] = {**messages[0], "content": messages[0]["content"] + "\n\n" + note}
+                else:
+                    messages.insert(0, {"role": "system", "content": note})
             for h_msg in hist_items[-hist_window:]:
                 if isinstance(h_msg, dict) and h_msg.get("role") in ("user", "assistant") and h_msg.get("text"):
-                    messages.append({"role": h_msg["role"], "content": str(h_msg["text"])[:3000]})
+                    messages.append({"role": h_msg["role"], "content": str(h_msg["text"])[:8000]})
+            return context_pager.recall(hist_items, hist_window, query) if query else ""
     except (json.JSONDecodeError, TypeError) as exc:
         log.debug("History parse skipped: %s", exc)
+    return ""
 
 
 def parse_stream_opts(
@@ -452,54 +466,54 @@ def resolve_custom_agent_profile(custom_agent_id: str, user_id: str) -> dict[str
     return None
 
 
-def _collect_memory_blocks(ctx: dict[str, Any], prompt_conv_instruction: str) -> list[str]:
+def _stable_blocks(ctx: dict[str, Any], prompt_conv_instruction: str) -> list[str]:
+    """What stays the same from one turn of a conversation to the next."""
+    import user_profile as up
+
+    blocks = [up.personalization_block(ctx["user_id"])]
+    agent_prof = ctx.get("custom_agent")
+    if isinstance(agent_prof, dict) and agent_prof.get("instructions"):
+        blocks.append(f"--- ÖZEL AJAN TALİMATI ({agent_prof.get('name', 'Ajan')}) ---\n{agent_prof['instructions']}")
+    if ctx["is_prompt_conv"]:
+        blocks.append(prompt_conv_instruction)
+    return blocks
+
+
+def _memory_blocks(ctx: dict[str, Any]) -> list[str]:
     import memory_engine as mem
     import user_profile as up
 
     prompt, user_id = ctx["prompt"], ctx["user_id"]
     user_settings = up.get_settings(user_id)
-    blocks = [up.personalization_block(user_id)]
-    agent_prof = ctx.get("custom_agent")
-    if isinstance(agent_prof, dict) and agent_prof.get("instructions"):
-        blocks.append(f"--- ÖZEL AJAN TALİMATI ({agent_prof.get('name', 'Ajan')}) ---\n{agent_prof['instructions']}")
     if user_settings.get("auto_learn_facts"):
+        memory_timeline.install()
         mem.extract_and_upsert_memories(prompt, user_id=user_id)
-    blocks.append(mem.build_memory_context_block(prompt, user_id=user_id))
+    blocks = [mem.build_memory_context_block(prompt, user_id=user_id)]
     if user_settings.get("cross_chat_memory", True):
         blocks.append(up.cross_chat_context_block(user_id, prompt, exclude_conversation=ctx["conversation_id"]))
-    if ctx["is_prompt_conv"]:
-        blocks.append(prompt_conv_instruction)
     return blocks
 
 
 def build_llm_stream_inputs(
     ctx: dict[str, Any], answer_system_prompt: str, prompt_conv_instruction: str
 ) -> tuple[list[dict[str, Any]], str, Any, list[dict[str, str]]]:
-    """Assemble system prompt, memory/research blocks, history, and pre-notes for LLM streaming."""
+    """Assemble the unchanging beginning, the history, and next to the question everything that changes with it."""
     import chat_contracts
     import memory_engine as mem
 
-    messages: list[dict[str, Any]] = [{"role": "system", "content": answer_system_prompt}] if answer_system_prompt else []
-    extra_blocks = _collect_memory_blocks(ctx, prompt_conv_instruction)
+    messages = prompt_layout.system_message(answer_system_prompt, _stable_blocks(ctx, prompt_conv_instruction))
+    volatile = _memory_blocks(ctx)
     constraints = chat_contracts.inspect_prompt_constraints(ctx["prompt"])
     research_sources, research_note = _build_research_context(ctx["prompt"], ctx["has_file"], ctx["is_prompt_conv"])
-    if research_note:
-        extra_blocks.append(research_note)
-    if constraints.system_notes:
-        extra_blocks.append("\n".join(constraints.system_notes))
-    extra_blocks.append(reply_labels.now_context())
-    extra_blocks.append(reply_labels.language_note(ctx["prompt"]))
-    extra_blocks.append(reasoning_mode.guidance(ctx["prompt"]))
-    mem_ctx = "\n\n".join(b for b in extra_blocks if b)
-    if mem_ctx and messages:
-        messages[0]["content"] = f"{messages[0]['content']}\n\n{mem_ctx}"
+    volatile += [research_note, "\n".join(constraints.system_notes or []), reply_labels.now_context(), reply_labels.language_note(ctx["prompt"]),
+                 reasoning_mode.guidance(ctx["prompt"]), pacing.audience_note(ctx["prompt"])]
 
-    _append_history_messages(messages, ctx["history"], ctx["is_prompt_conv"])
+    volatile.append(_append_history_messages(messages, ctx["history"], ctx["is_prompt_conv"], ctx["prompt"]))
     if not ctx["is_prompt_conv"]:
         messages = mem.compact_conversation_context(messages)
     full_prompt, pre_note = split_pre_notes(ctx["full_prompt"])
     full_prompt = code_probe.verified_prefix(ctx["prompt"], ctx["has_file"]) + full_prompt  # verified facts sit right next to the question
-    user_msg: dict[str, Any] = {"role": "user", "content": full_prompt}
+    user_msg: dict[str, Any] = {"role": "user", "content": prompt_layout.question(full_prompt, volatile)}
     if ctx["image_b64"]:
         user_msg["images"] = [ctx["image_b64"]]
     messages.append(user_msg)

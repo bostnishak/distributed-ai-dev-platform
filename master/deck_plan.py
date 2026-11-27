@@ -70,6 +70,26 @@ def _can_show(slide: dict[str, Any], layout: str) -> bool:
     return False
 
 
+_AMOUNT_RE = re.compile(r"(\d{1,3}(?:\.\d{3})+|\d+)\s*(TL|₺|lira|USD|EUR|\$|€)", re.IGNORECASE)
+_TOTAL_RE = re.compile(r"toplam|\btotal\b", re.IGNORECASE)
+
+
+def ensure_total(slides: list[dict[str, Any]], request: str) -> list[dict[str, Any]]:
+    """A total was asked for over amounts the user gave: code computes it and makes sure it is on a slide."""
+    amounts = _AMOUNT_RE.findall(request or "")
+    if not _TOTAL_RE.search(request or "") or len(amounts) < 2 or len({unit.upper() for _v, unit in amounts}) != 1:
+        return slides
+    total = sum(int(value.replace(".", "")) for value, _unit in amounts)
+    shown = f"{total:,}".replace(",", ".")
+    if shown in str(slides) or str(total) in str(slides):
+        return slides
+    line = f"Toplam: {shown} {amounts[0][1]} (verilen {len(amounts)} tutarın toplamı)"
+    for index, slide in enumerate(slides):
+        if slide.get("layout") in (None, "", "bullets") and isinstance(slide.get("bullets"), list):
+            return [*slides[:index], {**slide, "bullets": [line, *slide["bullets"]][:6]}, *slides[index + 1 :]]
+    return [*slides[:-1], {"layout": "bullets", "title": "Toplam", "bullets": [line]}, *slides[-1:]]
+
+
 def apply(slides: list[dict[str, Any]], plan: list[str]) -> list[dict[str, Any]]:
     """Move bullet slides to the planned steps / two_column layout when their content fits it (data layouts are never forced)."""
     out = []

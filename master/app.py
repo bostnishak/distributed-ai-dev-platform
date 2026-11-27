@@ -48,6 +48,7 @@ import notifications
 import openai_compat
 import ops
 import orchestrator
+import os_kernel
 import output_api
 import perf_api
 import preview_server
@@ -55,6 +56,7 @@ import privacy
 import productivity_api
 import projects_api
 import rag
+import run_api
 import scheduler
 import security_extensions
 import security_middleware
@@ -62,9 +64,11 @@ import studio_api
 import studios
 import tasks_api
 import telemetry_otel
+import triggers
 import updater
 import user_api
 import ux_api
+import workspace_inspect
 from auth import orgs as auth_orgs
 from domains import engineering_bench as domains_eng
 from domains import kb_service as domains_kb
@@ -106,9 +110,15 @@ async def lifespan(_app: FastAPI):
     scheduler.start_dag_scheduler()
     preview_server.start_preview_server_background()
     ops.startup()
+    os_kernel.startup()
+    sleep_task = asyncio.create_task(os_kernel.watch_sleep())
     cron_task = asyncio.create_task(cronjobs.loop(productivity_api.assistant_runner))
+    inbox_task = asyncio.create_task(triggers.loop())
     yield
     cron_task.cancel()
+    inbox_task.cancel()
+    sleep_task.cancel()
+    os_kernel.shutdown()
     ops.shutdown()
 
 
@@ -130,6 +140,8 @@ app.include_router(output_api.router)
 app.include_router(perf_api.router)
 app.include_router(cnc_api.router)
 app.include_router(studio_api.router)
+app.include_router(workspace_inspect.router)
+app.include_router(run_api.router)
 app.include_router(user_api.router)
 app.include_router(memory_api.router)
 app.include_router(memory_conflicts.router)

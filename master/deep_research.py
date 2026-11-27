@@ -241,6 +241,8 @@ async def generate_ai_pptx_presentation(prompt: str, context_text: str = "") -> 
     raw = await _fetch_pptx_spec(sys_prompt, user_msg + planned, model, prompt)
     spec.update(clean_spec(raw, user_msg, count))
     spec["slides"] = deck_plan.apply(spec.get("slides") or [], deck_plan.layout_plan(count, user_msg))
+    if spec["slides"]:
+        spec["slides"] = deck_plan.ensure_total(spec["slides"], user_msg)
     final_lang = _detect_language(prompt, explicit=str(spec.get("language") or ""))
     if not spec.get("slides"):
         raise RuntimeError("Sunumun içeriğini üretemedim (model yanıt vermedi ya da geçerli bir slayt planı döndürmedi). Boş ya da isteğini kopyalayan bir sunum vermemek için dosya oluşturmadım; lütfen tekrar dener misin? Konuyu biraz daha açarsan (kaç slayt, hangi dönem/odak) sonuç daha iyi olur.")
