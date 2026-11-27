@@ -42,13 +42,13 @@ v2	2.3	Paralel DAG yürütücü, spekülatif ön hazırlık	C	dag.py ve build_da
 v2	2.3	Yalnız etkilenen testleri koşma	C	canlı deneme: scripts/live_items.py
 v2	2.4	AST çapalı yama, tam yazıma geri düşme	C	canlı deneme: scripts/live_items.py
 v2	2.4	L1 birebir önbellek	C	canlı deneme: scripts/live_items.py
-v2	2.4	L2 anlamsal, L3 bileşen önbelleği	T	semantic_cache.py (belge bazlı) ve skill_library (doğrulanmış bileşen)
+v2	2.4	L2 anlamsal, L3 bileşen önbelleği	C	canlı deneme: scripts/live_items.py model
 v2	3.1	Yörünge toplama, sır temizleme	C	canlı deneme: scripts/live_items.py
-v2	3.1	Tercih çiftleri (başarısız/onarılmış)	T	repair_pairs.py: başarılı onarımlardan çift
+v2	3.1	Tercih çiftleri (başarısız/onarılmış)	C	canlı deneme: scripts/live_items.py model
 v2	3.2	Yerel LoRA/DPO/GRPO eğitimi	X	bellek ve veri yetersiz; yalnız betik
 v2	3.2	GGUF içe aktarma ve gölge değerlendirme kapısı	C	ai_os.py import-gguf gerçek GGUF ile denendi: zayıf aday reddedildi, eşit aday yayımlandı
 v2	3.3	Doğrulanmış beceri kütüphanesi	C	canlı deneme: scripts/live_items.py
-v2	3.3	Otomatik istem optimizasyonu	T	scripts/optimize_prompt.py: yalnız ölçülen iyileşmede tutar; canlıda koşulmadı
+v2	3.3	Otomatik istem optimizasyonu	C	canlı deneme: scripts/live_items.py model
 v2	4.1	Hipotez temelli nedensel hata ayıklama + regresyon testi	C	causal_debug + DAP durumu; regresyon testi üretmiyor
 v2	4.2	En iyi N aday değerlendirme	C	best_of_n.py: 2-3 aday, eleştirmen ve kural puanı; canlı
 v2	4.3	Doğrulanmış/çıkarım/varsayım defteri	C	canlı deneme: scripts/live_items.py

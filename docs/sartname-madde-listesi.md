@@ -8,10 +8,10 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | Sürüm | canlı | test | kısmi | yok | dışarıda | teknik engel | Toplam |
 |---|---|---|---|---|---|---|---|
 | v1 | 31 | 1 | 0 | 0 | 0 | 0 | 32 |
-| v2 | 38 | 3 | 0 | 0 | 2 | 1 | 44 |
+| v2 | 41 | 0 | 0 | 0 | 2 | 1 | 44 |
 | v3 | 43 | 0 | 0 | 0 | 5 | 2 | 50 |
 | v4 | 29 | 3 | 0 | 0 | 1 | 0 | 33 |
-| **Hepsi** | 141 | 7 | 0 | 0 | 8 | 3 | 159 |
+| **Hepsi** | 144 | 4 | 0 | 0 | 8 | 3 | 159 |
 
 ## v1
 
@@ -64,13 +64,13 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 2.3 | Yalnız etkilenen testleri koşma | canlı | canlı deneme: scripts/live_items.py |
 | 2.4 | AST çapalı yama, tam yazıma geri düşme | canlı | canlı deneme: scripts/live_items.py |
 | 2.4 | L1 birebir önbellek | canlı | canlı deneme: scripts/live_items.py |
-| 2.4 | L2 anlamsal, L3 bileşen önbelleği | test | semantic_cache.py (belge bazlı) ve skill_library (doğrulanmış bileşen) |
+| 2.4 | L2 anlamsal, L3 bileşen önbelleği | canlı | canlı deneme: scripts/live_items.py model |
 | 3.1 | Yörünge toplama, sır temizleme | canlı | canlı deneme: scripts/live_items.py |
-| 3.1 | Tercih çiftleri (başarısız/onarılmış) | test | repair_pairs.py: başarılı onarımlardan çift |
+| 3.1 | Tercih çiftleri (başarısız/onarılmış) | canlı | canlı deneme: scripts/live_items.py model |
 | 3.2 | Yerel LoRA/DPO/GRPO eğitimi | dışarıda | bellek ve veri yetersiz; yalnız betik |
 | 3.2 | GGUF içe aktarma ve gölge değerlendirme kapısı | canlı | ai_os.py import-gguf gerçek GGUF ile denendi: zayıf aday reddedildi, eşit aday yayımlandı |
 | 3.3 | Doğrulanmış beceri kütüphanesi | canlı | canlı deneme: scripts/live_items.py |
-| 3.3 | Otomatik istem optimizasyonu | test | scripts/optimize_prompt.py: yalnız ölçülen iyileşmede tutar; canlıda koşulmadı |
+| 3.3 | Otomatik istem optimizasyonu | canlı | canlı deneme: scripts/live_items.py model |
 | 4.1 | Hipotez temelli nedensel hata ayıklama + regresyon testi | canlı | causal_debug + DAP durumu; regresyon testi üretmiyor |
 | 4.2 | En iyi N aday değerlendirme | canlı | best_of_n.py: 2-3 aday, eleştirmen ve kural puanı; canlı |
 | 4.3 | Doğrulanmış/çıkarım/varsayım defteri | canlı | canlı deneme: scripts/live_items.py |
