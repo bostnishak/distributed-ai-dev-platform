@@ -27,10 +27,12 @@ _log = logging.getLogger(__name__)
 async def apply(ws_dir: Path, request: str, done: dict[str, Any]) -> dict[str, Any]:
     """The finished event with the findings added to its warnings."""
     warnings = [str(w) for w in done.get("warnings") or []]
-    warnings += [w for w in (security_scan.report(ws_dir), await asyncio.to_thread(visual_audit.report, ws_dir), design_slop.report(ws_dir, request)) if w]
-    warnings += [w for w in (await asyncio.to_thread(package_check.report, ws_dir),) if w]
-    warnings += await asyncio.to_thread(code_audit.report, ws_dir, request)
-    warnings += [w for w in (deploy_kit.apply(ws_dir, request), migration_check.report(ws_dir)) if w]
+    deployment = deploy_kit.apply(ws_dir, request)  # the only step that writes files: before the readers start
+    found = await asyncio.gather(  # read-only checks are independent of each other, so they run at the same time
+        asyncio.to_thread(security_scan.report, ws_dir), asyncio.to_thread(visual_audit.report, ws_dir), asyncio.to_thread(design_slop.report, ws_dir, request),
+        asyncio.to_thread(package_check.report, ws_dir), asyncio.to_thread(code_audit.report, ws_dir, request), asyncio.to_thread(migration_check.report, ws_dir))
+    for result in (*found, deployment):
+        warnings += result if isinstance(result, list) else [result] if result else []
     if property_check.rules(request) and (checked := await property_check.report(ws_dir, request, workspace_requirements.declared_packages(ws_dir))):
         warnings.append(checked)
     if complexity_governor.classify(request).level >= 3:

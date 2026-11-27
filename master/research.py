@@ -19,6 +19,7 @@ from dataclasses import dataclass
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ValidationError
 
+import exact_cache
 import gateway
 import long_doc
 import page_facts
@@ -206,8 +207,9 @@ async def _write_report(question: str, claims: dict[int, Claim], chat: Chat) -> 
     return report or Report(summary=[Point(text=c.text, ids=[c.number]) for c in list(claims.values())[:6]])
 
 
-async def investigate(question: str, chat: Chat = _ask) -> AsyncIterator[tuple[str, str]]:
+async def investigate(question: str, chat: Chat | None = None) -> AsyncIterator[tuple[str, str]]:
     """("status", message) while working, then one ("report", markdown). Unanswered points get a second search round."""
+    chat = chat or exact_cache.cached(_ask, _MODEL)
     question = _TRIGGER_RE.sub(" ", question).strip(" :,-") or question
     if policy.has_secret(question):  # it must not reach a search engine, the report or the log
         question = security_scan.redact(question)

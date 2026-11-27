@@ -15,6 +15,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+import context_pins
 import dbconn
 import dbindexes
 from prompt_loader import load_prompt
@@ -188,9 +189,11 @@ def compact_conversation_context(messages: list[dict[str, str]], max_chars: int 
         if txt:
             summary_points.append(f"[{role.upper()}]: {txt[:2500 if role == 'user' else 400]}")  # what the user asked for must survive
 
+    rules = context_pins.pinned(older)
+    header = f"Kullanıcının önceki turlarda koyduğu kurallar (aynen geçerli):\n{rules}\n\n" if rules else ""
     compacted_msg = {
         "role": "system",
-        "content": "Önceki konuşma turlarının sıkıştırılmış özeti:\n" + "\n".join(summary_points[-12:]),
+        "content": header + "Önceki konuşma turlarının sıkıştırılmış özeti:\n" + "\n".join(summary_points[-12:]),
     }
     return [*head, compacted_msg, *recent]
 

@@ -38,10 +38,10 @@ v2	2.1	Model yakınlığına göre görev gruplama	K	tek GPU kilidi var; DAG gru
 v2	2.2	Tier 0 modelsiz düzenleme	C	tier0_edit
 v2	2.2	Karmaşıklığa göre model basamağı	T	complexity_governor
 v2	2.2	Logprob/entropi ile yükseltme	E	Ollama yanıtında güvenilir logprob kullanılmıyor
-v2	2.3	Paralel DAG yürütücü, spekülatif ön hazırlık	Y	8 GB kartta paralel üretim hızlandırmaz; doğrulama adımları paralel yapılabilir
+v2	2.3	Paralel DAG yürütücü, spekülatif ön hazırlık	K	dosya grupları ve salt okunur denetimler paralel; genel DAG yürütücü yok
 v2	2.3	Yalnız etkilenen testleri koşma	T	repo_map.affected_tests; sohbet revizyonunda
 v2	2.4	AST çapalı yama, tam yazıma geri düşme	T	patch_edit
-v2	2.4	L1 birebir önbellek	Y
+v2	2.4	L1 birebir önbellek	T	exact_cache.py: sayfa/belge iddia çıkarımında
 v2	2.4	L2 anlamsal, L3 bileşen önbelleği	Y
 v2	3.1	Yörünge toplama, sır temizleme	T	run_trace
 v2	3.1	Tercih çiftleri (başarısız/onarılmış)	K	training_pack yalnız başarılı kayıtları veriyor
@@ -72,7 +72,7 @@ v2	7.3	WebSocket canlı DAG akışı	K	SSE ile aşama akışı var
 v2	8.1	İzleme (OpenTelemetry) ve pano	K	telemetry_otel, run_trace; pano yok
 v2	8.2	25+ senaryoluk altın test takımı	C	scripts/golden.py: hızlı küme canlıda; --slow ile üretim senaryoları
 v2	8.3	Sürüm kapısı ölçütleri	T	eval_stats: golden ve release_guard içinde
-v2	9	Çalışırken duraklatma ve yönlendirme	Y
+v2	9	Çalışırken duraklatma ve yönlendirme	K	kesip 'devam et ama ...' ile kalan dosyaları yönlendirme; canlı duraklatma düğmesi yok
 v2	9	Kanıt kartı (doğrulama özeti)	C	IDE 'Kanıt' çekmecesi
 v2	9	İki varyant yan yana	T	variants.py: iki üretim arka arkaya, iki kart
 v2	9	Dürüst düşüş bildirimi	T	reply_labels
@@ -105,7 +105,7 @@ v3	5.3	Çoklu diyagram biçimi	K	SVG ve Mermaid
 v3	5.3	Gerçek veriye bağlı grafik	K	document_chart
 v3	5.3	Yerel ses (ASR/TTS)	K	multimodal_studio_media STT; TTS yok
 v3	6.1	İki zamanlı bilgi grafiği	T	memory_timeline
-v3	6.2	Bağlam sayfalama	Y
+v3	6.2	Bağlam sayfalama	K	context_pins: kullanıcının kuralları sıkıştırmada hiç düşmüyor; sayfa içeri/dışarı çağrıları yok
 v3	6.3	Uyku birleştirmesi ve çelişki çözümü	K	memory_conflicts, memory_maintenance
 v3	6.3	Bellek denetim ve silme	T	memory_api, retention
 v3	7.1	WASM ve iş nesnesi yalıtımı	T	isolation.py: sohbetten başlatılan canlı sunucu iş nesnesiyle sınırlı
@@ -149,7 +149,7 @@ v4	6.3	Slayt slayt görsel denetim	T	aynı denetim slaytlarda (LibreOffice ile P
 v4	6.4	DuckDB veri çalışması	C	data_lab
 v4	6.4	Otomatik EDA ve ML hattı	C	eda.py: CSV için profil + 5 katlı çapraz doğrulama; Vega/Plotly grafik yok
 v4	6.5	Uzun yazıda sayı tutarlılığı	T	doc_sanity, doc_proof
-v4	7	Karma buluta yükseltme (varsayılan kapalı)	Y
+v4	7	Karma buluta yükseltme (varsayılan kapalı)	K	escalation.py yalnız anonimleştirir; hiçbir yere göndermez
 v4	8	Uzmanlığa göre anlatım ve netleştirme sorusu	K	clarify
 v4	9	Dosya izleyici ve gelen kutusu tetikleyicisi	C	triggers.py: data/inbox; pilde/sıcakta bekler. Git kancası yok
 v4	9	Zamanlanmış görevler	T	cronjobs

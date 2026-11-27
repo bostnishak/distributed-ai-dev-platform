@@ -14,6 +14,7 @@ from collections.abc import AsyncIterator
 from fastapi import UploadFile
 from fastapi.responses import StreamingResponse
 
+import exact_cache
 import extract
 import long_doc
 import research
@@ -69,7 +70,7 @@ def render(report: research.Report, claims: dict[int, research.Claim], question:
 
 async def answer(question: str, text: str, chat: research.Chat | None = None) -> AsyncIterator[tuple[str, str]]:
     """("status", message) while reading, then one ("report", markdown)."""
-    ask = chat or research._ask
+    ask = chat or exact_cache.cached(research._ask, research._MODEL)
     pieces = parts(text)
     used = pieces[:_MAX_PARTS]
     claims: dict[int, research.Claim] = {}

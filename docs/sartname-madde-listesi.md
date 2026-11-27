@@ -8,10 +8,10 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | Sürüm | canlı | test | kısmi | yok | dışarıda | teknik engel | Toplam |
 |---|---|---|---|---|---|---|---|
 | v1 | 17 | 13 | 2 | 0 | 0 | 0 | 32 |
-| v2 | 9 | 13 | 13 | 6 | 2 | 1 | 44 |
-| v3 | 9 | 16 | 12 | 6 | 5 | 2 | 50 |
-| v4 | 16 | 11 | 5 | 1 | 0 | 0 | 33 |
-| **Hepsi** | 51 | 53 | 32 | 13 | 7 | 3 | 159 |
+| v2 | 9 | 14 | 15 | 3 | 2 | 1 | 44 |
+| v3 | 9 | 16 | 13 | 5 | 5 | 2 | 50 |
+| v4 | 16 | 11 | 6 | 0 | 0 | 0 | 33 |
+| **Hepsi** | 51 | 54 | 36 | 8 | 7 | 3 | 159 |
 
 ## v1
 
@@ -60,10 +60,10 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 2.2 | Tier 0 modelsiz düzenleme | canlı | tier0_edit |
 | 2.2 | Karmaşıklığa göre model basamağı | test | complexity_governor |
 | 2.2 | Logprob/entropi ile yükseltme | teknik engel | Ollama yanıtında güvenilir logprob kullanılmıyor |
-| 2.3 | Paralel DAG yürütücü, spekülatif ön hazırlık | yok | 8 GB kartta paralel üretim hızlandırmaz; doğrulama adımları paralel yapılabilir |
+| 2.3 | Paralel DAG yürütücü, spekülatif ön hazırlık | kısmi | dosya grupları ve salt okunur denetimler paralel; genel DAG yürütücü yok |
 | 2.3 | Yalnız etkilenen testleri koşma | test | repo_map.affected_tests; sohbet revizyonunda |
 | 2.4 | AST çapalı yama, tam yazıma geri düşme | test | patch_edit |
-| 2.4 | L1 birebir önbellek | yok |  |
+| 2.4 | L1 birebir önbellek | test | exact_cache.py: sayfa/belge iddia çıkarımında |
 | 2.4 | L2 anlamsal, L3 bileşen önbelleği | yok |  |
 | 3.1 | Yörünge toplama, sır temizleme | test | run_trace |
 | 3.1 | Tercih çiftleri (başarısız/onarılmış) | kısmi | training_pack yalnız başarılı kayıtları veriyor |
@@ -94,7 +94,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 8.1 | İzleme (OpenTelemetry) ve pano | kısmi | telemetry_otel, run_trace; pano yok |
 | 8.2 | 25+ senaryoluk altın test takımı | canlı | scripts/golden.py: hızlı küme canlıda; --slow ile üretim senaryoları |
 | 8.3 | Sürüm kapısı ölçütleri | test | eval_stats: golden ve release_guard içinde |
-| 9 | Çalışırken duraklatma ve yönlendirme | yok |  |
+| 9 | Çalışırken duraklatma ve yönlendirme | kısmi | kesip 'devam et ama ...' ile kalan dosyaları yönlendirme; canlı duraklatma düğmesi yok |
 | 9 | Kanıt kartı (doğrulama özeti) | canlı | IDE 'Kanıt' çekmecesi |
 | 9 | İki varyant yan yana | test | variants.py: iki üretim arka arkaya, iki kart |
 | 9 | Dürüst düşüş bildirimi | test | reply_labels |
@@ -132,7 +132,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 5.3 | Gerçek veriye bağlı grafik | kısmi | document_chart |
 | 5.3 | Yerel ses (ASR/TTS) | kısmi | multimodal_studio_media STT; TTS yok |
 | 6.1 | İki zamanlı bilgi grafiği | test | memory_timeline |
-| 6.2 | Bağlam sayfalama | yok |  |
+| 6.2 | Bağlam sayfalama | kısmi | context_pins: kullanıcının kuralları sıkıştırmada hiç düşmüyor; sayfa içeri/dışarı çağrıları yok |
 | 6.3 | Uyku birleştirmesi ve çelişki çözümü | kısmi | memory_conflicts, memory_maintenance |
 | 6.3 | Bellek denetim ve silme | test | memory_api, retention |
 | 7.1 | WASM ve iş nesnesi yalıtımı | test | isolation.py: sohbetten başlatılan canlı sunucu iş nesnesiyle sınırlı |
@@ -181,7 +181,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 6.4 | DuckDB veri çalışması | canlı | data_lab |
 | 6.4 | Otomatik EDA ve ML hattı | canlı | eda.py: CSV için profil + 5 katlı çapraz doğrulama; Vega/Plotly grafik yok |
 | 6.5 | Uzun yazıda sayı tutarlılığı | test | doc_sanity, doc_proof |
-| 7 | Karma buluta yükseltme (varsayılan kapalı) | yok |  |
+| 7 | Karma buluta yükseltme (varsayılan kapalı) | kısmi | escalation.py yalnız anonimleştirir; hiçbir yere göndermez |
 | 8 | Uzmanlığa göre anlatım ve netleştirme sorusu | kısmi | clarify |
 | 9 | Dosya izleyici ve gelen kutusu tetikleyicisi | canlı | triggers.py: data/inbox; pilde/sıcakta bekler. Git kancası yok |
 | 9 | Zamanlanmış görevler | test | cronjobs |

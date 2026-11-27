@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 
 import config
+import escalation
 import release_guard
 import training_pack
 
@@ -21,4 +22,4 @@ def answer(prompt: str) -> str:
         counts = training_pack.export(folder)
         return (f"Eğitim paketi yazıldı: `{folder}` — {counts['sft']} doğrulanmış örnek, {counts['dpo']} tercih çifti. "
                 "Eğitim bu bilgisayarda yapılmaz; paketteki betik bulut ekran kartı içindir.")
-    return ""
+    return escalation.answer(prompt)

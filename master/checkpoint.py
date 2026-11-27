@@ -20,6 +20,7 @@ from fastapi.responses import StreamingResponse
 
 FILE = ".checkpoint.json"
 _RESUME_RE = re.compile(r"^\s*(?:(?:yarım kalan|kaldığın yerden)[\w\s]{0,30}|devam(?:\s+et(?:tir)?)?|resume|continue)\s*[.!]*\s*$", re.IGNORECASE)
+_STEER_RE = re.compile(r"^\s*(?:devam\s+et|kaldığın\s+yerden(?:\s+devam\s+et)?|resume|continue)\s+(?:ama|fakat|ancak|but)\s+(?P<extra>.{3,400}?)\s*$", re.IGNORECASE | re.DOTALL)
 _MAX_AGE_S = 24 * 3600
 
 
@@ -55,7 +56,17 @@ def remaining(ws_dir: Path, data: dict[str, Any]) -> list[dict[str, Any]]:
     return [f for f in data["files"] if f["path"] not in data["done"] or not (ws_dir / f["path"]).is_file()]
 
 
-async def stream_resume(ws_id: str) -> AsyncIterator[dict[str, Any]]:
+def steering(prompt: str) -> str:
+    """The extra instruction of "continue, but ..." ('' for a plain resume or another sentence)."""
+    match = _STEER_RE.match(prompt)
+    return match["extra"].rstrip(".!") if match else ""
+
+
+def is_resume(prompt: str) -> bool:
+    return bool(_RESUME_RE.match(prompt) or _STEER_RE.match(prompt))
+
+
+async def stream_resume(ws_id: str, extra: str = "") -> AsyncIterator[dict[str, Any]]:
     import workspace_builder as wb
     from workspace_smoke import smoke_and_repair
 
@@ -74,7 +85,8 @@ async def stream_resume(ws_id: str) -> AsyncIterator[dict[str, Any]]:
     snippets = [f"=== {p} ===\n{t[:1200]}" for p, t in texts.items()]
     for index, spec in enumerate(todo, start=1):
         yield {"type": "file_start", "path": spec["path"], "index": index, "total": len(todo)}
-        prompt = wb._file_prompt(meta, data["request"], tree, (contracts, snippets), spec)
+        request = data["request"] + (f"\n\nYARIDA EKLENEN TALİMAT (kalan dosyalarda uygula): {extra}" if extra else "")
+        prompt = wb._file_prompt(meta, request, tree, (contracts, snippets), spec)
         code = await wb._generate_and_write_file(ws_dir, model, spec, prompt)
         contracts.append(wb._extract_file_contract(spec["path"], code))
         snippets.append(f"=== {spec['path']} ===\n{code[:1200]}")
@@ -116,18 +128,18 @@ def _find(history: str) -> str:
 
 
 def fastpath(prompt: str, history: str) -> StreamingResponse | None:
-    if not _RESUME_RE.match(prompt) or not (ws_id := _find(history)):
+    if not is_resume(prompt) or not (ws_id := _find(history)):
         return None
-    return StreamingResponse(_stream(ws_id), media_type="text/event-stream")
+    return StreamingResponse(_stream(ws_id, steering(prompt)), media_type="text/event-stream")
 
 
-async def _stream(ws_id: str):
+async def _stream(ws_id: str, extra: str = ""):
     import assistant_stream_fastpaths as fp
     import workspace_builder as wb
 
     yield fp.sse_event({"type": "token", "content": "Yarım kalan proje bulundu, kaldığı yerden devam ediliyor...\n"})
     try:
-        async for evt in stream_resume(ws_id):
+        async for evt in stream_resume(ws_id, extra):
             if evt["type"] == "status":
                 yield fp.sse_event({"type": "status", "message": evt["message"]})
             elif evt["type"] == "file_done":
