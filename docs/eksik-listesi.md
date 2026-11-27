@@ -9,7 +9,7 @@ Bu dosya "ne kaldı" sorusunun tek cevabıdır. Bir madde, kod testi **ve** canl
 
 ## Çalışma sırası: 3 parça
 
-**Kaldığım yer (27.11.2026, akşam):** 1. parçada 3 madde kaldı, üçü de ekran kartı istiyor: zorluk basamakları (L1–L5), üç sesli kurul, iki varyant. Kartı başka bir eğitim işi kullandığı için bekletildi. Koşturma: `ITEM_FILTER="Üç sesli" python scripts/live_items.py server`, `ITEM_FILTER="İki varyant" ...`, `python scripts/ladder.py` (sunucu 8000'de açıkken).
+**Kaldığım yer (27.11.2026, gece):** 1. parça bitti. Açık kalan tek ölçüm sonucu: zorluk merdiveninde yerel model L4'e kadar çıkıyor. 2. parça (M04–M08) sen "devam" deyince başlayacak.
 
 Dizüstü bilgisayar kesintisiz yüklenmesin diye iş üçe bölündü. Bir parça bitince **durulur**; sen "devam" demeden sonrakine geçilmez.
 
@@ -92,7 +92,7 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [x] Savaş odasında kanıtlar: teslim aşamaları, biçimsel/mutasyon denetimleri, doğrulanan ve açık maddeler (tarayıcıda denendi)
 - [x] Pareto sınırı izleme (ölçüm geçmişi; yalnız otomatik testle)
 - [x] Ölçüm bozulunca geri alma ve olay raporu (yalnız otomatik testle)
-- [~] Zorluk basamaklı (L1–L5) benchmark: `scripts/ladder.py` yazıldı, canlı koşulmadı
+- [x] Zorluk basamaklı (L1–L5) benchmark: canlı koşuldu (tohum 7). L1–L4 geçti, **L5 kaldı**: yerel 7B model açılışta çöken API kodu üretti; platform bunu "kaldı" diye bildirdi. İlk koşuda çıkan iki hata düzeltildi (sipariş toplamı artık kodla hesaplanıyor; `app/main.py` giriş dosyası bulunuyor)
 
 ## 4. v4
 
@@ -115,7 +115,7 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [x] `ai-os.config` özellik bayrakları, `up --profile`
 - [x] Etkin yalıtım katmanı savaş odasında yazıyor
 - [x] En çok 2 çoktan seçmeli netleştirme sorusu (3 açık uçlu soru soruluyordu, düzeltildi)
-- [~] Üç sesli kurul: 120 sn süre sınırı yüzünden kalıyordu, düzeltildi; canlı yeniden denenecek
+- [x] Üç sesli kurul (süre sınırı düzeltildi; canlı geçti, 277 sn)
 - [—] Karma bulut köprüsü: istemedin (ücretli servis olmasın)
 
 ## 5. Canlı denenmemiş maddeler (yalnız otomatik testle geçenler)
@@ -132,7 +132,7 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [x] Öncelik kuyruğu (canlı geçti)
 - [x] Gözcü
 - [x] Şartname listesinde yalnız otomatik testle kalan madde yok (148 canlı, 3 teknik engel, 8 kapsam dışı)
-- [~] İki varyant: araştırma kaldırıldı; son canlı deneme başka bir eğitim işi kartı kullanırken zaman aşımına uğradı, yeniden denenecek
+- [x] İki varyant (araştırma kaldırıldı; canlı geçti, 437 sn, iki ayrı proje)
 
 ## 6. v5
 

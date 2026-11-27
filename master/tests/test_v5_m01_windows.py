@@ -1240,3 +1240,25 @@ def test_empty_table_columns_are_dropped():
 
     assert doc_tools._markdown_table([["Urun", "", "Adet"], ["Kalem", None, "12"]]) == "| Urun | Adet |\n|---|---|\n| Kalem | 12 |"
     assert doc_tools._markdown_table([["", ""]]) == ""
+
+
+def test_order_totals_are_added_by_code():
+    import code_probe
+
+    ask = "Şu siparişin toplam tutarını hesapla: kalem: 52 adet, tanesi 7 TL; defter: 3 adet, tanesi 12,50 TL. Son satıra yalnız toplam sayıyı yaz."
+    assert "= 401,50." in code_probe.order_note(ask)
+    assert code_probe.order_note(ask) in code_probe.verified_prefix(ask, False)
+    assert code_probe.order_note(ask + " %10 indirim uygula.") == ""
+    assert code_probe.order_note("kalem 5 adet, tanesi 3 TL; toplam?") == ""
+    assert code_probe.order_note("toplam: 2 adet, tanesi 1.250 TL; 3 adet, tanesi 4 TL") == ""
+
+
+def test_entry_is_the_file_that_creates_the_application(tmp_path):
+    import workspace_smoke
+
+    assert workspace_smoke._find_entry(tmp_path) is None
+    (tmp_path / "app").mkdir()
+    (tmp_path / "run.py").write_text("from app.main import app\n", encoding="utf-8")
+    assert workspace_smoke._find_entry(tmp_path) == tmp_path / "run.py"
+    (tmp_path / "app" / "main.py").write_text("from fastapi import FastAPI\napp = FastAPI()\n", encoding="utf-8")
+    assert workspace_smoke._find_entry(tmp_path) == tmp_path / "app/main.py"

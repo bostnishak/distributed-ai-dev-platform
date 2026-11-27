@@ -35,6 +35,7 @@ from workspace_requirements import _PIP_NAMES, repair_project
 _PROBE = "".join((Path(__file__).parent / "prompts" / name).read_text(encoding="utf-8") for name in ("api_probe.py.txt", "smoke_probe.py.txt"))
 _FRAME_RE = re.compile(r'File "([^"]+)", line (\d+)')
 _ENTRIES = ("run.py", "app.py", "main.py", "backend/app.py", "src/main.py", "app/main.py")
+_APP_RE = re.compile(r"\b(?:FastAPI|Flask)\s*\(")
 _Regenerate = Callable[[str, str], Awaitable[str]]
 
 
@@ -56,7 +57,9 @@ def _clean_env() -> dict[str, str]:
 
 
 def _find_entry(ws_dir: Path) -> Path | None:
-    return next((ws_dir / e for e in _ENTRIES if (ws_dir / e).is_file()), None)
+    """The first candidate that creates the web application; a run.py that only imports app/main.py is not it."""
+    found = [ws_dir / e for e in _ENTRIES if (ws_dir / e).is_file()]
+    return next((p for p in found if _APP_RE.search(p.read_text(encoding="utf-8", errors="replace"))), found[0] if found else None)
 
 
 def _safe_requirements(ws_dir: Path) -> list[str]:
