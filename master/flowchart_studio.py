@@ -197,6 +197,23 @@ def _arrow_head(e: dict[str, str], pos: dict[str, tuple[int, int]], ty: int, pal
     return f'<polygon points="{pts}" fill="{pal["muted"]}"/>'
 
 
+def exports(spec: dict[str, Any]) -> dict[str, str]:
+    """The same steps and arrows as Mermaid, Graphviz and PlantUML text, for editing in other tools."""
+    def clean_label(text: str) -> str:
+        return re.sub(r'["\[\]{}|<>\n]', " ", text).strip()
+
+    ids = {s["id"]: f"n{i}" for i, s in enumerate(spec["steps"], start=1)}
+    shapes = {"start": ("([", "])"), "end": ("([", "])"), "decision": ("{", "}"), "process": ("[", "]")}
+    mermaid = ["flowchart TD"] + [f'  {ids[s["id"]]}{shapes[s["type"]][0]}"{clean_label(s["label"])}"{shapes[s["type"]][1]}' for s in spec["steps"]]
+    mermaid += [f'  {ids[e["from"]]} -->' + (f'|{clean_label(e["label"])}|' if e.get("label") else "") + f' {ids[e["to"]]}' for e in spec["edges"]]
+    kinds = {"start": "oval", "end": "oval", "decision": "diamond", "process": "box"}
+    dot = ["digraph akis {", "  rankdir=TB;"] + [f'  {ids[s["id"]]} [shape={kinds[s["type"]]}, label="{clean_label(s["label"])}"];' for s in spec["steps"]]
+    dot += [f'  {ids[e["from"]]} -> {ids[e["to"]]}' + (f' [label="{clean_label(e["label"])}"]' if e.get("label") else "") + ";" for e in spec["edges"]] + ["}"]
+    puml = ["@startuml"] + [f'rectangle "{clean_label(s["label"])}" as {ids[s["id"]]}' for s in spec["steps"]]
+    puml += [f'{ids[e["from"]]} --> {ids[e["to"]]}' + (f' : {clean_label(e["label"])}' if e.get("label") else "") for e in spec["edges"]] + ["@enduml"]
+    return {"mmd": "\n".join(mermaid) + "\n", "dot": "\n".join(dot) + "\n", "puml": "\n".join(puml) + "\n"}
+
+
 def render(spec: dict[str, Any], pal: dict[str, str]) -> str:
     """SVG of the flow: shapes by step type, elbow arrows, answer labels on decision branches."""
     pos, width, height = _positions(spec)

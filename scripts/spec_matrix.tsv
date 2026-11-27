@@ -53,10 +53,10 @@ v2	4.1	Hipotez temelli nedensel hata ayıklama + regresyon testi	C	causal_debug 
 v2	4.2	En iyi N aday değerlendirme	K	konsey; başarısız onarımda ikinci modele yükseltme
 v2	4.3	Doğrulanmış/çıkarım/varsayım defteri	T	ledger.py: kanıt çekmecesinde doğrulandı / varsayım / açık
 v2	4.4	API fuzz ve sınır testi	C	api_probe; Docker kum havuzunda denendi
-v2	4.4	Arayüz kaos, erişilebilirlik, üç ekran genişliği	K	üç genişlik, adsız denetim, kontrast, taşma; kaos tıklaması yok
+v2	4.4	Arayüz kaos, erişilebilirlik, üç ekran genişliği	C	ui_chaos + visual_audit
 v2	4.4	Uydurma paket (slopsquatting) denetimi	C	package_check
 v2	5.1	Depo haritası	C	repo_map.py (AST/regex + PageRank; tree-sitter değil); düzenlemede kullanılıyor, birim testli
-v2	5.2	Melez kod araması (graf+BM25+gömme)	K	hybrid_graph_rag belge için; kod için yok
+v2	5.2	Melez kod araması (graf+BM25+gömme)	C	code_search.py: BM25 + sembol + CPU gömme
 v2	5.2	Etki alanı (blast radius) analizi	T	repo_map.dependents_note
 v2	5.3	Anlık statik tanılama (ruff, node --check)	C	code_audit.diagnostics (ruff, node --check), üretim sonunda
 v2	5.3	LSP sunucuları	C	lsp_client.py: pylsp ile 'X nerede kullanılıyor'; yalnız Python
@@ -69,7 +69,7 @@ v2	7.1	Kalıcı iş akışı, kontrol noktasından devam	C	checkpoint.py; canlı
 v2	7.2	MCP araç veri yolu ve izin kapsamları	T	mcp_connector: yazan araçlar açık onay ister; SSRF ve gizli anahtar kapısı
 v2	7.3	Öncelikli GPU kuyruğu	T	gateway/priority_gate.py: sohbet, bekleyen arka plan işlerinin önüne geçer
 v2	7.3	WebSocket canlı DAG akışı	K	SSE ile aşama akışı var
-v2	8.1	İzleme (OpenTelemetry) ve pano	T	perf_report: 'performans durumu' (model ve iş bazında süre, token/sn)
+v2	8.1	İzleme (OpenTelemetry) ve pano	C	perf_report: 'performans durumu'
 v2	8.2	25+ senaryoluk altın test takımı	C	scripts/golden.py: hızlı küme canlıda; --slow ile üretim senaryoları
 v2	8.3	Sürüm kapısı ölçütleri	T	eval_stats: golden ve release_guard içinde
 v2	9	Çalışırken duraklatma ve yönlendirme	K	kesip 'devam et ama ...' ile kalan dosyaları yönlendirme; canlı duraklatma düğmesi yok
@@ -82,7 +82,7 @@ v3	1.3	Radix KV önbellek havuzu	E	Ollama dışarıdan KV denetimi vermiyor
 v3	1.4	Şemaya zorlanmış JSON üretimi	T	Ollama format şeması
 v3	1.4	GBNF/XGrammar yama ve sözdizimi maskeleri	E	Ollama API'si özel dilbilgisi almıyor
 v3	2.1	Z3 ile sayısal doğrulama	C	z3_math
-v3	2.1	Z3 ile iş kuralı değişmezleri ve karşı örnek	K	property_check rastgele karşı örnek arıyor; Z3 ile ispat değil
+v3	2.1	Z3 ile iş kuralı değişmezleri ve karşı örnek	C	symbolic.py: tamsayı koşul/atama alt kümesinde ispat ya da karşı örnek; döngü ve çağrı içeren kodda ispat yok
 v3	2.1	Durum makinesi tam tarama	K	akış şemasında çıkışsız döngü taraması
 v3	2.1	Durumlu özellik testi (Hypothesis)	C	property_check.py: kuralı model yazıyor, canlıda 3/3 ihlal buldu; api_probe ekle-sil tutarlılığı
 v3	2.2	Mutasyon testi kapısı	C	mutation.py; uyarı verir, teslimi engellemez
@@ -101,8 +101,8 @@ v3	4.3	Çalışma anı bekçisi	T	watchdog.py: duran proje sunucusunu olay kayd�
 v3	5.1	Ekran görüntüsünden koda	C	design_from_image.py: ölçülen renk/yerleşim + görsel model; canlıda yerleşim %87, renk %97
 v3	5.2	Typst/WeasyPrint belge stüdyosu	K	PyMuPDF ile PDF; Typst yok
 v3	5.2	PDF sayfa sayfa görsel kanıtlama	T	office_verify.proof_page: boş sayfa, taşma, çakışma, küçük punto
-v3	5.3	Çoklu diyagram biçimi	K	SVG ve Mermaid
-v3	5.3	Gerçek veriye bağlı grafik	K	document_chart
+v3	5.3	Çoklu diyagram biçimi	C	SVG + Mermaid, Graphviz, PlantUML metni (D2 yok)
+v3	5.3	Gerçek veriye bağlı grafik	C	data_chart.py: CSV'den çubuk grafik; etkileşimli Vega/Plotly değil
 v3	5.3	Yerel ses (ASR/TTS)	K	multimodal_studio_media STT; TTS yok
 v3	6.1	İki zamanlı bilgi grafiği	T	memory_timeline
 v3	6.2	Bağlam sayfalama	K	context_pins: kullanıcının kuralları sıkıştırmada hiç düşmüyor; sayfa içeri/dışarı çağrıları yok

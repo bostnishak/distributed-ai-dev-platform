@@ -8,10 +8,10 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | Sürüm | canlı | test | kısmi | yok | dışarıda | teknik engel | Toplam |
 |---|---|---|---|---|---|---|---|
 | v1 | 17 | 13 | 2 | 0 | 0 | 0 | 32 |
-| v2 | 11 | 21 | 9 | 0 | 2 | 1 | 44 |
-| v3 | 12 | 17 | 14 | 0 | 5 | 2 | 50 |
+| v2 | 14 | 20 | 7 | 0 | 2 | 1 | 44 |
+| v3 | 15 | 17 | 11 | 0 | 5 | 2 | 50 |
 | v4 | 16 | 11 | 6 | 0 | 0 | 0 | 33 |
-| **Hepsi** | 56 | 62 | 31 | 0 | 7 | 3 | 159 |
+| **Hepsi** | 62 | 61 | 26 | 0 | 7 | 3 | 159 |
 
 ## v1
 
@@ -75,10 +75,10 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 4.2 | En iyi N aday değerlendirme | kısmi | konsey; başarısız onarımda ikinci modele yükseltme |
 | 4.3 | Doğrulanmış/çıkarım/varsayım defteri | test | ledger.py: kanıt çekmecesinde doğrulandı / varsayım / açık |
 | 4.4 | API fuzz ve sınır testi | canlı | api_probe; Docker kum havuzunda denendi |
-| 4.4 | Arayüz kaos, erişilebilirlik, üç ekran genişliği | kısmi | üç genişlik, adsız denetim, kontrast, taşma; kaos tıklaması yok |
+| 4.4 | Arayüz kaos, erişilebilirlik, üç ekran genişliği | canlı | ui_chaos + visual_audit |
 | 4.4 | Uydurma paket (slopsquatting) denetimi | canlı | package_check |
 | 5.1 | Depo haritası | canlı | repo_map.py (AST/regex + PageRank; tree-sitter değil); düzenlemede kullanılıyor, birim testli |
-| 5.2 | Melez kod araması (graf+BM25+gömme) | kısmi | hybrid_graph_rag belge için; kod için yok |
+| 5.2 | Melez kod araması (graf+BM25+gömme) | canlı | code_search.py: BM25 + sembol + CPU gömme |
 | 5.2 | Etki alanı (blast radius) analizi | test | repo_map.dependents_note |
 | 5.3 | Anlık statik tanılama (ruff, node --check) | canlı | code_audit.diagnostics (ruff, node --check), üretim sonunda |
 | 5.3 | LSP sunucuları | canlı | lsp_client.py: pylsp ile 'X nerede kullanılıyor'; yalnız Python |
@@ -91,7 +91,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 7.2 | MCP araç veri yolu ve izin kapsamları | test | mcp_connector: yazan araçlar açık onay ister; SSRF ve gizli anahtar kapısı |
 | 7.3 | Öncelikli GPU kuyruğu | test | gateway/priority_gate.py: sohbet, bekleyen arka plan işlerinin önüne geçer |
 | 7.3 | WebSocket canlı DAG akışı | kısmi | SSE ile aşama akışı var |
-| 8.1 | İzleme (OpenTelemetry) ve pano | test | perf_report: 'performans durumu' (model ve iş bazında süre, token/sn) |
+| 8.1 | İzleme (OpenTelemetry) ve pano | canlı | perf_report: 'performans durumu' |
 | 8.2 | 25+ senaryoluk altın test takımı | canlı | scripts/golden.py: hızlı küme canlıda; --slow ile üretim senaryoları |
 | 8.3 | Sürüm kapısı ölçütleri | test | eval_stats: golden ve release_guard içinde |
 | 9 | Çalışırken duraklatma ve yönlendirme | kısmi | kesip 'devam et ama ...' ile kalan dosyaları yönlendirme; canlı duraklatma düğmesi yok |
@@ -109,7 +109,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 1.4 | Şemaya zorlanmış JSON üretimi | test | Ollama format şeması |
 | 1.4 | GBNF/XGrammar yama ve sözdizimi maskeleri | teknik engel | Ollama API'si özel dilbilgisi almıyor |
 | 2.1 | Z3 ile sayısal doğrulama | canlı | z3_math |
-| 2.1 | Z3 ile iş kuralı değişmezleri ve karşı örnek | kısmi | property_check rastgele karşı örnek arıyor; Z3 ile ispat değil |
+| 2.1 | Z3 ile iş kuralı değişmezleri ve karşı örnek | canlı | symbolic.py: tamsayı koşul/atama alt kümesinde ispat ya da karşı örnek; döngü ve çağrı içeren kodda ispat yok |
 | 2.1 | Durum makinesi tam tarama | kısmi | akış şemasında çıkışsız döngü taraması |
 | 2.1 | Durumlu özellik testi (Hypothesis) | canlı | property_check.py: kuralı model yazıyor, canlıda 3/3 ihlal buldu; api_probe ekle-sil tutarlılığı |
 | 2.2 | Mutasyon testi kapısı | canlı | mutation.py; uyarı verir, teslimi engellemez |
@@ -128,8 +128,8 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 5.1 | Ekran görüntüsünden koda | canlı | design_from_image.py: ölçülen renk/yerleşim + görsel model; canlıda yerleşim %87, renk %97 |
 | 5.2 | Typst/WeasyPrint belge stüdyosu | kısmi | PyMuPDF ile PDF; Typst yok |
 | 5.2 | PDF sayfa sayfa görsel kanıtlama | test | office_verify.proof_page: boş sayfa, taşma, çakışma, küçük punto |
-| 5.3 | Çoklu diyagram biçimi | kısmi | SVG ve Mermaid |
-| 5.3 | Gerçek veriye bağlı grafik | kısmi | document_chart |
+| 5.3 | Çoklu diyagram biçimi | canlı | SVG + Mermaid, Graphviz, PlantUML metni (D2 yok) |
+| 5.3 | Gerçek veriye bağlı grafik | canlı | data_chart.py: CSV'den çubuk grafik; etkileşimli Vega/Plotly değil |
 | 5.3 | Yerel ses (ASR/TTS) | kısmi | multimodal_studio_media STT; TTS yok |
 | 6.1 | İki zamanlı bilgi grafiği | test | memory_timeline |
 | 6.2 | Bağlam sayfalama | kısmi | context_pins: kullanıcının kuralları sıkıştırmada hiç düşmüyor; sayfa içeri/dışarı çağrıları yok |

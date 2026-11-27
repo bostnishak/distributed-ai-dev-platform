@@ -553,6 +553,8 @@ async def generate_ai_image(prompt: str, history: list[dict[str, Any]] | None = 
         if flow:
             pal_key = _pick_palette_from_text(combined_prompt, seed)
             svg_text, engine = flowchart_studio.render(flow, STUDIO_PALETTES[pal_key]), "flowchart-studio (local)"
+            for suffix, text in flowchart_studio.exports(flow).items():
+                out_svg.with_suffix(f".{suffix}").write_text(text, encoding="utf-8")
             meta = {"brand_name": flow["title"], "tagline": ""}
         else:
             spec_d = await _diagram_spec_from_llm(combined_prompt, seed)

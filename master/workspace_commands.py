@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 
+import code_search
 import lsp_client
 import refactor
 import repo_map
@@ -21,6 +22,8 @@ def parse(prompt: str) -> tuple[str, str] | None:
         return "undo", ""
     if match := _VERSION_RE.match(prompt):
         return "version", "v" + (match["a"] or match["b"] or match["c"])
+    if topic := code_search.asked(prompt):
+        return "search", topic
     if symbol := lsp_client.asked_symbol(prompt):
         return "references", symbol
     if _LOAD_RE.match(prompt):
@@ -44,6 +47,8 @@ def run(ws_id: str, command: str, value: str) -> str:
 
     ws_dir = wb.safe_workspace_dir(ws_id)
     meta = wb.load_workspace_meta(ws_dir)
+    if command == "search":
+        return code_search.answer(ws_dir, value)
     if command == "references":
         return lsp_client.answer(ws_dir, value)
     if command == "load":
