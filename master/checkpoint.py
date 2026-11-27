@@ -18,6 +18,8 @@ from typing import Any
 import httpx
 from fastapi.responses import StreamingResponse
 
+import atomic_io
+
 FILE = ".checkpoint.json"
 _RESUME_RE = re.compile(r"^\s*(?:(?:yarım kalan|kaldığın yerden)[\w\s]{0,30}|devam(?:\s+et(?:tir)?)?|resume|continue)\s*[.!]*\s*$", re.IGNORECASE)
 _STEER_RE = re.compile(r"^\s*(?:devam\s+et|kaldığın\s+yerden(?:\s+devam\s+et)?|resume|continue)\s+(?:ama|fakat|ancak|but)\s+(?P<extra>.{3,400}?)\s*$", re.IGNORECASE | re.DOTALL)
@@ -29,9 +31,7 @@ def save(ws_dir: Path, request: str, model: str, files: list[dict[str, Any]]) ->
 
 
 def _write(ws_dir: Path, data: dict[str, Any]) -> None:
-    tmp = ws_dir / (FILE + ".tmp")
-    tmp.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
-    tmp.replace(ws_dir / FILE)  # a crash while writing leaves the previous checkpoint intact
+    atomic_io.write_text(ws_dir / FILE, json.dumps(data, ensure_ascii=False))  # a crash while writing leaves the previous checkpoint intact
 
 
 def load(ws_dir: Path) -> dict[str, Any] | None:
@@ -147,7 +147,7 @@ async def _stream(ws_id: str, extra: str = ""):
                 yield fp.sse_event({"type": "token", "content": f"- `{evt['path']}` yazıldı\n"})
             elif evt["type"] == "done":
                 note = "\n".join(f"> {w}" for w in evt["warnings"][:3])
-                yield fp.sse_event({"type": "token", "content": f"\nProje tamamlandı. Önizlemeden kontrol et.\n{note}\n"})
+                yield fp.sse_event({"type": "token", "content": f"\nKalan dosyalar yazıldı ve çalıştırma denetimi yapıldı. Önizlemeden kontrol et.\n{note}\n"})
                 yield fp.sse_event(fp._attach_workspace_flags(wb, evt["workspace"], evt["tree"]))
         yield fp.sse_event({"type": "done", "model": "proje-devam", "task_type": "proje"})
     except (httpx.HTTPError, subprocess.SubprocessError, OSError, ValueError, TypeError, KeyError, RuntimeError) as exc:

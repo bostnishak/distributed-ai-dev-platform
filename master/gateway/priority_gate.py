@@ -13,6 +13,8 @@ import heapq
 import itertools
 from collections.abc import AsyncIterator, Iterator
 
+import gpu_watch
+
 INTERACTIVE, REPAIR, BACKGROUND = 0, 1, 2
 _BACKGROUND_FEATURES = frozenset({"self_eval", "inbox", "optimizer", "training", "benchmark", "property_check"})
 _REPAIR_FEATURES = frozenset({"debugger", "research", "doc_reader", "data_lab", "workspace_builder"})
@@ -37,6 +39,14 @@ def priority_of(feature: str) -> int:
     if feature in _BACKGROUND_FEATURES:
         return BACKGROUND
     return REPAIR if feature in _REPAIR_FEATURES else INTERACTIVE
+
+
+async def _wait_until_safe() -> None:
+    """Background work waits while the card is too hot or the battery is low; interactive requests never do."""
+    for _ in range(120):
+        if not await asyncio.to_thread(gpu_watch.hold_reason):
+            return
+        await asyncio.sleep(15)
 
 
 class PriorityGate:
@@ -68,6 +78,8 @@ class PriorityGate:
 
     @contextlib.asynccontextmanager
     async def slot(self, feature: str = "") -> AsyncIterator[None]:
+        if priority_of(feature) == BACKGROUND:
+            await _wait_until_safe()
         await self.acquire(priority_of(feature))
         try:
             yield

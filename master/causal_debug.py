@@ -17,6 +17,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, ValidationError
 
+import cheat_guard
 import gateway
 import patch_edit
 import repair_pairs
@@ -59,10 +60,18 @@ def grounded(audit: Audit, log: str, files: dict[str, str]) -> list[Hypothesis]:
     return [h for h in audit.hypotheses if h.file in files and len(h.evidence.strip()) >= 8 and " ".join(h.evidence.split()) in flat]
 
 
-def weakens_tests(path: str, old: str, new: str) -> bool:
+def weakens_tests(path: str, old: str, new: str, literals: set[str] = frozenset()) -> bool:
+    """True when the change must be rejected as gaming the checks; the attempt is written down."""
+    if violations := cheat_guard.review(path, old, new, literals):
+        cheat_guard.record(violations)
+        return True
     if not (path.startswith("tests/") or Path(path).name.startswith("test_")):
         return False
     return len(_ASSERT_RE.findall(new)) < len(_ASSERT_RE.findall(old)) or len(_SKIP_RE.findall(new)) > len(_SKIP_RE.findall(old))
+
+
+def _literals(files: dict[str, str]) -> set[str]:
+    return cheat_guard.test_literals({p: s for p, s in files.items() if cheat_guard.is_test(p)})
 
 
 _CERTAIN = "yanlış modülden içe aktarma"
@@ -158,8 +167,8 @@ async def _propose(ws_dir: Path, log: str, regenerate: Regenerate, models: Model
         _log.warning("debugger hypotheses failed: %s", exc)
         return {}, ""
     for guess in grounded(audit, log, files)[:2]:
-        new = await _candidate(guess, log, files, regenerate, models.patcher)
-        if new and new != files[guess.file] and not weakens_tests(guess.file, files[guess.file], new):
+        new = await _candidate(guess, f"{log}\n{cheat_guard.guardrails()}", files, regenerate, models.patcher)
+        if new and new != files[guess.file] and not weakens_tests(guess.file, files[guess.file], new, _literals(files)):
             return {guess.file: new}, f"{guess.file}: {guess.cause[:120]}"
     return {}, ""
 
@@ -192,7 +201,7 @@ async def explore(ws_dir: Path, run_all: Callable[[], str], regenerate: Regenera
         out = []
         for guess in grounded(audit, log, files)[:3]:
             new = await _candidate(guess, log, files, regenerate, tools.patcher)
-            if new and new != files[guess.file] and not weakens_tests(guess.file, files[guess.file], new):
+            if new and new != files[guess.file] and not weakens_tests(guess.file, files[guess.file], new, _literals(files)):
                 out.append({**files, guess.file: new})
         return out
 

@@ -18,6 +18,7 @@ from fastapi.responses import StreamingResponse
 
 import automl_studio
 import extract
+import turkish
 
 _log = logging.getLogger(__name__)
 _EDA_RE = re.compile(r"keşif\s+analiz|veri\s+analiz\w*|analiz\s+raporu|\beda\b|veriyi\s+incele|veri\s+profil|tahmin\s+modeli|tahmin\s+et|predict\b|profile\s+this\s+data", re.IGNORECASE)
@@ -32,7 +33,8 @@ def rows_of(text: str) -> list[dict[str, str]]:
 
 
 def target_of(prompt: str, columns: list[str]) -> str:
-    named = [c for c in columns if c and re.search(rf"(?<![\w]){re.escape(c.casefold())}(?![a-z0-9])", prompt.casefold())]
+    asked = turkish.lower(prompt)  # "İl" must match "il": plain casefold keeps a dot on İ and never does
+    named = [c for c in columns if c and re.search(rf"(?<![\w]){re.escape(turkish.lower(c))}(?![a-zçğıöşü0-9])", asked)]
     return max(named, key=len) if named else ""
 
 

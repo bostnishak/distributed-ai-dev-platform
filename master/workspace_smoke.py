@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 import causal_debug
+import cheat_guard
 import complexity_governor
 import debug_probe
 import spec_contract
@@ -143,9 +144,15 @@ def _repair_prompt(ws_dir: Path, target: Path, log: str) -> tuple[str, str]:
 
 def _apply_fix(target: Path, fixed: str, ws_dir: Path) -> None:
     """Write the repaired file; a reply with several files or stray prose is reduced to the one block that belongs to `target`."""
-    old = target.read_text(encoding="utf-8", errors="replace").lower()
+    before = target.read_text(encoding="utf-8", errors="replace")
+    old = before.lower()
     if (body := extract_file(fixed, target.suffix)) and ("</html>" not in old or "</html>" in body.lower()):  # never save a cut-off page
-        target.write_text(body, encoding="utf-8")
+        relative = target.relative_to(ws_dir).as_posix()
+        tests = {p.name: p.read_text(encoding="utf-8", errors="replace") for p in ws_dir.rglob("test_*.py")}
+        if violations := cheat_guard.review(relative, before, body, cheat_guard.test_literals(tests)):
+            cheat_guard.record(violations)  # a repair that games the checks is thrown away
+        else:
+            target.write_text(body, encoding="utf-8")
     repair_project(ws_dir)
 
 

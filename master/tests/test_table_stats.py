@@ -19,8 +19,8 @@ def test_quantity_times_price_total_is_exact():
 
 def test_dirty_rows_are_reported_and_excluded():
     out = table_stats.summary(DIRTY)
-    assert "toplam 76 001" in out and "satır 4 (Ayşe)" in out and "satır 7 (Zeynep" in out and "negatif" in out
-    assert "Ayşe: 50 001" in out and "en yüksek: Ayşe" in out
+    assert "toplam 76.001" in out and "satır 4 (Ayşe)" in out and "satır 7 (Zeynep" in out and "negatif" in out
+    assert "Ayşe: 50.001" in out and "en yüksek: Ayşe" in out
 
 
 def test_non_tabular_text_gets_no_summary():

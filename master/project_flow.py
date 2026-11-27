@@ -17,6 +17,7 @@ import agent_contracts
 import complexity_governor
 import design_system
 import docs_vault
+import done_gate
 import json_repair
 import ledger
 import post_checks
@@ -271,4 +272,4 @@ async def _coverage_events(done: dict[str, Any], info: dict[str, Any], callers: 
                 yield evt
     except (OSError, RuntimeError, ValueError, TypeError, KeyError) as exc:
         done = {**done, "warnings": [*done.get("warnings", []), f"Özellik denetimi tamamlanamadı: {exc}"]}
-    yield await post_checks.apply(ws_dir, str(info.get("request") or ""), done)
+    yield await done_gate.apply(ws_dir, await post_checks.apply(ws_dir, str(info.get("request") or ""), done))

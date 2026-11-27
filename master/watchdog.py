@@ -19,6 +19,7 @@ import event_log
 import memory_conflicts
 import memory_engine
 import memory_maintenance
+import process_registry
 import self_play
 import workspace_builder_ops as ops
 from process_utils import spawn_process
@@ -73,7 +74,7 @@ def tick(idle: Callable[[], bool], now: time.struct_time | None = None) -> None:
     if nightly_due(now, os.environ.get("SELF_EVAL_HOUR", ""), idle) and _SCRIPT.is_file():
         _state["last_eval_day"] = time.strftime("%Y-%m-%d", now)
         consolidate_memory()
-        spawn_process([sys.executable, str(_SCRIPT), "--auto-rollback"], cwd=_SCRIPT.parent.parent)
+        process_registry.track(spawn_process([sys.executable, str(_SCRIPT), "--auto-rollback"], cwd=_SCRIPT.parent.parent), "gece kalite ölçümü", memory_mb=4096)
         _log.info("gece kalite ölçümü başlatıldı")
     if play_due(now, os.environ.get("SELF_PLAY_HOUR", ""), idle):
         _state["last_play_day"] = time.strftime("%Y-%m-%d", now)

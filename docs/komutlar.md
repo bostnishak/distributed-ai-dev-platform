@@ -13,6 +13,8 @@ Hepsi bu bilgisayarda çalışır; ücretli servis ya da anahtar gerekmez. Norma
 | `yük testi yap` | Projenin API'sini ağsız kutuda yükler |
 | `X nerede kullanılıyor`, `projede ... nerede` | Kod araması |
 
+Her üretimden sonra bir **teslim durumu** satırı gelir: statik denetim, kod testleri, çalışan sistem ve imzalı kayıt. Dördü de geçmeden proje "tamamlandı" sayılmaz.
+
 ## Karar ve karşılaştırma
 
 | Yaz | Ne yapar |
@@ -50,6 +52,8 @@ Ses dosyası `master/data/voices/` içindedir (`tr_TR-dfki-medium`). Veri seti l
 | `kendi kendine alıştırma: 3` | Yeni görev üretip çözmeyi dener |
 | `tercihlerimi göster` / `tercihlerimi sil` | Kalıcı tercihler |
 | `buluta hazırla: <metin>` | Metindeki kişisel bilgileri gizler. Hiçbir yere göndermez |
+| `sistem durumu` | Ekran kartı ısısı ve belleği, disk, veritabanı denetimi, çalışan alt süreçler |
+| `disk durumu`, `disk temizle`, `disk temizle uygula` | Süresi dolan yeniden üretilebilir dosyaları önce gösterir, `uygula` ile siler. Projelere ve veritabanlarına dokunmaz |
 
 ## İsteğe bağlı gece işleri
 

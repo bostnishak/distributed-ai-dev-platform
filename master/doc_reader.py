@@ -11,6 +11,7 @@ import json
 import logging
 import math
 import re
+from collections import Counter
 from collections.abc import AsyncIterator
 
 import pymupdf
@@ -22,6 +23,7 @@ import extract
 import long_doc
 import research
 import semantic_cache
+import turkish
 import untrusted
 
 _log = logging.getLogger(__name__)
@@ -85,6 +87,43 @@ def line_of(text: str, quote: str) -> int:
     return text.count("\n", 0, found.start()) + 1 if found else 0
 
 
+_ASKING = {"belge", "tamam", "nedir", "kaçtı", "hangi", "göre", "bakın", "oku", "özet"}
+
+
+def sweep(text: str, question: str, limit: int = 8) -> list[str]:
+    """Sentences with a figure that share at least two of the question's rare words: they must not depend on the model noticing them."""
+    sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+(?=[A-ZÇĞİÖŞÜ0-9])|\n", text) if s.strip()]
+    wanted = {w[:5] for w in re.findall(r"\w{4,}", turkish.lower(question))} - _ASKING
+    seen: Counter[str] = Counter()
+    stems = []
+    for sentence in sentences:
+        found = {w[:5] for w in re.findall(r"\w{4,}", turkish.lower(sentence))} & wanted
+        stems.append(found)
+        seen.update(found)
+    rare = {w for w in wanted if 0 < seen[w] <= max(3, len(sentences) // 200)}
+    hits = [(len(found & rare), index) for index, (sentence, found) in enumerate(zip(sentences, stems, strict=True))
+            if len(found & rare) >= 2 and re.search(r"\d", sentence) and 20 <= len(sentence) <= 400]
+    out: list[str] = []
+    for _score, index in sorted(hits, key=lambda h: (-h[0], h[1])):
+        if sentences[index] not in out:
+            out.append(sentences[index])
+    return out[:limit]
+
+
+def add_swept(claims: dict[int, research.Claim], text: str, question: str, pages: list[str]) -> list[int]:
+    """Add the swept sentences the model did not quote; returns their numbers."""
+    added = []
+    for sentence in sweep(text, question):
+        quoted = " ".join(sentence.split())
+        if any(quoted in " ".join(c.quote.split()) or " ".join(c.quote.split()) in quoted for c in claims.values()):
+            continue
+        if where := place(text, pages, sentence):
+            number = len(claims) + 1
+            claims[number] = research.Claim(number, sentence, sentence, where, "")
+            added.append(number)
+    return added
+
+
 def render(report: research.Report, claims: dict[int, research.Claim], question: str, read: int, total: int) -> str:
     summary, dropped_a = research.gate(report.summary, claims, question)
     details, dropped_b = research.gate(report.details, claims, question)
@@ -114,12 +153,15 @@ async def answer(question: str, text: str, chat: research.Chat | None = None, pa
             where = place(text, pages or [], item.quote)
             if where and all(c.quote != item.quote.strip() for c in claims.values()):
                 claims[len(claims) + 1] = research.Claim(len(claims) + 1, item.claim, item.quote.strip(), where, "")
+    swept = add_swept(claims, text, question, pages or [])
     if not claims:
         yield "report", f"{len(pieces)} parçalık belgenin {len(used)} parçasını okudum; soruyu yanıtlayan, alıntıyla doğrulanabilen bir bilgi bulamadım."
         return
     listing = "\n".join(f"{c.number}. {c.text} (alıntı: \"{c.quote}\", {c.url})" for c in claims.values())[:14000]
     report = await research._structured(ask, "agent_research_report.md", f"SORU: {question}\n\nDOĞRULANMIŞ İDDİALAR:\n{listing}", research.Report)
     report = report or research.Report(summary=[research.Point(text=c.text, ids=[c.number]) for c in list(claims.values())[:8]])
+    cited = {i for p in (*report.summary, *report.details) for i in p.ids}
+    report.summary += [research.Point(text=claims[i].text, ids=[i]) for i in swept if i not in cited]
     result = render(report, claims, question, len(used), len(pieces))
     if selected:
         result += f"\n\nUYARI: belge çok uzun; {len(pieces)} parçadan soruyla en ilgili {len(used)} tanesi okundu, diğerleri okunmadı."

@@ -15,10 +15,12 @@ import mimetypes
 import threading
 from pathlib import Path
 
+import httpx
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 
 import config
+import process_registry
 import workspace_builder as wb
 
 preview_app = FastAPI(title="CM6453 Isolated Workspace Preview Origin", docs_url=None, redoc_url=None, openapi_url=None)
@@ -67,38 +69,46 @@ async def serve_isolated_preview(ws_id: str, filepath: str):
     )
 
 
-_STATE: dict[str, bool] = {"preview_started": False}
+_STATE: dict[str, int] = {"port": 0}
+_MARK = "cm6453-preview"
+
+
+@preview_app.get("/preview-identity")
+async def preview_identity():
+    return {"service": _MARK}
+
+
+def _is_preview(port: int) -> bool:
+    """Whether what listens there is really our preview origin, not just any program on the usual port."""
+    try:
+        return httpx.get(f"http://127.0.0.1:{port}/preview-identity", timeout=2).json().get("service") == _MARK
+    except (httpx.HTTPError, ValueError, AttributeError):
+        return False
 
 
 def get_preview_origin() -> str:
-    return f"http://127.0.0.1:{config.PREVIEW_PORT}"
+    return f"http://127.0.0.1:{_STATE['port'] or config.PREVIEW_PORT}"
 
 
 def start_preview_server_background() -> None:
-    """Start the isolated second-origin preview server in a daemon thread (idempotent & port-safe)."""
-    if _STATE["preview_started"]:
+    """Start the preview origin (idempotent). A foreign program on the usual port gets a neighbour port, never our previews."""
+    if _STATE["port"]:
         return
-    import socket
-
-    # If port is already listening (e.g. another worker or existing preview server), skip cleanly
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        if sock.connect_ex(("127.0.0.1", config.PREVIEW_PORT)) == 0:
-            _STATE["preview_started"] = True
+    wanted = config.PREVIEW_PORT
+    if not process_registry.free_port(wanted):
+        if _is_preview(wanted):
+            _STATE["port"] = wanted  # another worker already serves it
             return
-    _STATE["preview_started"] = True
+        wanted = process_registry.lease_port(range(config.PREVIEW_PORT + 1, config.PREVIEW_PORT + 40))
+        logging.getLogger(__name__).warning("önizleme portu %s başka bir programda; %s kullanılıyor", config.PREVIEW_PORT, wanted)
+    _STATE["port"] = wanted
 
     def _run() -> None:
         try:
             import uvicorn
 
-            uvicorn.run(
-                preview_app,
-                host="127.0.0.1",
-                port=config.PREVIEW_PORT,
-                log_level="warning",
-                access_log=False,
-            )
+            uvicorn.run(preview_app, host="127.0.0.1", port=wanted, log_level="warning", access_log=False)
         except (SystemExit, ImportError, OSError, RuntimeError, ValueError) as exc:
-            logging.getLogger(__name__).debug("preview origin server stopped: %s", exc)
+            logging.getLogger(__name__).warning("preview origin server stopped: %s", exc)
 
     threading.Thread(target=_run, name="preview-origin-server", daemon=True).start()

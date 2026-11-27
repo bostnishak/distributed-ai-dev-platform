@@ -11,7 +11,6 @@ import os
 import re
 import secrets
 import shutil
-import socket
 import subprocess
 import sys
 import zipfile
@@ -19,18 +18,18 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+import atomic_io
 import config
 import event_log
-import isolation
+import process_registry
 import safe_archive
 from process_utils import run_process, spawn_process
 
-SKIP_DIRS = {"__pycache__", ".git", "node_modules", ".venv", "venv", "build", ".history"}
+SKIP_DIRS = {"__pycache__", ".git", "node_modules", ".venv", "venv", "build", ".history", ".ai-os"}
 META_FILENAME = ".workspace.json"
 _PREVIEW_ENTRIES = ("index.html", "public/index.html", "frontend/index.html")
 _TR_ASCII_MAP = str.maketrans("çğıöşüÇĞİÖŞÜ", "cgiosuCGIOSU")
 _RUNNING_SERVERS: dict[str, tuple[int, subprocess.Popen]] = {}
-_JOBS: dict[str, object] = {}
 log = logging.getLogger(__name__)
 
 
@@ -99,8 +98,7 @@ def load_workspace_meta(ws_dir: Path) -> dict[str, Any]:
 
 
 def save_workspace_meta(ws_dir: Path, meta: dict[str, Any]) -> None:
-    ws_dir.mkdir(parents=True, exist_ok=True)
-    (ws_dir / META_FILENAME).write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+    atomic_io.write_text(ws_dir / META_FILENAME, json.dumps(meta, ensure_ascii=False, indent=2))
 
 
 def list_workspaces() -> list[dict[str, Any]]:
@@ -420,12 +418,8 @@ def import_zip_workspace(filename: str, raw_bytes: bytes) -> tuple[dict[str, Any
     return meta, build_file_tree(ws_dir)
 
 
-def _find_free_port(start: int = 8110, end: int = 8190) -> int:
-    for port in range(start, end):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            if s.connect_ex(("127.0.0.1", port)) != 0:
-                return port
-    return 8189
+def _find_free_port() -> int:
+    return process_registry.lease_port()
 
 
 def start_workspace_server(ws_id: str) -> dict[str, Any]:
@@ -452,7 +446,6 @@ def start_workspace_server(ws_id: str) -> dict[str, Any]:
             cmd = [sys.executable, "-m", "flask", "--app", entry.stem, "run", "--host", "127.0.0.1", "--port", str(port)]
 
     proc = spawn_process(cmd, cwd=ws_dir)
-    isolation.release(_JOBS.pop(ws_id, None))
-    _JOBS[ws_id] = isolation.contain(proc)  # generated code on the host: capped, ends with the job
+    process_registry.track(proc, f"proje sunucusu {ws_id}", port)  # generated code on the host: capped, written down, ends with us
     _RUNNING_SERVERS[ws_id] = (port, proc)
     return {"ok": True, "port": port, "url": f"http://127.0.0.1:{port}"}

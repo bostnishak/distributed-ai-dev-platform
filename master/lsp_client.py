@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import unquote
 
+import process_registry
 import protocol_io
 
 _log = logging.getLogger(__name__)
@@ -29,6 +30,7 @@ class Session:
         self.diagnostics: dict[str, list[dict[str, Any]]] = {}
         # -P keeps the workspace off the server's import path: a planted pylsp.py in the project must not be executed
         self._proc = subprocess.Popen([sys.executable, "-E", "-P", "-m", "pylsp"], cwd=self.root, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)  # noqa: S603, RUF100
+        process_registry.track(self._proc, "kod dil sunucusu", memory_mb=4096)  # jedi commits more than the 1 GB a generated project gets
         self._channel = protocol_io.Channel(self._proc.stdout, self._proc.stdin)
         self.request("initialize", {"processId": None, "rootUri": self.root.as_uri(), "capabilities": {}})
         self.notify("initialized", {})
@@ -58,6 +60,7 @@ class Session:
     def close(self) -> None:
         self._proc.kill()
         self._proc.wait(timeout=5)
+        process_registry.untrack(self._proc.pid)
 
     def __enter__(self) -> Session:
         return self

@@ -489,11 +489,11 @@ def _flatten_tree_paths(nodes: Any, out: list[str], depth: int = 0) -> None:
             out.append(f"{'  ' * depth}- `{p}`")
 
 
-def _format_project_summary_links(ws_meta: dict[str, Any], ws_tree: Any, prompt: str, failed: str = "") -> str:
+def _format_project_summary_links(ws_meta: dict[str, Any], ws_tree: Any, prompt: str, failed: str = "", state: str = "") -> str:
     ws_id = ws_meta["id"]
     lines = [
         "",
-        f"### {'Proje oluşturuldu ama TESTİ GEÇEMEDİ' if failed else 'Proje Hazır'}: **{ws_meta.get('name', ws_id)}**",
+        f"### {'Proje oluşturuldu ama TESTİ GEÇEMEDİ' if failed else 'Proje teslim edildi, kanıt eksik' if state.startswith('INCOMPLETE') else 'Proje Hazır'}: **{ws_meta.get('name', ws_id)}**",
         *([f"> {failed}", "> Sohbete hatayı yazarak düzelttirebilirsin."] if failed else []),
         f"- **ZIP İndirme:** [Projeyi İndir (.ZIP)](/api/studio/workspaces/{ws_id}/download.zip)",
     ]
@@ -514,7 +514,7 @@ def _verdict(evt: dict[str, Any]) -> tuple[str, list[str]]:
     """(why the run test failed or "", extra chat notes) from the warnings of a finished generation."""
     warnings = [str(w) for w in evt.get("warnings") or []]
     failed = next((w[w.index("Otomatik çalıştırma"):] for w in warnings if "Otomatik çalıştırma testi hata" in w), "")
-    return failed, [f"\n> {w}\n" for w in warnings if w.startswith(("Güvenlik taraması", "Görsel denetim", "Tasarım notu", "Görsel model"))]
+    return failed, [f"\n> {w}\n" for w in warnings if w.startswith(("Teslim durumu", "Güvenlik taraması", "Görsel denetim", "Tasarım notu", "Görsel model"))]
 
 
 def _try_project_build_fastpath(prompt: str, file: UploadFile | None, history: str, is_prompt_conv: bool) -> StreamingResponse | None:
@@ -528,7 +528,7 @@ def _try_project_build_fastpath(prompt: str, file: UploadFile | None, history: s
     async def _gen():
         ws_meta: dict[str, Any] | None = None
         ws_tree: Any = None
-        failed = ""
+        failed = state = ""
         used_model = config.STUDIO_CODER_MODEL
         try:
             async for evt in run_trace.traced(project_flow.stream_generate(prompt.strip(), project_type=detected_type), prompt):
@@ -539,14 +539,14 @@ def _try_project_build_fastpath(prompt: str, file: UploadFile | None, history: s
                     used_model = (ws_meta or {}).get("model") or used_model
                 elif evt.get("type") == "done":
                     ws_meta, ws_tree = evt["workspace"], evt["tree"]
-                    failed, notes = _verdict(evt)
+                    (failed, notes), state = _verdict(evt), str(evt.get("delivery") or "")
                     yield sse_event({"type": "token", "content": "".join(notes)})
             if ws_meta:
                 ws_meta, exe_tree, exe_notes = await _maybe_build_project_exe(wb, ws_meta, wants_exe)
                 for note in exe_notes:
                     yield sse_event({"type": "token", "content": note})
                 ws_evt = _attach_workspace_flags(wb, ws_meta, exe_tree or ws_tree)
-                yield sse_event({"type": "token", "content": _format_project_summary_links(ws_evt["workspace"], ws_evt["tree"], prompt, failed)})
+                yield sse_event({"type": "token", "content": _format_project_summary_links(ws_evt["workspace"], ws_evt["tree"], prompt, failed, state)})
                 yield sse_event(ws_evt)
             yield sse_event({"type": "done", "model": used_model, "task_type": "proje"})
         except (httpx.HTTPError, subprocess.SubprocessError, OSError, ValueError, TypeError, KeyError, RuntimeError, ImportError) as exc:

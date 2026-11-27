@@ -48,6 +48,7 @@ import notifications
 import openai_compat
 import ops
 import orchestrator
+import os_kernel
 import output_api
 import perf_api
 import preview_server
@@ -109,11 +110,15 @@ async def lifespan(_app: FastAPI):
     scheduler.start_dag_scheduler()
     preview_server.start_preview_server_background()
     ops.startup()
+    os_kernel.startup()
+    sleep_task = asyncio.create_task(os_kernel.watch_sleep())
     cron_task = asyncio.create_task(cronjobs.loop(productivity_api.assistant_runner))
     inbox_task = asyncio.create_task(triggers.loop())
     yield
     cron_task.cancel()
     inbox_task.cancel()
+    sleep_task.cancel()
+    os_kernel.shutdown()
     ops.shutdown()
 
 

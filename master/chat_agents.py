@@ -16,6 +16,7 @@ import eda
 import federation
 import math_kernel
 import ops_commands
+import os_kernel
 import preferences
 import research
 import revise_chat
@@ -35,7 +36,7 @@ def _states(prompt: str, history: str) -> str:
 
 def _command(prompt: str, history: str) -> str:
     """Answers computed by code alone."""
-    return (preferences.command(prompt) or ops_commands.answer(prompt) or daemons.answer(prompt) or federation.answer(prompt)
+    return (preferences.command(prompt) or ops_commands.answer(prompt) or daemons.answer(prompt) or os_kernel.answer(prompt) or federation.answer(prompt)
             or _states(prompt, history) or math_kernel.answer(prompt))
 
 

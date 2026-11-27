@@ -483,3 +483,26 @@ def test_an_engine_in_use_is_not_stopped(monkeypatch):
     with daemons.in_use("meşgul"):
         assert daemons.reap(time.monotonic() + 600) == []
     assert daemons.reap(time.monotonic() + 30) == [] and daemons.reap(time.monotonic() + 61) == ["meşgul"]
+
+
+def test_a_fact_the_model_skips_is_still_quoted_from_the_document():
+    import asyncio
+
+    import doc_reader
+
+    lines = [f"Bölüm {i}. Vardiya için olağan bakım adımları anlatılır ve ekip notları arşivler." for i in range(900)]
+    lines[400] = "Soğutma kulesi yenilemesi için 417000 TL ayrılmıştır."
+    lines[700] = "Kuzey deposunun yıllık kira bedeli 951000 TL olarak belirlenmiştir."
+    text = "\n".join(lines)
+    question = "Belgenin tamamına bak: Kuzey deposunun kira bedeli ve soğutma kulesi bütçesi nedir?"
+    assert sorted(s.split()[0] for s in doc_reader.sweep(text, question)) == ["Kuzey", "Soğutma"]
+
+    async def silent(system, user, schema):
+        return "{}"
+
+    async def run():
+        found = [value async for kind, value in doc_reader.answer(question, text, chat=silent) if kind == "report"]
+        return found[-1]
+
+    report = asyncio.run(run())
+    assert "417000" in report and "951000" in report and "satır 401" in report

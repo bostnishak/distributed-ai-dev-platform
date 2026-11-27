@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import io
 import json
+import random
 import re
 import subprocess
 import sys
@@ -78,7 +79,7 @@ def aesthetic() -> str:
     html = httpx.get(f"{golden.BASE}/api/studio/workspaces/{ws_id}/preview/index.html", timeout=30).text
     low = html.lower()
     need("#5b3a29" in low and "#d9a566" in low, "istenen renkler yok")
-    import design_slop  # noqa: PLC0415
+    import design_slop
 
     with tempfile.TemporaryDirectory() as tmp:
         (Path(tmp) / "index.html").write_text(html, encoding="utf-8")
@@ -89,9 +90,11 @@ def aesthetic() -> str:
 
 
 def long_corpus() -> str:
-    import pymupdf  # noqa: PLC0415
+    import pymupdf
 
-    facts = {61: "Kuzey deposunun yıllık kira bedeli 912000 TL olarak belirlenmiştir.", 247: "Soğutma kulesi yenilemesi için 385000 TL ayrılmıştır.", 433: "Yeni paketleme hattının teslim tarihi 14 Mart 2027 olacaktır."}
+    rent, budget, day = random.randrange(600_000, 990_000, 1000), random.randrange(200_000, 590_000, 1000), random.randint(2, 28)  # new each run: no cached answer
+    facts = {61: f"Kuzey deposunun yıllık kira bedeli {rent} TL olarak belirlenmiştir.", 247: f"Soğutma kulesi yenilemesi için {budget} TL ayrılmıştır.",
+             433: f"Yeni paketleme hattının teslim tarihi {day} Mart 2027 olacaktır."}
     doc = pymupdf.open()
     for number in range(1, 501):
         lines = [f"Bölüm {number}. Vardiya {number % 7} için olağan bakım adımları anlatılır.", "Ekip haftalık toplantıda ilerlemeyi gözden geçirir ve notları arşivler."] * 6
@@ -104,7 +107,7 @@ def long_corpus() -> str:
     reply, seconds = timed("Belgenin tamamına bak: Kuzey deposunun kira bedeli, soğutma kulesi bütçesi ve paketleme hattının teslim tarihi nedir?",
                            file=("buyuk.pdf", raw, "application/pdf"))
     text = digits(reply.text)
-    found = [v for v in ("912000", "385000", "14Mart2027") if v in text]
+    found = [v for v in (str(rent), str(budget), f"{day}Mart2027") if v in text]
     pages = [p for p in facts if f"sayfa {p}" in reply.text]
     need(len(found) == 3, f"bulunan bilgi {len(found)}/3", reply.text)
     need(len(pages) == 3, f"doğru sayfa alıntısı {len(pages)}/3", reply.text)
@@ -121,7 +124,7 @@ def computer_use() -> str:
     seen: list[str] = []
 
     class Handler(BaseHTTPRequestHandler):
-        def do_GET(self):  # noqa: N802
+        def do_GET(self):
             seen.append(self.path)
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -131,7 +134,7 @@ def computer_use() -> str:
         def log_message(self, *_args):
             return
 
-    import browser_agent  # noqa: PLC0415
+    import browser_agent
 
     server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
     threading.Thread(target=server.serve_forever, daemon=True).start()
@@ -150,8 +153,8 @@ def computer_use() -> str:
 
 
 def omni_domain() -> str:
-    import openpyxl  # noqa: PLC0415
-    from pptx import Presentation  # noqa: PLC0415
+    import openpyxl
+    from pptx import Presentation
 
     data = "Ocak geliri 120000 TL, Şubat 135000 TL, Mart 150000 TL"
     total = "405000"
@@ -163,7 +166,7 @@ def omni_domain() -> str:
     raw = httpx.get(golden.BASE + link.group(0), timeout=60).content
     formulas = [str(c.value) for ws in openpyxl.load_workbook(io.BytesIO(raw)).worksheets for row in ws.iter_rows() for c in row if str(c.value).startswith("=")]
     need(bool(formulas), "Excel'de formül yok")
-    import office_verify  # noqa: PLC0415
+    import office_verify
 
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
         path = Path(tmp) / "a.xlsx"
@@ -182,7 +185,7 @@ def omni_domain() -> str:
     need(total in digits(slides), "sunumda toplam yok", slides)
     reply = chat(f"Tek HTML dosyası olarak gelir panosu yap: {data}. Aylık tablo ve JavaScript ile hesaplanan toplam göster.")
     need(reply.workspace is not None, "pano üretilmedi", reply.text)
-    from playwright.sync_api import sync_playwright  # noqa: PLC0415
+    from playwright.sync_api import sync_playwright
 
     with sync_playwright() as driver:
         browser = driver.chromium.launch()
@@ -211,7 +214,7 @@ def cold_boot() -> str:
                 time.sleep(0.5)
             need(time.perf_counter() - started < 90, "sunucu 90 sn içinde açılmadı")
         boot = time.perf_counter() - started
-        import psutil  # noqa: PLC0415
+        import psutil
 
         root = psutil.Process(server.pid)
         memory = sum(p.memory_info().rss for p in (root, *root.children(recursive=True))) / 2**20
@@ -237,7 +240,7 @@ def main() -> int:
         name, test = TESTS[number]
         try:
             detail, ok = test(), True
-        except Exception as exc:  # noqa: BLE001 - a benchmark records every failure and goes on
+        except Exception as exc:
             detail, ok = f"{type(exc).__name__}: {exc}"[:400], False
         results[number] = {"name": name, "ok": ok, "detail": detail}
         print(f"{'GEÇTİ' if ok else 'KALDI'} {number}. {name}: {detail}", flush=True)

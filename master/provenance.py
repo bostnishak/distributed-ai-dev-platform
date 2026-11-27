@@ -54,6 +54,13 @@ def sbom(ws_dir: Path) -> dict[str, Any]:
     return {"bomFormat": "CycloneDX", "specVersion": "1.5", "components": parts}
 
 
+def sign(payload: bytes) -> dict[str, str]:
+    """{public_key, signature} of this installation over the payload."""
+    key = _key()
+    public = key.public_key().public_bytes(serialization.Encoding.Raw, serialization.PublicFormat.Raw)
+    return {"public_key": public.hex(), "signature": key.sign(payload).hex()}
+
+
 def write(ws_dir: Path, request: str, warnings: list[str]) -> None:
     body = {"created": time.strftime("%Y-%m-%dT%H:%M:%S"), "request_sha256": hashlib.sha256(request.encode()).hexdigest(),
             "files": _hashes(ws_dir), "warnings": warnings, "sbom": sbom(ws_dir)}
