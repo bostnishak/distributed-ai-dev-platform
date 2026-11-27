@@ -149,7 +149,9 @@ def list_semantic_facts(user_id: str = "default") -> list[dict[str, Any]]:
             "SELECT id, category, fact_key, fact_value, confidence, updated_at FROM semantic_memories WHERE user_id = ? ORDER BY updated_at DESC",
             (user_id,),
         ).fetchall()
-    return [dict(r) for r in rows]
+    import memory_marks  # imports this module
+
+    return memory_marks.apply([dict(r) for r in rows], user_id)
 
 
 def search_episodic_memory(query: str, limit: int = 5) -> list[dict[str, Any]]:
@@ -227,6 +229,7 @@ def build_memory_context_block(query: str, user_id: str = "default") -> str:
             key=lambda f: sum(1 for t in q_tokens if t in str(f.get("fact_value", "")).lower()),
             reverse=True,
         )
+    facts.sort(key=lambda f: not f.get("pinned"))  # stable: relevance order is kept within each group
     lines = ["--- Öğrenilen Kullanıcı ve Proje Hafızası ---"]
     for f in facts[:8]:
         lines.append(f"- [{f['category']}] {f['fact_value']}")

@@ -628,3 +628,66 @@ def test_a_file_saved_by_another_program_is_noticed_and_the_daily_summary_lists_
     assert external_watch.scan() == []  # the platform recorded this change itself
     text = night_summary.answer("gece özeti")
     assert "p1:" in text and "dış değişiklikten sonra sorun" in text and "## Sistem" in text
+
+
+def test_memory_facts_can_be_pinned_expired_and_forgotten_for_good(tmp_path, monkeypatch):
+    from datetime import UTC, datetime, timedelta
+
+    import memory_engine
+    import memory_maintenance
+    import memory_marks
+    import memory_timeline
+
+    monkeypatch.setattr(memory_engine, "_memory_db_path", lambda: tmp_path / "m.db")
+    memory_timeline.install()
+    for key, value in (("a", "koyu tema"), ("b", "FastAPI"), ("c", "emoji yok")):
+        memory_engine.upsert_semantic_fact("preference", key, value, "u")
+    ids = {f["fact_key"]: f["id"] for f in memory_engine.list_semantic_facts("u")}
+    assert "sabitlendi" in memory_marks.answer(f"hafıza {ids['a']} sabitle", "u")
+    assert "tarihinde unutulacak" in memory_marks.answer(f"hafıza #{ids['b']} süre 30 gün", "u")
+    assert memory_engine.build_memory_context_block("FastAPI", "u").splitlines()[1] == "- [preference] koyu tema"  # pinned beats relevance
+    assert "(sabit)" in memory_marks.answer("hafızamı göster", "u")
+    far = datetime.now(UTC) + timedelta(days=4000)
+    with memory_engine._connect() as conn:
+        assert memory_maintenance.prune_faded(conn, "u", far) == 2  # the pinned one never fades
+    memory_engine.upsert_semantic_fact("preference", "b", "FastAPI", "u")
+    fresh = {f["fact_key"]: f for f in memory_engine.list_semantic_facts("u")}["b"]
+    assert not fresh["pinned"] and not fresh["expires_at"]  # nothing inherited from the pruned fact
+    memory_marks.answer(f"hafıza {fresh['id']} süre 30 gün", "u")
+    later = memory_marks.apply(memory_engine.list_semantic_facts("u"), "u", datetime.now(UTC) + timedelta(days=31))
+    assert [f["fact_key"] for f in later] == ["a"]
+    assert "kalıcı olarak silindi" in memory_marks.answer(f"hafıza {ids['a']} kalıcı sil", "u")
+    assert memory_engine.list_semantic_facts("u") == [] and memory_timeline.history("a", "u") == []
+    assert "yok" in memory_marks.answer("hafıza 999 sabitle", "u") and memory_marks.answer("hafıza nedir", "u") == ""
+
+
+def test_random_actions_catch_an_api_whose_list_disagrees_with_what_was_done():
+    import httpx
+
+    import state_property
+
+    def server(forget_deletes):
+        rows, counter = {}, [0]
+
+        def handle(request):
+            path = request.url.path
+            if request.method == "POST":
+                counter[0] += 1
+                rows[counter[0]] = {"id": counter[0], **__import__("json").loads(request.content)}
+                return httpx.Response(201, json=rows[counter[0]])
+            if request.method == "DELETE":
+                if not forget_deletes:
+                    rows.pop(int(path.rsplit("/", 1)[1]))
+                return httpx.Response(204)
+            return httpx.Response(200, json={"items": list(rows.values())})
+
+        return httpx.Client(transport=httpx.MockTransport(handle), base_url="http://x")
+
+    spec = {"paths": {"/api/n": {"get": {}, "post": {"requestBody": {"content": {"application/json": {"schema": {"$ref": "#/components/schemas/N"}}}}}},
+                      "/api/n/{i}": {"delete": {}}}, "components": {"schemas": {"N": {"properties": {"metin": {"type": "string"}, "adet": {"type": "integer"}}}}}}
+    resource = state_property.resources(spec)[0]
+    assert resource.item == "/api/n/{i}" and resource.fields == {"metin": "string", "adet": "integer"}
+    good, alive = state_property.exercise(server(False), resource)
+    assert good.problems == [] and alive and all(alive.values()), good.problems
+    bad, _alive = state_property.exercise(server(True), resource)
+    assert bad.problems and "uyuşmuyor" in bad.problems[0]

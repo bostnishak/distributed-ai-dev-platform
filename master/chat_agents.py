@@ -18,6 +18,7 @@ import doc_reader
 import eda
 import federation
 import math_kernel
+import memory_marks
 import night_summary
 import ops_commands
 import os_kernel
@@ -53,7 +54,7 @@ def _audit(prompt: str, history: str) -> str:
 def _command(prompt: str, history: str) -> str:
     """Answers computed by code alone."""
     return (preferences.command(prompt) or ops_commands.answer(prompt) or daemons.answer(prompt) or os_kernel.answer(prompt) or federation.answer(prompt)
-            or _states(prompt, history) or _server(prompt, history) or _audit(prompt, history) or night_summary.answer(prompt) or science_kernel.answer(prompt) or math_kernel.answer(prompt))
+            or _states(prompt, history) or _server(prompt, history) or _audit(prompt, history) or night_summary.answer(prompt) or memory_marks.answer(prompt) or science_kernel.answer(prompt) or math_kernel.answer(prompt))
 
 
 def _agents(prompt: str, history: str) -> StreamingResponse | None:

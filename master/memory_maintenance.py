@@ -87,12 +87,15 @@ def prune_faded(
     conn: sqlite3.Connection, owner: str, now: datetime | None = None, half_life_days: float = 90.0,
     drop_below: float = 0.2,
 ) -> int:
+    import memory_marks  # reads through memory_engine
+
     moment = now or datetime.now(UTC)
     removed = 0
+    pinned = memory_marks.pinned_ids()
     for row in conn.execute(
         "SELECT id, confidence, updated_at FROM semantic_memories WHERE user_id = ?", (owner,)
     ).fetchall():
-        if effective_confidence(row["confidence"], row["updated_at"], moment, half_life_days) < drop_below:
+        if row["id"] not in pinned and effective_confidence(row["confidence"], row["updated_at"], moment, half_life_days) < drop_below:
             conn.execute("DELETE FROM semantic_memories WHERE id = ? AND user_id = ?", (row["id"], owner))
             removed += 1
     return removed

@@ -8,18 +8,25 @@ that only the tests use. Attempts are written down and quoted back to later repa
 from __future__ import annotations
 
 import ast
+import hashlib
 import json
+import logging
 import re
+import sqlite3
 import time
 from pathlib import Path
 
 import config
+import memory_engine
+import memory_timeline
 
 ORACLE_DIR = ".ai-os/oracles"
 _SKIP_RE = re.compile(r"pytest\.mark\.(?:skip|xfail)|pytest\.(?:skip|xfail)\(|unittest\.skip|\b(?:it|test|describe)\.(?:skip|only)\b|\bxit\(|\bxdescribe\(")
 _JS_CHECK_RE = re.compile(r"\bexpect\s*\(|\bassert\w*\s*[.(]")
 _JS_TAUTOLOGY_RE = re.compile(r"expect\s*\(\s*(true|false|1|0)\s*\)\s*\.\s*to(?:Be|Equal)\s*\(\s*\1\s*\)")
 _LITERAL_RE = re.compile(r"[\"']([^\"'\n]{3,80})[\"']")
+
+_log = logging.getLogger(__name__)
 
 
 def is_test(path: str) -> bool:
@@ -137,6 +144,18 @@ def record(violations: list[str]) -> None:
     with _log_file().open("a", encoding="utf-8") as handle:
         for violation in violations:
             handle.write(json.dumps({"at": time.strftime("%Y-%m-%dT%H:%M:%S"), "kind": "REWARD_HACK_ATTEMPT", "detail": violation}, ensure_ascii=False) + "\n")
+    _remember(violations)
+
+
+def _remember(violations: list[str]) -> None:
+    """The refusal also becomes a lasting rule in the timed memory, so it outlives the log."""
+    try:
+        memory_timeline.install()
+        for violation in violations:
+            key = f"yasak:{hashlib.sha256(violation.encode()).hexdigest()[:12]}"
+            memory_engine.upsert_semantic_fact("guardrail", key, f"Onarımda reddedilen kaçamak, tekrarlama: {violation}"[:300])
+    except (sqlite3.Error, OSError) as exc:
+        _log.warning("yasak kuralı belleğe yazılamadı: %r", exc)
 
 
 def guardrails(limit: int = 4) -> str:

@@ -134,3 +134,57 @@ def test_a_missing_browser_is_not_reported_as_a_broken_page(tmp_path, monkeypatc
             assert "Executable" in str(exc)
     status, detail = done_gate.page_problems((tmp_path / "x.html").as_uri())
     assert status == done_gate.MISSING and "tarayıcı açılamadı" in detail
+
+
+def test_oracle_is_written_once_and_missing_endpoints_are_named(tmp_path):
+    import plan_matrix
+
+    plan_matrix.write_oracle(tmp_path, {"endpoints": [{"method": "post", "path": "/api/notlar"}, {"method": "delete", "path": "/api/notlar/:id"}]})
+    plan_matrix.write_oracle(tmp_path, {"endpoints": []})  # a later step cannot lower the bar
+    openapi = {"paths": {"/api/notlar/": {"post": {}}, "/api/notlar/{not_id}": {"get": {}}}}
+    assert plan_matrix.missing_endpoints(tmp_path, openapi) == ["DELETE /api/notlar/:id"]
+    openapi["paths"]["/api/notlar/{not_id}"]["delete"] = {}
+    assert plan_matrix.missing_endpoints(tmp_path, openapi) == []
+
+
+def test_static_proof_stops_on_compiler_errors_and_unsafe_code(tmp_path):
+    import done_gate
+
+    (tmp_path / "main.py").write_text("import os\n\n\ndef run(komut):\n    os.system('echo ' + komut)\n    return tanimsiz_ad\n", encoding="utf-8")
+    status, detail = done_gate.static_proof(tmp_path)
+    assert status == done_gate.FAILED and "tanimsiz_ad" in detail, detail
+    assert any("main.py:5" in part for part in detail.split("; ")), detail
+
+
+def test_a_rejected_shortcut_becomes_a_memory_rule(tmp_path, monkeypatch):
+    import cheat_guard
+    import config
+    import memory_engine
+
+    monkeypatch.setattr(config, "data_dir", lambda: tmp_path)
+    monkeypatch.setattr(memory_engine, "_memory_db_path", lambda: tmp_path / "m.db")
+    cheat_guard.record(["tests/test_a.py: assert silindi"])
+    cheat_guard.record(["tests/test_a.py: assert silindi"])
+    rules = [f for f in memory_engine.list_semantic_facts() if f["category"] == "guardrail"]
+    assert len(rules) == 1 and "assert silindi" in rules[0]["fact_value"]
+
+
+def test_fields_nothing_listens_to_are_reported(tmp_path):
+    pytest.importorskip("playwright.sync_api")
+    from playwright.sync_api import Error, sync_playwright
+
+    import shortcut_audit
+
+    page_file = tmp_path / "a.html"
+    page_file.write_text("<select aria-label='bos'><option>1</option></select><input id='ad'><input aria-label='olu'>"
+                         "<form><input name='x'></form><script>document.getElementById('ad').value = 'a';</script>", encoding="utf-8")
+    with sync_playwright() as driver:
+        try:
+            browser = driver.chromium.launch()
+        except Error:
+            pytest.skip("tarayıcı yok")
+        page = browser.new_page()
+        page.goto(page_file.as_uri())
+        found = shortcut_audit.unwired(page)
+        browser.close()
+    assert found == ["alan: bos", "alan: olu"], found

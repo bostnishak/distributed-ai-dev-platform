@@ -33,7 +33,7 @@ app = FastAPI()
 
 def db():
     conn = sqlite3.connect("notlar.db")
-    conn.execute("CREATE TABLE IF NOT EXISTS notlar (id INTEGER PRIMARY KEY, metin TEXT)")
+    conn.execute("CREATE TABLE IF NOT EXISTS notlar (id INTEGER PRIMARY KEY, metin TEXT, bitti INTEGER DEFAULT 0)")
     return conn
 
 
@@ -49,7 +49,7 @@ def health():
 @app.get("/api/notlar")
 def liste():
     with db() as c:
-        return [{"id": i, "metin": m} for i, m in c.execute("SELECT id, metin FROM notlar")]
+        return [{"id": i, "metin": m, "bitti": bool(b)} for i, m, b in c.execute("SELECT id, metin, bitti FROM notlar")]
 
 
 @app.post("/api/notlar", status_code=201)
@@ -58,6 +58,13 @@ def ekle(n: Not):
         raise HTTPException(422, "boş")
     with db() as c:
         c.execute("INSERT INTO notlar (metin) VALUES (?)", (n.metin,))
+    return {"ok": True}
+
+
+@app.put("/api/notlar/{i}/bitti")
+def isaretle(i: int):
+    with db() as c:
+        c.execute("UPDATE notlar SET bitti = 1 - bitti WHERE id=?", (i,))
     return {"ok": True}
 
 
@@ -74,10 +81,11 @@ def sayfa():
 
 
 PAGE = """<!doctype html><meta charset="utf-8"><title>Notlar</title><link rel="icon" href="data:,"><h1>Notlar</h1>
-<form id="f"><input id="m" aria-label="Not"><button type="submit">Ekle</button></form><p id="h"></p><ul id="l"></ul>
+<form id="f"><input id="m" aria-label="Not"><button type="submit">Ekle</button></form><p id="h"></p><input type="search" id="a" placeholder="Ara" aria-label="Ara"><ul id="l"></ul>
 <script>
-async function yukle(){ const r = await fetch('/api/notlar'); const veri = await r.json(); l.replaceChildren(...veri.map(n => { const li = document.createElement('li'); li.textContent = n.metin + ' '; const b = document.createElement('button'); b.textContent = 'Sil'; b.onclick = async () => { await fetch('/api/notlar/' + n.id, {method: 'DELETE'}); yukle(); }; li.append(b); return li; })); }
+async function yukle(){ const r = await fetch('/api/notlar'); const veri = await r.json(); l.replaceChildren(...veri.filter(n => n.metin.toLocaleLowerCase('tr').includes(a.value.toLocaleLowerCase('tr'))).map(n => { const li = document.createElement('li'); li.textContent = n.metin + ' '; const k = document.createElement('input'); k.type = 'checkbox'; k.checked = n.bitti; k.setAttribute('aria-label', 'Bitti'); k.onchange = () => fetch('/api/notlar/' + n.id + '/bitti', {method: 'PUT'}); li.append(k); const b = document.createElement('button'); b.textContent = 'Sil'; b.onclick = async () => { await fetch('/api/notlar/' + n.id, {method: 'DELETE'}); yukle(); }; li.append(b); return li; })); }
 f.addEventListener('submit', async e => { e.preventDefault(); const r = await fetch('/api/notlar', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({metin: m.value})}); h.textContent = r.ok ? '' : 'Boş not eklenemez'; if (r.ok) m.value = ''; yukle(); });
+a.addEventListener('input', yukle);
 yukle();
 </script>"""
 '''
@@ -101,11 +109,18 @@ def real_application() -> str:
     ws = project("notlar", APP)
     status, detail = done_gate.server_proof(ws)
     check(status == done_gate.PASSED, detail)
-    for step in ("sayfa yenilenince duruyor", "sunucu yeniden başlayınca duruyor", "boş gönderim", "silme kalıcı"):
+    for step in ("kayıt isteği 201 döndü", "veritabanında satır arttı", "sayfa yenilenince duruyor", "sunucu yeniden başlayınca duruyor", "boş gönderim", "silme kalıcı", "durum değişikliği kalıcı", "arama süzüyor", "API denetimi"):
         check(step in detail, f"adım eksik: {step}: {detail}")
     shots = sorted(p.name for p in (ws / ".ai-os" / "filmstrip").glob("*.png"))
     check(len(shots) >= 6 and not (ws / "notlar.db").exists(), f"film şeridi {shots} ya da projeye veri yazıldı")
-    return f"8 adım geçti, {len(shots)} ekran görüntüsü; projeye veri yazılmadı"
+    evidence = json.loads((ws / done_gate.EVIDENCE).read_text(encoding="utf-8"))
+    check(evidence["requests"] and evidence["rows"]["gönderim-sonrası"] and evidence["screenshots"] == shots, "kanıt dosyası eksik")
+    check(any("rastgele ekleme/silme" in c for c in evidence["api"]["checked"]), f"özellik testi koşmadı: {evidence['api']}")
+    record = done_gate._record(ws, done_gate.Delivery({s: (done_gate.PASSED, "") for s in "ABC"}))
+    proof = json.loads((ws / done_gate.RECORD).read_text(encoding="utf-8"))
+    check(record[0] == done_gate.PASSED and proof["evidence"] and proof["generation"]["model"] and len(proof["generation"]["digest"]) > 20, str(proof.get("generation")))
+    check("sayfa, API ile aynı kayıtları gösteriyor" in evidence["api"]["checked"], f"sayfa karşılaştırılmadı: {evidence['api']}")
+    return f"{len(evidence['steps'])} yolculuk adımı ve {len(evidence['api']['checked'])} API kontrolü geçti, {len(evidence['requests'])} HTTP izi, {len(shots)} ekran görüntüsü"
 
 
 def memory_only_application() -> str:
@@ -141,8 +156,17 @@ def artifacts() -> str:
     return f"bağımsız okuyucular: hatalı Excel, boş görsel ve bozuk PDF reddedildi: {results['hatali.xlsx'][0][:60]}"
 
 
+def wrong_status_and_lying_api() -> str:
+    status, detail = done_gate.server_proof(project("durum200", APP.replace(", status_code=201", "")))
+    check(status == done_gate.FAILED and "201" in detail, f"200 dönen oluşturma yakalanmadı: {detail}")
+    lying = APP.replace('c.execute("DELETE FROM notlar WHERE id=?", (i,))', 'c.execute("DELETE FROM notlar WHERE id=?", (i + 100000,))')
+    status, detail = done_gate.server_proof(project("yalanci", lying))
+    check(status == done_gate.FAILED and ("silme" in detail or "uyuşmuyor" in detail), f"silmeyen API yakalanmadı: {detail}")
+    return f"201 dönmeyen ve 'sildim' deyip silmeyen uygulamalar reddedildi: {detail[:80]}"
+
+
 TESTS = (("gerçek uygulama yenileme ve yeniden başlatmadan sağ çıkar", real_application), ("sahte kalıcılık yakalanır", memory_only_application),
-         ("çöken sunucu raporlanır", crashing_application), ("ikili dosyalar bağımsız okuyucuyla açılır", artifacts))
+         ("çöken sunucu raporlanır", crashing_application), ("yanlış durum kodu ve yalancı API yakalanır", wrong_status_and_lying_api), ("ikili dosyalar bağımsız okuyucuyla açılır", artifacts))
 
 
 def main() -> int:

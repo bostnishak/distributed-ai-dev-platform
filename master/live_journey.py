@@ -8,6 +8,7 @@ for it. Console errors, page errors and server errors fail the journey. Each ste
 from __future__ import annotations
 
 import re
+import time
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -23,9 +24,13 @@ _WAIT_MS = 900
 class Journey:
     steps: list[dict[str, Any]] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
+    requests: list[dict[str, Any]] = field(default_factory=list)  # HTTP trace of the browser
+    rows: dict[str, dict[str, int]] = field(default_factory=dict)  # database row counts at named moments
+    shots: list[str] = field(default_factory=list)
+    started: float = field(default_factory=time.monotonic)
 
     def step(self, name: str, ok: bool, detail: str = "") -> bool:
-        self.steps.append({"name": name, "ok": ok, "detail": detail[:200]})
+        self.steps.append({"name": name, "ok": ok, "detail": detail[:200], "at_s": round(time.monotonic() - self.started, 2)})
         return ok
 
     @property
@@ -39,10 +44,79 @@ class Journey:
         return "geçen adımlar: " + ", ".join(s["name"] for s in self.steps)
 
 
+_ASSETS = ("stylesheet", "script", "image", "font", "document")
+
+
+def _seen(response: Any, journey: Journey) -> None:
+    request = response.request
+    if len(journey.requests) < 200:
+        journey.requests.append({"method": request.method, "url": response.url.split("//", 1)[-1].split("/", 1)[-1][:120], "status": response.status, "type": request.resource_type})
+    name = response.url.rsplit("/", 1)[-1]
+    if response.status >= 500:
+        journey.errors.append(f"sunucu hatası {response.status}: {name}")
+    elif response.status >= 400 and request.resource_type in _ASSETS and "favicon" not in name:
+        journey.errors.append(f"yüklenemeyen varlık {response.status}: {name}")
+
+
+def _created(journey: Journey, since: int) -> None:
+    """The request that stored the entry must answer 201 Created (a classic form post may redirect instead)."""
+    posts = [r for r in journey.requests[since:] if r["method"] == "POST"]
+    if posts:
+        status = posts[0]["status"]
+        journey.step("kayıt isteği 201 döndü", status in (201, 302, 303), f"POST /{posts[0]['url']} {status} döndürdü (201 Created bekleniyor)")
+
+
+def _row_step(journey: Journey, rows: Callable[[], dict[str, int]] | None, moment: str) -> None:
+    if rows is None:
+        return
+    journey.rows[moment] = rows()
+    if moment == "gönderim-sonrası" and journey.rows.get("önce") is not None and journey.rows[moment]:
+        grown = sum(journey.rows[moment].values()) - sum(journey.rows["önce"].values())
+        journey.step("veritabanında satır arttı", grown >= 1, f"satır farkı {grown}: kayıt veritabanına yazılmamış")
+    if moment == "yeniden-başlatma-sonrası" and journey.rows.get("gönderim-sonrası"):
+        same = sum(journey.rows[moment].values()) >= sum(journey.rows["gönderim-sonrası"].values())
+        journey.step("satırlar yeniden başlatmadan sonra duruyor", same, str(journey.rows[moment]))
+
+
+def _entry(page: Any, marker: str) -> Any:
+    return page.locator("li, tr, article, .card, .item, .row, div").filter(has_text=marker).filter(has=page.locator("button, input[type=checkbox]")).last
+
+
+def _toggle(page: Any, journey: Journey, marker: str) -> None:
+    """Tick the entry's checkbox where there is one, and expect it still ticked after a reload."""
+    box = _entry(page, marker).locator("input[type=checkbox]").first
+    if not box.count():
+        return
+    wanted = not box.is_checked()
+    box.click()
+    page.wait_for_timeout(_WAIT_MS)
+    page.reload()
+    page.wait_for_timeout(_WAIT_MS)
+    kept = _entry(page, marker).locator("input[type=checkbox]").first
+    journey.step("durum değişikliği kalıcı", bool(kept.count()) and kept.is_checked() == wanted, "yenileyince eski durumuna döndü")
+
+
+def _filter(page: Any, journey: Journey, marker: str) -> None:
+    """Search for the entry and for nonsense, where the page offers a search box."""
+    search = page.locator("input[type=search]:visible, input[placeholder*='ara' i]:visible, input[placeholder*='filtre' i]:visible, input[placeholder*='search' i]:visible").first
+    if not search.count():
+        return
+    search.fill(marker)
+    page.wait_for_timeout(_WAIT_MS)
+    found = _shown(page, marker)
+    search.fill("zzzz-olmayan-kayıt")
+    page.wait_for_timeout(_WAIT_MS)
+    hidden = not _shown(page, marker)
+    search.fill("")
+    page.wait_for_timeout(_WAIT_MS)
+    journey.step("arama süzüyor", found and hidden, "eşleşen kayıt görünmüyor" if not found else "eşleşmeyen aramada kayıt hâlâ görünüyor")
+
+
 def _watch(page: Any, journey: Journey, expected_errors: list[bool]) -> None:
     page.on("pageerror", lambda error: journey.errors.append(f"sayfa hatası: {str(error)[:120]}"))
     page.on("console", lambda m: journey.errors.append(f"konsol hatası: {m.text[:120]}") if m.type == "error" and "favicon" not in m.text and not expected_errors else None)
-    page.on("response", lambda r: journey.errors.append(f"sunucu hatası {r.status}: {r.url.rsplit('/', 1)[-1]}") if r.status >= 500 else None)
+    page.on("response", lambda r: _seen(r, journey))
+    page.on("requestfailed", lambda r: journey.errors.append(f"istek başarısız: {r.url.rsplit('/', 1)[-1]}") if r.resource_type in _ASSETS else None)
 
 
 def _fill_form(page: Any, marker: str) -> Any:
@@ -92,8 +166,9 @@ def _delete(page: Any, marker: str) -> bool | None:
     return None
 
 
-def _walk(page: Any, journey: Journey, url: str, restart: Callable[[], None] | None, hooks: tuple[Callable[[str], None], list[bool]]) -> None:
+def _walk(page: Any, journey: Journey, url: str, server: tuple[Callable[[], None] | None, Callable[[], dict[str, int]] | None], hooks: tuple[Callable[[str], None], list[bool]]) -> None:
     shot, expected = hooks
+    restart, rows = server
     page.goto(url, timeout=30000)
     page.wait_for_timeout(_WAIT_MS)
     shot("ilk-yükleme")
@@ -103,9 +178,13 @@ def _walk(page: Any, journey: Journey, url: str, restart: Callable[[], None] | N
     if not journey.step("form bulundu", button is not None, "yazı alanı ve gönder düğmesi olan bir form yok"):
         return
     shot("dolu-form")
+    _row_step(journey, rows, "önce")
+    sent = len(journey.requests)
     button.click()
     page.wait_for_timeout(_WAIT_MS)
     shot("gönderim-sonrası")
+    _created(journey, sent)
+    _row_step(journey, rows, "gönderim-sonrası")
     if not journey.step("kayıt listede göründü", _shown(page, marker), f"{marker!r} görünmüyor"):
         return
     page.reload()
@@ -118,6 +197,9 @@ def _walk(page: Any, journey: Journey, url: str, restart: Callable[[], None] | N
         page.wait_for_timeout(_WAIT_MS)
         shot("sunucu-yeniden-başladı")
         journey.step("sunucu yeniden başlayınca duruyor", _shown(page, marker), "kayıt diske yazılmamış")
+        _row_step(journey, rows, "yeniden-başlatma-sonrası")
+    _toggle(page, journey, marker)
+    _filter(page, journey, marker)
     entries = "li, tbody tr, article, .card, .item"  # a validation message is not a new entry
     before = page.locator(entries).count()
     expected.append(True)  # a refused empty submission may log a 4xx in the console: that is correct behaviour
@@ -138,7 +220,28 @@ def _walk(page: Any, journey: Journey, url: str, restart: Callable[[], None] | N
         shot("silme-sonrası")
 
 
-def run(url: str, folder: Path, restart: Callable[[], None] | None = None) -> Journey:
+def page_text(url: str) -> str:
+    """What the page shows right now; ValueError when no browser can be used."""
+    try:
+        from playwright.sync_api import Error as PlaywrightError
+        from playwright.sync_api import sync_playwright
+    except ImportError as exc:
+        raise ValueError("tarayıcı kurulu değil") from exc
+    try:
+        with sync_playwright() as driver:
+            browser = driver.chromium.launch()
+            try:
+                page = browser.new_page()
+                page.goto(url, timeout=30000)
+                page.wait_for_timeout(_WAIT_MS)
+                return str(page.inner_text("body"))
+            finally:
+                browser.close()
+    except PlaywrightError as exc:
+        raise ValueError(f"sayfa okunamadı: {str(exc).splitlines()[0]}") from exc
+
+
+def run(url: str, folder: Path, restart: Callable[[], None] | None = None, rows: Callable[[], dict[str, int]] | None = None) -> Journey:
     """ValueError when no browser is available; otherwise the journey with its steps and screenshots in `folder`."""
     try:
         from playwright.sync_api import Error as PlaywrightError
@@ -158,9 +261,10 @@ def run(url: str, folder: Path, restart: Callable[[], None] | None = None) -> Jo
             def shot(name: str) -> None:
                 count[0] += 1
                 page.screenshot(path=str(folder / f"{count[0]:02d}-{name}.png"))
+                journey.shots.append(f"{count[0]:02d}-{name}.png")
 
             try:
-                _walk(page, journey, url, restart, (shot, expected))
+                _walk(page, journey, url, (restart, rows), (shot, expected))
             finally:
                 browser.close()
     except (PlaywrightError, OSError) as exc:

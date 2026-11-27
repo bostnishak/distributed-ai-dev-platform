@@ -7,12 +7,23 @@ Bu dosya "ne kaldı" sorusunun tek cevabıdır. Bir madde, kod testi **ve** canl
 - `[x]` yapıldı
 - `[—]` yapılamaz ya da kapsam dışı (nedeni yazılı)
 
-## Çalışma sırası
+## Çalışma sırası: 3 parça
 
-1. Canlı denemede çıkan hatalar (aşağıda "0").
-2. v1–v4 açık alt maddeleri.
-3. Canlı denenmemiş maddeler.
-4. v5: aşama 01–03'ün eksik alt maddeleri, sonra 04 → 16 sırayla.
+Dizüstü bilgisayar kesintisiz yüklenmesin diye iş üçe bölündü. Bir parça bitince **durulur**; sen "devam" demeden sonrakine geçilmez.
+
+| Parça | İçerik | Tahmini süre |
+|---|---|---|
+| **1** | Canlıda çıkan hatalar (0) · v1–v4 açık alt maddeleri (1–4) · canlı denenmemiş maddeler (5) · v5 bölüm 0/12 · M01–M03 eksikleri | 10–15 saat |
+| **2** | M04 küçük model · M05 sürü yönetimi · M06 zorlama testleri · M07 mimari sağlık · M08 çevrimdışı kasa | 10–15 saat |
+| **3** | M09 çok biçimli girdi · M10 araştırma · M11 tutarlılık · M12 paketleme · M13 yedek · M14 arayüz · M15 dayanıklılık · M16 sertifikasyon | 10–15 saat |
+
+Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller ekran kartından boşaltılır (`python scripts/ai_os.py unload`), deneme sunucuları ve Docker kapları kapatılır.
+
+Çalışırken:
+
+- Model gerektiren denemeler tek tek koşar; ekran kartı 82 °C'yi geçerse soğuyana kadar yeni model denemesi başlatılmaz.
+- Bilgisayar prize takılı olmalı.
+- M15'in çok saatlik dayanıklılık koşusu, yalnız sen istediğin zaman başlatılır.
 
 ---
 
@@ -51,7 +62,7 @@ Bu dosya "ne kaldı" sorusunun tek cevabıdır. Bir madde, kod testi **ve** canl
 
 ## 3. v3
 
-- [ ] Durum tabanlı özellik testi: arayüz = API = veritabanı
+- [x] Durum tabanlı özellik testi: arayüz = API = veritabanı (`state_property.py`, canlı geçti)
 - [ ] JavaScript mutasyon testi
 - [~] Kırık görsel / yazı tipi / sıfır yükseklik / 3 görünüm — kod var, canlı denenecek
 - [x] PDF: öksüz başlık ve boş son sayfa denetimi
@@ -62,11 +73,11 @@ Bu dosya "ne kaldı" sorusunun tek cevabıdır. Bir madde, kod testi **ve** canl
 - [ ] Üretilen görselin isteme uyum puanı
 - [ ] Sohbetlerden mimari karar kaydı (ADR)
 - [ ] Genel mühendislik defteri
-- [ ] Bellek: sabitleme
-- [ ] Bellek: süre sonu
-- [ ] Bellek: kalıcı silme
+- [x] Bellek: sabitleme
+- [x] Bellek: süre sonu
+- [x] Bellek: kalıcı silme (`hafızamı göster`, `hafıza <no> sabitle / süre N gün / kalıcı sil`)
 - [~] Gizli etiketli verinin PDF, günlük ve eğitim verisine sızması — sır taraması var, etiket yayılımı yok
-- [ ] Köken kaydı: model özeti, üretim ayarları, kanıt özetleri
+- [x] Köken kaydı: model özeti, üretim ayarları, kanıt özetleri (teslim kaydında)
 - [ ] Fonksiyonlar arası veri akışı, ölü kod, boş değer erişimi
 - [ ] Önce/sonra ölçümlü performans iyileştirme
 - [ ] DOM ve bellek sızıntısı ölçümü
@@ -111,13 +122,14 @@ Bu dosya "ne kaldı" sorusunun tek cevabıdır. Bir madde, kod testi **ve** canl
 - [x] MCP veri yolu
 - [x] Yetki kapısı ve leke politikası
 - [x] Yörünge toplama ve sır temizleme
-- [ ] İki varyant yan yana
+- [x] İki varyant yan yana (canlı geçti; ama 30 dakika sürdü, aşağıdaki hız maddesine bak)
 - [ ] Dockerfile / Compose ve gerçek derleme
 - [ ] Belge üretimi
 - [ ] Zamanlanmış görevler
 - [ ] Öncelik kuyruğu
 - [x] Gözcü
 - [ ] Listenin kalan "yalnız testle" maddeleri
+- [ ] İki varyant üretimi 30 dakika sürüyor: sebebi ölçülüp kısaltılacak
 
 ## 6. v5
 
@@ -149,29 +161,29 @@ Bu dosya "ne kaldı" sorusunun tek cevabıdır. Bir madde, kod testi **ve** canl
 ### M02 — Hile engeli (ana kısım tamam)
 
 - [x] `.ai-os/oracles/` onarımlara kapalı
-- [ ] Kehanet dosyalarını mimar / test ajanının kendiliğinden yazması
+- [x] Kehanet dosyasını mimar adımı yazıyor (`.ai-os/oracles/contract.json`); teslim kapısı eksik uç noktayı reddediyor
 - [x] Test kurcalama reddi (silme, atlama, eşik gevşetme, özel durum)
-- [~] İhlalin kalıcı yasak kuralı olması — ayrı dosyada; iki zamanlı belleğe yazılmıyor
+- [x] İhlal zamanlı belleğe kalıcı yasak kuralı olarak yazılıyor
 - [x] Sessiz hata yutma, sahte gecikme, boş test denetimi
-- [~] Bağlanmamış kontroller — düğme tamam; `form`, `select`, `input` denetlenecek
-- [ ] A aşamasında LSP hatası sıfır koşulu
-- [~] A aşamasında SAST — yalnız gizli anahtarlar teslimi durduruyor
+- [x] Bağlanmamış düğme, `select`, `input` denetimi
+- [x] A aşamasında derleyici tanısı sıfır koşulu
+- [x] A aşamasında bütün güvenlik bulguları teslimi durduruyor
 
-### M03 — Canlı kanıt çalıştırıcısı (`verify_milestone_03.py` 4/4)
+### M03 — Canlı kanıt çalıştırıcısı (`verify_milestone_03.py` 5/5)
 
 - [x] Gerçek sunucu, boş port, gerçek tarayıcı
 - [x] Doldur, gönder, sert yenile, sunucuyu yeniden başlat, boş gönderim, sil
 - [x] Dosya çıktılarını bağımsız okuyucuyla açma
 - [x] Mutasyon yakalama oranı en az %80
-- [ ] API sözleşme testi (B aşaması)
-- [ ] Durum tabanlı özellik testi (B aşaması)
-- [~] `/health` süre sınırı içinde yanıt
-- [ ] Yolculukta HTTP `201` doğrulaması
-- [ ] Yenileme öncesi/sonrası veritabanı satır sayısı
-- [ ] Düzenle / durum değiştir adımı
-- [ ] Filtreleme adımı
-- [~] Yüklenemeyen varlık (400 ve üstü) — statik sayfada var, sunucu yolculuğunda yalnız 5xx
-- [ ] Kanıt dosyasında HTTP izleri, satır sayıları, süreler, ekran görüntüsü listesi
+- [x] API sözleşme testi (canlı sunucuda)
+- [x] Durum tabanlı özellik testi (canlı sunucuda)
+- [x] Sunucunun süre sınırı içinde hazır olması (30 sn)
+- [x] Yolculukta HTTP `201` doğrulaması
+- [x] Yenileme / yeniden başlatma öncesi-sonrası veritabanı satır sayısı
+- [x] Durum değiştir adımı
+- [x] Filtreleme adımı
+- [x] Yüklenemeyen varlık (400 ve üstü)
+- [x] Kanıt dosyasında HTTP izleri, satır sayıları, süreler, ekran görüntüsü listesi
 
 ### M04 — Küçük model destekleri
 

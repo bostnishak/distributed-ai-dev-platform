@@ -15,6 +15,7 @@ _UNSAFE_RULES = (
     ("eval kullanımı (kod enjeksiyonu riski)", re.compile(r"(?<![\w.])eval\s*\(")),
     ("innerHTML'e değişken yazılıyor (XSS riski)", re.compile(r"\.innerHTML\s*\+?=\s*(?:[A-Za-z_$][\w$.]*\s*(?:\+|;|$)|[^;]*\+\s*[A-Za-z_$])")),
     ("SQL metni birleştiriliyor (SQL enjeksiyonu riski)", re.compile(r"""execute\w*\(\s*(?:f["']|["'][^"']*["']\s*(?:%|\+|\.format))""")),
+    ("kabuk komutu metin birleştirilerek kuruluyor (komut enjeksiyonu riski)", re.compile(r"""(?:os\.system|os\.popen)\s*\(\s*(?:f["']|["'][^"']*["']\s*(?:%|\+|\.format))|shell\s*=\s*True""")),
     ("CORS her kaynağa açık", re.compile(r"""allow_origins\s*=\s*\[\s*["']\*["']""")),
 )
 

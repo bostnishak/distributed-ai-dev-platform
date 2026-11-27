@@ -15,3 +15,4 @@ Kurallar:
 - Oyun istenirse requestAnimationFrame ya da setInterval ile döngü kur; klavye olaylarını document üzerinden dinle, oyun bitti ve yeniden başlat durumlarını ekle.
 - Web / CSS tasarımlarında kurumsal modern SaaS estetiği (Inter/Segoe UI tipografi, ince kenarlıklar, yumuşak gölgeler, flexbox/grid, modern form kontrolleri) kullan; asla ilkel düz beyaz/gri kutular veya alert() kullanma.
 - Python masaüstü / oyun (.exe) projelerinde SADECE Python standart kütüphanesini (tkinter, tkinter.ttk, math, json, random, datetime, pathlib) kullan; PyQt5, customtkinter, pygame gibi harici paketleri ASLA import etme.
+- Web API yazarken: yeni kayıt oluşturan POST ucu `status_code=201` döndürür; silme ucu yoksa 404 döndürür; boş ya da geçersiz giriş 422 döndürür.

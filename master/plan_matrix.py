@@ -14,6 +14,7 @@ from typing import Any
 import repo_map
 
 FILE_NAME = "plan.json"
+ORACLE = ".ai-os/oracles/contract.json"
 _ROUTE_RE = re.compile(r"@\w+\.(get|post|put|patch|delete)\(\s*[\"']([^\"']+)[\"'](?:[^)]*status_code\s*=\s*(\d{3}))?", re.IGNORECASE)
 _EXPRESS_RE = re.compile(r"\b(?:app|router)\.(get|post|put|patch|delete)\(\s*[\"'`](/[^\"'`]*)[\"'`]")
 
@@ -62,10 +63,35 @@ def build(ws_dir: Path, contract: dict[str, Any], files: list[str]) -> dict[str,
     return {"files": files, "build_order": files, "dependencies": graph, "endpoints": routes, "acceptance": matrix(contract, routes)}
 
 
+def write_oracle(ws_dir: Path, contract: dict[str, Any]) -> None:
+    """What the request promised, written before any repair and never rewritten: later steps are judged against it."""
+    target = ws_dir / ORACLE
+    if target.exists():
+        return
+    target.parent.mkdir(parents=True, exist_ok=True)
+    promised = {key: contract.get(key) for key in ("endpoints", "labels", "colors", "persistence")}
+    target.write_text(json.dumps(promised, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def missing_endpoints(ws_dir: Path, openapi: dict[str, Any]) -> list[str]:
+    """Endpoints the oracle promises that the running server does not offer."""
+    try:
+        promised = json.loads((ws_dir / ORACLE).read_text(encoding="utf-8")).get("endpoints") or []
+    except (OSError, ValueError, AttributeError):
+        return []
+
+    def shape(path: str) -> str:
+        return re.sub(r"\{[^}]*\}|:\w+", "{}", path.rstrip("/")) or "/"
+
+    offered = {(method.upper(), shape(path)) for path, operations in openapi.get("paths", {}).items() for method in operations}
+    return [f"{e['method'].upper()} {e['path']}" for e in promised if (e["method"].upper(), shape(e["path"])) not in offered]
+
+
 def write(ws_dir: Path, contract: dict[str, Any], files: list[str]) -> list[str]:
     """Writes plan.json beside the project record; returns warnings for requirements the code visibly does not meet."""
     plan = build(ws_dir, contract, files)
     folder = ws_dir / ".ai-os"
     folder.mkdir(exist_ok=True)
     (folder / FILE_NAME).write_text(json.dumps(plan, ensure_ascii=False, indent=2), encoding="utf-8")
+    write_oracle(ws_dir, contract)
     return [f"Sözleşme: {row['requirement']} {row['check']}" for row in plan["acceptance"] if row["check"].startswith("EKSİK")]

@@ -8,6 +8,7 @@ from collections.abc import Iterator
 from pathlib import Path
 
 import cheat_guard
+from prompt_loader import load_prompt
 
 _SKIP_PARTS = {".history", ".git", "node_modules", "__pycache__", "venv", ".venv", "dist", ".ai-os"}
 _JS_EMPTY_CATCH_RE = re.compile(r"catch\s*(?:\([^)]*\))?\s*\{\s*(?:/\*.*?\*/\s*|//[^\n]*\n\s*)*\}", re.DOTALL)
@@ -121,4 +122,20 @@ def unwired(page) -> list[str]:
                 break
         if not own & _WANTED:
             dead.append(button["label"])
-    return dead
+    return dead + _idle_fields(page, listeners)
+
+
+_FIELDS = load_prompt("field_audit.js.txt")
+
+
+def _idle_fields(page, listeners) -> list[str]:
+    """Inputs and selects outside any form that no listener hears and no script mentions."""
+    shared = (listeners("window") | listeners("document") | listeners("document.body")) & {"input", "change", "keydown", "keyup"}
+    idle = []
+    for field in page.evaluate(_FIELDS):
+        if field["handled"] or shared:
+            continue
+        chain = f"document.querySelector('[data-field=\\\"{field['index']}\\\"]')"
+        if not (listeners(chain) | listeners(f"{chain}.parentElement")) & {"input", "change", "keydown", "keyup", "click"}:
+            idle.append(f"alan: {field['label']}")
+    return idle

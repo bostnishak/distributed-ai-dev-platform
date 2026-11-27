@@ -7,7 +7,9 @@ project; the only difference from the offline sandbox is that its port is publis
 from __future__ import annotations
 
 import contextlib
+import re
 import shutil
+import sqlite3
 import tempfile
 import time
 import uuid
@@ -26,6 +28,7 @@ from sandbox import runner
 
 _READY_S = 60
 _INSIDE = 8000
+_INSERT_RE = re.compile(r'INSERT INTO "((?:[^"]|"")+)"')
 
 
 def _docker(*args: str, timeout_s: int = 60) -> process_utils.ProcessResult:
@@ -36,9 +39,26 @@ def _docker(*args: str, timeout_s: int = 60) -> process_utils.ProcessResult:
 
 
 class LiveServer:
-    def __init__(self, name: str, port: int) -> None:
-        self.name, self.port = name, port
+    def __init__(self, name: str, port: int, files: Path | None = None) -> None:
+        self.name, self.port, self.files = name, port, files
         self.url = f"http://127.0.0.1:{port}"
+        self.ready_s = 0.0
+
+    def rows(self) -> dict[str, int]:
+        """{"file.table": rows} of every SQLite database the running copy has written."""
+        counts: dict[str, int] = {}
+        for path in sorted(self.files.rglob("*")) if self.files else []:
+            if path.suffix not in (".db", ".sqlite", ".sqlite3") or ".deps" in path.parts:
+                continue
+            try:
+                with contextlib.closing(sqlite3.connect(f"file:{path.as_posix()}?mode=ro", uri=True, timeout=5)) as conn:
+                    counts.update({f"{path.name}.{table}": 0 for (table,) in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'")})
+                    for line in conn.iterdump():  # one INSERT line per stored row
+                        if inserted := _INSERT_RE.match(line):
+                            counts[f"{path.name}.{inserted[1]}"] = counts.get(f"{path.name}.{inserted[1]}", 0) + 1
+            except sqlite3.Error:
+                continue
+        return counts
 
     def logs(self) -> str:
         done = _docker("logs", "--tail", "30", self.name)
@@ -104,8 +124,10 @@ def serve(ws_dir: Path) -> Iterator[LiveServer]:
         started = _docker(*args, timeout_s=120)
         if started.returncode != 0:
             raise OSError(f"kap açılamadı: {started.stderr[-300:]}")
-        server = LiveServer(name, port)
+        server = LiveServer(name, port, stage)
+        began = time.time()
         server.wait()
+        server.ready_s = round(time.time() - began, 1)
         yield server
     finally:
         _docker("rm", "-f", name)
