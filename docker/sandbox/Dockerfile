@@ -1,4 +1,5 @@
 FROM python:3.12-slim
+LABEL cm6453=sandbox
 
 # SEC-13: Hardened non-root, offline execution sandbox image
 RUN pip install --no-cache-dir pytest==8.3.5 \

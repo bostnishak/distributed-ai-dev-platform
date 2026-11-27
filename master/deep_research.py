@@ -25,6 +25,7 @@ from pptx.oxml import parse_xml
 from pptx.oxml.ns import nsdecls
 from pptx.util import Inches
 
+import confidential
 import deck_plan
 import json_repair
 import multimodal_studio as mms
@@ -176,8 +177,19 @@ def build_pptx_presentation(
             _render_cover_slide(slide, str(sdata.get("title") or title), str(sdata.get("subtitle") or cover_sub), ctx, cover_notes)
         else:
             _render_content_slide(slide, sdata, ctx)
+    confidential_free(prs)
     prs.save(str(out_path))
     return out_path
+
+
+def confidential_free(prs: Any) -> None:
+    """Replace marked values in every text run of the deck, speaker notes included."""
+    for slide in prs.slides:
+        frames = [shape.text_frame for shape in slide.shapes if shape.has_text_frame]
+        frames += [cell.text_frame for shape in slide.shapes if shape.has_table for row in shape.table.rows for cell in row.cells]
+        frames += [slide.notes_slide.notes_text_frame] if slide.has_notes_slide else []
+        for run in (r for frame in frames if frame is not None for paragraph in frame.paragraphs for r in paragraph.runs):
+            run.text = confidential.redact(run.text)
 
 
 _PLACEHOLDER_RE = re.compile(r"<[^<>\n]{2,40}>")
@@ -191,7 +203,8 @@ def _slide_has_content(sl: dict[str, Any]) -> bool:
 def _slides_are_real(spec: dict[str, Any], prompt: str) -> bool:
     """A usable deck has several slides with their own content; slides that just repeat the request or keep schema placeholders are rejected."""
     slides = spec.get("slides")
-    if not isinstance(slides, list) or len(slides) < 3 or _PLACEHOLDER_RE.search(json.dumps(slides, ensure_ascii=False).replace("<br>", "")):
+    least = min(3, _parse_slide_count(prompt))  # "3 slides" means a cover and two content slides
+    if not isinstance(slides, list) or len(slides) < least or _PLACEHOLDER_RE.search(json.dumps(slides, ensure_ascii=False).replace("<br>", "")):
         return False  # an <angle-bracket> field means the model copied the schema placeholders
     echo = " ".join(prompt.lower().split())[:40]
     filled = 0
@@ -202,7 +215,7 @@ def _slides_are_real(spec: dict[str, Any], prompt: str) -> bool:
         if any(echo and echo in " ".join(x.lower().split()) for x in bullets):
             return False
         filled += 1 if _slide_has_content(sl) else 0
-    return filled >= max(3, len(slides) - 1)
+    return filled >= max(least, len(slides) - 1)
 
 
 async def _fetch_pptx_spec(sys_prompt: str, user_msg: str, model: str, prompt: str = "") -> dict[str, Any]:

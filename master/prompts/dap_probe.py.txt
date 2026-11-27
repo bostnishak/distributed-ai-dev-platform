@@ -10,6 +10,9 @@ import time
 
 root = os.path.abspath(sys.argv[1])
 tests = sys.argv[2:]
+stop_at = None
+if tests and tests[0].startswith("--break="):
+    stop_at, tests = json.loads(tests[0][len("--break="):]), tests[1:]
 runner = os.path.join(root, "_dap_runner.py")
 with open(runner, "w", encoding="utf-8") as handle:
     handle.write(
@@ -89,12 +92,18 @@ try:
     send("launch", {"program": runner, "cwd": root, "console": "internalConsole", "justMyCode": True, "env": {"PYTHONPATH": env["PYTHONPATH"]}, "python": [sys.executable]})
     wait(lambda m: m.get("event") == "initialized")
     call("setExceptionBreakpoints", {"filters": ["uncaught"]})
+    if stop_at:
+        set_ = call("setBreakpoints", {"source": {"path": os.path.join(root, stop_at["file"])}, "breakpoints": [{"line": stop_at["line"], **({"condition": stop_at["condition"]} if stop_at["condition"] else {})}]})
+        result["breakpoint"] = bool(set_.get("breakpoints"))
     call("configurationDone")
     event = wait(lambda m: m.get("event") in ("stopped", "terminated"))
     if event.get("event") == "stopped":
         thread = event["body"]["threadId"]
-        info = call("exceptionInfo", {"threadId": thread})
-        result["exception"] = "%s: %s" % (info.get("exceptionId", ""), str(info.get("description", ""))[:200])
+        if event["body"].get("reason") == "breakpoint":
+            result["exception"] = "kesme noktası"
+        else:
+            info = call("exceptionInfo", {"threadId": thread})
+            result["exception"] = "%s: %s" % (info.get("exceptionId", ""), str(info.get("description", ""))[:200])
         for frame in call("stackTrace", {"threadId": thread, "levels": 12}).get("stackFrames", []):
             path = frame.get("source", {}).get("path", "")
             if not os.path.abspath(path).startswith(root) or path.endswith("_dap_runner.py"):

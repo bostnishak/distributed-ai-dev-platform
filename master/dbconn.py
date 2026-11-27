@@ -6,7 +6,9 @@ timeout, so a background thread writing while a request read could raise "databa
 
 from __future__ import annotations
 
+import re
 import sqlite3
+import threading
 from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
@@ -16,7 +18,79 @@ import config
 BUSY_TIMEOUT_MS = 10_000
 
 
-class ClosingConnection(sqlite3.Connection):
+_WRITE_RE = re.compile(r"^\s*(?:insert|update|delete|replace|create|alter|drop|begin|vacuum|reindex)\b", re.IGNORECASE)
+_writers: dict[str, threading.RLock] = {}
+_writers_guard = threading.Lock()
+
+
+def writer_lock(path: Path | str) -> threading.RLock:
+    key = str(Path(path).resolve()).casefold()
+    with _writers_guard:
+        return _writers.setdefault(key, threading.RLock())
+
+
+class SerialConnection(sqlite3.Connection):
+    """Writes to one database file queue up here instead of colliding inside SQLite.
+
+    The first writing statement takes the file's lock; commit, rollback or close gives it back. Waiting is bounded by
+    the busy timeout, after which SQLite's own locking decides, so a forgotten transaction can never hang the platform.
+    """
+
+    lock: threading.RLock | None = None
+    held = False
+
+    def _queue(self, statement: str) -> None:
+        if self.lock is not None and not self.held and _WRITE_RE.match(statement):
+            self.held = self.lock.acquire(timeout=BUSY_TIMEOUT_MS / 1000)
+
+    def _done(self) -> None:
+        if self.held and not self.in_transaction:
+            self.held = False
+            self.lock.release()
+
+    def execute(self, sql, *args):
+        self._queue(sql)
+        try:
+            return super().execute(sql, *args)
+        finally:
+            self._done()
+
+    def executemany(self, sql, *args):
+        self._queue(sql)
+        try:
+            return super().executemany(sql, *args)
+        finally:
+            self._done()
+
+    def executescript(self, script):
+        self._queue("begin")
+        try:
+            return super().executescript(script)
+        finally:
+            self._done()
+
+    def commit(self):
+        try:
+            super().commit()
+        finally:
+            self._done()
+
+    def rollback(self):
+        try:
+            super().rollback()
+        finally:
+            self._done()
+
+    def close(self):
+        try:
+            super().close()
+        finally:
+            if self.held:
+                self.held = False
+                self.lock.release()
+
+
+class ClosingConnection(SerialConnection):
     """``with conn:`` commits or rolls back like the standard class, then closes.
 
     The standard ``with sqlite3.connect(...)`` leaves the connection open until it is garbage collected; on
@@ -27,7 +101,7 @@ class ClosingConnection(sqlite3.Connection):
         try:
             return super().__exit__(exc_type, exc_value, traceback)
         finally:
-            self.close()
+            self.close()  # close() also gives the write lock back
 
 
 def configure(conn: sqlite3.Connection) -> sqlite3.Connection:
@@ -45,6 +119,7 @@ def open_db(path: Path | str, *, row_factory: bool = True) -> sqlite3.Connection
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(target), timeout=BUSY_TIMEOUT_MS / 1000, factory=ClosingConnection)
+    conn.lock = writer_lock(target)
     if row_factory:
         conn.row_factory = sqlite3.Row
     return configure(conn)

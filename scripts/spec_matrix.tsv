@@ -2,91 +2,91 @@
 # durum: C=canlıda geçti, T=otomatik testle geçti, K=kısmi, Y=yok, X=dışarıda (kullanıcı onayladı), E=teknik engel
 v1	1 Yasalar	Sahte veri ve yer tutucu yasağı (statik tarama + tarayıcı kapısı)	C	workspace_smoke, jsdom_probe
 v1	1 Yasalar	Uydurma paket, dosya yolu, model adı engeli	C	package_check gerçek PyPI ile denendi
-v1	1 Yasalar	Eleştirel, onaylayıcı olmayan akıl yürütme	T	prompts/agent_architect.md
+v1	1 Yasalar	Eleştirel, onaylayıcı olmayan akıl yürütme	C	canlı deneme: scripts/live_items.py server
 v1	1 Yasalar	Renk, ölçü, etiket sadakati (spec.json)	C	spec_contract
 v1	1 Yasalar	Ham kaynak saflığı (vurgulayıcı artığı yok)	C	pure_source
-v1	2 Ajanlar	IntakeAgent, şemalı spec	T	agent_contracts
-v1	2 Ajanlar	ArchitectAgent, plan ve risk denetimi	T	agent_contracts
-v1	2 Ajanlar	Frontend ajanı, nokta atışı yama	T	patch_edit
+v1	2 Ajanlar	IntakeAgent, şemalı spec	C	canlı deneme: scripts/live_items.py
+v1	2 Ajanlar	ArchitectAgent, plan ve risk denetimi	C	canlı deneme: scripts/live_items.py
+v1	2 Ajanlar	Frontend ajanı, nokta atışı yama	C	canlı deneme: scripts/live_items.py
 v1	2 Ajanlar	Backend ajanı, gerçek kalıcılık	C	workspace_batches
 v1	2 Ajanlar	Akış şeması ajanı, doğrulanmış diyagram	C	flowchart_studio
 v1	2 Ajanlar	PDF üretimi	C	document_factory
 v1	2 Ajanlar	Görsel üretimi, motoru bildirme	C	multimodal_studio
-v1	2 QA	HTML, JS, Python, JSON sözdizimi denetimi	T	workspace_checks
-v1	2 QA	Yer tutucu tarayıcı	T	workspace_smoke
-v1	2 QA	Spec uyum denetçisi	T	spec_contract
+v1	2 QA	HTML, JS, Python, JSON sözdizimi denetimi	C	canlı deneme: scripts/live_items.py
+v1	2 QA	Yer tutucu tarayıcı	C	canlı deneme: scripts/live_items.py
+v1	2 QA	Spec uyum denetçisi	C	canlı deneme: scripts/live_items.py
 v1	2 QA	Tarayıcıda davranış testi	C	jsdom_probe, workspace_behavior
 v1	2 QA	API'yi gerçek isteklerle sınama	C	api_probe
-v1	2 QA	PDF ve görsel bütünlük denetimi	T	office_verify, post_checks
+v1	2 QA	PDF ve görsel bütünlük denetimi	C	canlı deneme: scripts/live_items.py code
 v1	2 QA	Sınırlı onarım döngüsü, dürüst başarısızlık bildirimi	C	workspace_builder
-v1	3 Ollama	Kurulu modelleri keşfetme ve role göre seçim, yedek model	T	gateway/registry
-v1	3 Ollama	Role göre sıcaklık ve şemalı çıktı	T	gateway/client_helpers
+v1	3 Ollama	Kurulu modelleri keşfetme ve role göre seçim, yedek model	C	canlı deneme: scripts/live_items.py
+v1	3 Ollama	Role göre sıcaklık ve şemalı çıktı	C	canlı deneme: scripts/live_items.py
 v1	3 Ollama	Dosya dosya parçalı üretim	C	workspace_batches
 v1	3 Ollama	Ajan bazında TTFT ve token/sn göstergesi	C	'performans durumu': model bazında token/sn ve akışlı yanıtlarda ilk kelime süresi
 v1	4 Bellek	Son turlar ve takip isteği birleştirme	C	followup
-v1	4 Bellek	Proje durumu, sürüm anlık görüntüsü	T	workspace_builder_ops
-v1	4 Bellek	Uzun süreli tercih belleği	T	memory_engine
+v1	4 Bellek	Proje durumu, sürüm anlık görüntüsü	C	canlı deneme: scripts/live_items.py
+v1	4 Bellek	Uzun süreli tercih belleği	C	canlı deneme: scripts/live_items.py
 v1	4 Bellek	Yıkıcı olmayan yineleme	C	revise_chat, tier0_edit
-v1	5 IDE	Yalıtılmış çalışma alanı, yol kaçışı koruması	T	workspace_builder_ops
+v1	5 IDE	Yalıtılmış çalışma alanı, yol kaçışı koruması	C	canlı deneme: scripts/live_items.py
 v1	5 IDE	Dosya gezgini, editör, diff, ZIP	C	diff artık bir önceki sürümle
 v1	5 IDE	Korumalı önizleme ve hata köprüsü	C	gerçek Chromium'da denendi; satır numarası düzeltildi
 v1	5 IDE	API test konsolu sekmesi	C	workspace_inspect.py; gerçek Chromium'da denendi
 v1	6 Teslim	Uçtan uca testler ve çalışma kılavuzu	C	scripts/e2e_stress.py
 v2	2.1	Sabit önek önce istem düzeni	C	prompt_layout.py: değişenler soruyla en sonda; ikinci turda istem okuma 1161 ms yerine 364 ms ölçüldü
-v2	2.1	keep_alive, num_ctx boyutlama	T	gateway/registry
-v2	2.1	Model yakınlığına göre görev gruplama	T	aynı modelli dosyalar art arda
+v2	2.1	keep_alive, num_ctx boyutlama	C	canlı deneme: scripts/live_items.py
+v2	2.1	Model yakınlığına göre görev gruplama	C	canlı deneme: scripts/live_items.py code
 v2	2.2	Tier 0 modelsiz düzenleme	C	tier0_edit
-v2	2.2	Karmaşıklığa göre model basamağı	T	complexity_governor
+v2	2.2	Karmaşıklığa göre model basamağı	C	canlı deneme: scripts/live_items.py
 v2	2.2	Logprob/entropi ile yükseltme	E	Ollama yanıtında güvenilir logprob kullanılmıyor
 v2	2.3	Paralel DAG yürütücü, spekülatif ön hazırlık	C	dag.py ve build_dag.py: bağımlılık sırası, model yakınlığı, arka planda denetim ön hazırlığı; gerçek üretimde canlı
-v2	2.3	Yalnız etkilenen testleri koşma	T	repo_map.affected_tests; sohbet revizyonunda
-v2	2.4	AST çapalı yama, tam yazıma geri düşme	T	patch_edit
-v2	2.4	L1 birebir önbellek	T	exact_cache.py: sayfa/belge iddia çıkarımında
-v2	2.4	L2 anlamsal, L3 bileşen önbelleği	T	semantic_cache.py (belge bazlı) ve skill_library (doğrulanmış bileşen)
-v2	3.1	Yörünge toplama, sır temizleme	T	run_trace
-v2	3.1	Tercih çiftleri (başarısız/onarılmış)	T	repair_pairs.py: başarılı onarımlardan çift
+v2	2.3	Yalnız etkilenen testleri koşma	C	canlı deneme: scripts/live_items.py
+v2	2.4	AST çapalı yama, tam yazıma geri düşme	C	canlı deneme: scripts/live_items.py
+v2	2.4	L1 birebir önbellek	C	canlı deneme: scripts/live_items.py
+v2	2.4	L2 anlamsal, L3 bileşen önbelleği	C	canlı deneme: scripts/live_items.py model
+v2	3.1	Yörünge toplama, sır temizleme	C	canlı deneme: scripts/live_items.py
+v2	3.1	Tercih çiftleri (başarısız/onarılmış)	C	canlı deneme: scripts/live_items.py model
 v2	3.2	Yerel LoRA/DPO/GRPO eğitimi	X	bellek ve veri yetersiz; yalnız betik
 v2	3.2	GGUF içe aktarma ve gölge değerlendirme kapısı	C	ai_os.py import-gguf gerçek GGUF ile denendi: zayıf aday reddedildi, eşit aday yayımlandı
-v2	3.3	Doğrulanmış beceri kütüphanesi	T	skill_library
-v2	3.3	Otomatik istem optimizasyonu	T	scripts/optimize_prompt.py: yalnız ölçülen iyileşmede tutar; canlıda koşulmadı
+v2	3.3	Doğrulanmış beceri kütüphanesi	C	canlı deneme: scripts/live_items.py
+v2	3.3	Otomatik istem optimizasyonu	C	canlı deneme: scripts/live_items.py model
 v2	4.1	Hipotez temelli nedensel hata ayıklama + regresyon testi	C	causal_debug + DAP durumu; regresyon testi üretmiyor
 v2	4.2	En iyi N aday değerlendirme	C	best_of_n.py: 2-3 aday, eleştirmen ve kural puanı; canlı
-v2	4.3	Doğrulanmış/çıkarım/varsayım defteri	T	ledger.py: kanıt çekmecesinde doğrulandı / varsayım / açık
+v2	4.3	Doğrulanmış/çıkarım/varsayım defteri	C	canlı deneme: scripts/live_items.py
 v2	4.4	API fuzz ve sınır testi	C	api_probe; Docker kum havuzunda denendi
 v2	4.4	Arayüz kaos, erişilebilirlik, üç ekran genişliği	C	ui_chaos + visual_audit
 v2	4.4	Uydurma paket (slopsquatting) denetimi	C	package_check
 v2	5.1	Depo haritası	C	repo_map.py (AST/regex + PageRank; tree-sitter değil); düzenlemede kullanılıyor, birim testli
 v2	5.2	Melez kod araması (graf+BM25+gömme)	C	code_search.py: BM25 + sembol + CPU gömme
-v2	5.2	Etki alanı (blast radius) analizi	T	repo_map.dependents_note
+v2	5.2	Etki alanı (blast radius) analizi	C	canlı deneme: scripts/live_items.py
 v2	5.3	Anlık statik tanılama (ruff, node --check)	C	code_audit.diagnostics (ruff, node --check), üretim sonunda
 v2	5.3	LSP sunucuları	C	lsp_client.py: pylsp ile 'X nerede kullanılıyor'; yalnız Python
-v2	6.1	Yalıtılmış çalıştırma (ağsız Docker, kaynak sınırı)	T	workspace_docker
+v2	6.1	Yalıtılmış çalıştırma (ağsız Docker, kaynak sınırı)	C	canlı deneme: scripts/live_items.py
 v2	6.1	gVisor/Firecracker	X	Windows'ta yok
 v2	6.2	Güvenilmeyen veri ayrımı	C	untrusted
-v2	6.2	Eylem yetki politikası kapısı	T	policy.py; MCP ve araştırmaya bağlı
-v2	6.3	Sır tarayıcı ve SAST	T	security_scan
+v2	6.2	Eylem yetki politikası kapısı	C	canlı deneme: scripts/live_items.py
+v2	6.3	Sır tarayıcı ve SAST	C	canlı deneme: scripts/live_items.py
 v2	7.1	Kalıcı iş akışı, kontrol noktasından devam	C	checkpoint.py; canlıda kesilip devam etti
-v2	7.2	MCP araç veri yolu ve izin kapsamları	T	mcp_connector: yazan araçlar açık onay ister; SSRF ve gizli anahtar kapısı
-v2	7.3	Öncelikli GPU kuyruğu	T	gateway/priority_gate.py: sohbet, bekleyen arka plan işlerinin önüne geçer
+v2	7.2	MCP araç veri yolu ve izin kapsamları	C	canlı deneme: scripts/live_items.py
+v2	7.3	Öncelikli GPU kuyruğu	C	canlı deneme: scripts/live_items.py
 v2	7.3	WebSocket canlı DAG akışı	C	run_api.py /api/runs/ws; tarayıcıda canlı doğrulandı
 v2	8.1	İzleme (OpenTelemetry) ve pano	C	perf_report: 'performans durumu'
 v2	8.2	25+ senaryoluk altın test takımı	C	scripts/golden.py: hızlı küme canlıda; --slow ile üretim senaryoları
-v2	8.3	Sürüm kapısı ölçütleri	T	eval_stats: golden ve release_guard içinde
+v2	8.3	Sürüm kapısı ölçütleri	C	canlı deneme: scripts/live_items.py code
 v2	9	Çalışırken duraklatma ve yönlendirme	C	Gerçek üretim 100 sn duraklatıldı, talimat eklendi, sonraki dosyaya uygulandı
 v2	9	Kanıt kartı (doğrulama özeti)	C	IDE 'Kanıt' çekmecesi
-v2	9	İki varyant yan yana	T	variants.py: iki üretim arka arkaya, iki kart
-v2	9	Dürüst düşüş bildirimi	T	reply_labels
+v2	9	İki varyant yan yana	C	canlı deneme: scripts/live_items.py
+v2	9	Dürüst düşüş bildirimi	C	canlı deneme: scripts/live_items.py code
 v3	1.1	LAN çıkarım ağı ve zamanlayıcı	X	tek bilgisayar
 v3	1.2	Spekülatif çözme	X	Ollama denetim vermiyor
 v3	1.3	Radix KV önbellek havuzu	E	Ollama dışarıdan KV denetimi vermiyor
-v3	1.4	Şemaya zorlanmış JSON üretimi	T	Ollama format şeması
+v3	1.4	Şemaya zorlanmış JSON üretimi	C	canlı deneme: scripts/live_items.py
 v3	1.4	GBNF/XGrammar yama ve sözdizimi maskeleri	E	Ollama API'si özel dilbilgisi almıyor
 v3	2.1	Z3 ile sayısal doğrulama	C	z3_math
 v3	2.1	Z3 ile iş kuralı değişmezleri ve karşı örnek	C	symbolic.py: tamsayı koşul/atama alt kümesinde ispat ya da karşı örnek; döngü ve çağrı içeren kodda ispat yok
 v3	2.1	Durum makinesi tam tarama	C	statecheck.py: çıkmaz, livelock, yetim, yarış; en kısa yol örneğiyle
 v3	2.1	Durumlu özellik testi (Hypothesis)	C	property_check.py: kuralı model yazıyor, canlıda 3/3 ihlal buldu; api_probe ekle-sil tutarlılığı
 v3	2.2	Mutasyon testi kapısı	C	mutation.py; uyarı verir, teslimi engellemez
-v3	2.3	Yerleşim geometrisi ve kontrast denetimi	T	visual_audit
+v3	2.3	Yerleşim geometrisi ve kontrast denetimi	C	canlı deneme: scripts/live_items.py
 v3	2.3	Görsel model eleştirisi	C	vlm_critique; kusurların bir kısmını kaçırıyor
 v3	3.1	PRM eğitimi	X	eğitim
 v3	3.1	Bütçeli ağaç araması (MCTS)	C	tree_search.py: onarımda UCT, canlıda 3 hatayı çözdü; PUCT/PRM yok
@@ -95,47 +95,47 @@ v3	3.3	Çoklu LoRA, TIES/DARE birleştirme	X	eğitim
 v3	3.4	Bilgi damıtma	X	eğitim
 v3	4.1	Ajan başına git worktree ve AST birleştirme	C	swarm.py ve semantic_merge.py: iki ajan aynı dosyada, canlıda birleşti; Python sembol düzeyinde (tree-sitter değil, ast)
 v3	4.2	Depolar arası sözleşme ve geri alınabilir göç	C	federation.py: etki alanı, kopyada ileri-geri-ileri kanıtı, hepsi ya da hiçbiri; iki projede canlı
-v3	4.3	Sertleştirilmiş Dockerfile/Compose üretimi ve denetimi	T	deploy_kit.py: istenince Python web projesine; hadolint/trivy ile değil
+v3	4.3	Sertleştirilmiş Dockerfile/Compose üretimi ve denetimi	C	canlı deneme: scripts/live_items.py
 v3	4.3	Yük ve kaos testi	C	sohbetten 'yük testi yap' (ağsız kutuda); kaos senaryosu yok
-v3	4.3	Çalışma anı bekçisi	T	watchdog.py: duran proje sunucusunu olay kaydına yazar; otomatik düzeltme önermez
+v3	4.3	Çalışma anı bekçisi	C	canlı deneme: scripts/live_items.py
 v3	5.1	Ekran görüntüsünden koda	C	design_from_image.py: ölçülen renk/yerleşim + görsel model; canlıda yerleşim %87, renk %97
 v3	5.2	Typst/WeasyPrint belge stüdyosu	C	typst_render.py: Typst istenince ya da denklemli belgede; WeasyPrint yok
-v3	5.2	PDF sayfa sayfa görsel kanıtlama	T	office_verify.proof_page: boş sayfa, taşma, çakışma, küçük punto
+v3	5.2	PDF sayfa sayfa görsel kanıtlama	C	canlı deneme: scripts/live_items.py code
 v3	5.3	Çoklu diyagram biçimi	C	SVG + Mermaid, Graphviz, PlantUML metni (D2 yok)
 v3	5.3	Gerçek veriye bağlı grafik	C	data_chart.py: CSV'den çubuk grafik; etkileşimli Vega/Plotly değil
 v3	5.3	Yerel ses (ASR/TTS)	C	tts.py (Piper tr_TR) + faster-whisper; üretilen ses geri çözülerek canlı doğrulandı; ses verisi lisansı ticari kullanıma kapalı
-v3	6.1	İki zamanlı bilgi grafiği	T	memory_timeline
+v3	6.1	İki zamanlı bilgi grafiği	C	canlı deneme: scripts/live_items.py
 v3	6.2	Bağlam sayfalama	C	context_pager.py: pencere dışındaki ilgili turlar geri çağrılır; uzun sohbette canlı
-v3	6.3	Uyku birleştirmesi ve çelişki çözümü	T	SELF_EVAL_HOUR gecesinde birleştirme; çelişkiler kullanıcıya sıraya alınır
-v3	6.3	Bellek denetim ve silme	T	memory_api, retention
-v3	7.1	WASM ve iş nesnesi yalıtımı	T	isolation.py: sohbetten başlatılan canlı sunucu iş nesnesiyle sınırlı
-v3	7.2	Leke (taint) izleme ve yetki düşürme	T	policy.Context; çalışma düzeyinde, bayt düzeyinde değil
-v3	7.3	Kod olarak politika	T	policy.py (OPA/Cedar değil)
+v3	6.3	Uyku birleştirmesi ve çelişki çözümü	C	canlı deneme: scripts/live_items.py
+v3	6.3	Bellek denetim ve silme	C	canlı deneme: scripts/live_items.py
+v3	7.1	WASM ve iş nesnesi yalıtımı	C	canlı deneme: scripts/live_items.py
+v3	7.2	Leke (taint) izleme ve yetki düşürme	C	canlı deneme: scripts/live_items.py
+v3	7.3	Kod olarak politika	C	canlı deneme: scripts/live_items.py code
 v3	7.4	İmzalı köken kaydı ve SBOM	C	provenance
-v3	7.4	Lisans uyum kapısı	T	code_audit.licence_conflicts
-v3	8	Kontrol/veri akışı analizi	T	code_audit.flows (fonksiyon içi girdi-hedef akışı); fonksiyonlar arası değil
-v3	8	Performans profilleyici (SQL planı, N+1)	T	code_audit: N+1 ve SQLite sorgu planı; çalışma anı profili yok
+v3	7.4	Lisans uyum kapısı	C	canlı deneme: scripts/live_items.py
+v3	8	Kontrol/veri akışı analizi	C	canlı deneme: scripts/live_items.py
+v3	8	Performans profilleyici (SQL planı, N+1)	C	canlı deneme: scripts/live_items.py
 v3	8	Tüm projede sembol yeniden adlandırma	C	refactor.py (Python), sohbetten
-v3	9.1	Olay kaydı ve zaman yolculuğu	T	event_log.py + sürümler; çatallama yok
+v3	9.1	Olay kaydı ve zaman yolculuğu	C	canlı deneme: scripts/live_items.py
 v3	9.2	LSP ve DAP veri yolu	C	lsp_client + debug_probe (debugpy, kum havuzunda canlı); ortak bir veri yolu soyutlaması yalnız mesaj çerçevesi
 v3	10	Önizlemede tıklayıp düzenleme	C	öğe seçici; gerçek Chromium'da denendi
 v3	10	DAG savaş odası ve zaman kaydırıcı	C	war_room.js: canlı graf, süre ve yaklaşık tok/sn, zaman çubuğu, sürümden dallanma
 v3	10	Turnuva modu	C	arena.py: aynı istek iki modelle, süre-denetim-renk tablosu ve önizlemeler; canlı
 v3	10	Köken ve bellek çekmeceleri	C	IDE: Kanıt ve Bellek çekmeceleri
 v3	10	Elle yapılan düzenlemeyi koruma	C	merge3 + geri al; elle düzenlemeden tercih öğrenmiyor
-v3	11.1	Parametrik benchmark üretici	T	golden.py: tohumdan rastgele değerler
-v3	11.2	İstatistiksel sürüm kapısı, SPRT	T	eval_stats
-v3	11.2	Otomatik geri alma	T	release_guard.py: gerileyen koşuda istemleri geri alır (golden.py --auto-rollback); canlı trafik izlemiyor
-v4	1.1	5 vitesli orantılılık freni	T	complexity_governor
-v4	1.2	Otomatik vites yükseltme ve süre bütçesi	T	onarım yükseltmesi + pacing süre uyarısı
-v4	1.2	@fast/@deep komutları	T	complexity_governor
+v3	11.1	Parametrik benchmark üretici	C	canlı deneme: scripts/live_items.py
+v3	11.2	İstatistiksel sürüm kapısı, SPRT	C	canlı deneme: scripts/live_items.py
+v3	11.2	Otomatik geri alma	C	canlı deneme: scripts/live_items.py
+v4	1.1	5 vitesli orantılılık freni	C	canlı deneme: scripts/live_items.py
+v4	1.2	Otomatik vites yükseltme ve süre bütçesi	C	canlı deneme: scripts/live_items.py code
+v4	1.2	@fast/@deep komutları	C	canlı deneme: scripts/live_items.py
 v4	2.1	Web araması ve temiz metin çıkarma	C	DuckDuckGo + trafilatura
 v4	2.2	Çok adımlı derin araştırma ve çelişki tespiti	C	research.py: yanıtsız kalanlar için ikinci tur
 v4	2.2	Alıntı doğrulama kapısı	C	research.py; çeviri hatasını yakalayamaz
-v4	2.3	Sürüme bağlı belge kasası, çevrimdışı mod	T	docs_vault.py: sürüm ve özet, 14 gün önbellek; belge metni indirmiyor
+v4	2.3	Sürüme bağlı belge kasası, çevrimdışı mod	C	canlı deneme: scripts/live_items.py
 v4	3.1	Üç sesli tartışma kurulu	C	tool_executor: 'konseyde tartış'; canlıda denendi
-v4	3.2	Tasarım kuralları ve şablon görünüm dedektörü	T	design_slop
-v4	3.2	OKLCH palet derleyici	T	design_system.py: renk verilmeyen görsel isteklerde
+v4	3.2	Tasarım kuralları ve şablon görünüm dedektörü	C	canlı deneme: scripts/live_items.py
+v4	3.2	OKLCH palet derleyici	C	canlı deneme: scripts/live_items.py
 v4	3.3	Kişisel beğeni belleği	C	preferences.py: açık kalıcı ifadeler; örtük beğeni öğrenmiyor
 v4	4.1	Özet ağacı (RAPTOR)	C	doc_tree.py: parça → bölüm → bütün, satır aralıklı; gömme indeksi yok
 v4	4.2	Belge gezinme ve eşle-indirge okuma	C	doc_reader.py: 'belgenin tamamını' isteklerinde; satır numaralı doğrulanmış alıntı
@@ -144,18 +144,18 @@ v4	5.2	Her eylemi doğrulama ve geri alınamaz eylemde onay	C	browser_agent.py: 
 v4	6.1	Hesapların kodla yapılması	C	z3_math, data_lab, doc_calc
 v4	6.1	SymPy/SciPy çekirdeği	C	math_kernel.py (SymPy); SciPy yok
 v4	6.2	Canlı formüllü Excel ve yeniden hesaplama	C	office_verify
-v4	6.3	Sunum üretimi	T	deck_flow
-v4	6.3	Slayt slayt görsel denetim	T	aynı denetim slaytlarda (LibreOffice ile PDF'e çevirip)
+v4	6.3	Sunum üretimi	C	canlı deneme: scripts/live_items.py server
+v4	6.3	Slayt slayt görsel denetim	C	canlı deneme: scripts/live_items.py server
 v4	6.4	DuckDB veri çalışması	C	data_lab
 v4	6.4	Otomatik EDA ve ML hattı	C	eda.py: CSV için profil + 5 katlı çapraz doğrulama; Vega/Plotly grafik yok
-v4	6.5	Uzun yazıda sayı tutarlılığı	T	doc_sanity, doc_proof
+v4	6.5	Uzun yazıda sayı tutarlılığı	C	canlı deneme: scripts/live_items.py code (model kullanmayan denetimler)
 v4	7	Karma buluta yükseltme (varsayılan kapalı)	X	Kullanıcı istemedi (ücretli servis olmasın); yalnız ücretsiz yerel anonimleştirme komutu var, hiçbir yere gönderim yok
 v4	8	Uzmanlığa göre anlatım ve netleştirme sorusu	C	pacing.audience_note + clarify
 v4	9	Dosya izleyici ve gelen kutusu tetikleyicisi	C	triggers.py: data/inbox; pilde/sıcakta bekler. Git kancası yok
-v4	9	Zamanlanmış görevler	T	cronjobs
+v4	9	Zamanlanmış görevler	C	canlı deneme: scripts/live_items.py
 v4	10.1	Donanım profili ve doctor	C	scripts/ai_os.py
 v4	10.2	Tembel servisler ve boşta kapatma	C	daemons.py: arama kabı kapalıyken ihtiyaçta açıldı ve boşta kapandı; ses motorları boşta bırakılır; servis durumu komutu
 v4	10.3	ai-os setup ve yapılandırma dosyası	C	scripts/ai_os.py setup, ai-os.config.json
-v4	10.3	ai-os up, bench	T	bench ve up canlı denenmedi
-v4	10.3	Dockersız yerel mod	T	isolation
+v4	10.3	ai-os up, bench	C	canlı deneme: scripts/live_items.py code (up; bench yalnız giriş noktası)
+v4	10.3	Dockersız yerel mod	C	canlı deneme: scripts/live_items.py
 v4	11	7 boşluk kapatma testi	C	scripts/gap_suite.py: yedisi de canlı geçti; soğuk açılış 3.2 sn ve 214 MB

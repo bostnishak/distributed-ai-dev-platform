@@ -1,0 +1,4 @@
+const data = JSON.parse(document.getElementById('data').textContent);
+Plotly.newPlot('view', [{ type: 'bar', x: data.rows.map((r) => r.name), y: data.rows.map((r) => r.value) }],
+  { xaxis: { title: { text: data.label } }, yaxis: { title: { text: data.value } }, margin: { t: 16 } },
+  { responsive: true, displaylogo: false });

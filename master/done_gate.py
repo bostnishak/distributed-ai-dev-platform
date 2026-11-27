@@ -18,14 +18,22 @@ from typing import Any
 import httpx
 
 import atomic_io
+import code_audit
+import flow_analysis
+import js_mutation
+import live_journey
+import live_server
 import mutation
+import plan_matrix
 import preview_server
 import provenance
 import security_scan
 import shortcut_audit
+import state_property
 import workspace_builder as wb
 import workspace_docker
 import workspace_requirements
+import workspace_smoke
 
 _log = logging.getLogger(__name__)
 STAGES = ("A", "B", "C", "D")
@@ -63,18 +71,34 @@ class Delivery:
 def static_proof(ws_dir: Path) -> tuple[str, str]:
     problems = list(wb.verify_workspace_files(ws_dir))
     problems += shortcut_audit.findings(ws_dir)
-    problems += [f"{f['file']}:{f['line']} gizli anahtar" for f in security_scan.scan(ws_dir) if f["secret"]]
+    problems += code_audit.diagnostics(ws_dir)  # what a language server would underline
+    problems += flow_analysis.tainted_flows(ws_dir)  # request data reaching a command, SQL or a path through other functions
+    problems += [f"{f['file']}:{f['line']} {f['rule']}" for f in sorted(security_scan.scan(ws_dir), key=lambda f: not f["secret"])]
     for relative in wb.list_relative_files(ws_dir):
         if relative.endswith((".html", ".js", ".py", ".css")) and '<span class="hl-' in (ws_dir / relative).read_text(encoding="utf-8", errors="replace"):
             problems.append(f"{relative}: renklendirme etiketleri koda sızmış")
-    return (PASSED, "sözdizimi, kaçamak ve gizli anahtar denetimi temiz") if not problems else (FAILED, "; ".join(problems[:5]))
+    return (PASSED, "sözdizimi, derleyici tanıları, kaçamak, güvenlik ve gizli anahtar denetimi temiz") if not problems else (FAILED, "; ".join(problems[:5]))
 
 
 def _has_tests(ws_dir: Path) -> bool:
     return any(Path(f).name.startswith("test_") and f.endswith(".py") for f in wb.list_relative_files(ws_dir))
 
 
+def _javascript_test_proof(ws_dir: Path) -> tuple[str, str]:
+    try:
+        if failure := js_mutation.run_tests(ws_dir):
+            return FAILED, f"JavaScript testleri geçmedi: {failure.strip().splitlines()[-1]}"
+        tried, survived = js_mutation.run(ws_dir, limit=10)
+    except OSError as exc:
+        return MISSING, f"JavaScript testleri çalıştırılamadı: {exc}"
+    if tried and (rate := 1 - len(survived) / tried) < KILL_RATE:
+        return FAILED, f"testler geçti ama bilerek bozulan kodun yalnız %{rate * 100:.0f} kadarını yakaladı (en az %{KILL_RATE * 100:.0f})"
+    return PASSED, f"JavaScript testleri geçti; bilerek yapılan {tried} bozmanın {tried - len(survived)} tanesi yakalandı"
+
+
 def test_proof(ws_dir: Path) -> tuple[str, str]:
+    if not _has_tests(ws_dir) and js_mutation.has_tests(ws_dir):
+        return _javascript_test_proof(ws_dir)
     if not _has_tests(ws_dir):
         return MISSING, "projede çalıştırılabilir test yok"
     if not workspace_docker.available():
@@ -118,6 +142,46 @@ def page_problems(url: str) -> tuple[str, str]:
     return (PASSED, "gerçek tarayıcıda hatasız açıldı, bağlanmamış düğme yok") if not problems else (FAILED, "; ".join(dict.fromkeys(problems))[:500])
 
 
+_READY_LIMIT_S = 30
+EVIDENCE = ".ai-os/evidence.json"
+
+
+def _server_checks(ws_dir: Path, server: live_server.LiveServer) -> tuple[str, str]:
+    """Health time, the user's journey when there is a page, then API contract and state checks."""
+    if server.ready_s > _READY_LIMIT_S:
+        return FAILED, f"sunucu {server.ready_s} sn'de hazır oldu (sınır {_READY_LIMIT_S} sn)"
+    evidence: dict[str, Any] = {"ready_s": server.ready_s}
+    has_page = "text/html" in httpx.get(server.url + "/", timeout=10).headers.get("content-type", "")
+    if not has_page:
+        server.restart()  # an API without a page: it must at least come back after a restart
+        passed, detail = True, "sunucu gerçekten açıldı, yanıt verdi ve yeniden başlatılınca geri geldi"
+    else:
+        journey = live_journey.run(server.url, ws_dir / ".ai-os" / "filmstrip", server.restart, server.rows)
+        passed, detail = journey.passed, journey.summary()
+        evidence.update(steps=journey.steps, errors=journey.errors, requests=journey.requests, rows=journey.rows, screenshots=journey.shots)
+    described = httpx.get(server.url + "/openapi.json", timeout=10)
+    if described.status_code == 200 and (absent := plan_matrix.missing_endpoints(ws_dir, described.json())):
+        return FAILED, f"istenen uç noktalar çalışan sunucuda yok: {', '.join(absent[:5])}"
+    api = state_property.check(server.url, server.rows, (lambda: live_journey.page_text(server.url + "/")) if has_page else None)
+    evidence["api"] = {"checked": api.checked, "problems": api.problems}
+    atomic_io.write_text(ws_dir / EVIDENCE, json.dumps(evidence, ensure_ascii=False, indent=1))
+    if api.problems:
+        return FAILED, "; ".join(([] if passed else [detail]) + api.problems[:3])
+    return (PASSED if passed else FAILED), detail + (f" | API denetimi: {len(api.checked)} kontrol geçti" if api.checked else "")
+
+
+def server_proof(ws_dir: Path) -> tuple[str, str] | None:
+    """Boot the project's own web server and use it; None when it is not a FastAPI or Flask project."""
+    entry = workspace_smoke._find_entry(ws_dir)
+    if entry is None or not workspace_docker.available() or not any(w in entry.read_text(encoding="utf-8", errors="replace") for w in ("FastAPI", "Flask")):
+        return None
+    try:
+        with live_server.serve(ws_dir) as server:
+            return _server_checks(ws_dir, server)
+    except (OSError, ValueError, KeyError, httpx.HTTPError) as exc:
+        return FAILED, f"canlı sunucu denemesi başarısız: {exc}"[:500]
+
+
 def live_proof(ws_dir: Path, warnings: list[str]) -> tuple[str, str]:
     failure = next((w for w in warnings if "Otomatik çalıştırma testi hata" in w), "")
     if failure:
@@ -132,6 +196,8 @@ def live_proof(ws_dir: Path, warnings: list[str]) -> tuple[str, str]:
             except httpx.HTTPError:
                 time.sleep(0.3)
         return page_problems(url)
+    if (served := server_proof(ws_dir)) is not None:
+        return served
     if any(f.endswith(".py") for f in wb.list_relative_files(ws_dir)):
         if any("çalıştırılamadı" in w for w in warnings) or not workspace_docker.available():
             return MISSING, "proje çalıştırılarak denenemedi"
@@ -139,9 +205,16 @@ def live_proof(ws_dir: Path, warnings: list[str]) -> tuple[str, str]:
     return MISSING, "çalıştırılacak bir giriş noktası yok"
 
 
+def _evidence_hashes(ws_dir: Path) -> dict[str, str]:
+    """Hashes of what the proof rests on: the evidence file and every screenshot."""
+    found = [ws_dir / EVIDENCE, *sorted((ws_dir / ".ai-os" / "filmstrip").glob("*.png"))]
+    return {p.relative_to(ws_dir).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in found if p.is_file()}
+
+
 def _record(ws_dir: Path, delivery: Delivery) -> tuple[str, str]:
     files = {f: hashlib.sha256((ws_dir / f).read_bytes()).hexdigest() for f in wb.list_relative_files(ws_dir)}
-    body = {"at": time.strftime("%Y-%m-%dT%H:%M:%S"), "proofs": {s: list(delivery.proofs[s]) for s in ("A", "B", "C")}, "files": files}
+    body = {"at": time.strftime("%Y-%m-%dT%H:%M:%S"), "proofs": {s: list(delivery.proofs[s]) for s in ("A", "B", "C")}, "files": files,
+            "generation": provenance.generation(wb.load_workspace_meta(ws_dir)), "evidence": _evidence_hashes(ws_dir)}
     payload = json.dumps(body, sort_keys=True, ensure_ascii=False)
     try:
         atomic_io.write_text(ws_dir / RECORD, json.dumps({**body, **provenance.sign(payload.encode())}, ensure_ascii=False, indent=1))

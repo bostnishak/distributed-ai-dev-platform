@@ -25,6 +25,7 @@ import long_doc
 import page_facts
 import policy
 import research_context
+import research_sources
 import security_scan
 import untrusted
 from prompt_loader import load_prompt
@@ -98,6 +99,17 @@ async def _structured(chat: Chat, prompt_file: str, user: str, model: type[BaseM
         return None
 
 
+_PUBLISHED: dict[str, str] = {}  # url -> publication date the page itself states
+
+
+def _remember_date(url: str, raw: str) -> None:
+    import trafilatura
+
+    metadata = trafilatura.extract_metadata(raw)
+    if metadata is not None and metadata.date:
+        _PUBLISHED[url] = str(metadata.date)[:10]
+
+
 def read_page(url: str) -> str:
     """Main text of a public page; '' when unreadable. Redirects to private hosts are refused."""
     if not is_safe_public_url(url)[0]:
@@ -114,6 +126,7 @@ def read_page(url: str) -> str:
             raw = resp.read(900_000).decode(resp.headers.get_content_charset() or "utf-8", "replace")
     except (urllib.error.URLError, OSError, ValueError, LookupError):
         return ""
+    _remember_date(url, raw)
     return trafilatura.extract(raw, include_tables=True, include_comments=False) or ""
 
 
@@ -188,7 +201,24 @@ async def _gather(queries: list[str], run: policy.Context) -> list[tuple[str, st
     urls = list(found)[:_MAX_PAGES]
     texts = await asyncio.gather(*(asyncio.to_thread(read_page, u) for u in urls))
     run.read_external()
-    return [(u, found[u], t) for u, t in zip(urls, texts, strict=True) if len(t) > 200]
+    web = [(u, research_sources.Page(u, found[u], t, _PUBLISHED.get(u, "")).dated_title(), t) for u, t in zip(urls, texts, strict=True) if len(t) > 200]
+    return _merge(await asyncio.to_thread(_other_sources, queries, run), web)
+
+
+def _other_sources(queries: list[str], run: policy.Context) -> list[tuple[str, str, str]]:
+    """Registries, arXiv, MDN and the offline documentation, under the same egress check as the web search."""
+    pages: list[research_sources.Page] = []
+    for query in queries[:2]:
+        pages += research_sources.offline_docs(query, 2)
+        if research_context.web_enabled() and policy.check("web_search", integrity=run.integrity, payload=query).allowed:
+            pages += research_sources.online(query)
+    return [(p.url, p.dated_title(), p.text) for p in pages if len(p.text) > 120]
+
+
+def _merge(first: list[tuple[str, str, str]], second: list[tuple[str, str, str]]) -> list[tuple[str, str, str]]:
+    """Primary sources first, one entry per address, within the page budget."""
+    unique = {page[0]: page for page in (*first[:4], *second)}
+    return list(unique.values())[:_MAX_PAGES]
 
 
 async def _read(pages: list[tuple[str, str, str]], question: str, chat: Chat, claims: dict[int, Claim]) -> AsyncIterator[tuple[str, str]]:
@@ -214,9 +244,12 @@ async def investigate(question: str, chat: Chat | None = None) -> AsyncIterator[
     if policy.has_secret(question):  # it must not reach a search engine, the report or the log
         question = security_scan.redact(question)
         yield "report", "UYARI: mesajında gizli anahtara benzeyen bir değer var; araştırmaya katmadan çıkardım. Bu anahtarı iptal edip yenilemeni öneririm.\n\n"
-    if not research_context.web_enabled():
+    offline = not research_context.web_enabled()
+    if offline and not await asyncio.to_thread(research_sources.offline_docs, question, 1):
         yield "report", "Web araması kapalı olduğu için araştırma yapamıyorum; güncel olmayan bilgiyi araştırma sonucu gibi sunmuyorum."
         return
+    if offline:
+        yield "status", "Web kapalı: yalnız indirilmiş belgelerden araştırılıyor (güncel bilgi içermeyebilir)."
     yield "status", "Araştırma planı hazırlanıyor..."
     plan = await _structured(chat, "agent_research_plan.md", question, Plan)
     queries = [q for q in (plan.queries if plan else []) if q.strip()][:4] or [question]

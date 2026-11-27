@@ -43,6 +43,25 @@ def _job(memory_mb: int, processes: int) -> tuple[ctypes.WinDLL, int]:
     return kernel, handle
 
 
+def tie(proc: subprocess.Popen) -> tuple[ctypes.WinDLL, int] | None:
+    """A job without resource limits: closing it ends the process and everything it started. None where unavailable."""
+    if sys.platform != "win32":
+        return None
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.CreateJobObjectW.restype = wintypes.HANDLE
+    kernel.AssignProcessToJobObject.argtypes = [wintypes.HANDLE, wintypes.HANDLE]
+    kernel.SetInformationJobObject.argtypes = [wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p, wintypes.DWORD]
+    kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+    handle = kernel.CreateJobObjectW(None, None)
+    limits = _Extended()
+    limits.BasicLimitInformation.LimitFlags = _KILL_ON_CLOSE
+    if handle and kernel.SetInformationJobObject(handle, _EXTENDED_LIMITS, ctypes.byref(limits), ctypes.sizeof(limits)) and kernel.AssignProcessToJobObject(handle, int(proc._handle)):
+        return kernel, handle
+    if handle:
+        kernel.CloseHandle(handle)
+    return None
+
+
 def run_capped(args: list[str], memory_mb: int = 512, processes: int = 8, timeout_s: float = 30.0) -> subprocess.CompletedProcess:
     """Run with hard limits and a minimal environment (Windows only; raises OSError elsewhere)."""
     if sys.platform != "win32":

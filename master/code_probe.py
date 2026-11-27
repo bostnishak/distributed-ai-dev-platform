@@ -6,6 +6,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+from decimal import Decimal
 from pathlib import Path
 
 _ASK_RE = re.compile(r"(hata|error|neden|why|çalışm|calism|fail|bug|exception|doesn'?t work|not working|undefined|çöküyor|crash)", re.IGNORECASE)
@@ -110,7 +111,22 @@ def calc_note(prompt: str) -> str:
     return f"DOĞRULANMIŞ HESAP: {m.group(1).strip()} = {shown}. Sonuç budur; adımları bu sonuca götüren basit bir yolla (ör. parçala-topla) kısaca açıkla, kuralı yanlış anlatma."
 
 
+_LINE_ITEM_RE = re.compile(r"(?<![\d.,])(\d+)\s*adet\b[\s,:]*(?:tanesi|birim fiyat[ıi]|adedi)\s*(\d+(?:,\d{1,2})?)(?![\d.,]*\d)", re.IGNORECASE)
+_ADJUSTMENT_RE = re.compile(r"(indirim|kdv|vergi|kargo|iskonto|hediye|bedava|%|taksit|kur)", re.IGNORECASE)
+
+
+def order_note(prompt: str) -> str:
+    """Lines of 'N adet, tanesi P TL' plus a question about the total: the code adds them up; discount or tax wording leaves it to the model."""
+    lines = _LINE_ITEM_RE.findall(prompt or "")
+    if len(lines) < 2 or "toplam" not in prompt.lower() or _ADJUSTMENT_RE.search(prompt):
+        return ""
+    steps = " + ".join(f"{count}x{price}" for count, price in lines)
+    total = sum(int(count) * Decimal(price.replace(",", ".")) for count, price in lines)
+    shown = f"{total:f}".replace(".", ",")
+    return f"DOĞRULANMIŞ HESAP: {steps} = {shown}. Toplam tutar budur; başka bir sayı yazma."
+
+
 def verified_prefix(prompt: str, has_file: bool) -> str:
     """Code-verified facts (real error output, exact arithmetic) placed in front of the user's question."""
-    notes = [n for n in ("" if has_file else note(prompt), calc_note(prompt)) if n]
+    notes = [n for n in ("" if has_file else note(prompt), calc_note(prompt), order_note(prompt)) if n]
     return "\n".join(notes) + "\n\nKULLANICI SORUSU:\n" if notes else ""

@@ -19,9 +19,20 @@ duckdb
 playwright
 trafilatura
 ruff
+scipy>=1.11
 sympy
 scikit-learn
 python-lsp-server
 debugpy
 # Local Turkish text-to-speech (voice file goes in data/voices)
 piper-tts>=1.3
+# Symbols with line ranges and symbol-level merging
+tree-sitter
+tree-sitter-python
+tree-sitter-javascript
+tree-sitter-typescript
+tree-sitter-html
+tree-sitter-css
+tree-sitter-json
+tree-sitter-yaml
+tree-sitter-sql

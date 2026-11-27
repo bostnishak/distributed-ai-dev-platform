@@ -30,6 +30,16 @@ LIBRARIES = {
     "mermaid": ("12.3.0", ["dist/mermaid.min.js", "LICENSE"]),
     "katex": ("0.19.1", ["dist/katex.min.js", "dist/katex.min.css", "dist/fonts/*.woff2", "LICENSE"]),
     "axe-core": ("4.14.1", ["axe.min.js", "LICENSE"]),
+    "cytoscape": ("3.35.0", ["dist/cytoscape.min.js", "LICENSE"]),
+    "vega": ("6.4.0", ["build/vega.min.js", "LICENSE"]),
+    "vega-lite": ("6.5.0", ["build/vega-lite.min.js", "LICENSE"]),
+    "vega-embed": ("7.4.0", ["build/vega-embed.min.js", "LICENSE"]),
+    "plotly.js-basic-dist-min": ("4.3.0", ["plotly-basic.min.js", "LICENSE"]),
+}
+# Programs from the project's own release page, accepted only with the pinned SHA-256: name -> (url, digest, member to extract)
+PROGRAMS = {
+    "d2": ("https://github.com/d2lang/d2/releases/download/v0.9.0/d2-v0.9.0-windows-amd64.tar.gz",
+           "5f63b643de8f5a6dfb922d172e1b5496e4caf47497c33c4427cf1127f28c340f", "d2-v0.9.0/bin/d2.exe"),
 }
 DOCS = ("html", "css", "javascript", "dom", "python~3.12", "fastapi", "sqlite", "playwright")
 
@@ -67,6 +77,19 @@ def library(name: str, version: str, wanted: list[str]) -> dict:
     return {"version": version, "license": meta.get("license"), "files": files}
 
 
+def program(name: str) -> dict:
+    url, digest, member = PROGRAMS[name]
+    archive_bytes = fetch(url)
+    if hashlib.sha256(archive_bytes).hexdigest() != digest:
+        raise ValueError(f"{name}: indirilen dosyanın özeti beklenenle uyuşmuyor")
+    with tarfile.open(fileobj=io.BytesIO(archive_bytes), mode="r:gz") as archive:
+        content = archive.extractfile(member).read()  # one named member; nothing else is written
+    target = VAULT / "bin" / Path(member).name
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(content)
+    return {"url": url, "sha256": digest, "files": {target.relative_to(VAULT).as_posix(): hashlib.sha256(content).hexdigest()}}
+
+
 def docs(slug: str) -> dict:
     folder = VAULT / "docs" / slug
     folder.mkdir(parents=True, exist_ok=True)
@@ -90,6 +113,9 @@ def main() -> int:
     jobs = []
     if "--docs-only" not in sys.argv:
         jobs += [("libraries", n, lambda n=n, v=v, w=w: library(n, v, w)) for n, (v, w) in LIBRARIES.items()]
+    if "--docs-only" not in sys.argv and sys.platform == "win32":
+        lock.setdefault("programs", {})
+        jobs += [("programs", n, lambda n=n: program(n)) for n in PROGRAMS]
     if "--libs-only" not in sys.argv:
         jobs += [("docs", s, lambda s=s: docs(s)) for s in DOCS]
     for kind, name, job in jobs:

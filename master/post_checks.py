@@ -7,10 +7,14 @@ import logging
 from pathlib import Path
 from typing import Any
 
+import api_fuzz
 import code_audit
 import complexity_governor
 import deploy_kit
 import design_slop
+import flow_analysis
+import js_mutation
+import leak_check
 import ledger
 import migration_check
 import mutation
@@ -30,14 +34,21 @@ async def apply(ws_dir: Path, request: str, done: dict[str, Any]) -> dict[str, A
     """The finished event with the findings added to its warnings."""
     warnings = [str(w) for w in done.get("warnings") or []]
     deployment = deploy_kit.apply(ws_dir, request)  # the only step that writes files: before the readers start
-    found = await asyncio.gather(  # read-only checks are independent of each other, so they run at the same time
-        asyncio.to_thread(security_scan.report, ws_dir), asyncio.to_thread(visual_audit.report, ws_dir), asyncio.to_thread(design_slop.report, ws_dir, request),
-        asyncio.to_thread(package_check.report, ws_dir), asyncio.to_thread(code_audit.report, ws_dir, request), asyncio.to_thread(migration_check.report, ws_dir), asyncio.to_thread(ui_chaos.report, ws_dir))
-    names = ("Gizli anahtar ve güvensiz kalıp taraması", "Gerçek tarayıcıda yerleşim denetimi", "Şablon tasarım denetimi", "Bağımlılık denetimi",
-             "Statik tanılama, veri akışı, performans ve lisans", "Veritabanı göçü denetimi", "Rastgele tıklama dayanıklılığı")
-    checks = dict(zip(names, found, strict=True))
-    if not (ws_dir / "index.html").is_file():
-        checks.pop(names[1]), checks.pop(names[2]), checks.pop(names[6])
+    steps = (  # name, check, only for a web page; one row each, so a name can never drift away from its check
+        ("Gizli anahtar ve güvensiz kalıp taraması", (security_scan.report, ws_dir), False),
+        ("Veri akışı denetimi", (flow_analysis.report, ws_dir), False),
+        ("Gerçek tarayıcıda yerleşim denetimi", (visual_audit.report, ws_dir), True),
+        ("Şablon tasarım denetimi", (design_slop.report, ws_dir, request), True),
+        ("Bağımlılık denetimi", (package_check.report, ws_dir), False),
+        ("Statik tanılama, performans ve lisans", (code_audit.report, ws_dir, request), False),
+        ("Veritabanı göçü denetimi", (migration_check.report, ws_dir), False),
+        ("Rastgele tıklama dayanıklılığı", (ui_chaos.report, ws_dir), True),
+        ("API zorlama testi", (api_fuzz.report, ws_dir), False),
+        ("Bellek ve DOM sızıntısı", (leak_check.report, ws_dir), True),
+    )
+    found = await asyncio.gather(*(asyncio.to_thread(*call) for _name, call, _page in steps))  # read-only checks run at the same time
+    web = (ws_dir / "index.html").is_file()  # without a page, the page checks are not listed as verified
+    checks = {name: result for (name, _call, needs_page), result in zip(steps, found, strict=True) if web or not needs_page}
     ledger.write(ws_dir, ledger.build(checks))
     for result in (*found, deployment):
         warnings += result if isinstance(result, list) else [result] if result else []
@@ -45,7 +56,7 @@ async def apply(ws_dir: Path, request: str, done: dict[str, Any]) -> dict[str, A
         warnings.append(checked)
     if complexity_governor.classify(request).level >= 3:
         pkgs = workspace_requirements.declared_packages(ws_dir)
-        deep = (await vlm_critique.report(ws_dir, request), await asyncio.to_thread(mutation.report, ws_dir, pkgs))
+        deep = (await vlm_critique.report(ws_dir, request), await asyncio.to_thread(mutation.report, ws_dir, pkgs), await asyncio.to_thread(js_mutation.report, ws_dir))
         warnings += [w for w in deep if w]
     try:
         provenance.write(ws_dir, request, warnings)

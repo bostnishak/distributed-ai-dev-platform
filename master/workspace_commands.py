@@ -3,13 +3,17 @@
 from __future__ import annotations
 
 import re
+from pathlib import Path
 
 import code_search
+import debug_probe
 import lsp_client
 import refactor
+import refactor_move
 import repo_map
 import revise_chat
 import workspace_inspect
+import workspace_requirements
 
 _UNDO_RE = re.compile(r"^\s*(?:(?:son\s+)?(?:değişikliği|degisikligi)?\s*geri\s+al|önceki\s+(?:sürüme|hale)\s+(?:dön|geri dön)|undo)\s*[.!]*\s*$", re.IGNORECASE)
 _LOAD_RE = re.compile(r"^\s*(?:(?:api\s+)?yük\s+testi(?:\s+yap)?|load\s+test)\s*[.!]*\s*$", re.IGNORECASE)
@@ -26,10 +30,14 @@ def parse(prompt: str) -> tuple[str, str] | None:
         return "search", topic
     if symbol := lsp_client.asked_symbol(prompt):
         return "references", symbol
+    if lsp_client.asked(prompt) or debug_probe.asked(prompt):
+        return "inspect", prompt
     if _LOAD_RE.match(prompt):
         return "load", ""
     if pair := refactor.parse(prompt):
         return "rename", " ".join(pair)
+    if refactor_move.parse(prompt):
+        return "restructure", prompt
     return None
 
 
@@ -51,6 +59,8 @@ def run(ws_id: str, command: str, value: str) -> str:
         return code_search.answer(ws_dir, value)
     if command == "references":
         return lsp_client.answer(ws_dir, value)
+    if command == "inspect":
+        return _inspect(ws_dir, value)
     if command == "load":
         return load_summary(workspace_inspect.run_load(ws_dir))
     if command == "rename":
@@ -63,12 +73,39 @@ def run(ws_id: str, command: str, value: str) -> str:
         wb.save_workspace_meta(ws_dir, meta)
         note = repo_map.dependents_note(ws_dir, changed)
         return f"`{old}` → `{new}` olarak model kullanılmadan yeniden adlandırıldı: {', '.join(changed)}." + (f"\n> {note}" if note.startswith("Kırık") else "")
+    if command == "restructure":
+        return _restructure(ws_dir, meta, value)
     versions = wb.list_snapshots(ws_dir)
     target = value or previous_version(versions, str(meta.get("active_version") or ""))
     if not target or target not in {v["version"] for v in versions}:
         return "Geri dönülecek bir önceki sürüm yok." if command == "undo" else f"{target} adında bir sürüm yok. Olanlar: {', '.join(sorted(v['version'] for v in versions))}"
     wb.restore_snapshot(ws_id, target)
     return f"Proje **{target}** sürümüne döndürüldü. Sonraki sürümler silinmedi; istersen onlara da dönebilirim."
+
+
+def _inspect(ws_dir: Path, prompt: str) -> str:
+    """Definition and signature from the language server, or a conditional breakpoint under the debugger."""
+    if asked := lsp_client.asked(prompt):
+        return lsp_client.explain(ws_dir, *asked)
+    return debug_probe.explain(ws_dir, workspace_requirements.declared_packages(ws_dir), debug_probe.asked(prompt))
+
+
+def _restructure(ws_dir: Path, meta: dict, prompt: str) -> str:
+    """Move code into a new module or migrate a signature, then save a version."""
+    import workspace_builder as wb
+
+    parsed = refactor_move.parse(prompt)
+    try:
+        changed = refactor_move.run(ws_dir, *parsed) if parsed else []
+    except ValueError as exc:
+        return f"Yapılmadı: {exc}"
+    if not changed:
+        return "Değişecek bir yer bulunamadı."
+    version = wb.create_snapshot(ws_dir, prompt[:60])
+    meta.update(versions=wb.list_snapshots(ws_dir), active_version=version["version"])
+    wb.save_workspace_meta(ws_dir, meta)
+    note = repo_map.dependents_note(ws_dir, changed)
+    return f"Model kullanılmadan yapıldı: {', '.join(changed)}." + (f"\n> {note}" if note.startswith("Kırık") else "")
 
 
 def load_summary(result: dict) -> str:

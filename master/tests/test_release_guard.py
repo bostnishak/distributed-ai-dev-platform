@@ -56,15 +56,20 @@ def test_a_contained_process_dies_when_the_job_is_closed():
 
 
 def test_a_dead_project_server_is_recorded_once(tmp_path, monkeypatch):
+    import contextlib
+
     import event_log
+    import project_server
     import watchdog
 
     class Dead:
-        def poll(self):
-            return 3
+        def alive(self):
+            return False
 
-    monkeypatch.setattr(watchdog.ops, "_RUNNING_SERVERS", {"w": (9999, Dead())})
-    monkeypatch.setattr(watchdog.ops, "safe_workspace_dir", lambda _id: tmp_path)
+        def reason(self):
+            return "çıkış kodu 3"
+
+    monkeypatch.setattr(project_server, "_running", {"w": project_server._Running(tmp_path, Dead(), contextlib.nullcontext())})
     assert watchdog.check_servers() == ["w"] and watchdog.check_servers() == []
     assert event_log.read(tmp_path)[0]["detail"] == "çıkış kodu 3"
 

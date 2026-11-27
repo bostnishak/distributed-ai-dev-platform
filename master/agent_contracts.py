@@ -24,10 +24,18 @@ class ButtonRule(BaseModel):
     behavior: str
 
 
+class EndpointRule(BaseModel):
+    method: Literal["GET", "POST", "PUT", "PATCH", "DELETE"]
+    path: str
+
+
 class IntakeAnswer(BaseModel):
-    task_type: Literal["WEB_APP", "API_BACKEND", "FLOWCHART", "PDF_DOC", "IMAGE_ASSET", "REFACTOR"] = "WEB_APP"
+    task_type: Literal["WEB_APP", "API_BACKEND", "FLOWCHART", "PDF_DOC", "IMAGE_ASSET", "REFACTOR", "MULTI_MODAL_COMPOSITE"] = "WEB_APP"
     buttons: list[ButtonRule] = Field(default_factory=list, max_length=20)
     forbidden: list[str] = Field(default_factory=list, max_length=10)
+    regions: list[str] = Field(default_factory=list, max_length=8)  # header, sidebar, panels the user named
+    endpoints: list[EndpointRule] = Field(default_factory=list, max_length=20)
+    persistence: str = ""  # what must survive a restart, as the user said it
 
 
 class SpecificationContract(IntakeAnswer):
@@ -58,6 +66,10 @@ async def intake(request: str, chat: _Chat | None = None) -> SpecificationContra
     answer = await _ask(chat, "agent_intake.md", request, IntakeAnswer)
     named = request.casefold()
     answer.buttons = [b for b in answer.buttons if b.label.casefold() in named]  # a button the user never named is a hallucination
+    answer.endpoints = [e for e in answer.endpoints if e.path.casefold() in named]  # likewise an endpoint
+    answer.regions = [r for r in answer.regions if any(w in named for w in r.casefold().split() if len(w) > 2)]
+    if answer.persistence and not any(w in named for w in ("sakla", "kaydet", "kalıcı", "veritaban", "sqlite", "persist", "database", "save", "store")):
+        answer.persistence = ""
     return SpecificationContract(**answer.model_dump(), **spec_contract.extract(request))
 
 

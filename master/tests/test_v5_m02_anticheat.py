@@ -2,6 +2,7 @@
 
 import itertools
 import json
+import sys
 
 import pytest
 
@@ -134,3 +135,149 @@ def test_a_missing_browser_is_not_reported_as_a_broken_page(tmp_path, monkeypatc
             assert "Executable" in str(exc)
     status, detail = done_gate.page_problems((tmp_path / "x.html").as_uri())
     assert status == done_gate.MISSING and "tarayıcı açılamadı" in detail
+
+
+def test_oracle_is_written_once_and_missing_endpoints_are_named(tmp_path):
+    import plan_matrix
+
+    plan_matrix.write_oracle(tmp_path, {"endpoints": [{"method": "post", "path": "/api/notlar"}, {"method": "delete", "path": "/api/notlar/:id"}]})
+    plan_matrix.write_oracle(tmp_path, {"endpoints": []})  # a later step cannot lower the bar
+    openapi = {"paths": {"/api/notlar/": {"post": {}}, "/api/notlar/{not_id}": {"get": {}}}}
+    assert plan_matrix.missing_endpoints(tmp_path, openapi) == ["DELETE /api/notlar/:id"]
+    openapi["paths"]["/api/notlar/{not_id}"]["delete"] = {}
+    assert plan_matrix.missing_endpoints(tmp_path, openapi) == []
+
+
+def test_static_proof_stops_on_compiler_errors_and_unsafe_code(tmp_path):
+    import done_gate
+
+    (tmp_path / "main.py").write_text("import os\n\n\ndef run(komut):\n    os.system('echo ' + komut)\n    return tanimsiz_ad\n", encoding="utf-8")
+    status, detail = done_gate.static_proof(tmp_path)
+    assert status == done_gate.FAILED and "tanimsiz_ad" in detail, detail
+    assert any("main.py:5" in part for part in detail.split("; ")), detail
+
+
+def test_a_rejected_shortcut_becomes_a_memory_rule(tmp_path, monkeypatch):
+    import cheat_guard
+    import config
+    import memory_engine
+
+    monkeypatch.setattr(config, "data_dir", lambda: tmp_path)
+    monkeypatch.setattr(memory_engine, "_memory_db_path", lambda: tmp_path / "m.db")
+    cheat_guard.record(["tests/test_a.py: assert silindi"])
+    cheat_guard.record(["tests/test_a.py: assert silindi"])
+    rules = [f for f in memory_engine.list_semantic_facts() if f["category"] == "guardrail"]
+    assert len(rules) == 1 and "assert silindi" in rules[0]["fact_value"]
+
+
+def test_fields_nothing_listens_to_are_reported(tmp_path):
+    pytest.importorskip("playwright.sync_api")
+    from playwright.sync_api import Error, sync_playwright
+
+    import shortcut_audit
+
+    page_file = tmp_path / "a.html"
+    page_file.write_text("<select aria-label='bos'><option>1</option></select><input id='ad'><input aria-label='olu'>"
+                         "<form><input name='x'></form><script>document.getElementById('ad').value = 'a';</script>", encoding="utf-8")
+    with sync_playwright() as driver:
+        try:
+            browser = driver.chromium.launch()
+        except Error:
+            pytest.skip("tarayıcı yok")
+        page = browser.new_page()
+        page.goto(page_file.as_uri())
+        found = shortcut_audit.unwired(page)
+        browser.close()
+    assert found == ["alan: bos", "alan: olu"], found
+
+
+def test_javascript_mutation_finds_weak_tests_in_a_run_that_cannot_write_or_connect(tmp_path):
+    import shutil
+
+    import done_gate
+    import js_mutation
+
+    pytest.importorskip("tree_sitter_javascript")
+    if not shutil.which("node") or sys.platform != "win32":
+        pytest.skip("node ya da Windows yok")
+    (tmp_path / "hesap.js").write_text("function indirim(tutar) {\n  if (tutar >= 100) {\n    return tutar - 10;\n  }\n  return tutar;\n}\nmodule.exports = { indirim };\n", encoding="utf-8")
+    test = tmp_path / "hesap.test.js"
+    test.write_text("const assert = require('assert');\nconst { indirim } = require('./hesap.js');\nassert.ok(indirim(500) < 500);\n", encoding="utf-8")
+    tried, survived = js_mutation.run(tmp_path)
+    assert tried >= 3 and survived, (tried, survived)
+    assert done_gate.test_proof(tmp_path)[0] == done_gate.FAILED
+    test.write_text("const assert = require('assert');\nconst { indirim } = require('./hesap.js');\n"
+                    "assert.strictEqual(indirim(100), 90);\nassert.strictEqual(indirim(99), 99);\nassert.strictEqual(indirim(101), 91);\n", encoding="utf-8")
+    status, detail = done_gate.test_proof(tmp_path)
+    assert status == done_gate.PASSED, detail
+    for attack in ("require('fs').writeFileSync('x.txt', 'a')", "require('child_process').execSync('whoami')", "require('fs').readFileSync('C:/Windows/win.ini')",
+                   "require('net').connect(80, '1.1.1.1').on('error', e => { throw e })"):
+        test.write_text(attack + ";\n", encoding="utf-8")
+        assert "ERR_ACCESS_DENIED" in js_mutation.run_tests(tmp_path), attack
+    assert not (tmp_path / "x.txt").exists()
+
+
+def test_data_flow_between_functions_none_access_and_dead_code(tmp_path):
+    import flow_analysis
+
+    (tmp_path / "araclar.py").write_text("import os\n\n\ndef calistir(komut):\n    metin = 'ping ' + komut\n    os.system(metin)\n\n\n"
+                                         "def ara(db, ad):\n    db.execute(f\"SELECT * FROM k WHERE ad = '{ad}'\")\n\n\n"
+                                         "def bul(liste, ad):\n    for x in liste:\n        if x == ad:\n            return x\n    return None\n\n\ndef kimse_cagirmiyor():\n    return 1\n", encoding="utf-8")
+    (tmp_path / "main.py").write_text("from araclar import ara, bul, calistir\n\n\n@app.get('/p')\ndef ping(host: str):\n    calistir(host)\n\n\n"
+                                      "@app.get('/s')\ndef sorgu(ad: str):\n    ara(db, ad)\n    sonuc = bul([], ad)\n    return sonuc.upper()\n\n\n"
+                                      "@app.get('/g')\ndef guvenli(sayi: str):\n    adet = int(sayi)\n    calistir(str(adet))\n    kayit = bul([], 'a')\n    if kayit:\n        return kayit.upper()\n", encoding="utf-8")
+    flows = " | ".join(flow_analysis.tainted_flows(tmp_path))
+    assert "os.system" in flows and "ping -> calistir" in flows and "SQL metni" in flows and "sorgu -> ara" in flows, flows
+    assert "guvenli" not in flows
+    nones = flow_analysis.none_accesses(tmp_path)
+    assert len(nones) == 1 and "sonuc None olabilir" in nones[0], nones
+    assert [d.split()[1] for d in flow_analysis.dead_functions(tmp_path)] == ["kimse_cagirmiyor"]
+
+
+def test_submissions_never_run_in_the_platform_and_cannot_see_the_answers():
+    import ast
+    from pathlib import Path
+
+    import autograder
+    import education_and_domains
+
+    sent = []
+
+    def fake(script):
+        sent.append(script)
+        marker = next(line for line in script.splitlines() if line.startswith("print(")).split("'")[1]
+        return {"docker_available": True, "stdout": "baska cikti\n" + marker + '{"defined": true, "results": [{"got": 5}, {"error": "ZeroDivisionError"}]}'}
+
+    cases = [{"args": [2, 3], "expected": 5}, {"args": [1, 0], "expected": 987654321}]
+    result = autograder.grade("def f(a, b):\n    return a + b\n", "f", cases, run=fake)
+    assert result["score"] == 50.0 and not result["passed"] and "987654321" not in sent[0]
+    assert "Docker" in autograder.grade("x = 1", "f", cases, run=lambda _s: {"docker_available": False})["error"]
+    source = Path(education_and_domains.__file__).read_text(encoding="utf-8")
+    assert not [n for n in ast.walk(ast.parse(source)) if isinstance(n, ast.Call) and getattr(n.func, "id", "") in ("exec", "eval")]
+
+
+def test_a_real_escape_attempt_stays_inside_the_container():
+    import autograder
+    from sandbox import runner
+
+    if not runner.docker_daemon_ready()[0]:
+        pytest.skip("Docker kapalı")
+    attack = ("def f():\n    import os, socket\n    found = [c for c in ().__class__.__base__.__subclasses__() if c.__name__ == 'Popen']\n"
+              "    try:\n        socket.create_connection(('1.1.1.1', 80), timeout=3)\n        net = 'ag acik'\n    except OSError:\n        net = 'ag yok'\n"
+              "    try:\n        open('/sandbox/x', 'w').write('a')\n        disk = 'yazdi'\n    except OSError:\n        disk = 'salt okunur'\n"
+              "    return [os.name, os.getuid(), net, disk]\n")
+    result = autograder.grade(attack, "f", [{"args": [], "expected": ["posix", 10001, "ag yok", "salt okunur"]}])
+    assert result["passed"], result
+
+
+def test_a_benchmark_answer_from_another_machine_never_runs_on_this_one(tmp_path):
+    import benchmarks
+    from sandbox import runner
+
+    benchmark = next(b for b in benchmarks.BENCHMARKS if b["dimension"] == "coding")
+    escape = tmp_path / "ele-gecirildi.txt"
+    hostile = f"import pathlib\npathlib.Path({str(escape)!r}).write_text('x')\n"
+    score, details = benchmarks.score_response(benchmark, hostile)
+    assert score == 0 and not escape.exists() and details["error"], details
+    if not runner.docker_daemon_ready()[0]:
+        assert "not available" in details["error"]

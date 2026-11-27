@@ -14,6 +14,7 @@ import httpx
 from fastapi.responses import StreamingResponse
 
 import flowchart_studio
+import judge
 
 _SSE = "text/event-stream"
 _MARKER_RE = re.compile(r"(Üretilen Görsel|/api/assistant/media/img-gen-)")
@@ -137,6 +138,10 @@ def build_image_gen_stream(prompt: str, history: str) -> StreamingResponse:
                 yield _sse({"type": "done", "model": "capability-check", "task_type": "gorsel"})
                 return
             res = await mms.generate_ai_image(prompt, history=hist)
+            if str(res.get("engine", "")).startswith("stable-diffusion"):  # vector designs are exact by construction
+                png = mms.media_dir() / str(res["png_url"]).rsplit("/", 1)[-1]
+                yield _sse({"type": "status", "message": "Görsel isteme uyum için inceleniyor..."})
+                res = judge.image_report(res, await judge.image_adherence(prompt, png.read_bytes()))
             preview_url = res.get("svg_url") or res["png_url"]
             meta = [f"**Motor:** `{res['engine']}`"]
             if res.get("brand_name"):
@@ -144,6 +149,8 @@ def build_image_gen_stream(prompt: str, history: str) -> StreamingResponse:
             if res.get("palette_name"):
                 meta.append(f"**Palet:** {res['palette_name']}")
             svg_link = f" · [Vektörel SVG İndir]({res['svg_url']})" if res.get("svg_url") else ""
+            extra = [f"[{label}]({res[key]})" for key, label in (("interactive_url", "Etkileşimli sürüm (indir)"), ("d2_svg_url", "D2 çizimi"), ("d2_url", "D2 kaynağı")) if res.get(key)]
+            svg_link += "".join(f" · {item}" for item in extra) + (f"\n- {res['warning']}" if res.get("warning") else "")
             md = f"## Üretilen Görsel Tasarım\n- {' · '.join(meta)}\n- [Yüksek Çözünürlüklü PNG İndir]({res['png_url']}){svg_link}\n\n![Üretilen Görsel]({preview_url})"
             if str(res.get("engine", "")).startswith("scene-procedural"):
                 md += TEMPLATE_NOTE

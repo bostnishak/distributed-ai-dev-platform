@@ -106,6 +106,8 @@ def merge_branch(repo: Path, branch: str) -> list[semantic_merge.Conflict]:
             except SyntaxError:
                 merged, lines = merge3.merge(base, theirs, ours, rel)
                 conflicts = [semantic_merge.Conflict(f"satır {n}", "", "", "") for n in lines]
+        elif rel.endswith((".js", ".ts", ".jsx", ".tsx", ".mjs")) and base and ours and theirs and (symbolic := semantic_merge.merge_script(base, ours, theirs, Path(rel).suffix)):
+            merged, conflicts = symbolic
         else:
             merged, lines = merge3.merge(base, theirs, ours, rel) if base else (theirs, [])
             conflicts = [semantic_merge.Conflict(f"satır {n}", "", "", "") for n in lines]

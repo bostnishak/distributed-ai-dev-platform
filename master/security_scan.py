@@ -5,6 +5,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+import confidential
+
 _EXTS = (".py", ".js", ".ts", ".html", ".json", ".env", ".yml", ".yaml")
 _SECRET_RULES = (
     ("gizli anahtar", re.compile(r"\b(?:sk-[A-Za-z0-9_-]{20,}|ghp_[A-Za-z0-9]{30,}|AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{30,})")),
@@ -15,6 +17,7 @@ _UNSAFE_RULES = (
     ("eval kullanımı (kod enjeksiyonu riski)", re.compile(r"(?<![\w.])eval\s*\(")),
     ("innerHTML'e değişken yazılıyor (XSS riski)", re.compile(r"\.innerHTML\s*\+?=\s*(?:[A-Za-z_$][\w$.]*\s*(?:\+|;|$)|[^;]*\+\s*[A-Za-z_$])")),
     ("SQL metni birleştiriliyor (SQL enjeksiyonu riski)", re.compile(r"""execute\w*\(\s*(?:f["']|["'][^"']*["']\s*(?:%|\+|\.format))""")),
+    ("kabuk komutu metin birleştirilerek kuruluyor (komut enjeksiyonu riski)", re.compile(r"""(?:os\.system|os\.popen)\s*\(\s*(?:f["']|["'][^"']*["']\s*(?:%|\+|\.format))|shell\s*=\s*True""")),
     ("CORS her kaynağa açık", re.compile(r"""allow_origins\s*=\s*\[\s*["']\*["']""")),
 )
 
@@ -47,4 +50,4 @@ def redact(text: str) -> str:
     """The text with anything that looks like a secret removed (used before a run is stored)."""
     for _name, rx in _SECRET_RULES:
         text = rx.sub("[GİZLİ]", text)
-    return text
+    return confidential.redact(text)

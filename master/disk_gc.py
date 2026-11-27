@@ -18,6 +18,7 @@ from pathlib import Path
 
 import atomic_io
 import config
+from process_utils import run_process
 
 _ASK_RE = re.compile(r"^\s*disk\s+(?P<what>durumu|temizle(?P<apply>\s+uygula)?)\s*\??\s*$", re.IGNORECASE)
 
@@ -38,6 +39,7 @@ def policies() -> list[Policy]:
         Policy("günlükler", data / "logs", "*", 14),
         Policy("geçici çalışma klasörleri", temp, "cm6453_*", 1),
         Policy("kod kutusu paket önbelleği", temp / "cm6453_sandbox_deps", "*", 14),
+        Policy("tarayıcı profilleri (Playwright)", temp, "playwright*_*profile-*", 1),
     ]
 
 
@@ -77,6 +79,15 @@ def collect(apply: bool = False, now: float | None = None) -> tuple[int, int, li
     return len(removed), sum(s for _n, s in removed), lines
 
 
+def prune_images(run=run_process) -> str:
+    """Remove superseded layers of the platform's own images only (labelled cm6453); other images are not touched."""
+    docker = shutil.which("docker")
+    if not docker:
+        return ""
+    done = run([docker, "image", "prune", "--force", "--filter", "label=cm6453"], timeout_s=120)
+    return next((line for line in done.stdout.splitlines() if line.startswith("Total reclaimed")), "") if done.returncode == 0 else ""
+
+
 def status() -> str:
     usage = shutil.disk_usage(config.data_dir())
     lines = [f"Disk: {usage.free / 2**30:.0f} GB boş / {usage.total / 2**30:.0f} GB (%{100 * usage.used // usage.total} dolu)",
@@ -96,5 +107,6 @@ def answer(prompt: str) -> str:
         return "Silinecek bir şey yok."
     body = "\n".join(lines)
     if match["apply"]:
-        return f"Silindi: {count} öğe, {size / 2**20:.1f} MB\n{body}"
+        images = prune_images()
+        return f"Silindi: {count} öğe, {size / 2**20:.1f} MB\n{body}" + (f"\n- eski Docker katmanları: {images}" if images else "")
     return f"Silinecek (henüz hiçbir şey silinmedi): {count} öğe, {size / 2**20:.1f} MB\n{body}\nSilmek için: `disk temizle uygula`"

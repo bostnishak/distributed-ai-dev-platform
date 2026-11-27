@@ -15,15 +15,19 @@ from typing import Any
 
 import agent_contracts
 import complexity_governor
+import config
 import design_system
 import docs_vault
 import done_gate
 import json_repair
 import ledger
+import plan_matrix
 import post_checks
 import preferences
+import security_scan
 import skill_library
 import spec_contract
+import taste
 import wiki_ground
 from prompt_loader import load_prompt
 from workspace_batches import wants_single_html
@@ -118,7 +122,7 @@ async def complete_missing(ws_dir: Path, missing: list[str], generate: Any, writ
     return changed
 
 
-REASONING_MODEL = "qwen3.5:9b"  # research and coverage audits need reading comprehension; the 7B coder only writes files
+REASONING_MODEL = config.PLANNER_REASONING_MODEL  # research and coverage audits need reading comprehension; the coder only writes files
 
 
 async def _coverage_pass(ws_dir: Path, info: dict[str, Any], gens: tuple[Any, Any], request: str = "") -> AsyncIterator[dict[str, Any]]:
@@ -193,7 +197,7 @@ async def _preparation_events(prompt: str, think: Any) -> AsyncIterator[dict[str
         else:
             yield evt
     yield {"type": "ready", "info": info, "contract": contract, "notes": (agent_contracts.writer_notes(contract) if contract else "") + skill_library.reference(prompt)
-           + design_system.brief(prompt) + await asyncio.to_thread(docs_vault.brief, prompt) + preferences.brief()}
+           + design_system.brief(prompt) + await asyncio.to_thread(docs_vault.brief, prompt) + preferences.brief() + taste.brief()}
 
 
 def _note_assumptions(ws_id: str, assumed: list[str]) -> None:
@@ -207,6 +211,7 @@ async def stream_generate(prompt: str, project_type: str = "auto", model_overrid
     """Drop-in replacement for workspace_builder.stream_generate_project with research and a coverage pass."""
     import workspace_builder as wb
 
+    prompt = security_scan.redact(prompt)  # before research, contract, notes and records
     model = await wb.pick_coder_model(model_override)
     reasoner = await wb.pick_coder_model(REASONING_MODEL)
 
@@ -234,7 +239,9 @@ async def stream_generate(prompt: str, project_type: str = "auto", model_overrid
         else:
             yield evt
     if done and contract:
-        (wb.safe_workspace_dir(done["workspace"]["id"]) / spec_contract.SPEC_FILE).write_text(contract.model_dump_json(indent=2), encoding="utf-8")
+        ws_built = wb.safe_workspace_dir(done["workspace"]["id"])
+        (ws_built / spec_contract.SPEC_FILE).write_text(contract.model_dump_json(indent=2), encoding="utf-8")
+        done = {**done, "warnings": [*done.get("warnings", []), *plan_matrix.write(ws_built, contract.model_dump(), wb.list_relative_files(ws_built))]}
     if done:
         _note_assumptions(done["workspace"]["id"], assumed)
         async for evt in _coverage_events(done, info, (think, write)):

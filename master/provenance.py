@@ -9,9 +9,11 @@ import hashlib
 import json
 import re
 import time
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+import httpx
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
@@ -52,6 +54,23 @@ def sbom(ws_dir: Path) -> dict[str, Any]:
             declared = {}
         parts += [{"type": "library", "name": n, "version": str(v), "purl": f"pkg:npm/{n}"} for n, v in declared.items()]
     return {"bomFormat": "CycloneDX", "specVersion": "1.5", "components": parts}
+
+
+def model_digest(name: str, fetch: Callable[[], list[dict]] | None = None) -> str:
+    """The exact weights behind a model name, as Ollama reports them; "" when it cannot be asked."""
+    try:
+        models = fetch() if fetch else httpx.get(f"{config.OLLAMA_URL}/api/tags", timeout=5).json().get("models", [])
+    except (httpx.HTTPError, ValueError, OSError):
+        return ""
+    return next((str(m.get("digest", "")) for m in models if name in (m.get("name"), str(m.get("name", "")).removesuffix(":latest"))), "")
+
+
+def generation(meta: dict, fetch: Callable[[], list[dict]] | None = None) -> dict:
+    """Which model built the project and with what settings."""
+    from gateway.client_helpers import DECODING_PROFILES
+
+    model = str(meta.get("model") or config.PROJECT_CODER_MODEL)
+    return {"model": model, "digest": model_digest(model, fetch), "options": dict(DECODING_PROFILES.get("code", {})), "num_ctx_max": config.NUM_CTX_MAX}
 
 
 def sign(payload: bytes) -> dict[str, str]:

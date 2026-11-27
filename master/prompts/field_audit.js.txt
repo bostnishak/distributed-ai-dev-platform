@@ -1,0 +1,14 @@
+async () => {
+    const code = [...document.scripts].filter(s => !s.src).map(s => s.textContent);
+    for (const s of [...document.scripts].filter(s => s.src && new URL(s.src).origin === location.origin)) {
+        try { code.push(await (await fetch(s.src)).text()); } catch (error) { console.warn(error.message); }
+    }
+    const source = code.join('\n');
+    return [...document.querySelectorAll('select, input:not([type=hidden]):not([type=submit]):not([type=button]):not([type=reset]), textarea')].map((field, i) => {
+        field.setAttribute('data-field', String(i));
+        const names = [field.id, field.name, ...field.classList].filter(Boolean);
+        const read = names.some(n => source.includes(n)) || /querySelector(All)?\([^)]*(input|select|textarea)|\.elements\b|new FormData/.test(source);
+        const handled = Boolean(field.form || field.onchange || field.oninput || field.getAttribute('onchange') || field.disabled || read);
+        return { index: i, label: (field.getAttribute('aria-label') || field.placeholder || field.name || field.id || field.tagName.toLowerCase()).slice(0, 40), handled };
+    });
+}

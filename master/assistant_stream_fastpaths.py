@@ -283,10 +283,10 @@ async def _try_pptx_council_erp_fastpath(
 
         async def _pptx_gen():
             try:
-                res = await _call_pptx_generator(prompt, extracted_ctx)
+                res = await office_verify.verified(_call_pptx_generator(prompt, extracted_ctx), "pptx")  # slide by slide in LibreOffice
                 lb = reply_labels.labels(prompt)
                 md = [
-                    f"## {res['title']} ({lb['pptx_ready']})", res["subtitle"], "",
+                    f"## {res['title']} ({lb['pptx_ready']})", res["subtitle"], res.get("summary", ""), "",
                     f"- **{lb['theme']}:** {res['theme_name']} · **{lb['transition']}:** `{res['transition']}` · **{lb['total']}:** `{res['slide_count']} {lb['slides']}`",
                     f"- **{lb['download_pptx']}:** [{res['title']} ({res['filename']})]({res['url']})", "",
                     f"### {lb['content']}",

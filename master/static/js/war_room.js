@@ -1,5 +1,6 @@
 // War room: the live graph of a running build, pause/resume, course corrections, a time slider and branching.
 import { bindGlobalEvent, safeFetchJson } from './storage.js';
+import { extraButtons } from './war_extras.js';
 
 const COLORS = { waiting: '#e2e8f0', running: '#fde68a', done: '#bbf7d0', failed: '#fecaca', skipped: '#f1f5f9' };
 const LABELS = { waiting: 'bekliyor', running: 'çalışıyor', done: 'bitti', failed: 'hata', skipped: 'atlandı' };
@@ -76,6 +77,15 @@ function drawGraph(nodes, onPick) {
   return root;
 }
 
+// Which isolation layer generated code runs in; asked each time the panel is opened.
+function showTier(target, panel) {
+  new MutationObserver(async () => {
+    if (panel.hidden) return;
+    const res = await safeFetchJson('/api/runs');
+    target.textContent = (res.data && res.data.isolation) || '';
+  }).observe(panel, { attributes: true, attributeFilter: ['hidden'] });
+}
+
 // Builds the toggle button and the panel; returns the parts the behaviour below drives.
 function buildDom() {
   const toggle = el('button', 'Ajan grafiği', 'war-toggle');
@@ -106,7 +116,9 @@ function buildDom() {
   head.append(picker, status, pauseBtn);
   const steerRow = el('div', undefined, 'war-row');
   steerRow.append(note, send);
-  panel.append(head, steerRow, graph, sliderLabel, slider, detail, branchRow);
+  const tier = el('div', '', 'war-small');
+  showTier(tier, panel);
+  panel.append(head, tier, steerRow, graph, sliderLabel, slider, detail, branchRow);
   document.body.append(toggle, panel);
   return { toggle, panel, picker, status, pauseBtn, note, send, graph, slider, sliderLabel, detail, branchRow, steerRow };
 }
@@ -136,8 +148,9 @@ async function showVersions(wsId, row) {
   go.addEventListener('click', async () => {
     const done = await post(`/api/runs/branch/${encodeURIComponent(wsId)}`, { version: select.value });
     out.textContent = done.ok ? `Yeni çalışma alanı: ${done.data.workspace.name}` : 'Dallanamadı.';
+    if (done.ok) out.append(...extraButtons(done.data.workspace.id));
   });
-  row.append(el('span', 'Kontrol noktaları:'), select, go, out);
+  row.append(el('span', 'Kontrol noktaları:'), select, go, out, ...extraButtons(wsId));
   return true;
 }
 

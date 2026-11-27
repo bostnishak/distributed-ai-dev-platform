@@ -8,10 +8,12 @@ from collections.abc import Iterator
 from pathlib import Path
 
 import cheat_guard
+from prompt_loader import load_prompt
 
 _SKIP_PARTS = {".history", ".git", "node_modules", "__pycache__", "venv", ".venv", "dist", ".ai-os"}
 _JS_EMPTY_CATCH_RE = re.compile(r"catch\s*(?:\([^)]*\))?\s*\{\s*(?:/\*.*?\*/\s*|//[^\n]*\n\s*)*\}", re.DOTALL)
 _JS_FAKE_RE = re.compile(r"setTimeout\s*\(\s*(?:\(\s*\)|function\s*\(\s*\))\s*(?:=>)?\s*\{[^{}]{0,300}?[\"'`][^\"'`]*(?:başarıyla|successfully|kaydedildi|gönderildi|yanıtı|response)[^\"'`]*[\"'`]", re.IGNORECASE)
+_JS_EMPTY_HANDLER_RE = re.compile(r"(?:addEventListener\(\s*[\"'][\w-]+[\"']\s*,|\bon[a-z]+\s*=\s*|\bon[A-Z]\w*=\{)\s*(?:\(\s*\w*\s*\)\s*=>|function\s*\(\s*\w*\s*\))\s*\{\s*\}|\bon[a-z]+=[\"']\s*[\"']")
 _PY_QUIET = (type(None), dict, list, str, bool, int)
 
 
@@ -66,6 +68,8 @@ def _javascript(path: str, source: str) -> Iterator[str]:
 
     for match in _JS_EMPTY_CATCH_RE.finditer(source):
         yield f"{path}:{line(match)} boş catch bloğu"
+    for match in _JS_EMPTY_HANDLER_RE.finditer(source):
+        yield f"{path}:{line(match)} boş olay işleyicisi"
     for match in _JS_FAKE_RE.finditer(source):
         yield f"{path}:{line(match)} gerçek işlem yerine zamanlayıcıyla uydurma sonuç"
     if cheat_guard.is_test(path) and (cheat_guard.checks_of(source)[0] <= 0 and re.search(r"\b(?:it|test)\s*\(", source)):
@@ -118,4 +122,20 @@ def unwired(page) -> list[str]:
                 break
         if not own & _WANTED:
             dead.append(button["label"])
-    return dead
+    return dead + _idle_fields(page, listeners)
+
+
+_FIELDS = load_prompt("field_audit.js.txt")
+
+
+def _idle_fields(page, listeners) -> list[str]:
+    """Inputs and selects outside any form that no listener hears and no script mentions."""
+    shared = (listeners("window") | listeners("document") | listeners("document.body")) & {"input", "change", "keydown", "keyup"}
+    idle = []
+    for field in page.evaluate(_FIELDS):
+        if field["handled"] or shared:
+            continue
+        chain = f"document.querySelector('[data-field=\\\"{field['index']}\\\"]')"
+        if not (listeners(chain) | listeners(f"{chain}.parentElement")) & {"input", "change", "keydown", "keyup", "click"}:
+            idle.append(f"alan: {field['label']}")
+    return idle

@@ -192,7 +192,7 @@ async def _call_model(model: str, system: str, prompt: str, num_predict: int = 2
         model=model,
         profile=prof,
         num_predict=num_predict,
-        timeout_s=120.0,
+        timeout_s=600.0,  # 2500 tokens at the 7-12 tok/s of an 8 GB card does not fit in two minutes
         feature="reasoning_council",
         max_retries=0,
     )

@@ -18,6 +18,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 import event_log
+import feedback
 import ledger
 import memory_engine
 import preferences
@@ -31,6 +32,11 @@ from prompt_loader import load_prompt
 router = APIRouter(prefix="/api/studio", tags=["studio"])
 _LINE_RE = re.compile(r"^\s*(GET|POST|PUT|PATCH|DELETE)\s+(/\S*)\s*(.*)$", re.IGNORECASE)
 _MAX_REQUESTS = 10
+
+
+class FeedbackRequest(BaseModel):
+    verdict: str = Field(pattern="^(up|down)$")
+    note: str = Field(default="", max_length=500)
 
 
 class ConsoleRequest(BaseModel):
@@ -115,6 +121,11 @@ def _workspace(ws_id: str) -> Path:
     if not ws_dir.is_dir():
         raise HTTPException(status_code=404, detail="Çalışma alanı bulunamadı.")
     return ws_dir
+
+
+@router.post("/workspaces/{id}/feedback", dependencies=[Depends(require_local_or_admin)])
+def rate_delivery(id: str, body: FeedbackRequest) -> dict[str, Any]:
+    return feedback.record(_workspace(id), "beğenildi" if body.verdict == "up" else "beğenilmedi", body.note)
 
 
 @router.get("/memory-view")

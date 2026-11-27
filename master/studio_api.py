@@ -16,12 +16,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
+import feedback
 import preview_server
 import preview_shim
 import process_utils
 import project_flow
 import run_trace
 import sandbox
+import taste
 import workspace_builder as wb
 from access_control import require_local_or_admin
 from audit_log import AuditTrail
@@ -136,6 +138,9 @@ async def read_workspace_file(id: str, path: str = Query(...)):
     }
 
 
+_HIGHLIGHT_RE = re.compile(r"<span[^>]*class=[\"']hl-(?:tag|attr|str|kw|num|comment)[\"']")
+
+
 @router.put("/workspaces/{id}/file")
 async def save_workspace_file(id: str, body: SaveFileRequest):
     try:
@@ -145,7 +150,13 @@ async def save_workspace_file(id: str, body: SaveFileRequest):
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     if not ws_dir.is_dir():
         raise HTTPException(status_code=404, detail="Çalışma alanı bulunamadı.")
+    if _HIGHLIGHT_RE.search(body.content) and target.suffix.lower() != ".md":
+        raise HTTPException(status_code=400, detail="Dosyada kod renklendirme etiketi var (class=\"hl-...\"); ham kaynak kaydedilmeli.")
     target.parent.mkdir(parents=True, exist_ok=True)
+    previous = target.read_text(encoding="utf-8", errors="replace") if target.is_file() else body.content
+    if previous != body.content:
+        feedback.record(ws_dir, "elle düzenleme", body.path)  # a correction by hand is a signal about what the model got wrong
+        taste.learn(previous, body.content, target.suffix)
     target.write_text(body.content, encoding="utf-8")
     meta = wb.load_workspace_meta(ws_dir)
     meta["updated_at"] = datetime.now(UTC).isoformat()

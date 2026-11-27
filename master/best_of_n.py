@@ -7,6 +7,7 @@ does it name risks) plus a separate critic pass on four axes. Numbers and the wi
 
 from __future__ import annotations
 
+import json
 import re
 from collections.abc import AsyncIterator
 from typing import Any
@@ -14,6 +15,7 @@ from typing import Any
 from fastapi.responses import StreamingResponse
 
 import chat_stream
+import judge
 import workspace_builder as wb
 
 _ASK_RE = re.compile(r"^\s*(?:en\s+iyi\s+(?P<n>[23])(?:\s+(?:aday|seçenek))?|mimari\s+seçenekler(?:i)?)\s*:\s*(?P<question>.{10,})$", re.IGNORECASE | re.DOTALL)
@@ -67,9 +69,22 @@ async def _run(question: str, count: int) -> AsyncIterator[str]:
         return
     rows = "\n".join(f"| {label} | {title(c)} | {' | '.join(str(k.get(a, '-')) for a in AXES)} | {rule} | **{score}** |" for score, rule, label, c, k in scored)
     yield f"\n| aday | ad | gecikme | bakım | dayanıklılık | uyum | kural puanı | toplam |\n|---|---|---|---|---|---|---|---|\n{rows}\n"
-    best = max(scored, key=lambda s: (s[0], s[1]))
+    ranked = sorted(scored, key=lambda s: (s[0], s[1]), reverse=True)
+    best = ranked[0]
+    second_opinion = ""
+    if len(ranked) > 1:
+        yield "İlk iki aday yargıca (iki sırayla) soruluyor...\n"
+
+        async def ask(system: str, user: str, _schema: dict) -> str:
+            return json.dumps(await _ask(model, system + " JSON keys: better (\"1\", \"2\" or \"equal\"), reason.", user))
+
+        winner, reason = await judge.compare(question, str(ranked[0][3]), str(ranked[1][3]), ask)
+        label = {"A": ranked[0][2], "B": ranked[1][2]}.get(winner)
+        second_opinion = f"\nYargıç (aday {ranked[0][2]} ve {ranked[1][2]}, iki sırayla): " + (f"**{label}** daha iyi — {reason}" if label else f"belirsiz ({reason})") + "\n"
     for _score, _rule, label, c, k in scored:
         yield f"\n**{label} — {title(c)}**: {c.get('approach', '')}\n- Ödünleşim: {c.get('tradeoffs', '')}\n- Hata durumunda: {c.get('on_failure', '')}\n- Zayıf yanı: {k.get('weakness', '-')}\n"
+    if second_opinion:
+        yield second_opinion
     yield f"\n**Öneri: {best[2]} ({title(best[3])}).** Puanlar bir yardımcıdır; geri dönüşü zor kararda son sözü sen söyle."
 
 

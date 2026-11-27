@@ -97,20 +97,23 @@ def _auto_notes(title: str, bullets: list[str], key_fact: str, lang: str) -> str
     return f"{title}. {points} {('Vurgulanacak çıkarım: ' + key_fact) if key_fact else ''}".strip()
 
 
+MIN_PT = 14.0  # nothing on a slide is set smaller: it cannot be read from the back of a room
+
+
 def _bullet_metrics(bullets: list[str], wide: bool, height: float = 4.2) -> tuple[float, float]:
     """(font pt, paragraph spacing pt): the largest size at which the bullets still fit `height` inches (few bullets get big type)."""
     base_cpl = 66 if wide else 42  # characters per line at 16 pt
-    for pt in (22.0, 20.0, 18.0, 16.0, 14.5, 13.0, 11.5):
+    for pt in (22.0, 20.0, 18.0, 16.0, 14.5, MIN_PT):
         cpl, space = base_cpl * 16.0 / pt, pt * 0.7
         lines = sum(max(1, math.ceil(len(b) / cpl)) for b in bullets)
         if (lines * pt * 1.22 + len(bullets) * space) / 72 <= height:
             return (pt, space)
-    return (10.5, 4.0)
+    return (MIN_PT, 4.0)
 
 
 def _add_run(p: Any, text: str, size_pt: float, color: RGBColor, *, bold: bool = False) -> None:
     r = p.add_run()
-    r.text, r.font.name, r.font.size, r.font.bold, r.font.color.rgb = text, _FONT_FAMILY, Pt(size_pt), bold, color
+    r.text, r.font.name, r.font.size, r.font.bold, r.font.color.rgb = text, _FONT_FAMILY, Pt(max(size_pt, MIN_PT)), bold, color
 
 
 def _prep_tf(tf: Any, lr: tuple[float, float], tb: tuple[float, float], *, middle: bool = False, align: Any = PP_ALIGN.LEFT) -> Any:
@@ -227,7 +230,7 @@ def _render_callout_panel(
         _add_run(pf, key_fact, 21.0 if len(key_fact) <= 60 else (17.0 if len(key_fact) <= 110 else (14.0 if len(key_fact) <= 185 else 12.0)), c.text, bold=True)
     if bullets:
         b_pt, sp = _bullet_metrics(bullets[:4], wide=False)
-        _fill_bullets(tf, bullets[:4], min(b_pt, 12.5), min(sp, 6.5), c.muted, append=True)
+        _fill_bullets(tf, bullets[:4], min(b_pt, MIN_PT), min(sp, 6.5), c.muted, append=True)
 
 
 def _render_bullets_layout(slide: Any, bullets: list[str], key_fact: str, ctx: _SlideCtx) -> None:
@@ -314,9 +317,9 @@ def _render_chart_layout(
     plot.has_data_labels = True
     plot.data_labels.number_format, plot.data_labels.number_format_is_linked = ("#,##0" if all(v == int(v) for v in values) else "#,##0.0"), False
     chart.value_axis.tick_labels.number_format, chart.value_axis.tick_labels.number_format_is_linked = "#,##0", False
-    plot.data_labels.font.name, plot.data_labels.font.size, plot.data_labels.font.color.rgb = _FONT_FAMILY, Pt(10), c.text
+    plot.data_labels.font.name, plot.data_labels.font.size, plot.data_labels.font.color.rgb = _FONT_FAMILY, Pt(MIN_PT), c.text
     for axis in (chart.category_axis, chart.value_axis):
-        axis.tick_labels.font.name, axis.tick_labels.font.size, axis.tick_labels.font.color.rgb = _FONT_FAMILY, Pt(10), c.muted
+        axis.tick_labels.font.name, axis.tick_labels.font.size, axis.tick_labels.font.color.rgb = _FONT_FAMILY, Pt(MIN_PT), c.muted
     chart.value_axis.has_major_gridlines = True
     chart.value_axis.major_gridlines.format.line.color.rgb = c.alt_row
     _render_callout_panel(slide, key_fact, bullets[:3], (8.72, 1.76, 3.96, 4.96), ctx)
@@ -398,13 +401,13 @@ def _card_text_height(txt: str, size: float, width: float) -> float:
     lead, rest = _split_lead(txt)
     if not lead:
         return _text_height(len(rest), size, width)
-    return _text_height(len(lead), size, width) + _text_height(len(rest), size - 2.0, width) + 6 / 72
+    return _text_height(len(lead), size, width) + _text_height(len(rest), max(MIN_PT, size - 2.0), width) + 6 / 72
 
 
 def _step_size(items: list[str]) -> float:
     longest = max((len(t) for t in items), default=0)
     size = 20.0 if longest <= 50 else (18.0 if longest <= 90 else (16.0 if longest <= 130 else 14.0))
-    return size - (1.5 if len(items) == 4 else (2.5 if len(items) >= 5 else 0.0))
+    return max(MIN_PT, size - (1.5 if len(items) == 4 else (2.5 if len(items) >= 5 else 0.0)))
 
 
 def _render_step_cards(slide: Any, items: list[str], rect: tuple[float, float, float, float], ctx: _SlideCtx, *, timeline: bool = False) -> None:

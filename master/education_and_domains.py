@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import ast
 import math
 from datetime import UTC, datetime
 from typing import Any
@@ -10,6 +9,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+import autograder
 from access_control import require_local_or_admin
 
 router = APIRouter(prefix="/api/tools", tags=["tools"])
@@ -145,47 +145,9 @@ async def api_learning_progress(body: MasteryUpdateRequest):
 
 
 @router.post("/education/autograder", dependencies=_ADMIN_OR_LOCAL)
-async def api_grade_submission(body: GradeSubmissionRequest):
-    """Grade Python student code safely via AST inspection and isolated namespace checks (EGT-04)."""
-    try:
-        tree = ast.parse(body.code)
-    except SyntaxError as exc:
-        return {"passed": False, "score": 0.0, "error": f"Sözdizimi hatası (satır {exc.lineno}): {exc.msg}", "results": []}
-    for node in ast.walk(tree):
-        if isinstance(node, (ast.Import, ast.ImportFrom)):
-            return {"passed": False, "score": 0.0, "error": "Otomatik değerlendiricide import ifadesi kısıtlıdır.", "results": []}
-    safe_builtins = {"len": len, "range": range, "sum": sum, "min": min, "max": max, "abs": abs, "int": int, "float": float, "str": str, "list": list, "dict": dict, "set": set, "sorted": sorted, "enumerate": enumerate, "bool": bool}
-    ns: dict[str, Any] = {"__builtins__": safe_builtins}
-    exec(compile(tree, "<submission>", "exec"), ns, ns)
-    fn = ns.get(body.function_name)
-    if not callable(fn):
-        return {"passed": False, "score": 0.0, "error": f"`{body.function_name}` fonksiyonu tanımlı değil.", "results": []}
-    results = []
-    passed = 0
-    for tc in body.test_cases:
-        args = tc.get("args") or []
-        expected = tc.get("expected")
-        try:
-            got = fn(*args)
-            ok = got == expected
-        except (
-            ArithmeticError,
-            LookupError,
-            TypeError,
-            ValueError,
-            NameError,
-            AttributeError,
-            RuntimeError,
-            AssertionError,
-            StopIteration,
-            MemoryError,
-        ) as exc:
-            got, ok = f"Hata: {exc}", False
-        if ok:
-            passed += 1
-        results.append({"args": args, "expected": expected, "got": got, "ok": ok})
-    total = max(1, len(body.test_cases))
-    return {"passed": passed == len(body.test_cases), "score": round((passed / total) * 100, 1), "results": results}
+def api_grade_submission(body: GradeSubmissionRequest):
+    """Grade Python student code inside the isolated container; never in this process (EGT-04)."""
+    return autograder.grade(body.code, body.function_name, body.test_cases)
 
 
 @router.post("/education/language-learning")

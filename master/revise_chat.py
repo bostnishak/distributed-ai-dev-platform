@@ -37,7 +37,7 @@ _NOT_EDIT_RE = re.compile(
 def is_revision(prompt: str) -> bool:
     if len(prompt) > _MAX_CHARS or _NOT_EDIT_RE.search(prompt):
         return False
-    return bool(tier0_edit.parse(prompt) or _CHANGE_RE.search(prompt) or (_UI_RE.search(prompt) and _MAKE_RE.search(prompt)))
+    return bool(tier0_edit.parse(prompt) or tier0_edit._LINT_RE.match(prompt) or _CHANGE_RE.search(prompt) or (_UI_RE.search(prompt) and _MAKE_RE.search(prompt)))
 
 
 def last_workspace_id(history: str) -> str:

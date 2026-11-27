@@ -1,0 +1,10 @@
+const data = JSON.parse(document.getElementById('data').textContent);
+const canvas = document.createElement('canvas');
+canvas.setAttribute('role', 'img');
+canvas.setAttribute('aria-label', data.value + ' / ' + data.label);
+document.getElementById('view').append(canvas);
+new Chart(canvas, {
+  type: 'bar',
+  data: { labels: data.rows.map((r) => r.name), datasets: [{ label: data.value, data: data.rows.map((r) => r.value) }] },
+  options: { maintainAspectRatio: false, scales: { x: { title: { display: true, text: data.label } } } }
+});

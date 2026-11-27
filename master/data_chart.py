@@ -13,6 +13,7 @@ from fastapi.responses import StreamingResponse
 
 import document_chart
 import eda
+import interactive_artifacts
 
 _log = logging.getLogger(__name__)
 _ASK_RE = re.compile(r"\bgrafi[kğ]\w*|\bchart\b|\bplot\b", re.IGNORECASE)
@@ -57,8 +58,15 @@ def make(text: str, prompt: str) -> str:
         return "Bu veriden çubuk grafik çizilemedi."
     name = f"chart-{time.strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:6]}.png"
     (mms.media_dir() / name).write_bytes(png)
+    interactive = ""
+    library = interactive_artifacts.chart_library(prompt)
+    if interactive_artifacts.available(library):
+        page = name.removesuffix(".png") + ".html"
+        data = interactive_artifacts.chart_data(label, value, pairs)
+        (mms.media_dir() / page).write_text(interactive_artifacts.page(library, f"{label} bazında {value} ({how})", data), encoding="utf-8")
+        interactive = f"\n\n[Etkileşimli grafik ({library}; indirip çevrimdışı açılır)](/api/assistant/media/{page})"
     table = "\n".join(f"| {n} | {v:,.2f} |" for n, v in pairs)
-    return (f"![{label} bazında {value}](/api/assistant/media/{name})\n\n| {label} | {value} ({how}) |\n|---|---|\n{table}\n\n"
+    return (f"![{label} bazında {value}](/api/assistant/media/{name}){interactive}\n\n| {label} | {value} ({how}) |\n|---|---|\n{table}\n\n"
             "_Rakamlar dosyadan kodla hesaplandı._")
 
 

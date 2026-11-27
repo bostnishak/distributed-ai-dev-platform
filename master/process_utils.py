@@ -11,11 +11,34 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
+import isolation
+
 log = logging.getLogger(__name__)
 
 _SUPERVISORS: dict[str, SupervisedLoop] = {}
-_EXEC_RUN = subprocess.run
 _EXEC_POPEN = subprocess.Popen
+
+
+def _run_tied(args: list[str], *, timeout: float, check: bool = False, capture_output: bool = True, **options: Any) -> subprocess.CompletedProcess:
+    """subprocess.run, but the child lives in a job: when it ends or times out, its whole process tree ends too."""
+    del check, capture_output  # always captured, never raised: callers read the return code
+    with _EXEC_POPEN(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **options) as proc:
+        job = isolation.tie(proc)
+        try:
+            try:
+                out, err = proc.communicate(timeout=timeout)
+            except subprocess.TimeoutExpired:
+                isolation.release(job)  # closing the job kills grandchildren that still hold the pipes
+                job = None
+                proc.kill()
+                out, err = proc.communicate()
+                raise subprocess.TimeoutExpired(args, timeout, output=out, stderr=err) from None
+            return subprocess.CompletedProcess(args, proc.returncode, out, err)
+        finally:
+            isolation.release(job)
+
+
+_EXEC_RUN = _run_tied
 
 
 @dataclass(frozen=True)
