@@ -57,6 +57,14 @@ window.addEventListener('load', function () {
     Array.prototype.forEach.call(document.images, function (img) {
       if (img.complete && !img.naturalWidth) found.push('yüklenmeyen görsel: ' + (img.getAttribute('src') || '').slice(0, 60));
     });
+    if (document.fonts) {
+      document.fonts.forEach(function (font) { if (font.status === 'error') found.push('yüklenmeyen yazı tipi: ' + font.family); });
+    }
+    Array.prototype.slice.call(document.body.querySelectorAll('div, section, main, header, footer, ul, ol, p, form, table, nav, article'), 0, 600).forEach(function (el) {
+      var s = getComputedStyle(el);
+      if (s.display === 'none' || s.visibility === 'hidden' || s.overflow !== 'visible' || el.hidden || el.closest('[hidden], details:not([open])')) return;
+      if (el.getBoundingClientRect().height < 1 && el.innerText && el.innerText.trim().length > 1) found.push('sıfır yükseklikte kutu, içeriği dışarı taşıyor: ' + name(el));
+    });
     var written = all.filter(function (el) {
       return !/^(SCRIPT|STYLE|OPTION)$/.test(el.tagName) && Array.prototype.some.call(el.childNodes, function (n) { return n.nodeType === 3 && n.textContent.trim().length > 1; });
     });

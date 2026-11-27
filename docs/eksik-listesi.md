@@ -67,7 +67,7 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 
 - [x] Durum tabanlı özellik testi: arayüz = API = veritabanı (`state_property.py`, canlı geçti)
 - [x] JavaScript mutasyon testi (Node izin modeli + Windows süreç sınırı; yazma, ağ, alt süreç reddi canlı sınandı)
-- [~] Kırık görsel / yazı tipi / sıfır yükseklik / 3 görünüm — kod var, canlı denenecek
+- [x] Kırık görsel / yazı tipi / sıfır yükseklik / 3 görünüm (yazı tipi ve yükseklik denetimi yoktu, eklendi; gerçek tarayıcıda geçti)
 - [x] PDF: öksüz başlık ve boş son sayfa denetimi
 - [x] D2 diyagramı (akış çiziminin yanında D2 kaynağı ve ELK yerleşimli SVG)
 - [x] Cytoscape etkileşimli diyagram (tek dosya, çevrimdışı)
