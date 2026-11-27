@@ -6,4 +6,4 @@ pytesseract>=0.3.13
 sympy>=1.13.0
 scipy>=1.13.0
 radon>=6.0.1
-mkdocs>=1.6.0
+mkdocs>=1.6.1
