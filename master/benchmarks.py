@@ -7,8 +7,10 @@ Dimensions: coding, reasoning, context, structured_output, speed.
 from __future__ import annotations
 
 import json
+import secrets
 
 from prompt_loader import load_prompt
+from sandbox import runner
 
 # ---------------------------------------------------------------------------
 # Benchmark definitions
@@ -294,54 +296,22 @@ def score_response(benchmark: dict, response: str, tokens_per_second: float | No
 
 
 def _score_coding(benchmark: dict, response: str, max_score: float, details: dict) -> tuple[float, dict]:
-    """Execute the function definition and run test cases."""
-    # Extract code (strip markdown fences if present)
-    code = _strip_code_fences(response)
-    namespace: dict = {}
-    try:
-        exec(code, namespace)
-    except (
-        SyntaxError,
-        NameError,
-        TypeError,
-        ValueError,
-        ArithmeticError,
-        LookupError,
-        AttributeError,
-        RuntimeError,
-        ImportError,
-        OSError,
-        AssertionError,
-        StopIteration,
-        MemoryError,
-    ) as exc:
-        details["error"] = f"Code failed to execute: {exc}"
-        return 0.0, details
+    """Run the answered code and the benchmark's checks inside the isolated container, never in this process.
 
-    test_code = benchmark.get("test_code", "")
-    try:
-        exec(test_code, namespace)
+    The answer comes from whichever machine the task was given to: it is untrusted code.
+    """
+    marker = f"__gecti_{secrets.token_hex(8)}__"
+    script = "\n".join([_strip_code_fences(response), "", benchmark.get("test_code", ""), "", f"print({marker!r})"])
+    done = runner.run_python_code(script)
+    if not done.get("docker_available", True):
+        details["error"] = "Not graded: the isolated container is not available, and answered code is never run outside it."
+        return 0.0, details
+    if done.get("ok") and marker in str(done.get("stdout", "")):
         details["passed"] = True
         return float(max_score), details
-    except AssertionError as exc:
-        details["error"] = f"Test assertion failed: {exc}"
-        return 0.0, details
-    except (
-        SyntaxError,
-        NameError,
-        TypeError,
-        ValueError,
-        ArithmeticError,
-        LookupError,
-        AttributeError,
-        RuntimeError,
-        ImportError,
-        OSError,
-        StopIteration,
-        MemoryError,
-    ) as exc:
-        details["error"] = f"Test execution error: {exc}"
-        return 0.0, details
+    last = (str(done.get("stderr", "")).strip().splitlines() or ["no output"])[-1][:300]
+    details["error"] = f"Test assertion failed: {last}" if "AssertionError" in last else f"Code failed to execute: {last}"
+    return 0.0, details
 
 
 def _score_reasoning(benchmark: dict, response: str, max_score: float, details: dict) -> tuple[float, dict]:

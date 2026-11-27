@@ -12,6 +12,8 @@ import code_audit
 import complexity_governor
 import deploy_kit
 import design_slop
+import flow_analysis
+import js_mutation
 import ledger
 import migration_check
 import mutation
@@ -32,7 +34,7 @@ async def apply(ws_dir: Path, request: str, done: dict[str, Any]) -> dict[str, A
     warnings = [str(w) for w in done.get("warnings") or []]
     deployment = deploy_kit.apply(ws_dir, request)  # the only step that writes files: before the readers start
     found = await asyncio.gather(  # read-only checks are independent of each other, so they run at the same time
-        asyncio.to_thread(security_scan.report, ws_dir), asyncio.to_thread(visual_audit.report, ws_dir), asyncio.to_thread(design_slop.report, ws_dir, request),
+        asyncio.to_thread(security_scan.report, ws_dir), asyncio.to_thread(flow_analysis.report, ws_dir), asyncio.to_thread(visual_audit.report, ws_dir), asyncio.to_thread(design_slop.report, ws_dir, request),
         asyncio.to_thread(package_check.report, ws_dir), asyncio.to_thread(code_audit.report, ws_dir, request), asyncio.to_thread(migration_check.report, ws_dir), asyncio.to_thread(ui_chaos.report, ws_dir), asyncio.to_thread(api_fuzz.report, ws_dir))
     names = ("Gizli anahtar ve güvensiz kalıp taraması", "Gerçek tarayıcıda yerleşim denetimi", "Şablon tasarım denetimi", "Bağımlılık denetimi",
              "Statik tanılama, veri akışı, performans ve lisans", "Veritabanı göçü denetimi", "Rastgele tıklama dayanıklılığı", "API zorlama testi")
@@ -46,7 +48,7 @@ async def apply(ws_dir: Path, request: str, done: dict[str, Any]) -> dict[str, A
         warnings.append(checked)
     if complexity_governor.classify(request).level >= 3:
         pkgs = workspace_requirements.declared_packages(ws_dir)
-        deep = (await vlm_critique.report(ws_dir, request), await asyncio.to_thread(mutation.report, ws_dir, pkgs))
+        deep = (await vlm_critique.report(ws_dir, request), await asyncio.to_thread(mutation.report, ws_dir, pkgs), await asyncio.to_thread(js_mutation.report, ws_dir))
         warnings += [w for w in deep if w]
     try:
         provenance.write(ws_dir, request, warnings)

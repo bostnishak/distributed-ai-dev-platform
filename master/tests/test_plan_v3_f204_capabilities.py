@@ -62,7 +62,12 @@ def test_egt01_to_egt05_and_aln01_to_aln07_tools(f204_client):
         "/api/tools/education/autograder",
         json={"code": "def add(a, b):\n    return a + b\n", "function_name": "add", "test_cases": [{"args": [2, 3], "expected": 5}]},
     ).json()
-    assert grade["passed"] is True and grade["score"] == 100.0
+    from sandbox import runner
+
+    if runner.docker_daemon_ready()[0]:
+        assert grade["passed"] is True and grade["score"] == 100.0, grade
+    else:
+        assert grade["passed"] is False and "Docker" in grade["error"]
     assert len(f204_client.post("/api/tools/education/language-learning", json={}).json()["drills"]) >= 3
 
     # Domain calculators

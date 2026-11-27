@@ -33,6 +33,7 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [x] MCP bağlayıcısı üst veri adresini kabul ediyordu — düzeltildi, canlı geçti
 - [x] Yetki kapısı: üründe hata yoktu, canlı test var olmayan bir eylem adı kullanıyordu — test düzeltildi, canlı geçti
 - [x] Gözcü boş listeyi izliyordu — `sunucuyu başlat / durdur` komutu eklendi, canlı geçti
+- [x] Ödev değerlendirici ve benchmark puanlayıcı gönderilen kodu platformun içinde çalıştırıyordu (uzaktan kod çalıştırma) — yalıtılmış kutuya taşındı, kaçış denemesi canlı sınandı
 
 ## 1. v1
 
@@ -63,7 +64,7 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 ## 3. v3
 
 - [x] Durum tabanlı özellik testi: arayüz = API = veritabanı (`state_property.py`, canlı geçti)
-- [ ] JavaScript mutasyon testi
+- [x] JavaScript mutasyon testi (Node izin modeli + Windows süreç sınırı; yazma, ağ, alt süreç reddi canlı sınandı)
 - [~] Kırık görsel / yazı tipi / sıfır yükseklik / 3 görünüm — kod var, canlı denenecek
 - [x] PDF: öksüz başlık ve boş son sayfa denetimi
 - [ ] D2 diyagramı
@@ -78,7 +79,7 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [x] Bellek: kalıcı silme (`hafızamı göster`, `hafıza <no> sabitle / süre N gün / kalıcı sil`)
 - [~] Gizli etiketli verinin PDF, günlük ve eğitim verisine sızması — sır taraması var, etiket yayılımı yok
 - [x] Köken kaydı: model özeti, üretim ayarları, kanıt özetleri (teslim kaydında)
-- [ ] Fonksiyonlar arası veri akışı, ölü kod, boş değer erişimi
+- [x] Fonksiyonlar arası veri akışı, ölü kod, boş değer erişimi (`flow_analysis.py`; platformun kendi kodunda 2 gerçek açık buldu)
 - [ ] Önce/sonra ölçümlü performans iyileştirme
 - [ ] DOM ve bellek sızıntısı ölçümü
 - [ ] Modül ayırma aracı

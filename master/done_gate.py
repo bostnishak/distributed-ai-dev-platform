@@ -19,6 +19,8 @@ import httpx
 
 import atomic_io
 import code_audit
+import flow_analysis
+import js_mutation
 import live_journey
 import live_server
 import mutation
@@ -70,6 +72,7 @@ def static_proof(ws_dir: Path) -> tuple[str, str]:
     problems = list(wb.verify_workspace_files(ws_dir))
     problems += shortcut_audit.findings(ws_dir)
     problems += code_audit.diagnostics(ws_dir)  # what a language server would underline
+    problems += flow_analysis.tainted_flows(ws_dir)  # request data reaching a command, SQL or a path through other functions
     problems += [f"{f['file']}:{f['line']} {f['rule']}" for f in sorted(security_scan.scan(ws_dir), key=lambda f: not f["secret"])]
     for relative in wb.list_relative_files(ws_dir):
         if relative.endswith((".html", ".js", ".py", ".css")) and '<span class="hl-' in (ws_dir / relative).read_text(encoding="utf-8", errors="replace"):
@@ -81,7 +84,21 @@ def _has_tests(ws_dir: Path) -> bool:
     return any(Path(f).name.startswith("test_") and f.endswith(".py") for f in wb.list_relative_files(ws_dir))
 
 
+def _javascript_test_proof(ws_dir: Path) -> tuple[str, str]:
+    try:
+        if failure := js_mutation.run_tests(ws_dir):
+            return FAILED, f"JavaScript testleri geçmedi: {failure.strip().splitlines()[-1]}"
+        tried, survived = js_mutation.run(ws_dir, limit=10)
+    except OSError as exc:
+        return MISSING, f"JavaScript testleri çalıştırılamadı: {exc}"
+    if tried and (rate := 1 - len(survived) / tried) < KILL_RATE:
+        return FAILED, f"testler geçti ama bilerek bozulan kodun yalnız %{rate * 100:.0f} kadarını yakaladı (en az %{KILL_RATE * 100:.0f})"
+    return PASSED, f"JavaScript testleri geçti; bilerek yapılan {tried} bozmanın {tried - len(survived)} tanesi yakalandı"
+
+
 def test_proof(ws_dir: Path) -> tuple[str, str]:
+    if not _has_tests(ws_dir) and js_mutation.has_tests(ws_dir):
+        return _javascript_test_proof(ws_dir)
     if not _has_tests(ws_dir):
         return MISSING, "projede çalıştırılabilir test yok"
     if not workspace_docker.available():
