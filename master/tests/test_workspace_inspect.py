@@ -28,3 +28,23 @@ def test_proof_shows_changes_after_delivery(tmp_path, monkeypatch):
     assert clean["signed"] and clean["changed"] == [] and clean["warnings"] == ["bir uyarı"] and clean["timeline"][0]["version"] == "v1"
     (tmp_path / "app.py").write_text("x = 2\n", encoding="utf-8")
     assert workspace_inspect.proof(tmp_path)["changed"] == ["app.py"]
+
+
+def test_pages_are_proofed_one_by_one(tmp_path):
+    import pymupdf
+
+    import office_verify
+
+    doc = pymupdf.open()
+    page = doc.new_page()
+    page.insert_text((72, 100), "Düzgün bir paragraf satırı", fontsize=12)
+    doc.new_page()
+    bad = doc.new_page()
+    bad.insert_text((72, 100), "Ust uste yazi satiri bir", fontsize=14)
+    bad.insert_text((74, 101), "Ust uste yazi satiri iki", fontsize=14)
+    bad.insert_text((72, 300), "cok kucuk yazi satiri", fontsize=4)
+    path = tmp_path / "a.pdf"
+    doc.save(path)
+    doc.close()
+    found = " | ".join(office_verify.check_pdf(path))
+    assert "2. sayfa boş" in found and "3. sayfada/slaytta yazılar üst üste" in found and "punto" in found and "1. sayfa" not in found

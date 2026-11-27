@@ -20,3 +20,4 @@ playwright
 trafilatura
 ruff
 sympy
+scikit-learn

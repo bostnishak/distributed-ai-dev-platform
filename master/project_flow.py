@@ -140,7 +140,14 @@ async def _coverage_pass(ws_dir: Path, info: dict[str, Any], gens: tuple[Any, An
     ensure_theme_toggle(ws_dir, request)
     smoke_warning = ""  # the single browser/smoke run of the whole generation happens here, after the last file change
     fixer = think if wants_single_html(request) else write  # a whole page needs the stronger model and room for all of it
-    async for evt in smoke_and_repair(ws_dir, lambda _rel, ask: fixer(None, ask, min(14000, max(4096, len(ask) // 2)), 0.1), request=request):
+    attempts: list[str] = []
+
+    def repair_with_escalation(rel: str, ask: str):
+        attempts.append(rel)  # the first repair uses the usual model; a second one is handed to the other model
+        model = fixer if len(attempts) == 1 else (think if fixer is write else write)
+        return model(None, ask, min(14000, max(4096, len(ask) // 2)), 0.1)
+
+    async for evt in smoke_and_repair(ws_dir, repair_with_escalation, request=request):
         if evt["type"] == "status":
             yield evt
         else:
@@ -153,8 +160,11 @@ async def _contract_events(prompt: str) -> AsyncIterator[dict[str, Any]]:
     """Intake and Architect agents for detailed requests: status lines, then {"type": "contract"}."""
     contract = await agent_contracts.intake(prompt)
     yield {"type": "status", "message": f"Intake ajanı: {len(contract.colors)} renk, {len(contract.sizes)} ölçü, {len(contract.buttons)} buton davranışı çıkarıldı."}
-    for item in (await agent_contracts.review(prompt)).warnings:
+    audit = await agent_contracts.review(prompt)
+    for item in audit.warnings:
         yield {"type": "status", "message": f"Mimar uyarısı: {item.issue} Öneri: {item.alternative}"}
+    for item in audit.assumptions:
+        yield {"type": "status", "message": f"Varsayım (doğrulanmadı): {item}"}
     yield {"type": "contract", "contract": contract}
 
 

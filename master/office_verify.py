@@ -47,6 +47,33 @@ def _workbook_errors(path: Path, out_dir: Path) -> list[str]:
     return found[:8]
 
 
+def proof_page(page: Any, number: int, slide: bool) -> list[str]:
+    """What a reader would see wrong on one rendered page or slide."""
+    found = []
+    blocks = [block for block in page.get_text("blocks") if block[4].strip()]
+    if not blocks and not page.get_images() and not page.get_drawings():
+        return [f"{number}. sayfa boş"]
+    if any(block[2] > page.rect.width + 2 or block[3] > page.rect.height + 2 or block[0] < -2 for block in blocks):
+        found.append(f"{number}. sayfada/slaytta yazı sınırın dışına taşıyor")
+    lines = [line["bbox"] for block in page.get_text("dict")["blocks"] for line in block.get("lines", []) if "".join(s["text"] for s in line["spans"]).strip()]
+    for i, first in enumerate(lines):
+        for second in lines[i + 1 :]:
+            width = min(first[2], second[2]) - max(first[0], second[0])
+            height = min(first[3], second[3]) - max(first[1], second[1])
+            smaller = min((first[2] - first[0]) * (first[3] - first[1]), (second[2] - second[0]) * (second[3] - second[1]))
+            if width > 0 and height > 0 and width * height > 0.35 * smaller:
+                found.append(f"{number}. sayfada/slaytta yazılar üst üste biniyor")
+                break
+        else:
+            continue
+        break
+    floor = 10 if slide else 6
+    sizes = [span["size"] for block in page.get_text("dict")["blocks"] for line in block.get("lines", []) for span in line["spans"] if len(span["text"].strip()) > 3]
+    if sizes and min(sizes) < floor:
+        found.append(f"{number}. sayfada/slaytta {min(sizes):.0f} punto yazı var (okunmaz)")
+    return found
+
+
 def _page_problems(path: Path, out_dir: Path) -> list[str]:
     import pymupdf
 
@@ -56,12 +83,16 @@ def _page_problems(path: Path, out_dir: Path) -> list[str]:
     with pymupdf.open(pdf) as doc:
         if doc.page_count == 0:
             return ["belge boş"]
-        found = []
-        for number, page in enumerate(doc, start=1):
-            outside = any(b[2] > page.rect.width + 2 or b[3] > page.rect.height + 2 or b[0] < -2 for b in page.get_text("blocks"))
-            if outside:
-                found.append(f"{number}. sayfada/slaytta yazı sınırın dışına taşıyor")
-    return found[:8]
+        slide = path.suffix.lower() == ".pptx"
+        return [problem for number, page in enumerate(doc, start=1) for problem in proof_page(page, number, slide)][:8]
+
+
+def check_pdf(path: Path) -> list[str]:
+    """The same page-by-page proofing for a delivered PDF."""
+    import pymupdf
+
+    with pymupdf.open(path) as doc:
+        return [problem for number, page in enumerate(doc, start=1) for problem in proof_page(page, number, False)][:8]
 
 
 def check(path: Path) -> list[str] | None:
@@ -82,10 +113,17 @@ async def verified(producing: Awaitable[dict[str, Any]], fmt: str) -> dict[str, 
     import multimodal_studio as mms
 
     result = await producing
-    if fmt not in ("xlsx", "docx", "pptx"):
+    if fmt not in ("xlsx", "docx", "pptx", "pdf"):
         return result
-    problems = await asyncio.to_thread(check, mms.media_dir() / str(result.get("url", "")).rsplit("/", 1)[-1])
+    path = mms.media_dir() / str(result.get("url", "")).rsplit("/", 1)[-1]
+    if fmt == "pdf":
+        if path.suffix.lower() != ".pdf" or not path.is_file():
+            return result
+        problems = await asyncio.to_thread(check_pdf, path)
+    else:
+        problems = await asyncio.to_thread(check, path)
     if problems is None:
         return result
-    note = "LibreOffice doğrulaması: sorun bulunmadı." if not problems else "LibreOffice doğrulaması SORUN buldu: " + "; ".join(problems[:4])
+    name = "Sayfa denetimi" if fmt == "pdf" else "LibreOffice doğrulaması"
+    note = f"{name}: sorun bulunmadı." if not problems else f"{name} SORUN buldu: " + "; ".join(problems[:4])
     return {**result, "summary": f"{result.get('summary') or ''}\n\n> {note}".strip()}

@@ -9,43 +9,10 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from prompt_loader import load_prompt
+
 _ASKS_RE = re.compile(r"\b(?:docker\w*|konteyner\w*|container\w*|deploy\w*|yayına\s+al\w*|sunucuya\s+kur\w*)\b", re.IGNORECASE)
 _BASE = "python:3.12-slim"
-
-DOCKERFILE = """FROM {base} AS build
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir --target /deps -r requirements.txt
-
-FROM {base}
-RUN groupadd --gid 10001 app && useradd --uid 10001 --gid app --create-home app
-WORKDIR /app
-COPY --from=build /deps /deps
-COPY --chown=app:app . .
-ENV PYTHONPATH=/deps PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
-USER app
-EXPOSE 8000
-HEALTHCHECK --interval=30s --timeout=3s CMD python -c "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/openapi.json')"
-CMD ["python", "-m", "uvicorn", "{module}:app", "--host", "0.0.0.0", "--port", "8000"]
-"""
-
-COMPOSE = """services:
-  web:
-    build: .
-    ports:
-      - "127.0.0.1:8000:8000"
-    read_only: true
-    tmpfs:
-      - /tmp
-    volumes:
-      - data:/app/data
-    cap_drop: [ALL]
-    security_opt: ["no-new-privileges:true"]
-    mem_limit: 512m
-    restart: unless-stopped
-volumes:
-  data:
-"""
 
 IGNORE = ".git\n.history\n__pycache__\nvenv\n.venv\n.env\n*.db\ntests\n"
 
@@ -89,7 +56,7 @@ def apply(ws_dir: Path, request: str) -> str:
     requirements = (ws_dir / "requirements.txt").read_text(encoding="utf-8")
     if not re.search(r"^uvicorn\b", requirements, re.MULTILINE):
         (ws_dir / "requirements.txt").write_text(requirements.rstrip("\n") + "\nuvicorn\n", encoding="utf-8")
-    existing.write_text(DOCKERFILE.format(base=_BASE, module=module), encoding="utf-8")
-    (ws_dir / "docker-compose.yml").write_text(COMPOSE, encoding="utf-8")
+    existing.write_text(load_prompt("deploy_dockerfile.txt").replace("{base}", _BASE).replace("{module}", module).rstrip("\n") + "\n", encoding="utf-8")
+    (ws_dir / "docker-compose.yml").write_text(load_prompt("deploy_compose.yml.txt").rstrip("\n") + "\n", encoding="utf-8")
     (ws_dir / ".dockerignore").write_text(IGNORE, encoding="utf-8")
     return "Dağıtım dosyaları eklendi: Dockerfile (root olmayan kullanıcı, sağlık denetimi), docker-compose.yml (salt okunur, yetkisiz). Çalıştırma: docker compose up --build"

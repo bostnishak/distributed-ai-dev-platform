@@ -43,6 +43,7 @@ class Warning_(BaseModel):
 
 class ArchitectReview(BaseModel):
     warnings: list[Warning_] = Field(default_factory=list, max_length=3)
+    assumptions: list[str] = Field(default_factory=list, max_length=3)
 
 
 async def _ask(chat: _Chat, prompt_file: str, request: str, model: type[BaseModel]) -> BaseModel:
