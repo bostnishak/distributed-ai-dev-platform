@@ -114,7 +114,7 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [x] Bağımlılık açığı denetimi (OSV; canlı geçti)
 - [x] `ai-os.config` özellik bayrakları, `up --profile`
 - [x] Etkin yalıtım katmanı savaş odasında yazıyor
-- [~] En çok 2 çoktan seçmeli netleştirme sorusu — canlı denenecek
+- [x] En çok 2 çoktan seçmeli netleştirme sorusu (3 açık uçlu soru soruluyordu, düzeltildi)
 - [~] Üç sesli kurul — canlı denenecek
 - [—] Karma bulut köprüsü: istemedin (ücretli servis olmasın)
 
