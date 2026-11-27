@@ -1,0 +1,112 @@
+"""Drive debugpy through the Debug Adapter Protocol: stop at the first uncaught exception and report the frames' variables."""
+
+import json
+import os
+import queue
+import subprocess
+import sys
+import threading
+import time
+
+root = os.path.abspath(sys.argv[1])
+tests = sys.argv[2:]
+runner = os.path.join(root, "_dap_runner.py")
+with open(runner, "w", encoding="utf-8") as handle:
+    handle.write(
+        "import importlib.util, inspect, os, sys\n"
+        "sys.path.insert(0, %r)\n"
+        "for index, path in enumerate(%r):\n"
+        "    spec = importlib.util.spec_from_file_location('dap_t%%d' %% index, os.path.join(%r, path))\n"
+        "    module = importlib.util.module_from_spec(spec)\n"
+        "    spec.loader.exec_module(module)\n"
+        "    for name, obj in list(vars(module).items()):\n"
+        "        if name.startswith('test_') and inspect.isfunction(obj) and not inspect.signature(obj).parameters:\n"
+        "            obj()\n"
+        "        if name.startswith('Test') and inspect.isclass(obj):\n"
+        "            for method in [m for m in dir(obj) if m.startswith('test_')]:\n"
+        "                case = obj(method) if hasattr(obj, 'setUp') and hasattr(obj, 'run') else obj()\n"
+        "                getattr(case, 'setUp', lambda: None)()\n"
+        "                getattr(case, method)()\n" % (root, tests, root)
+    )
+
+env = {**os.environ, "PYTHONPATH": os.pathsep.join(filter(None, [os.environ.get("PYTHONPATH", ""), root]))}
+adapter = subprocess.Popen([sys.executable, "-m", "debugpy.adapter"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, env=env, cwd=root)
+inbox = queue.Queue()
+
+
+def reader():
+    while True:
+        length = 0
+        while True:
+            line = adapter.stdout.readline()
+            if not line:
+                return
+            if not line.strip():
+                break
+            if line.lower().startswith(b"content-length"):
+                length = int(line.split(b":")[1])
+        inbox.put(json.loads(adapter.stdout.read(length)))
+
+
+threading.Thread(target=reader, daemon=True).start()
+sequence = [0]
+seen = []
+
+
+def send(command, arguments=None):
+    sequence[0] += 1
+    body = json.dumps({"seq": sequence[0], "type": "request", "command": command, "arguments": arguments or {}}).encode()
+    adapter.stdin.write(b"Content-Length: %d\r\n\r\n" % len(body) + body)
+    adapter.stdin.flush()
+    return sequence[0]
+
+
+def wait(wanted, timeout=25):
+    for message in list(seen):
+        if wanted(message):
+            seen.remove(message)
+            return message
+    end = time.time() + timeout
+    while time.time() < end:
+        try:
+            message = inbox.get(timeout=max(end - time.time(), 0.1))
+        except queue.Empty:
+            break
+        if wanted(message):
+            return message
+        seen.append(message)
+    raise TimeoutError("debug adapter did not answer")
+
+
+def call(command, arguments=None):
+    number = send(command, arguments)
+    return wait(lambda m: m.get("type") == "response" and m.get("request_seq") == number).get("body", {})
+
+
+result = {"exception": "", "frames": []}
+try:
+    call("initialize", {"adapterID": "python", "pathFormat": "path"})
+    send("launch", {"program": runner, "cwd": root, "console": "internalConsole", "justMyCode": True, "env": {"PYTHONPATH": env["PYTHONPATH"]}, "python": [sys.executable]})
+    wait(lambda m: m.get("event") == "initialized")
+    call("setExceptionBreakpoints", {"filters": ["uncaught"]})
+    call("configurationDone")
+    event = wait(lambda m: m.get("event") in ("stopped", "terminated"))
+    if event.get("event") == "stopped":
+        thread = event["body"]["threadId"]
+        info = call("exceptionInfo", {"threadId": thread})
+        result["exception"] = "%s: %s" % (info.get("exceptionId", ""), str(info.get("description", ""))[:200])
+        for frame in call("stackTrace", {"threadId": thread, "levels": 12}).get("stackFrames", []):
+            path = frame.get("source", {}).get("path", "")
+            if not os.path.abspath(path).startswith(root) or path.endswith("_dap_runner.py"):
+                continue
+            local = {}
+            for scope in call("scopes", {"frameId": frame["id"]}).get("scopes", [])[:1]:
+                for item in call("variables", {"variablesReference": scope["variablesReference"]}).get("variables", [])[:15]:
+                    if not item["name"].startswith(("__", "special ", "function ", "class ")):
+                        local[item["name"]] = item.get("value", "")[:120]
+            result["frames"].append({"file": os.path.relpath(path, root).replace(os.sep, "/"), "line": frame.get("line"), "function": frame.get("name"), "locals": local})
+        send("disconnect", {"terminateDebuggee": True})
+finally:
+    adapter.kill()
+    os.remove(runner)
+print("RESULT=" + json.dumps(result))

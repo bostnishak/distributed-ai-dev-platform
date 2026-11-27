@@ -21,3 +21,5 @@ trafilatura
 ruff
 sympy
 scikit-learn
+python-lsp-server
+debugpy

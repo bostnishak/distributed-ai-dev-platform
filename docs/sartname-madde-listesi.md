@@ -8,10 +8,10 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | Sürüm | canlı | test | kısmi | yok | dışarıda | teknik engel | Toplam |
 |---|---|---|---|---|---|---|---|
 | v1 | 17 | 13 | 2 | 0 | 0 | 0 | 32 |
-| v2 | 9 | 14 | 15 | 3 | 2 | 1 | 44 |
-| v3 | 9 | 17 | 14 | 3 | 5 | 2 | 50 |
+| v2 | 11 | 14 | 14 | 2 | 2 | 1 | 44 |
+| v3 | 11 | 17 | 14 | 1 | 5 | 2 | 50 |
 | v4 | 16 | 11 | 6 | 0 | 0 | 0 | 33 |
-| **Hepsi** | 51 | 55 | 37 | 6 | 7 | 3 | 159 |
+| **Hepsi** | 55 | 55 | 36 | 3 | 7 | 3 | 159 |
 
 ## v1
 
@@ -71,7 +71,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 3.2 | GGUF içe aktarma ve gölge değerlendirme kapısı | kısmi | import-gguf var, gerçek GGUF ile denenmedi |
 | 3.3 | Doğrulanmış beceri kütüphanesi | test | skill_library |
 | 3.3 | Otomatik istem optimizasyonu | yok |  |
-| 4.1 | Hipotez temelli nedensel hata ayıklama + regresyon testi | kısmi | causal_debug.py canlıda zincirdeki 3 hatanın 2'sini çözdü; regresyon testi üretmiyor |
+| 4.1 | Hipotez temelli nedensel hata ayıklama + regresyon testi | canlı | causal_debug + DAP durumu; regresyon testi üretmiyor |
 | 4.2 | En iyi N aday değerlendirme | kısmi | konsey; başarısız onarımda ikinci modele yükseltme |
 | 4.3 | Doğrulanmış/çıkarım/varsayım defteri | kısmi | Mimar ajanı varsayımları bildiriyor; her ajanda defter yok |
 | 4.4 | API fuzz ve sınır testi | canlı | api_probe; Docker kum havuzunda denendi |
@@ -81,7 +81,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 5.2 | Melez kod araması (graf+BM25+gömme) | kısmi | hybrid_graph_rag belge için; kod için yok |
 | 5.2 | Etki alanı (blast radius) analizi | test | repo_map.dependents_note |
 | 5.3 | Anlık statik tanılama (ruff, node --check) | canlı | code_audit.diagnostics (ruff, node --check), üretim sonunda |
-| 5.3 | LSP sunucuları | yok |  |
+| 5.3 | LSP sunucuları | canlı | lsp_client.py: pylsp ile 'X nerede kullanılıyor'; yalnız Python |
 | 6.1 | Yalıtılmış çalıştırma (ağsız Docker, kaynak sınırı) | test | workspace_docker |
 | 6.1 | gVisor/Firecracker | dışarıda | Windows'ta yok |
 | 6.2 | Güvenilmeyen veri ayrımı | canlı | untrusted |
@@ -116,7 +116,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 2.3 | Yerleşim geometrisi ve kontrast denetimi | test | visual_audit |
 | 2.3 | Görsel model eleştirisi | canlı | vlm_critique; kusurların bir kısmını kaçırıyor |
 | 3.1 | PRM eğitimi | dışarıda | eğitim |
-| 3.1 | Bütçeli ağaç araması (MCTS) | yok |  |
+| 3.1 | Bütçeli ağaç araması (MCTS) | canlı | tree_search.py: onarımda UCT, canlıda 3 hatayı çözdü; PUCT/PRM yok |
 | 3.2 | Boşta kendi kendine alıştırma (müfredat + kırmızı takım) | kısmi | SELF_EVAL_HOUR ile gece altın test; yeni görev üretmiyor |
 | 3.3 | Çoklu LoRA, TIES/DARE birleştirme | dışarıda | eğitim |
 | 3.4 | Bilgi damıtma | dışarıda | eğitim |
@@ -144,7 +144,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 8 | Performans profilleyici (SQL planı, N+1) | test | code_audit: N+1 ve SQLite sorgu planı; çalışma anı profili yok |
 | 8 | Tüm projede sembol yeniden adlandırma | canlı | refactor.py (Python), sohbetten |
 | 9.1 | Olay kaydı ve zaman yolculuğu | test | event_log.py + sürümler; çatallama yok |
-| 9.2 | LSP ve DAP veri yolu | yok |  |
+| 9.2 | LSP ve DAP veri yolu | canlı | lsp_client + debug_probe (debugpy, kum havuzunda canlı); ortak bir veri yolu soyutlaması yalnız mesaj çerçevesi |
 | 10 | Önizlemede tıklayıp düzenleme | canlı | öğe seçici; gerçek Chromium'da denendi |
 | 10 | DAG savaş odası ve zaman kaydırıcı | kısmi | sürüm zaman çizelgesi var; canlı graf yok |
 | 10 | Turnuva modu | kısmi | media_lab_arena model puanlama |

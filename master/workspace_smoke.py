@@ -18,6 +18,8 @@ from pathlib import Path
 from typing import Any
 
 import causal_debug
+import complexity_governor
+import debug_probe
 import spec_contract
 import workspace_behavior
 import workspace_docker
@@ -101,6 +103,15 @@ def _tests_log(ws_dir: Path) -> str:
     return proc.stdout.strip()[-3000:] or "test başarısız"
 
 
+def _tests_with_state(ws_dir: Path) -> str:
+    """The failing test output plus what the debugger saw at the moment of the exception."""
+    log = _tests_log(ws_dir)
+    if not log:
+        return ""
+    state = debug_probe.describe(debug_probe.inspect(ws_dir, _safe_requirements(ws_dir)))
+    return f"{log}\n\n{state}" if state else log
+
+
 def _diagnose(ws_dir: Path, ok: bool, log: str, routes: list[str]) -> tuple[bool, Path | None, str]:
     """(passed, file to repair, error text) for one probe run."""
     if not ok:
@@ -170,7 +181,11 @@ async def smoke_and_repair(ws_dir: Path, regenerate: _Regenerate, rounds: int = 
                 passed, target, log = False, scenario[0], scenario[1]
         if passed:
             yield {"type": "status", "message": "Projenin kendi testleri çalıştırılıyor..."}
-            _ok, test_warning = await causal_debug.repair(ws_dir, lambda: _tests_log(ws_dir), regenerate) if entry else (True, "")
+            _ok, test_warning = await causal_debug.repair(ws_dir, lambda: _tests_with_state(ws_dir), regenerate) if entry else (True, "")
+            if not _ok and complexity_governor.classify(request).level >= 3 and workspace_docker.available():
+                yield {"type": "status", "message": "Farklı düzeltme yolları aranıyor..."}
+                _ok, searched = await causal_debug.explore(ws_dir, lambda: workspace_docker.test_log(ws_dir, _safe_requirements(ws_dir), ("--maxfail=50",)), regenerate)
+                test_warning = searched if _ok else f"{test_warning} {searched}"
             yield {"type": "smoke", "ok": True, "warning": test_warning}
             return
         if attempt == rounds or target is None:

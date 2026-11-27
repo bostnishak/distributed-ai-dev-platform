@@ -19,6 +19,7 @@ from pydantic import BaseModel, ValidationError
 
 import gateway
 import patch_edit
+import tree_search
 from prompt_loader import load_prompt
 from workspace_checks import extract_file
 
@@ -160,6 +161,50 @@ async def _propose(ws_dir: Path, log: str, regenerate: Regenerate, models: Model
         if new and new != files[guess.file] and not weakens_tests(guess.file, files[guess.file], new):
             return {guess.file: new}, f"{guess.file}: {guess.cause[:120]}"
     return {}, ""
+
+
+def pass_share(output: str) -> float:
+    """Share of tests that passed, read from a pytest summary; 1.0 for an empty log (nothing failed)."""
+    if not output.strip():
+        return 1.0
+    counts = {kind: int(number) for number, kind in re.findall(r"(\d+) (passed|failed|error)", output)}
+    total = sum(counts.values())
+    return counts.get("passed", 0) / total if total else 0.0
+
+
+async def explore(ws_dir: Path, run_all: Callable[[], str], regenerate: Regenerate, models: Models | None = None, budget: int = 6) -> tuple[bool, str]:
+    """When straight repair fails: search several lines of changes, keep the best one only if every test passes."""
+    originals = sources(ws_dir)
+    tools = models or Models()
+
+    async def expand(files: dict[str, str]) -> list[dict[str, str]]:
+        _write(ws_dir, files)
+        log = await asyncio.to_thread(run_all)
+        if certain := fix_imports(log, files):
+            return [{**files, **certain}]
+        listing = "\n\n".join(f"### {name}\n{body[:2500]}" for name, body in files.items())[:14000]
+        try:
+            audit = Audit.model_validate_json(await tools.chat(load_prompt("agent_debugger.md"), f"TEST ÇIKTISI:\n{log}\n\nDOSYALAR:\n{listing}", Audit.model_json_schema()))
+        except (ValidationError, ValueError, OSError, RuntimeError) as exc:
+            _log.warning("tree search hypotheses failed: %s", exc)
+            return []
+        out = []
+        for guess in grounded(audit, log, files)[:3]:
+            new = await _candidate(guess, log, files, regenerate, tools.patcher)
+            if new and new != files[guess.file] and not weakens_tests(guess.file, files[guess.file], new):
+                out.append({**files, guess.file: new})
+        return out
+
+    async def score(files: dict[str, str]) -> float:
+        _write(ws_dir, files)
+        return pass_share(await asyncio.to_thread(run_all))
+
+    best, value, tried = await tree_search.search(originals, expand, score, budget)
+    if value >= 1.0:
+        _write(ws_dir, best)
+        return True, f"Testler düz onarımla düzelmedi; {tried} aday sürüm arandı ve hepsini geçen bir sürüm bulundu."
+    _write(ws_dir, originals)
+    return False, f"{tried} aday sürüm arandı, en iyisi testlerin %{round(value * 100)}'ini geçti; dosyalar değiştirilmedi."
 
 
 def _verdict(first: str) -> str:
