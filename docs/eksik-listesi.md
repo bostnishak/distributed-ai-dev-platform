@@ -50,7 +50,7 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 ## 2. v2
 
 - [x] KV önbellek ayarının denetlenmesi (`ai-os doctor`, zaten vardı)
-- [ ] Görsel ve akıl yürütme için karşılaştırmalı model yargıç
+- [~] Karşılaştırmalı model yargıç (iki sırayla sorulur; `en iyi 2/3 seçenek` içinde) — modelle canlı denenecek
 - [x] Canlı akışta dosya farkı (bileşen tarayıcıda denendi; modelle uçtan uca denenecek)
 - [x] Canlı akışta önizleme konsol hataları (her dosyadan sonra önizleme yenileniyor, hata kutusu gösteriyor)
 - [x] Sıfır modelle lint düzeltme
@@ -73,7 +73,7 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [x] Cytoscape etkileşimli diyagram (tek dosya, çevrimdışı)
 - [x] Diyagramda kesişim azaltma ve sığmayan etiket uyarısı
 - [x] Etkileşimli grafik: Vega-Lite (varsayılan), Chart.js ya da Plotly; ağ kapalıyken çizildiği sınandı
-- [ ] Üretilen görselin isteme uyum puanı
+- [~] Üretilen görselin isteme uyum puanı (görme modeli) — modelle canlı denenecek
 - [x] Sohbetlerden mimari karar kaydı (`karar: ...`, `kararları göster`)
 - [x] Mühendislik defteri: bulunan kök nedenler kaydediliyor ve sonraki onarıma veriliyor (`defteri göster`)
 - [x] Bellek: sabitleme
