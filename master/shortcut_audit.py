@@ -12,6 +12,7 @@ import cheat_guard
 _SKIP_PARTS = {".history", ".git", "node_modules", "__pycache__", "venv", ".venv", "dist", ".ai-os"}
 _JS_EMPTY_CATCH_RE = re.compile(r"catch\s*(?:\([^)]*\))?\s*\{\s*(?:/\*.*?\*/\s*|//[^\n]*\n\s*)*\}", re.DOTALL)
 _JS_FAKE_RE = re.compile(r"setTimeout\s*\(\s*(?:\(\s*\)|function\s*\(\s*\))\s*(?:=>)?\s*\{[^{}]{0,300}?[\"'`][^\"'`]*(?:başarıyla|successfully|kaydedildi|gönderildi|yanıtı|response)[^\"'`]*[\"'`]", re.IGNORECASE)
+_JS_EMPTY_HANDLER_RE = re.compile(r"(?:addEventListener\(\s*[\"'][\w-]+[\"']\s*,|\bon[a-z]+\s*=\s*|\bon[A-Z]\w*=\{)\s*(?:\(\s*\w*\s*\)\s*=>|function\s*\(\s*\w*\s*\))\s*\{\s*\}|\bon[a-z]+=[\"']\s*[\"']")
 _PY_QUIET = (type(None), dict, list, str, bool, int)
 
 
@@ -66,6 +67,8 @@ def _javascript(path: str, source: str) -> Iterator[str]:
 
     for match in _JS_EMPTY_CATCH_RE.finditer(source):
         yield f"{path}:{line(match)} boş catch bloğu"
+    for match in _JS_EMPTY_HANDLER_RE.finditer(source):
+        yield f"{path}:{line(match)} boş olay işleyicisi"
     for match in _JS_FAKE_RE.finditer(source):
         yield f"{path}:{line(match)} gerçek işlem yerine zamanlayıcıyla uydurma sonuç"
     if cheat_guard.is_test(path) and (cheat_guard.checks_of(source)[0] <= 0 and re.search(r"\b(?:it|test)\s*\(", source)):

@@ -18,6 +18,8 @@ from typing import Any
 import httpx
 
 import atomic_io
+import live_journey
+import live_server
 import mutation
 import preview_server
 import provenance
@@ -26,6 +28,7 @@ import shortcut_audit
 import workspace_builder as wb
 import workspace_docker
 import workspace_requirements
+import workspace_smoke
 
 _log = logging.getLogger(__name__)
 STAGES = ("A", "B", "C", "D")
@@ -118,6 +121,22 @@ def page_problems(url: str) -> tuple[str, str]:
     return (PASSED, "gerçek tarayıcıda hatasız açıldı, bağlanmamış düğme yok") if not problems else (FAILED, "; ".join(dict.fromkeys(problems))[:500])
 
 
+def server_proof(ws_dir: Path) -> tuple[str, str] | None:
+    """Boot the project's own web server and use it; None when it is not a FastAPI or Flask project."""
+    entry = workspace_smoke._find_entry(ws_dir)
+    if entry is None or not workspace_docker.available() or not any(w in entry.read_text(encoding="utf-8", errors="replace") for w in ("FastAPI", "Flask")):
+        return None
+    try:
+        with live_server.serve(ws_dir) as server:
+            if "text/html" not in httpx.get(server.url + "/", timeout=10).headers.get("content-type", ""):
+                server.restart()  # an API without a page: it must at least come back after a restart
+                return PASSED, "sunucu gerçekten açıldı, yanıt verdi ve yeniden başlatılınca geri geldi"
+            journey = live_journey.run(server.url, ws_dir / ".ai-os" / "filmstrip", server.restart)
+    except (OSError, ValueError, httpx.HTTPError) as exc:
+        return FAILED, f"canlı sunucu denemesi başarısız: {exc}"[:500]
+    return (PASSED if journey.passed else FAILED), journey.summary()
+
+
 def live_proof(ws_dir: Path, warnings: list[str]) -> tuple[str, str]:
     failure = next((w for w in warnings if "Otomatik çalıştırma testi hata" in w), "")
     if failure:
@@ -132,6 +151,8 @@ def live_proof(ws_dir: Path, warnings: list[str]) -> tuple[str, str]:
             except httpx.HTTPError:
                 time.sleep(0.3)
         return page_problems(url)
+    if (served := server_proof(ws_dir)) is not None:
+        return served
     if any(f.endswith(".py") for f in wb.list_relative_files(ws_dir)):
         if any("çalıştırılamadı" in w for w in warnings) or not workspace_docker.available():
             return MISSING, "proje çalıştırılarak denenemedi"

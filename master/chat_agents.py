@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi import UploadFile
 from fastapi.responses import StreamingResponse
 
@@ -10,16 +12,20 @@ import best_of_n
 import browser_agent
 import daemons
 import data_chart
+import dependency_audit
 import design_from_image
 import doc_reader
 import eda
 import federation
 import math_kernel
+import night_summary
 import ops_commands
 import os_kernel
 import preferences
+import project_server
 import research
 import revise_chat
+import science_kernel
 import self_play
 import statecheck
 import swarm
@@ -34,10 +40,20 @@ def _states(prompt: str, history: str) -> str:
     return statecheck.answer(prompt, wb.safe_workspace_dir(ws_id) if ws_id else None)
 
 
+def _server(prompt: str, history: str) -> str:
+    ws_id = revise_chat.last_workspace_id(history)
+    return project_server.answer(prompt, wb.safe_workspace_dir(ws_id) if ws_id else None)
+
+
+def _audit(prompt: str, history: str) -> str:
+    ws_id = revise_chat.last_workspace_id(history)
+    return dependency_audit.answer(prompt, wb.safe_workspace_dir(ws_id) if ws_id else None, Path(__file__).resolve().parent)
+
+
 def _command(prompt: str, history: str) -> str:
     """Answers computed by code alone."""
     return (preferences.command(prompt) or ops_commands.answer(prompt) or daemons.answer(prompt) or os_kernel.answer(prompt) or federation.answer(prompt)
-            or _states(prompt, history) or math_kernel.answer(prompt))
+            or _states(prompt, history) or _server(prompt, history) or _audit(prompt, history) or night_summary.answer(prompt) or science_kernel.answer(prompt) or math_kernel.answer(prompt))
 
 
 def _agents(prompt: str, history: str) -> StreamingResponse | None:
@@ -53,4 +69,4 @@ def fastpath(prompt: str, file: UploadFile | None, history: str = "") -> Streami
         import assistant_stream_fastpaths as fp
 
         return fp.single_token_stream(result, "kod", "hesaplama")
-    return _agents(prompt, history) or variants.fastpath(prompt) or browser_agent.fastpath(prompt, False) or workspace_commands.fastpath(prompt, history) or research.fastpath(prompt, False)
+    return _agents(prompt, history) or variants.fastpath(prompt, history) or browser_agent.fastpath(prompt, False) or workspace_commands.fastpath(prompt, history) or research.fastpath(prompt, False)

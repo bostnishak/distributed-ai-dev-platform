@@ -80,5 +80,5 @@ def brief(request: str) -> str:
     colours = palette(request, bool(_DARK_RE.search(request)))
     tokens = "; ".join(f"{name}: {value}" for name, value in colours.items())
     return (f"\n\nTASARIM SİSTEMİ (kullanıcı renk vermedi; bunları CSS değişkeni olarak tanımla ve yalnız bunları kullan):\n{tokens}\n"
-            "Yazı ölçeği: 14 / 16 / 20 / 24 / 32 px; boşluk ızgarası 4 ve 8'in katları; köşe yarıçapı her yerde 8px; "
-            "metin satırı en çok 70 karakter. Gradyan, emoji ve boş pazarlama cümlesi kullanma.")
+            "Yazı ölçeği (1,25 oranlı): 14 / 16 / 20 / 25 / 31 px, başka boyut kullanma; gövde satır aralığı 1.5, başlık 1.2; "
+            "tüm dış ve iç boşluklar 4px'in katı (dikey ritim 8px); köşe yarıçapı her yerde 8px; metin satırı en çok 70 karakter. Gradyan, emoji ve boş pazarlama cümlesi kullanma.")

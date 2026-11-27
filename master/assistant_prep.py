@@ -26,6 +26,7 @@ import extract as _extract_mod
 import long_doc
 import memory_timeline
 import pacing
+import preferences
 import prompt_layout
 import reasoning_mode
 import reply_labels
@@ -470,7 +471,7 @@ def _stable_blocks(ctx: dict[str, Any], prompt_conv_instruction: str) -> list[st
     """What stays the same from one turn of a conversation to the next."""
     import user_profile as up
 
-    blocks = [up.personalization_block(ctx["user_id"])]
+    blocks = [up.personalization_block(ctx["user_id"]), preferences.brief()]  # standing wishes apply to every answer, not only to project builds
     agent_prof = ctx.get("custom_agent")
     if isinstance(agent_prof, dict) and agent_prof.get("instructions"):
         blocks.append(f"--- ÖZEL AJAN TALİMATI ({agent_prof.get('name', 'Ajan')}) ---\n{agent_prof['instructions']}")

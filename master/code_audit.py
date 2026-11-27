@@ -15,6 +15,7 @@ import sys
 from collections.abc import Callable, Iterator
 from pathlib import Path
 
+import static_lint
 from process_utils import run_process
 
 _SKIP = {".history", "venv", ".venv", "node_modules", "__pycache__", ".git"}
@@ -50,7 +51,7 @@ def diagnostics(ws_dir: Path) -> list[str]:
         if res.returncode and "import statement outside a module" not in res.stderr:
             line = next((x for x in res.stderr.splitlines() if "Error" in x), "sözdizimi hatası")
             found.append(f"{path.relative_to(ws_dir).as_posix()}: {line}")
-    return found
+    return found + static_lint.findings(ws_dir)
 
 
 def _dotted(node: ast.AST) -> str:

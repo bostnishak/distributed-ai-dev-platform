@@ -7,7 +7,10 @@ the model.
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
+
+import process_utils
 
 _EXTS = (".html", ".css", ".js", ".py")
 _HEX = r"(#[0-9a-fA-F]{6})"
@@ -111,8 +114,23 @@ def primary_colour(instruction: str) -> str:
     return colours[0] if len(instruction) <= _MAX_CHARS and len(colours) == 1 and _PRIMARY_RE.search(instruction) else ""
 
 
+_LINT_RE = re.compile(r"^\s*(?:lint|biçim|kod\s+stili)\s*(?:hatalarını|sorunlarını|uyarılarını)?\s*düzelt\s*[.!]?\s*$|^\s*fix\s+lint(?:\s+errors)?\s*$", re.IGNORECASE)
+
+
+def lint_fix(ws_dir: Path) -> list[str]:
+    """Safe automatic fixes of the Python files with ruff: no model involved."""
+    files = [p for p in sorted(ws_dir.rglob("*.py")) if not any(part.startswith(".") for part in p.relative_to(ws_dir).parts)]
+    if not files:
+        return []
+    before = {p: p.read_text(encoding="utf-8", errors="replace") for p in files}
+    process_utils.run_process([sys.executable, "-m", "ruff", "check", "--isolated", "--fix", "--select", "F401,F541,E401,E711,E712,I001,W291,W293", *map(str, files)], cwd=ws_dir, timeout_s=60)
+    return [p.relative_to(ws_dir).as_posix() for p in files if p.read_text(encoding="utf-8", errors="replace") != before[p]]
+
+
 def apply(ws_dir: Path, instruction: str) -> list[str]:
     """Files changed by the replacement (empty when not applicable or the old value is nowhere)."""
+    if _LINT_RE.match(instruction):
+        return lint_fix(ws_dir)
     if target := element_colour(instruction):
         return apply_element_colour(ws_dir, *target)
     pair = parse(instruction)

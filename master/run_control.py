@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 import config
+import security_scan
 
 _RUNS: dict[str, Run] = {}
 _KEEP = 20
@@ -25,10 +26,15 @@ def _folder() -> Path:
     return config.data_dir() / "runs"
 
 
+def _clean(text: str) -> str:
+    """Nothing secret is ever written to the run record."""
+    return security_scan.redact(text)
+
+
 class Run:
     def __init__(self, title: str, ws_id: str = "") -> None:
         self.id = uuid.uuid4().hex[:12]
-        self.title, self.ws_id = title[:160], ws_id
+        self.title, self.ws_id = _clean((title.strip().splitlines() or [""])[0])[:160], ws_id  # the user's own first line, not the assembled prompt
         self.nodes: dict[str, dict[str, Any]] = {}
         self.events: list[dict[str, Any]] = []
         self.notes: list[str] = []
@@ -48,11 +54,11 @@ class Run:
             return  # the live view still works; only the replay after a restart is lost
 
     def add_node(self, node_id: str, **info: Any) -> None:
-        self.nodes[node_id] = {"id": node_id, "status": "waiting", **info}
+        self.nodes[node_id] = {"id": node_id, "status": "waiting", **{k: _clean(v) if isinstance(v, str) else v for k, v in info.items()}}
         self.emit("node", node=dict(self.nodes[node_id]))
 
     def update(self, node_id: str, **changes: Any) -> None:
-        self.nodes[node_id].update(changes)
+        self.nodes[node_id].update({k: _clean(v) if isinstance(v, str) else v for k, v in changes.items()})
         self.emit("node", node=dict(self.nodes[node_id]))
 
     def pause(self) -> None:
@@ -69,8 +75,8 @@ class Run:
 
     def steer(self, note: str) -> None:
         """A course correction: applies to every step that has not started yet."""
-        self.notes.append(note.strip()[:400])
-        self.emit("steer", note=self.notes[-1], affects=[n["id"] for n in self.nodes.values() if n["status"] == "waiting"])
+        self.notes.append(note.strip()[:400])  # the builder gets the words as typed; the record does not
+        self.emit("steer", note=_clean(self.notes[-1]), affects=[n["id"] for n in self.nodes.values() if n["status"] == "waiting"])
 
     def edit(self, node_id: str, purpose: str = "", skip: bool = False) -> bool:
         node = self.nodes.get(node_id)

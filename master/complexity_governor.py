@@ -12,6 +12,7 @@ _FAST_RE = re.compile(r"(?<!\w)@(?:fast|hızlı|hizli)\b", re.IGNORECASE)
 _DEEP_RE = re.compile(r"(?<!\w)@(?:deep|derin|verify-max)\b", re.IGNORECASE)
 _HEAVY_RE = re.compile(r"\b(?:mikroservis|microservice|çoklu repo|multi[- ]repo|migration|göç|güvenlik|security|ödeme|payment|kimlik doğrulama|authentication)\b", re.IGNORECASE)
 _BUILD_RE = re.compile(r"\b(?:uygulama|proje|site|api|oyun|panel|dashboard|app|project|website|rapor|sunum|excel|pdf|word)\w*", re.IGNORECASE)
+_MAKE_RE = re.compile(r"\b(?:tasarla|kur|yap|geliştir|oluştur|hazırla|design|build|create|implement)\w*", re.IGNORECASE)
 _TWEAK_RE = re.compile(r"\b(?:rengi\w*|renk|yazı\w*|font|boyut\w*|colou?r|text)\b|#[0-9a-fA-F]{6}", re.IGNORECASE)
 _DETAILED_CHARS = 300
 
@@ -35,6 +36,8 @@ def classify(prompt: str, *, editing: bool = False) -> Gear:
         return Gear(3, True, True, "kullanıcı derin mod istedi")
     if editing:
         return Gear(0, False, False, "küçük görünüm değişikliği") if len(prompt) < 120 and _TWEAK_RE.search(prompt) else Gear(1, False, False, "mevcut projede düzenleme")
+    if _HEAVY_RE.search(prompt) and _MAKE_RE.search(prompt):  # "design a payment microservice ERP" names no app, yet is the heaviest kind of work
+        return Gear(3, True, True, "güvenlik ya da çok parçalı sistem")
     if not _BUILD_RE.search(prompt) and len(prompt) < _DETAILED_CHARS:
         return Gear(0, False, False, "doğrudan yanıt")
     if _HEAVY_RE.search(prompt):

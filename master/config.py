@@ -10,11 +10,14 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+import feature_flags
+
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
 
 # The single .env file lives at the repo root (one level above this service).
 load_dotenv(BASE_DIR.parent / ".env")
+feature_flags.apply()  # ai-os.config.json switches fill what .env left unset
 
 # The Assistant's "Run" button executes Python on the master. The web UI has no login yet
 # (PB-56), so anyone who can reach the master could use it; it stays off unless enabled here.
@@ -25,7 +28,8 @@ ASSISTANT_NUM_PREDICT = int(os.environ.get("ASSISTANT_NUM_PREDICT", "5000"))  # 
 
 # --- Master agent's own local model (used for requirements analysis) ---
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
-MASTER_MODEL = os.environ.get("MASTER_MODEL", "qwen3.5:4b")
+MASTER_MODEL = os.environ.get("MASTER_MODEL") or os.environ.get("FAST_ROUTER_JSON_MODEL") or "qwen3.5:4b"
+PLANNER_REASONING_MODEL = os.environ.get("PLANNER_REASONING_MODEL") or "qwen3.5:9b"
 # Upper bound for the context window requested from Ollama. Larger windows need more RAM
 # on a CPU-only machine; documents that do not fit are analyzed in chunks instead.
 NUM_CTX_MAX = int(os.environ.get("NUM_CTX_MAX", "32768"))
@@ -82,9 +86,9 @@ def cnc_jobs_dir() -> Path:
 
 # --- Enterprise AI Models (CNC Ballooning & Project Studio) ---
 CNC_VISION_MODEL = os.environ.get("CNC_VISION_MODEL", "cnc-ballooner")
-STUDIO_CODER_MODEL = os.environ.get("STUDIO_CODER_MODEL", "qwen2.5-coder:7b")
+STUDIO_CODER_MODEL = os.environ.get("STUDIO_CODER_MODEL") or os.environ.get("CODER_MODEL") or "qwen2.5-coder:7b"
 # Projects are written by the fast 7B coder (~10x faster than the 14B on an 8 GB GPU); set PROJECT_CODER_MODEL=qwen2.5-coder:14b for slower, somewhat better code.
-PROJECT_CODER_MODEL = os.environ.get("PROJECT_CODER_MODEL", "qwen2.5-coder:7b")
+PROJECT_CODER_MODEL = os.environ.get("PROJECT_CODER_MODEL") or os.environ.get("CODER_MODEL") or "qwen2.5-coder:7b"
 
 MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 MAX_DOCUMENT_CHARS = 300_000

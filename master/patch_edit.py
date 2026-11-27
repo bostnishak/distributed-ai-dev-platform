@@ -12,6 +12,9 @@ from prompt_loader import load_prompt
 
 _BLOCK_RE = re.compile(r"<{5,} *SEARCH *\n(.*?)\n?={5,} *\n(.*?)\n?>{5,} *REPLACE", re.DOTALL)
 _MIN_CHARS = 1500  # tiny files are cheaper and safer to rewrite
+_MAX_SHARE = 0.6  # a "patch" that replaces more than this share of the file is a rewrite and is done as one
+_WHOLE_FILE = "Bu dosyanın güncel ve EKSİKSİZ tüm içeriğini yaz."
+_BLOCKS_ONLY = "\n\nÖNEMLİ: Dosyanın tamamını YAZMA. Yalnızca <<<<<<< SEARCH / ======= / >>>>>>> REPLACE bloklarını döndür."
 
 
 def parse(answer: str) -> list[tuple[str, str]]:
@@ -49,7 +52,11 @@ async def try_patch(generate: Callable[[str, str], Awaitable[str]], ask: str, cu
     if len(current) < _MIN_CHARS:
         return None
     text = current.replace("\r\n", "\n")
-    patched = apply(text, parse(await generate(load_prompt("agent_frontend_patch.md"), ask)))
+    # the same request is used for a full rewrite, whose closing sentence would contradict the patch format
+    blocks = parse(await generate(load_prompt("agent_frontend_patch.md"), ask.replace(_WHOLE_FILE, "").rstrip() + _BLOCKS_ONLY))
+    if sum(len(search) for search, _replace in blocks) > _MAX_SHARE * len(text):
+        return None
+    patched = apply(text, blocks)
     if patched is None or patched == text or ("</html>" in text.lower() and "</html>" not in patched.lower()):
         return None
     return patched

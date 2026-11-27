@@ -15,13 +15,14 @@ import time
 from collections.abc import Callable
 from pathlib import Path
 
-import event_log
+import external_watch
 import memory_conflicts
 import memory_engine
 import memory_maintenance
+import night_summary
 import process_registry
+import project_server
 import self_play
-import workspace_builder_ops as ops
 from process_utils import spawn_process
 
 _log = logging.getLogger(__name__)
@@ -31,19 +32,7 @@ _state: dict[str, str] = {"last_eval_day": "", "last_play_day": ""}
 
 def check_servers() -> list[str]:
     """Workspace ids whose live server stopped on its own since the last look."""
-    dead = []
-    for ws_id, (_port, proc) in list(ops._RUNNING_SERVERS.items()):
-        code = proc.poll()
-        if code is None:
-            continue
-        ops._RUNNING_SERVERS.pop(ws_id, None)
-        try:
-            event_log.record(ops.safe_workspace_dir(ws_id), "sunucu durdu", f"çıkış kodu {code}")
-        except ValueError:
-            _log.warning("watchdog: bilinmeyen çalışma alanı %s", ws_id)
-        _log.warning("proje sunucusu durdu: %s (çıkış kodu %s)", ws_id, code)
-        dead.append(ws_id)
-    return dead
+    return project_server.check()
 
 
 def nightly_due(now: time.struct_time, hour: str, idle: Callable[[], bool]) -> bool:
@@ -70,10 +59,12 @@ def play_due(now: time.struct_time, hour: str, idle: Callable[[], bool]) -> bool
 
 def tick(idle: Callable[[], bool], now: time.struct_time | None = None) -> None:
     check_servers()
+    external_watch.scan()
     now = now or time.localtime()
     if nightly_due(now, os.environ.get("SELF_EVAL_HOUR", ""), idle) and _SCRIPT.is_file():
         _state["last_eval_day"] = time.strftime("%Y-%m-%d", now)
         consolidate_memory()
+        _log.info("günlük özet: %s", night_summary.write())
         process_registry.track(spawn_process([sys.executable, str(_SCRIPT), "--auto-rollback"], cwd=_SCRIPT.parent.parent), "gece kalite ölçümü", memory_mb=4096)
         _log.info("gece kalite ölçümü başlatıldı")
     if play_due(now, os.environ.get("SELF_PLAY_HOUR", ""), idle):

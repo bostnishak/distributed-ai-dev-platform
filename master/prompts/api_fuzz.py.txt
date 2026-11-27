@@ -1,0 +1,91 @@
+import concurrent.futures
+import importlib.util
+import json
+import os
+import sys
+import time
+
+entry = sys.argv[1]
+os.chdir("/sandbox")
+sys.path[:0] = ["/sandbox", os.path.dirname(entry)]
+spec = importlib.util.spec_from_file_location(os.path.splitext(os.path.basename(entry))[0], entry)
+module = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = module
+spec.loader.exec_module(module)
+app = getattr(module, "app", None) or module.create_app()
+
+from fastapi.testclient import TestClient
+
+XSS = "<script>alert(1)</script>"
+TEXTS = ["", "   ", "x" * 200_000, "' OR 1=1; --", XSS, "İğdır şçö 🚀", "0", "-1", "null"]
+
+
+def resolve(schema, root, depth=0):
+    if "$ref" in schema:
+        return resolve(root["components"]["schemas"][schema["$ref"].rsplit("/", 1)[-1]], root, depth)
+    for key in ("anyOf", "oneOf", "allOf"):
+        if key in schema:
+            return resolve(schema[key][0], root, depth)
+    return schema
+
+
+def sample(schema, root, text, depth=0):
+    schema = resolve(schema, root)
+    kind = schema.get("type")
+    if kind == "object" or "properties" in schema:
+        return {name: sample(sub, root, text, depth + 1) for name, sub in schema.get("properties", {}).items()} if depth < 4 else {}
+    if kind == "array":
+        return [sample(schema.get("items", {}), root, text, depth + 1)] if depth < 4 else []
+    if kind == "integer":
+        return 10**18 if len(text) > 100 else -1
+    if kind == "number":
+        return -1e308
+    if kind == "boolean":
+        return "belki"
+    return text
+
+
+findings, sent = [], 0
+with TestClient(app, raise_server_exceptions=False) as client:
+    document = app.openapi()
+
+    def call(method, path, label, **kwargs):
+        global sent
+        sent += 1
+        started = time.time()
+        response = client.request(method, path, **kwargs)
+        if response.status_code >= 500:
+            findings.append(f"{method} {path}: {label} -> {response.status_code}")
+        if "text/html" in response.headers.get("content-type", "") and XSS in response.text:
+            findings.append(f"{method} {path}: gönderilen betik kaçışsız geri döndü")
+        if time.time() - started > 5:
+            findings.append(f"{method} {path}: {label} 5 sn'den uzun sürdü")
+        return response
+
+    for raw_path, operations in document.get("paths", {}).items():
+        for method, operation in operations.items():
+            method = method.upper()
+            if method not in ("GET", "POST", "PUT", "PATCH", "DELETE"):
+                continue
+            names = [p["name"] for p in operation.get("parameters", []) if p.get("in") == "path"]
+            queries = [p["name"] for p in operation.get("parameters", []) if p.get("in") == "query"]
+            path = raw_path
+            for name in names:
+                path = path.replace("{" + name + "}", "999999999")
+            body = operation.get("requestBody", {}).get("content", {}).get("application/json", {}).get("schema")
+            if names:
+                call(method, raw_path.replace("{" + names[0] + "}", "abc'--"), "geçersiz yol değeri")
+            for text in TEXTS if (body or queries) else [""]:
+                label = repr(text[:20]) if len(text) < 100 else "çok büyük veri"
+                kwargs = {"params": {q: text[:2000] for q in queries}} if queries else {}
+                if body:
+                    kwargs["json"] = sample(body, document, text)
+                call(method, path, label, **kwargs)
+            if body:
+                call(method, path, "bozuk JSON", content=b"{bozuk", headers={"content-type": "application/json"})
+                call(method, path, "yanlış tür", json=[1, 2, 3])
+                valid = sample(body, document, "eszamanli")
+                with concurrent.futures.ThreadPoolExecutor(8) as pool:
+                    list(pool.map(lambda _i: call(method, path, "eşzamanlı istek", json=valid), range(16)))
+
+print("RESULT=" + json.dumps({"requests": sent, "findings": sorted(set(findings))[:12]}))

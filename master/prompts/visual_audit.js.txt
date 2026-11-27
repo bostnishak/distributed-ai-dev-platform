@@ -57,6 +57,27 @@ window.addEventListener('load', function () {
     Array.prototype.forEach.call(document.images, function (img) {
       if (img.complete && !img.naturalWidth) found.push('yüklenmeyen görsel: ' + (img.getAttribute('src') || '').slice(0, 60));
     });
+    var written = all.filter(function (el) {
+      return !/^(SCRIPT|STYLE|OPTION)$/.test(el.tagName) && Array.prototype.some.call(el.childNodes, function (n) { return n.nodeType === 3 && n.textContent.trim().length > 1; });
+    });
+    var sizes = {};
+    written.forEach(function (el) { sizes[Math.round(parseFloat(getComputedStyle(el).fontSize))] = true; });
+    if (Object.keys(sizes).length > 7) found.push('yazı ölçeği dağınık: ' + Object.keys(sizes).length + ' farklı boyut (' + Object.keys(sizes).join(', ') + ' px)');
+    written.filter(function (el) { return el.textContent.trim().length > 160; }).forEach(function (el) {
+      var s = getComputedStyle(el), size = parseFloat(s.fontSize), height = parseFloat(s.lineHeight);
+      var perLine = el.getBoundingClientRect().width / (size * 0.5);
+      if (perLine > 95) found.push('satır çok uzun (yaklaşık ' + Math.round(perLine) + ' karakter): ' + name(el));
+      if (height && height / size < 1.3) found.push('satır aralığı sıkışık (' + (height / size).toFixed(2) + '): ' + name(el));
+    });
+    var gaps = 0, offGrid = 0;
+    all.forEach(function (el) {
+      var s = getComputedStyle(el);
+      ['paddingTop', 'paddingLeft', 'marginTop', 'marginBottom', 'rowGap', 'columnGap'].forEach(function (key) {
+        var value = parseFloat(s[key]);
+        if (value > 2) { gaps += 1; if (Math.abs(value / 4 - Math.round(value / 4)) > 0.05) offGrid += 1; }
+      });
+    });
+    if (gaps >= 12 && offGrid / gaps > 0.35) found.push('boşluklar 4px ızgarasına oturmuyor: ' + offGrid + '/' + gaps + ' değer');
     var out = document.createElement('pre');
     out.id = '__audit';
     out.textContent = JSON.stringify(found.filter(function (v, i) { return found.indexOf(v) === i; }).slice(0, 10));

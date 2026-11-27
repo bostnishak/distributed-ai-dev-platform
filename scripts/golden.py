@@ -278,6 +278,24 @@ def run(categories: list[str], seed: int, slow: bool) -> list[dict]:
     return results
 
 
+def pass_at_three(results: list[dict], seed: int) -> int:
+    """Scenarios that pass at least once in three tries: the failed ones get two more, with new values."""
+    scenarios = {fn.__name__: fn for group in (*SCENARIOS.values(), *SLOW.values()) for fn in group}
+    solved = sum(r["ok"] for r in results)
+    for failed in (r for r in results if not r["ok"]):
+        function = scenarios.get(failed["name"].rsplit("/", 1)[-1])
+        for attempt in (1, 2):
+            if function is None:
+                break
+            try:
+                function(random.Random(seed + 1000 * attempt))
+            except Exception:  # noqa: BLE001 - a retry that fails is simply not a pass
+                continue
+            solved += 1
+            break
+    return solved
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, default=int(time.time()) % 100000)
@@ -292,6 +310,7 @@ def main() -> int:
     results = run(args.only, args.seed, args.slow)
     passed = sum(r["ok"] for r in results)
     times = sorted(r["seconds"] for r in results)
+    print(f"Pass@3: {pass_at_three(results, args.seed)}/{len(results)}")
     print(f"\nPass@1: {passed}/{len(results)} | medyan {times[len(times) // 2]}s | seed {args.seed}")
     shared = [r for r in results if r["name"] in previous]
     if shared:

@@ -2,11 +2,13 @@
 
 Şartnamenin 16 aşaması sırayla yapılıyor. Bir aşama, kod testi ve canlı kanıtı geçmeden "tamam" sayılmaz.
 
+Kalan her şeyin alt başlıklı listesi: [eksik-listesi.md](eksik-listesi.md).
+
 | Aşama | Konu | Durum | Kanıt |
 |---|---|---|---|
 | 01 | Windows dayanıklılığı ve çürümeye karşı çekirdek | tamam | `tests/test_v5_m01_windows.py`, `python scripts/verify_milestone_01.py` (5/5) |
 | 02 | Hile engeli ve değişmez test kehaneti | tamam | `tests/test_v5_m02_anticheat.py`, `python scripts/verify_milestone_02.py` (4/4) |
-| 03 | Canlı kanıt çalıştırıcısı | bekliyor | |
+| 03 | Canlı kanıt çalıştırıcısı | ana kısım tamam | `python scripts/verify_milestone_03.py` (4/4); eksik alt maddeler eksik-listesi.md içinde |
 | 04 | Küçük model destekleri | bekliyor | |
 | 05 | Ajan sürüsü yönetimi | bekliyor | |
 | 06 | Gerçek dünya zorlama testleri | bekliyor | |

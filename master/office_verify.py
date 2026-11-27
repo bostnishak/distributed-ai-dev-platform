@@ -15,6 +15,7 @@ from typing import Any
 from openpyxl import load_workbook
 from openpyxl.utils.exceptions import InvalidFileException
 
+import xlsx_checks
 from process_utils import run_process
 
 _log = logging.getLogger(__name__)
@@ -44,7 +45,7 @@ def _workbook_errors(path: Path, out_dir: Path) -> list[str]:
                  if isinstance(cell.value, str) and cell.value.startswith(_ERRORS)]
     finally:
         book.close()
-    return found[:8]
+    return (xlsx_checks.problems(path) + found)[:8]
 
 
 def proof_page(page: Any, number: int, slide: bool) -> list[str]:
@@ -67,10 +68,42 @@ def proof_page(page: Any, number: int, slide: bool) -> list[str]:
         else:
             continue
         break
-    floor = 10 if slide else 6
+    floor = 14 if slide else 6
     sizes = [span["size"] for block in page.get_text("dict")["blocks"] for line in block.get("lines", []) for span in line["spans"] if len(span["text"].strip()) > 3]
-    if sizes and min(sizes) < floor:
+    if sizes and min(sizes) < floor - 0.5:  # a renderer reports 14 pt as 13.9
         found.append(f"{number}. sayfada/slaytta {min(sizes):.0f} punto yazı var (okunmaz)")
+    return found
+
+
+def _body_lines(page: Any) -> list[tuple[float, str, float, bool]]:
+    """(bottom, text, size, bold) of the lines between the running header and footer, top to bottom."""
+    height = page.rect.height
+    out = []
+    for block in page.get_text("dict")["blocks"]:
+        for line in block.get("lines", []):
+            text = "".join(s["text"] for s in line["spans"]).strip()
+            if text and height * 0.04 < line["bbox"][1] and line["bbox"][3] < height * 0.945:
+                first = line["spans"][0]
+                out.append((line["bbox"][3], text, first["size"], bool(first["flags"] & 16) or "bold" in first["font"].lower()))
+    return sorted(out)
+
+
+def flow_problems(doc: Any) -> list[str]:
+    """A heading left alone at the foot of a page, and a last page that carries nothing but its header and footer."""
+    found = []
+    pages = [_body_lines(page) for page in doc]
+    sizes = sorted(size for lines in pages for _b, _t, size, _bold in lines)
+    body = sizes[len(sizes) // 2] if sizes else 0.0
+    for number, (page, lines) in enumerate(zip(doc, pages, strict=True), start=1):
+        if number == len(pages):
+            if number > 1 and not lines and not page.get_images():
+                found.append(f"{number}. (son) sayfa boş: yalnız üst/alt bilgi var")
+            continue
+        if not lines or any(image["bbox"][3] > lines[-1][0] for image in page.get_image_info()):
+            continue
+        bottom, text, size, bold = lines[-1]
+        if bottom > page.rect.height * 0.6 and len(text) < 90 and (size >= body + 1.4 or (bold and size > body + 0.4)) and not text.endswith((".", ":", ",")):
+            found.append(f"{number}. sayfanın sonunda başlık tek kalmış: {text[:40]}")
     return found
 
 
@@ -84,7 +117,8 @@ def _page_problems(path: Path, out_dir: Path) -> list[str]:
         if doc.page_count == 0:
             return ["belge boş"]
         slide = path.suffix.lower() == ".pptx"
-        return [problem for number, page in enumerate(doc, start=1) for problem in proof_page(page, number, slide)][:8]
+        found = [problem for number, page in enumerate(doc, start=1) for problem in proof_page(page, number, slide)]
+        return (found + ([] if slide else flow_problems(doc)))[:8]
 
 
 def check_pdf(path: Path) -> list[str]:
@@ -92,7 +126,7 @@ def check_pdf(path: Path) -> list[str]:
     import pymupdf
 
     with pymupdf.open(path) as doc:
-        return [problem for number, page in enumerate(doc, start=1) for problem in proof_page(page, number, False)][:8]
+        return ([problem for number, page in enumerate(doc, start=1) for problem in proof_page(page, number, False)] + flow_problems(doc))[:8]
 
 
 def check(path: Path) -> list[str] | None:
@@ -119,7 +153,9 @@ async def verified(producing: Awaitable[dict[str, Any]], fmt: str) -> dict[str, 
     if fmt == "pdf":
         if path.suffix.lower() != ".pdf" or not path.is_file():
             return result
-        problems = await asyncio.to_thread(check_pdf, path)
+        import artifact_check  # imports this module
+
+        problems = await asyncio.to_thread(artifact_check.problems, path) + await asyncio.to_thread(check_pdf, path)  # a second, independent reader
     else:
         problems = await asyncio.to_thread(check, path)
     if problems is None:

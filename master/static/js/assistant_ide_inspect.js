@@ -104,6 +104,20 @@ function bindPicker(card, iframe, iterBar, pick, openPreview) {
   });
 }
 
+// Thumbs up or down for this delivery; the answer is kept with the run history.
+function ratingButtons(wsId) {
+  return [['👍', 'up', 'Beğendim'], ['👎', 'down', 'Beğenmedim']].map(([icon, verdict, label]) => {
+    const rate = button(icon);
+    rate.title = label;
+    rate.setAttribute('aria-label', label);
+    rate.addEventListener('click', async () => {
+      const res = await safeFetchJson(`/api/studio/workspaces/${wsId}/feedback`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ verdict }) });
+      rate.textContent = res.ok ? `${icon} kaydedildi` : icon;
+    });
+    return rate;
+  });
+}
+
 export function attachInspector(card, ctx) {
   const { wsId, iframe, iterBar, toolbar, openPreview, hasPreview } = ctx;
   const drawer = el('div', 'ide-drawer');
@@ -128,7 +142,7 @@ export function attachInspector(card, ctx) {
   api.addEventListener('click', () => open('API deneme konsolu', showConsole));
   const memory = button('Bellek');
   memory.addEventListener('click', () => open('Bellek', showMemory));
-  toolbar.append(proof, api, memory);
+  toolbar.append(proof, api, memory, ...ratingButtons(wsId));
 
   if (hasPreview) {
     const pick = button('Öğe seç');

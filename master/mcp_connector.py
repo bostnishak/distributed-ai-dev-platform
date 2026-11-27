@@ -10,11 +10,15 @@
 
 from __future__ import annotations
 
+import contextlib
+import ipaddress
 import json
+import socket
 import sqlite3
 import uuid
 from datetime import UTC, datetime
 from typing import Any
+from urllib.parse import urlparse
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException
@@ -93,6 +97,24 @@ def _get_raw_connector(connector_id: str) -> sqlite3.Row | None:
         return conn.execute("SELECT * FROM mcp_connectors WHERE id = ?", (connector_id,)).fetchone()
 
 
+def _refuse_metadata(url: str) -> None:
+    """Local and LAN MCP servers are normal; link-local and cloud metadata addresses hand out credentials and never are."""
+    host = (urlparse(url).hostname or "").lower()
+    if host == "metadata.google.internal":
+        raise ValueError(f"Bu adrese bağlanılamaz (üst veri adresi): {host}")
+    try:
+        addresses = {str(info[4][0]).split("%")[0] for info in socket.getaddrinfo(host, None)}
+    except (socket.gaierror, UnicodeError):
+        addresses = {host}
+    for address in addresses:
+        ip = None
+        with contextlib.suppress(ValueError):
+            ip = ipaddress.ip_address(address)
+        ip = getattr(ip, "ipv4_mapped", None) or ip
+        if ip is not None and (ip.is_link_local or ip.is_multicast or ip.is_unspecified):
+            raise ValueError(f"Bu adrese bağlanılamaz (bağlantı-yerel / üst veri adresi): {host}")
+
+
 def create_connector(
     name: str,
     url: str,
@@ -107,6 +129,7 @@ def create_connector(
     clean_url = (url or "").strip()[:300]
     if not clean_name or not clean_url.startswith(("http://", "https://")):
         raise ValueError("Geçerli bir bağlayıcı adı ve http(s):// ile başlayan MCP URL girin.")
+    _refuse_metadata(clean_url)
     cid = f"mcp-{uuid.uuid4().hex[:8]}"
     now = datetime.now(UTC).isoformat()
     raw_key = (api_key or "").strip()
@@ -289,6 +312,7 @@ async def call_connector_tool(connector_id: str, tool_name: str, arguments: dict
         raise KeyError("MCP bağlayıcı bulunamadı.")
     if not row["enabled"]:
         raise ValueError("Bu MCP bağlayıcısı pasif durumda.")
+    _refuse_metadata(row["url"])
     gate = policy.check("mcp_call", payload=json.dumps(arguments or {}, ensure_ascii=False))
     if not gate.allowed:
         raise ValueError(gate.reason)

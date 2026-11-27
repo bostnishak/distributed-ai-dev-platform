@@ -11,7 +11,6 @@ import os
 import re
 import secrets
 import shutil
-import subprocess
 import sys
 import zipfile
 from datetime import UTC, datetime
@@ -21,15 +20,13 @@ from typing import Any
 import atomic_io
 import config
 import event_log
-import process_registry
 import safe_archive
-from process_utils import run_process, spawn_process
+from process_utils import run_process
 
 SKIP_DIRS = {"__pycache__", ".git", "node_modules", ".venv", "venv", "build", ".history", ".ai-os"}
 META_FILENAME = ".workspace.json"
 _PREVIEW_ENTRIES = ("index.html", "public/index.html", "frontend/index.html")
 _TR_ASCII_MAP = str.maketrans("çğıöşüÇĞİÖŞÜ", "cgiosuCGIOSU")
-_RUNNING_SERVERS: dict[str, tuple[int, subprocess.Popen]] = {}
 log = logging.getLogger(__name__)
 
 
@@ -418,34 +415,3 @@ def import_zip_workspace(filename: str, raw_bytes: bytes) -> tuple[dict[str, Any
     return meta, build_file_tree(ws_dir)
 
 
-def _find_free_port() -> int:
-    return process_registry.lease_port()
-
-
-def start_workspace_server(ws_id: str) -> dict[str, Any]:
-    """Start a live local HTTP server for a workspace (FastAPI, Flask, or static HTTP server)."""
-    ws_dir = safe_workspace_dir(ws_id)
-    if not ws_dir.is_dir():
-        raise FileNotFoundError("Çalışma alanı bulunamadı.")
-
-    if ws_id in _RUNNING_SERVERS:
-        port, proc = _RUNNING_SERVERS[ws_id]
-        if proc.poll() is None:
-            return {"ok": True, "port": port, "url": f"http://127.0.0.1:{port}"}
-
-    port = _find_free_port()
-    meta = load_workspace_meta(ws_dir)
-    entry = _find_python_entry(ws_dir, meta)
-
-    cmd = [sys.executable, "-m", "http.server", str(port), "--bind", "127.0.0.1"]
-    if entry is not None:
-        code = entry.read_text(encoding="utf-8", errors="ignore")
-        if "FastAPI" in code:
-            cmd = [sys.executable, "-m", "uvicorn", f"{entry.stem}:app", "--host", "127.0.0.1", "--port", str(port)]
-        elif "Flask" in code:
-            cmd = [sys.executable, "-m", "flask", "--app", entry.stem, "run", "--host", "127.0.0.1", "--port", str(port)]
-
-    proc = spawn_process(cmd, cwd=ws_dir)
-    process_registry.track(proc, f"proje sunucusu {ws_id}", port)  # generated code on the host: capped, written down, ends with us
-    _RUNNING_SERVERS[ws_id] = (port, proc)
-    return {"ok": True, "port": port, "url": f"http://127.0.0.1:{port}"}

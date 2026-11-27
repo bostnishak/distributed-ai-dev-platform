@@ -1,0 +1,298 @@
+# Eksik listesi: v1–v5 (tek ana liste)
+
+Bu dosya "ne kaldı" sorusunun tek cevabıdır. Bir madde, kod testi **ve** canlı denemesi geçmeden `[x]` olmaz.
+
+- `[ ]` açık
+- `[~]` kısmen var, eksiği yanında yazılı
+- `[x]` yapıldı
+- `[—]` yapılamaz ya da kapsam dışı (nedeni yazılı)
+
+## Çalışma sırası
+
+1. Canlı denemede çıkan hatalar (aşağıda "0").
+2. v1–v4 açık alt maddeleri.
+3. Canlı denenmemiş maddeler.
+4. v5: aşama 01–03'ün eksik alt maddeleri, sonra 04 → 16 sırayla.
+
+---
+
+## 0. Canlı denemede çıkan hatalar
+
+- [x] Sohbete yazılan API anahtarı kayda geçiyordu — düzeltildi, canlı geçti
+- [x] MCP bağlayıcısı üst veri adresini kabul ediyordu — düzeltildi, canlı geçti
+- [x] Yetki kapısı: üründe hata yoktu, canlı test var olmayan bir eylem adı kullanıyordu — test düzeltildi, canlı geçti
+- [x] Gözcü boş listeyi izliyordu — `sunucuyu başlat / durdur` komutu eklendi, canlı geçti
+
+## 1. v1
+
+- [x] `spec.json`: yerleşim bölgeleri, API sözleşmesi, kalıcılık kuralı, karma görev türü
+- [x] `plan.json`: dosya listesi, bağımlılık, uç noktalar, gereksinim–test eşlemesi
+- [x] `.env` rol modelleri
+- [x] Renklendirme etiketli dosya yazımının reddi
+- [x] Boş olay işleyicisi taraması
+- [x] Aşama başına en çok 3 onarım
+- [x] Nokta atışı yama (hiç çalışmıyordu, düzeltildi)
+
+## 2. v2
+
+- [x] KV önbellek ayarının denetlenmesi (`ai-os doctor`, zaten vardı)
+- [ ] Görsel ve akıl yürütme için karşılaştırmalı model yargıç
+- [ ] Canlı akışta dosya farkı
+- [ ] Canlı akışta önizleme konsol hataları
+- [x] Sıfır modelle lint düzeltme
+- [x] %60 üstü yamada tam yazıma dönme
+- [x] Beğen / beğenme ve elle düzenleme geri bildirimi
+- [x] Otomatik gerileme testi (açılış hataları)
+- [x] API zorlama testi
+- [x] Arayüz zorlama testi
+- [x] Tree-sitter depo haritası ve anlamsal birleştirme
+- [x] eslint / stylelint / HTMLHint
+- [x] Süre grafiği, Pass@3, varyantı ana projeye alma
+
+## 3. v3
+
+- [ ] Durum tabanlı özellik testi: arayüz = API = veritabanı
+- [ ] JavaScript mutasyon testi
+- [~] Kırık görsel / yazı tipi / sıfır yükseklik / 3 görünüm — kod var, canlı denenecek
+- [x] PDF: öksüz başlık ve boş son sayfa denetimi
+- [ ] D2 diyagramı
+- [ ] Cytoscape diyagramı
+- [ ] Diyagramda kesişim azaltma ve metin kırpılma denetimi
+- [ ] Etkileşimli grafik (Chart.js / ECharts)
+- [ ] Üretilen görselin isteme uyum puanı
+- [ ] Sohbetlerden mimari karar kaydı (ADR)
+- [ ] Genel mühendislik defteri
+- [ ] Bellek: sabitleme
+- [ ] Bellek: süre sonu
+- [ ] Bellek: kalıcı silme
+- [~] Gizli etiketli verinin PDF, günlük ve eğitim verisine sızması — sır taraması var, etiket yayılımı yok
+- [ ] Köken kaydı: model özeti, üretim ayarları, kanıt özetleri
+- [ ] Fonksiyonlar arası veri akışı, ölü kod, boş değer erişimi
+- [ ] Önce/sonra ölçümlü performans iyileştirme
+- [ ] DOM ve bellek sızıntısı ölçümü
+- [ ] Modül ayırma aracı
+- [ ] İmza taşıma aracı
+- [~] İki zaman çizgisini yan yana karşılaştırma — dal var, fark görünümü yok
+- [ ] LSP: tanıma git, üstüne gelince bilgi
+- [ ] DAP: koşullu kesme noktası
+- [ ] Savaş odasında Z3 ve mutasyon kanıtları
+- [ ] Pareto sınırı izleme
+- [ ] Ölçüm bozulunca geri alma ve olay raporu
+- [ ] Zorluk basamaklı (L1–L5) benchmark
+
+## 4. v4
+
+- [ ] 5. vites: arka planda uzun koşu
+- [x] Araştırma bağlayıcıları: arXiv, GitHub (saatlik sınır var), PyPI, npm, MDN
+- [x] Araştırma kaynaklarında yayın tarihi
+- [x] İndirilen DevDocs araştırmada kullanılıyor; web kapalıyken de yanıt veriyor (canlı geçti)
+- [x] Tipografi ölçeği ve dikey ritim: yazım notu ve tarayıcı denetimi
+- [~] Kullanıcı zevkini öğrenme — turnuva seçimi kaydediliyor, elle düzenlemeden öğrenme yok
+- [ ] Belge araçları: içindekiler, sayfa aralığı, tablo çıkarma, alıntı doğrulama
+- [ ] Diske yazılan özet ağacı
+- [x] NumPy / SciPy ve duyarlılık analizi (`duyarlılık: ...`, `sayısal kök / integral: ...`)
+- [x] Excel: XLOOKUP, NPV, IRR
+- [x] Excel: döngüsel başvuru ve kırpılan sütun denetimi (üretilen dosyalarda gerçek bir kırpılma hatası bulundu, düzeltildi)
+- [x] Slaytta en küçük yazı 14 punto
+- [ ] Etkileşimli Vega-Lite / Plotly görselleri
+- [x] Dışarıdan kaydedilen dosyaları izleme (sürüm kaydı ve denetim)
+- [x] Günlük özet (`gece özeti` ve gece saatinde dosyaya)
+- [x] Bağımlılık açığı denetimi (OSV; canlı geçti)
+- [x] `ai-os.config` özellik bayrakları, `up --profile`
+- [ ] Etkin yalıtım katmanının arayüzde gösterilmesi
+- [~] En çok 2 çoktan seçmeli netleştirme sorusu — canlı denenecek
+- [~] Üç sesli kurul — canlı denenecek
+- [—] Karma bulut köprüsü: istemedin (ücretli servis olmasın)
+
+## 5. Canlı denenmemiş maddeler (yalnız otomatik testle geçenler)
+
+`scripts/live_items.py`: doğrudan grup 21/21 geçti. Sunucu grubunda kalanlar:
+
+- [x] MCP veri yolu
+- [x] Yetki kapısı ve leke politikası
+- [x] Yörünge toplama ve sır temizleme
+- [ ] İki varyant yan yana
+- [ ] Dockerfile / Compose ve gerçek derleme
+- [ ] Belge üretimi
+- [ ] Zamanlanmış görevler
+- [ ] Öncelik kuyruğu
+- [x] Gözcü
+- [ ] Listenin kalan "yalnız testle" maddeleri
+
+## 6. v5
+
+### Bölüm 0 ve 12: değişmez koşullar
+
+- [x] Ücretli hiçbir şey yok
+- [x] Ollama ayarları (`ai-os doctor` denetliyor, üçü de doğru)
+- [ ] Windows + 8 GB için yazılı teknik uygunluk raporu (hangi paket sorunlu, kurulum yolu)
+- [ ] Her aşama için `verify_milestone_XX.py` (01–03 var)
+
+### M01 — Windows dayanıklılığı (ana kısım tamam)
+
+- [x] Port ayırıcı, Windows Job Object, yetim süreç temizliği
+- [~] Her alt sürecin Job'a bağlanması — proje sunucusu ve LSP bağlı; node, Playwright, LibreOffice tek tek doğrulanacak
+- [x] Atomik dosya yazımı, kilit yeniden deneme, uzun yol
+- [x] UTF-8, satır sonu, Türkçe harf güvenliği
+- [x] SQLite WAL, `busy_timeout`, `quick_check`, canlı yedek
+- [ ] Tek yazıcılı sıraya alınmış veritabanı yazımı
+- [~] Şema değişikliğinden önce yedek — yalnız açılışta alınıyor
+- [x] Ekran kartı bellek / ısı gözcüsü, bağlam küçültme, arka plan işini bekletme, pil modu
+- [~] Oyun / başka ağır kullanıcı algılama — bellek üzerinden dolaylı
+- [—] VRAM parçalanması: NVIDIA araçları bu bilgiyi vermiyor
+- [x] Disk temizliği (kuru çalıştırmalı)
+- [ ] Eski Docker katmanları ve Playwright profilleri temizliği
+- [ ] Sabitlenen kilometre taşlarını hiç silmeme
+- [~] Uyku / yeniden başlatma: veritabanı boşaltılıyor; çalışan iş grafiğinin kaydı doğrulanacak
+- [—] Gerçek uyku-uyanma ve gerçek 82 °C denemesi benim tetikleyemeyeceğim bir şey
+
+### M02 — Hile engeli (ana kısım tamam)
+
+- [x] `.ai-os/oracles/` onarımlara kapalı
+- [ ] Kehanet dosyalarını mimar / test ajanının kendiliğinden yazması
+- [x] Test kurcalama reddi (silme, atlama, eşik gevşetme, özel durum)
+- [~] İhlalin kalıcı yasak kuralı olması — ayrı dosyada; iki zamanlı belleğe yazılmıyor
+- [x] Sessiz hata yutma, sahte gecikme, boş test denetimi
+- [~] Bağlanmamış kontroller — düğme tamam; `form`, `select`, `input` denetlenecek
+- [ ] A aşamasında LSP hatası sıfır koşulu
+- [~] A aşamasında SAST — yalnız gizli anahtarlar teslimi durduruyor
+
+### M03 — Canlı kanıt çalıştırıcısı (`verify_milestone_03.py` 4/4)
+
+- [x] Gerçek sunucu, boş port, gerçek tarayıcı
+- [x] Doldur, gönder, sert yenile, sunucuyu yeniden başlat, boş gönderim, sil
+- [x] Dosya çıktılarını bağımsız okuyucuyla açma
+- [x] Mutasyon yakalama oranı en az %80
+- [ ] API sözleşme testi (B aşaması)
+- [ ] Durum tabanlı özellik testi (B aşaması)
+- [~] `/health` süre sınırı içinde yanıt
+- [ ] Yolculukta HTTP `201` doğrulaması
+- [ ] Yenileme öncesi/sonrası veritabanı satır sayısı
+- [ ] Düzenle / durum değiştir adımı
+- [ ] Filtreleme adımı
+- [~] Yüklenemeyen varlık (400 ve üstü) — statik sayfada var, sunucu yolculuğunda yalnız 5xx
+- [ ] Kanıt dosyasında HTTP izleri, satır sayıları, süreler, ekran görüntüsü listesi
+
+### M04 — Küçük model destekleri
+
+- [~] `REQ-001…` gereksinim defteri — numaralar var; her birine makine denetimi bağlanacak
+- [ ] Dilim dilim kurma (yerleşim → veri → etkileşim) ve her dilimde defter denetimi
+- [ ] Yalnız eksik `REQ` numaralarına nokta atışı yama
+- [ ] İki başarısız onarımdan sonra temiz bağlamla yeniden başlama
+- [ ] "Denenip başarısız olan" yasak listesi
+- [ ] Akışta tekrar / döngü / boşluk / kod bloğu kayması bekçisi, anında kesme ve ayar değiştirip yeniden deneme
+- [~] Önce kesin (sembolik) eleştiri
+- [~] Eleştiriyi başka model ailesine yaptırma — altyapıda seçenek var, zorunlu dönüşüm yok
+- [ ] 250 satırı aşan dosyada önce iskelet, sonra bölüm bölüm doldurma
+- [ ] Çıkış kanıtı: 15 koşullu istek küçük modelde %100
+
+### M05 — Ajan sürüsü yönetimi
+
+- [ ] Ajanlara serbest özet değil, değişmez `spec.json` + `REQ` alt kümesi
+- [ ] Söz dizimi ağacı özetiyle salınım (A→B→A) kesici ve o yamayı yasaklama
+- [ ] Dosya ve sembol düzeyinde yazma kirası
+- [~] Düğüm / aşama / koşu bütçeleri — yalnız günlük jeton bütçesi ve devre kesici var
+- [ ] Bütçe aşımında son doğrulanmış kayda dönme
+- [ ] Çıkış kanıtı: salınım ve yazma çakışması canlı denemesi
+
+### M06 — Gerçek dünya zorlama testleri
+
+- [~] Sert yenileme ve yeniden başlatmada kalıcılık — M03'te var
+- [ ] Üçlü tıklama ve 10 eşzamanlı yazma
+- [ ] Gönderirken düğmenin kilitlenmesi / yükleniyor durumu
+- [ ] Yavaş 3G, çevrimdışı, sahte 500/503
+- [ ] Geri / ileri, derin bağlantı, filtrenin korunması
+- [ ] Türkçe (`İ/ı`), emoji, sağdan sola, özel karakter, tarih sınırları
+- [ ] Para hesabında kesin ondalık
+- [ ] 0, 1 ve 1.000–10.000 kayıt; 200 ms sınırı
+- [ ] 50 tekrarda bellek / dinleyici sızıntısı
+- [ ] Çıkış kanıtı: `0.1+0.2`, çift gönderim ve `İ/ı` hatalarını yakalama
+
+### M07 — Mimari sağlık
+
+- [ ] Üretilen projede karmaşıklık, fonksiyon ve dosya uzunluğu sınırı
+- [ ] Sınır aşılınca doğrulanmış bölme
+- [ ] Kopya kod bulucu ve ortak yardımcıya çıkarma
+- [ ] Ölü kod, kullanılmayan CSS, yetim uç nokta ve dosya temizliği
+- [ ] Katman kuralları ve döngüsel içe aktarma
+- [ ] `axe-core` erişilebilirlik denetimi, klavye sırası, modal tuzağı
+- [ ] Çıkış kanıtı: 10 turluk düzenleme sonunda bozulma yok
+
+### M08 — Çevrimdışı varlık kasası
+
+- [~] Dosyalar indirildi (Inter, JetBrains Mono, lucide, chart.js, mermaid, katex, axe, DevDocs)
+- [ ] Plus Jakarta Sans (indirme için onay isteyeceğim)
+- [ ] Kasayı yerel adresten sunma
+- [ ] ZIP dışa aktarımda varlıkları pakete koyma
+- [ ] Dış CDN bağlantısını reddeden kalite kapısı
+- [ ] DevDocs dizinleyici
+- [~] SQLite + DuckDB + DiskCache — kurulu; DiskCache kullanımda değil
+- [ ] Çıkış kanıtı: ağ kapalıyken grafikli pano ve diyagramlar
+
+### M09 — Çok biçimli girdi
+
+- [~] Dağınık PDF: çok sütun, döndürülmüş sayfa, birleşik tablo, formül, kutu koordinatı
+- [ ] Taranmış PDF için OCR (Türkçe harfleri koruyan)
+- [~] Ses: faster-whisper kodu var, kurulum ve zaman damgası doğrulanacak
+- [ ] Video: sahne değişimi kareleri
+- [ ] `inbox` klasörüne bırakılan kayda zaman damgalı soru
+- [ ] Dağınık Excel/CSV: başlık, tarih, `1.250,50` ve `1,250.50`, birleşik hücre
+- [x] Zip-slip ve sıkıştırma bombası koruması
+- [~] Karışık Türkçe–İngilizce istekler, `tr-TR` sıralama
+- [ ] Çıkış kanıtı: taranmış PDF + dağınık Excel + ses
+
+### M10 — Araştırma sertleştirme
+
+- [~] SearXNG + tarayıcı + güvenilmeyen içerik etiketi + atıf kapısı — uçtan uca doğrulanacak
+- [ ] Çevrimdışı yedek yol
+- [ ] Çıkış kanıtı: düşman sayfa enjeksiyonunun engellenmesi
+
+### M11 — Çıktılar arası tutarlılık
+
+- [ ] Hesap, Excel, sunum, PDF ve web panosunda aynı sayılar
+- [ ] Çıkış kanıtı: dörtlü üretim, formül hatasız, görsel kanıt
+
+### M12 — Canlı belge ve taşınabilir paket
+
+- [ ] README / API belgesi / `--help` ile gerçek kodun karşılaştırılması, sapmada teslimi durdurma
+- [ ] `run_windows.bat` ve `run.ps1`
+- [~] `Dockerfile` ve `docker-compose.yml`
+- [ ] ZIP'i temiz klasörde açıp kendi betiğiyle çalıştırma
+- [ ] Çıkış kanıtı
+
+### M13 — Yedekleme ve öğrenme
+
+- [~] Şifreli yedek var — çalışma alanları, bellek, beceriler, ayarların tamamı doğrulanacak
+- [ ] `ai-os restore <kimlik>`
+- [~] Beceri yeniden kullanımı ve hata kuralı enjeksiyonu
+- [ ] Kişisel veriden arındırılmış QLoRA dışa aktarım paketi (yalnız dosya; yükleme yok)
+- [x] `ai-os import-gguf` (gölge değerlendirmeli)
+- [ ] Çıkış kanıtı: boz-geri yükle tatbikatı ve ölçülmüş Pass@1 artışı
+
+### M14 — Arayüz
+
+- [~] Donmayan arayüz, iptal / duraklat / devam / yönlendirme
+- [ ] Kanıt çekmecesi: canlı önizleme bağlantısı, ekran görüntüsü şeridi, yeşil/kırmızı işaretler
+- [ ] Her istekten önce kayıt, tek tıkla geri alma (200 ms)
+- [ ] Yeniden açınca sekmeler, önizlemeler ve duraklatılan işlerin dönmesi
+- [ ] Donanım şeridi: VRAM, ısı, model, işlemci/bellek, yalıtım katmanı, vites
+- [ ] Çıkış kanıtı: tarayıcıda deneme ve yarıda kapatıp devam
+
+### M15 — Dayanıklılık
+
+- [ ] `ai-os soak --hours N`
+- [ ] Bellek, VRAM, açık tutamaç, port, disk izleme ve hata enjeksiyonu
+- [ ] Çıkış kanıtı: çok saatlik temiz rapor
+
+### M16 — Son istemler ve sertifikasyon
+
+- [ ] `prompts/v5/*.md`
+- [ ] v1–v5'in tamamını bir arada sınayan son test
+
+## 7. Yapılamayanlar (uydurma değerle doldurulmayacak)
+
+- [—] Ollama KV önbellek isabeti ve spekülatif kabul oranını bildirmiyor
+- [—] Ollama özel dilbilgisi (GBNF) ve logit maskesi almıyor; logprob'a dayalı yükseltme güvenilir değil
+- [—] 8 GB ekran kartında LoRA / DPO / GRPO eğitimi, PRM eğitimi, model birleştirme, damıtma yok
+- [—] Tek bilgisayar: yerel ağ çıkarım zamanlayıcısı yok
+- [—] gVisor / Firecracker Windows'ta çalışmıyor

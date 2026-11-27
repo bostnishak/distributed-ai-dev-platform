@@ -27,14 +27,13 @@ import build_dag
 import checkpoint
 import config
 import repo_map
+import security_scan
 from prompt_loader import load_prompt
 from workspace_batches import fixed_plan, merge_requested, pure_source
 from workspace_builder_ops import (
-    _RUNNING_SERVERS,
     META_FILENAME,
     SKIP_DIRS,
     _build_exe_blocking,
-    _find_free_port,
     _find_python_entry,
     build_file_tree,
     build_workspace_exe,
@@ -52,7 +51,6 @@ from workspace_builder_ops import (
     safe_workspace_dir,
     save_workspace_meta,
     slugify,
-    start_workspace_server,
     verify_workspace_files,
     workspaces_root,
 )
@@ -65,9 +63,7 @@ __all__ = [
     "FILE_WRITER_SYSTEM_PROMPT",
     "META_FILENAME",
     "SKIP_DIRS",
-    "_RUNNING_SERVERS",
     "_build_exe_blocking",
-    "_find_free_port",
     "_find_python_entry",
     "build_file_tree",
     "build_workspace_exe",
@@ -86,7 +82,6 @@ __all__ = [
     "safe_workspace_dir",
     "save_workspace_meta",
     "slugify",
-    "start_workspace_server",
     "stream_generate_project",
     "stream_iterate_project",
     "workspaces_root",
@@ -456,6 +451,7 @@ async def stream_generate_project(
     run_smoke: bool = True,
 ) -> AsyncIterator[dict[str, Any]]:
     """2-stage SSE generator: Architect plan -> file-by-file generation -> verification."""
+    prompt = security_scan.redact(prompt)  # a key typed into a request never reaches the model, the code or the project records
     model = await pick_coder_model(model_override)
     yield {"type": "status", "message": f"Mimari plan hazırlanıyor ({model})..."}
 
@@ -526,6 +522,7 @@ async def stream_iterate_project(
     ws_dir = safe_workspace_dir(ws_id)
     if not ws_dir.is_dir():
         raise FileNotFoundError("Çalışma alanı bulunamadı.")
+    instruction = security_scan.redact(instruction)
     meta = load_workspace_meta(ws_dir)
     model = await pick_coder_model(model_override)
     existing_files = list_relative_files(ws_dir)

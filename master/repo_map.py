@@ -9,6 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import code_graph
+import ts_symbols
 
 
 def rank(nodes: list[str], edges: list[dict[str, str]], focus: set[str], rounds: int = 30) -> dict[str, float]:
@@ -46,6 +47,14 @@ def affected(edges: list[dict[str, str]], changed: set[str]) -> list[str]:
     return sorted(seen - changed)
 
 
+def _lines(path: Path) -> str:
+    """Where things are in the file, so the model can ask for an exact range."""
+    if not path.is_file() or path.stat().st_size > 200_000:
+        return ""
+    found = ts_symbols.outline(path.read_text(encoding="utf-8", errors="replace"), path.suffix.lower(), limit=10)
+    return "\n  " + "; ".join(found) if found else ""
+
+
 def build(ws_dir: Path, request: str, budget: int = 6000) -> str:
     """Signatures of the most relevant files; '' when the project has no analysable code."""
     graph = code_graph.build_workspace_code_graph(ws_dir)
@@ -56,7 +65,7 @@ def build(ws_dir: Path, request: str, budget: int = 6000) -> str:
     used = 0
     skipped: list[str] = []
     for path in sorted(symbols, key=lambda p: (p not in focus, -scores[p], p)):
-        block = code_graph._format_symbol_contract(path, symbols[path])
+        block = code_graph._format_symbol_contract(path, symbols[path]) + _lines(ws_dir / path)
         if used + len(block) > budget:
             skipped.append(path)
             continue

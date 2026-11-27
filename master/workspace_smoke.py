@@ -142,6 +142,15 @@ def _repair_prompt(ws_dir: Path, target: Path, log: str) -> tuple[str, str]:
     )
 
 
+def _guard_regression(ws_dir: Path, entry: Path) -> None:
+    """The project failed to start and was repaired: leave a test so that this cannot come back unnoticed."""
+    module = entry.relative_to(ws_dir).with_suffix("").as_posix().replace("/", ".")
+    target = ws_dir / "tests" / "test_regression_startup.py"
+    if not target.exists() and all(part.isidentifier() for part in module.split(".")):
+        target.parent.mkdir(exist_ok=True)
+        target.write_text(f'import importlib\n\n\ndef test_application_still_starts():\n    module = importlib.import_module("{module}")\n    assert module.__name__ == "{module}"\n', encoding="utf-8")
+
+
 def _apply_fix(target: Path, fixed: str, ws_dir: Path) -> None:
     """Write the repaired file; a reply with several files or stray prose is reduced to the one block that belongs to `target`."""
     before = target.read_text(encoding="utf-8", errors="replace")
@@ -166,7 +175,7 @@ async def _scenario_problem(ws_dir: Path, request: str, regenerate: _Regenerate,
     return workspace_behavior.problem(ws_dir, failures) if failures else None
 
 
-async def smoke_and_repair(ws_dir: Path, regenerate: _Regenerate, rounds: int = 2, request: str = "") -> AsyncIterator[dict[str, Any]]:
+async def smoke_and_repair(ws_dir: Path, regenerate: _Regenerate, rounds: int = 3, request: str = "") -> AsyncIterator[dict[str, Any]]:
     """Yield status events; the last event is {"type": "smoke", "ok": bool, "warning": str}."""
     ws_dir = await asyncio.to_thread(ws_dir.resolve)
     entry = _find_entry(ws_dir)
@@ -193,6 +202,8 @@ async def smoke_and_repair(ws_dir: Path, regenerate: _Regenerate, rounds: int = 
                 yield {"type": "status", "message": "Farklı düzeltme yolları aranıyor..."}
                 _ok, searched = await causal_debug.explore(ws_dir, lambda: workspace_docker.test_log(ws_dir, _safe_requirements(ws_dir), ("--maxfail=50",)), regenerate)
                 test_warning = searched if _ok else f"{test_warning} {searched}"
+            if attempt and entry:
+                _guard_regression(ws_dir, entry)
             yield {"type": "smoke", "ok": True, "warning": test_warning}
             return
         if attempt == rounds or target is None:

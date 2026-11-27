@@ -21,6 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "master"))
 import arena  # noqa: E402
 import config  # noqa: E402
+import feature_flags  # noqa: E402
 import training_pack  # noqa: E402
 import verified_tasks  # noqa: E402
 import visual_audit  # noqa: E402
@@ -106,7 +107,8 @@ def setup(pull: bool = False):
     profile = profile_for(vram)
     wanted = {config.MASTER_MODEL, config.PROJECT_CODER_MODEL, "bge-m3:latest"}
     missing = sorted(m for m in wanted if m not in set(models or []) and m.removesuffix(":latest") not in set(models or []))
-    settings = {"profile": profile, "vram_mb": vram, "ram_gb": psutil.virtual_memory().total // 2**30,
+    previous = feature_flags.read(CONFIG_FILE)
+    settings = {"features": previous.get("features", {}), "profiles": previous.get("profiles", {"sessiz": {"enable_self_play": False, "enable_nightly_eval": False}}), "profile": profile, "vram_mb": vram, "ram_gb": psutil.virtual_memory().total // 2**30,
                 "one_model_at_a_time": profile != "WORKSTATION_48GB+", "required_models": sorted(wanted)}
     CONFIG_FILE.write_text(json.dumps(settings, indent=2), encoding="utf-8")
     config.data_dir().mkdir(parents=True, exist_ok=True)
@@ -161,6 +163,7 @@ def main():
     parser.add_argument("command", choices=["doctor", "setup", "up", "unload", "bench", "export-training", "import-gguf"])
     parser.add_argument("path", nargs="?", help="export-training: output folder; import-gguf: model file")
     parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("--profile", default="", help="up: ai-os.config.json içindeki özellik profili")
     parser.add_argument("--baseline", default="qwen2.5-coder:7b", help="import-gguf: model the candidate must not be worse than")
     parser.add_argument("--pull", action="store_true", help="setup: download missing models")
     parser.add_argument("--lan", action="store_true", help="listen on all interfaces (teammates can reach it)")
@@ -185,6 +188,13 @@ def main():
     if args.command == "bench":
         return subprocess.call([sys.executable, str(ROOT / "scripts" / "e2e_stress.py"), "web", "image"])
     python = ROOT / "master" / "venv" / "Scripts" / "python.exe"
+    if args.profile:
+        try:
+            feature_flags.chosen(args.profile)
+        except ValueError as exc:
+            print(exc)
+            return 1
+        os.environ["AI_OS_PROFILE"] = args.profile  # the server reads it when it loads its configuration
     return subprocess.call([str(python if python.is_file() else sys.executable), "-m", "uvicorn", "app:app", "--app-dir", str(ROOT / "master"),
                             "--host", "0.0.0.0" if args.lan else "127.0.0.1", "--port", str(args.port)])
 

@@ -18,7 +18,7 @@ from openpyxl.utils import get_column_letter
 
 import xlsx_repair
 
-_FUNCS = {"SUM", "AVERAGE", "MIN", "MAX", "COUNT", "IF", "ROUND", "ABS", "AND", "OR"}
+_FUNCS = {"SUM", "AVERAGE", "MIN", "MAX", "COUNT", "IF", "ROUND", "ABS", "AND", "OR", "NPV", "IRR", "XLOOKUP"}
 _SUMMARY_FUNCS = {"SUM", "AVERAGE", "MIN", "MAX", "COUNT"}
 _FORMULA_RE = re.compile(r"^=[\w+\-*/().,:<>=&\"' {}%$!]*$")  # "!" only for sheet references: no [external], no | (DDE), no HYPERLINK-style functions
 _CHARTS = {"bar": BarChart, "line": LineChart, "pie": PieChart}
@@ -162,6 +162,23 @@ def _write_table(ws: Any, sheet: dict[str, Any]) -> tuple[list[str], int]:
     return headers, 4 + len(sheet["rows"])
 
 
+def _finance_formula(func: str, item: dict[str, Any], headers: list[str], last: int) -> str:
+    """NPV, IRR and XLOOKUP summary rows, built from column names so the ranges are always the data rows."""
+    def column(key: str) -> str:
+        name = str(item.get(key, ""))
+        return f"{get_column_letter(headers.index(name) + 1)}5:{get_column_letter(headers.index(name) + 1)}{last}" if name in headers else ""
+
+    if func == "IRR" and column("column"):
+        return f"=IRR({column('column')})"
+    rate = item.get("rate")
+    if func == "NPV" and column("column") and isinstance(rate, (int, float)) and -1 < rate < 10:
+        return f"=NPV({rate},{column('column')})"
+    wanted = str(item.get("lookup", "")).replace('"', "")[:60]
+    if func == "XLOOKUP" and wanted and column("in") and column("return"):
+        return f'=_xlfn.XLOOKUP("{wanted}",{column("in")},{column("return")},"bulunamadı")'
+    return ""
+
+
 def _summary_cell(headers: list[str], last: int, item: dict[str, Any], refs: dict[str, str]) -> tuple[int, Any] | None:
     """(column index, value) for one summary row: an aggregate over a column, a fixed number, or a formula over other summary rows (@Label)."""
     func, col = str(item.get("function", "")).upper(), str(item.get("column", ""))
@@ -170,6 +187,8 @@ def _summary_cell(headers: list[str], last: int, item: dict[str, Any], refs: dic
         letter = get_column_letter(ci)
         return ci, f"={func}({letter}5:{letter}{last})"
     ci = int(refs.get("__col__", len(headers)))
+    if finance := _finance_formula(func, item, headers, last):
+        return ci, finance
     if isinstance(item.get("value"), (int, float)) and not isinstance(item.get("value"), bool):
         return ci, item["value"]
     formula = str(item.get("formula", ""))
@@ -189,8 +208,10 @@ def _write_summary(ws: Any, sheet: dict[str, Any], headers: list[str], last: int
         label = str(item.get("label") or item.get("function") or "")
         refs[label] = f"{get_column_letter(ci)}{row}"
         ws.cell(row, 1, label).font = Font(name="Calibri", bold=True, color="1E293B")
+        ws.column_dimensions["A"].width = min(46, max(ws.column_dimensions["A"].width or 12, len(label) + 3))  # summary labels are wider than the data
         c = ws.cell(row, ci, value)
-        c.font, c.number_format = Font(name="Calibri", bold=True, color="1E293B"), "#,##0.00" if not isinstance(value, str) or value.startswith("=") else "General"
+        number = "0.00%" if str(value).startswith("=IRR(") else ("#,##0.00" if not isinstance(value, str) or value.startswith("=") else "General")
+        c.font, c.number_format = Font(name="Calibri", bold=True, color="1E293B"), number
         for k in range(1, len(headers) + 1):
             ws.cell(row, k).fill, ws.cell(row, k).border = PatternFill("solid", fgColor="E2E8F0"), _BORDER
         row += 1

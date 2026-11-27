@@ -1,5 +1,7 @@
 # v1-v4 şartnameleri: özet durum (27.11.2026)
 
+Kalan alt eksikler: [eksik-listesi.md](eksik-listesi.md).
+
 Madde madde liste: [sartname-madde-listesi.md](sartname-madde-listesi.md). Komutlar: [komutlar.md](komutlar.md).
 Makine: Windows 11, RTX 4060 Laptop 8 GB, 32 GB RAM. Ücretli servis ve anahtar kullanılmaz.
 

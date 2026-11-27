@@ -11,6 +11,8 @@ import ast
 import re
 from dataclasses import dataclass
 
+import ts_symbols
+
 
 @dataclass
 class Conflict:
@@ -132,6 +134,26 @@ def merge(base: str, ours: str, theirs: str) -> tuple[str, list[Conflict]]:
     merged = ("\n".join(imports) + "\n\n\n" if imports else "") + "\n\n\n".join(rest) + "\n"
     ast.parse(merged)
     return merged, conflicts
+
+
+def merge_script(base: str, ours: str, theirs: str, suffix: str) -> tuple[str, list[Conflict]] | None:
+    """The same three-way merge for JavaScript and TypeScript, symbol by symbol; None when a version does not parse."""
+    parsed = [ts_symbols.top_level(text, suffix) for text in (base, ours, theirs)]
+    if any(p is None for p in parsed):
+        return None
+    if ours == base or ours == theirs:
+        return theirs, []
+    if theirs == base:
+        return ours, []
+    b, o, t = ({s.key: s.text for s in p} for p in parsed)
+    renamed = _renames(b, o)
+    b, t = _follow(b, renamed, t)
+    b, o = _follow(b, _renames(b, t), o)
+    conflicts: list[Conflict] = []
+    parts = _combine(b, o, t, conflicts)
+    imports = [p for p in parts if p.startswith("import ")]
+    merged = "\n".join(imports) + ("\n\n" if imports else "") + "\n\n".join(p for p in parts if p not in imports) + "\n"
+    return (merged, conflicts) if ts_symbols.top_level(merged, suffix) is not None else None
 
 
 def replace_symbol(source: str, name: str, text: str) -> str:
