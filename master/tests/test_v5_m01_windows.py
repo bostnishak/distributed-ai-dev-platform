@@ -868,3 +868,58 @@ def test_schema_change_is_preceded_by_a_backup_and_only_own_images_are_pruned(tm
     monkeypatch.setattr(disk_gc.shutil, "which", lambda name: "docker")
     assert disk_gc.prune_images(run=lambda args, **k: seen.append(args) or Done()) == "Total reclaimed space: 12MB"
     assert seen == [["docker", "image", "prune", "--force", "--filter", "label=cm6453"]]
+
+
+VENDOR = __import__("pathlib").Path(__file__).resolve().parents[1] / "data" / "vendor"  # downloaded vault; tests skip without it
+
+
+def test_flow_extras_cross_less_clip_nothing_and_open_without_network(tmp_path, monkeypatch):
+    import flowchart_studio
+    import interactive_artifacts
+
+    monkeypatch.setattr(interactive_artifacts, "vault", lambda: VENDOR)
+
+    flow = {"title": "Sipariş <akışı>", "steps": [{"id": i, "type": t, "label": lbl} for i, t, lbl in
+            (("a", "start", "Sipariş al"), ("b", "process", "Stok ayır"), ("c", "process", "Ödeme al"), ("d", "end", "Kargola"), ("e", "end", "Fatura </script> kes"))],
+            "edges": [{"from": "a", "to": "b", "label": ""}, {"from": "a", "to": "c", "label": ""}, {"from": "b", "to": "e", "label": ""}, {"from": "c", "to": "d", "label": ""}]}
+    depth = {"a": 0, "b": 1, "c": 1, "d": 2, "e": 2}
+    layers = {0: ["a"], 1: ["b", "c"], 2: ["d", "e"]}
+    assert flowchart_studio.crossings(flow, layers, depth) == 1
+    flowchart_studio._uncross(flow, layers, depth)
+    assert flowchart_studio.crossings(flow, layers, depth) == 0 and layers[2] == ["e", "d"]
+    assert flowchart_studio.clipped_labels(flow) == []
+    long = {"steps": [{"label": "Bu etiket kutunun üç satırına kesinlikle sığmayacak kadar uzun yazılmış bir açıklamadır gerçekten"}]}
+    assert flowchart_studio.clipped_labels(long)
+    d2 = interactive_artifacts.d2_text(flow)
+    assert 'n1: "Sipariş al" { shape: oval }' in d2 and "n1 -> n2" in d2
+    if interactive_artifacts.d2_program():
+        target = tmp_path / "a.svg"
+        assert interactive_artifacts.d2_svg(d2, target) and "Sipariş al" in target.read_text(encoding="utf-8")
+
+
+@pytest.mark.parametrize(("library", "selector"), [("vega", "#view svg path"), ("plotly", "#view .bars path"), ("chart.js", "#view canvas"), ("cytoscape", "#view canvas")])
+def test_interactive_file_really_draws_with_the_network_cut(tmp_path, monkeypatch, library, selector):
+    import interactive_artifacts
+
+    monkeypatch.setattr(interactive_artifacts, "vault", lambda: VENDOR)
+    if not interactive_artifacts.available(library):
+        pytest.skip("kütüphane kasada yok")
+    sync = pytest.importorskip("playwright.sync_api")
+    data = ({"elements": [{"data": {"id": "a", "label": "A", "kind": "start"}}, {"data": {"id": "b", "label": "B", "kind": "end"}}, {"data": {"source": "a", "target": "b", "label": ""}}]}
+            if library == "cytoscape" else interactive_artifacts.chart_data("Şube", "Satış", [("İzmir </script>", 5.0), ("Muş", 3.0)]))
+    target = tmp_path / "g.html"
+    target.write_text(interactive_artifacts.page(library, "Deneme", data), encoding="utf-8")
+    with sync.sync_playwright() as driver:
+        try:
+            browser = driver.chromium.launch()
+        except sync.Error:
+            pytest.skip("tarayıcı yok")
+        context = browser.new_context(offline=True)
+        page = context.new_page()
+        errors, outside = [], []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.on("request", lambda r: outside.append(r.url) if r.url.startswith("http") else None)
+        page.goto(target.as_uri())
+        page.wait_for_selector(selector, state="attached", timeout=15000)
+        browser.close()
+    assert errors == [] and outside == [], (errors, outside)

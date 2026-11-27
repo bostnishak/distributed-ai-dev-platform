@@ -436,7 +436,7 @@ def variants():
 @item("server", "v4 Sertleştirilmiş Dockerfile/Compose ve gerçek derleme")
 def deploy():
     reply = golden.chat("FastAPI ile /health ve /api/sayi uçları olan küçük bir API yap; Dockerfile ve docker-compose da ekle.")
-    need(reply.workspace, reply.text[-300:])
+    need(reply.workspace, f"{reply.text[-300:]!r} hatalar={reply.errors}")
     ws = wb.safe_workspace_dir(reply.workspace["workspace"]["id"])
     need((ws / "Dockerfile").is_file() and (ws / "docker-compose.yml").is_file(), [p.name for p in ws.iterdir()])
     dockerfile = (ws / "Dockerfile").read_text(encoding="utf-8")
@@ -451,7 +451,7 @@ def deploy():
 @item("server", "v4 Sunum, slayt denetimi ve uzun yazıda sayı tutarlılığı")
 def documents():
     reply = golden.chat("Depo verimliliği üzerine 3 slaytlık sunum hazırla.")
-    need("/api/assistant/media/" in reply.text and ("doğrulaması" in reply.text or "denetim" in reply.text.casefold()), reply.text[:400])
+    need("/api/assistant/media/" in reply.text and ("doğrulaması" in reply.text or "denetim" in reply.text.casefold()), f"{reply.text[:400]!r} hatalar={reply.errors}")
     return "sunum üretildi ve sayfa denetimi raporlandı"
 
 
@@ -517,8 +517,9 @@ def start_server() -> subprocess.Popen:
     with socket.socket() as probe:
         if probe.connect_ex(("127.0.0.1", PORT)) == 0:
             raise SystemExit(f"{PORT} portunda başka bir sunucu var; eski denemeyi kapat (yoksa eski kod sınanır)")
+    log = (Path(tempfile.gettempdir()) / "cm6453_items_server.log").open("w", encoding="utf-8")  # what the server said, for a failed item
     server = subprocess.Popen([str(MASTER / "venv" / "Scripts" / "python.exe"), "-m", "uvicorn", "app:app", "--app-dir", str(MASTER), "--host", "127.0.0.1", "--port", str(PORT)],
-                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=os.environ.copy())
+                              stdout=log, stderr=subprocess.STDOUT, env=os.environ.copy())
     deadline = time.time() + 90
     while time.time() < deadline:
         try:

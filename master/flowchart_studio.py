@@ -128,6 +128,7 @@ def _layers(spec: dict[str, Any]) -> dict[str, int]:
 
 
 def _wrap(label: str, width: int = 22) -> list[str]:
+    label = " ".join(word if len(word) <= width else " ".join(word[i : i + width] for i in range(0, len(word), width)) for word in label.split())
     lines, cur = [], ""
     for word in label.split():
         if cur and len(cur) + 1 + len(word) > width:
@@ -138,11 +139,40 @@ def _wrap(label: str, width: int = 22) -> list[str]:
     return [*lines, cur][:3]
 
 
+def crossings(spec: dict[str, Any], by_layer: dict[int, list[str]], depth: dict[str, int]) -> int:
+    """Pairs of arrows between the same two layers whose ends are in opposite order."""
+    place = {sid: i for ids in by_layer.values() for i, sid in enumerate(ids)}
+    spans = [(depth[e["from"]], depth[e["to"]], place[e["from"]], place[e["to"]]) for e in spec["edges"]]
+    return sum(1 for i, a in enumerate(spans) for b in spans[i + 1 :] if a[:2] == b[:2] and (a[2] - b[2]) * (a[3] - b[3]) < 0)
+
+
+def _uncross(spec: dict[str, Any], by_layer: dict[int, list[str]], depth: dict[str, int]) -> None:
+    """Sort every layer by the average place of its parents (barycentre), keeping an order only when it crosses less."""
+    for layer in sorted(by_layer)[1:]:
+        before = list(by_layer[layer])
+        count = crossings(spec, by_layer, depth)
+        place = {sid: i for ids in by_layer.values() for i, sid in enumerate(ids)}
+
+        def centre(sid: str, place: dict[str, int] = place) -> float:
+            parents = [place[e["from"]] for e in spec["edges"] if e["to"] == sid and depth[e["from"]] < depth[sid]]
+            return sum(parents) / len(parents) if parents else place[sid]
+
+        by_layer[layer] = sorted(before, key=centre)
+        if crossings(spec, by_layer, depth) > count:
+            by_layer[layer] = before
+
+
+def clipped_labels(spec: dict[str, Any]) -> list[str]:
+    """Labels the boxes cannot show in full: words dropped after the third line, or a line wider than the box."""
+    return [s["label"] for s in spec["steps"] if " ".join(_wrap(s["label"])) != " ".join(s["label"].split()) or any(len(line) > 24 for line in _wrap(s["label"]))]
+
+
 def _positions(spec: dict[str, Any]) -> tuple[dict[str, tuple[int, int]], int, int]:
     depth = _layers(spec)
     by_layer: dict[int, list[str]] = {}
     for s in spec["steps"]:
         by_layer.setdefault(depth[s["id"]], []).append(s["id"])
+    _uncross(spec, by_layer, depth)
     cols = max(len(v) for v in by_layer.values())
     width = max(cols * (W + GX) + 160, 560)
     pos = {}

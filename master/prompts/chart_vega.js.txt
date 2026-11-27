@@ -1,0 +1,16 @@
+const data = JSON.parse(document.getElementById('data').textContent);
+vegaEmbed('#view', {
+  $schema: 'https://vega.github.io/schema/vega-lite/v6.json',
+  width: 'container', height: 'container',
+  data: { values: data.rows },
+  params: [{ name: 'chosen', select: { type: 'point', fields: ['name'] } }],
+  mark: { type: 'bar', cursor: 'pointer' },
+  encoding: {
+    x: { field: 'name', type: 'nominal', sort: '-y', title: data.label },
+    y: { field: 'value', type: 'quantitative', title: data.value },
+    opacity: { condition: { param: 'chosen', value: 1 }, value: 0.35 },
+    tooltip: [{ field: 'name', title: data.label }, { field: 'value', title: data.value, format: ',.2f' }]
+  }
+}, { actions: { export: true, source: false, compiled: false, editor: false }, renderer: 'svg' }).catch((error) => {
+  document.getElementById('view').textContent = 'Grafik çizilemedi: ' + error.message;
+});

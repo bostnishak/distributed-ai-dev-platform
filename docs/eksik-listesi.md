@@ -67,10 +67,10 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [x] JavaScript mutasyon testi (Node izin modeli + Windows süreç sınırı; yazma, ağ, alt süreç reddi canlı sınandı)
 - [~] Kırık görsel / yazı tipi / sıfır yükseklik / 3 görünüm — kod var, canlı denenecek
 - [x] PDF: öksüz başlık ve boş son sayfa denetimi
-- [ ] D2 diyagramı
-- [ ] Cytoscape diyagramı
-- [ ] Diyagramda kesişim azaltma ve metin kırpılma denetimi
-- [ ] Etkileşimli grafik (Chart.js / ECharts)
+- [x] D2 diyagramı (akış çiziminin yanında D2 kaynağı ve ELK yerleşimli SVG)
+- [x] Cytoscape etkileşimli diyagram (tek dosya, çevrimdışı)
+- [x] Diyagramda kesişim azaltma ve sığmayan etiket uyarısı
+- [x] Etkileşimli grafik: Vega-Lite (varsayılan), Chart.js ya da Plotly; ağ kapalıyken çizildiği sınandı
 - [ ] Üretilen görselin isteme uyum puanı
 - [x] Sohbetlerden mimari karar kaydı (`karar: ...`, `kararları göster`)
 - [x] Mühendislik defteri: bulunan kök nedenler kaydediliyor ve sonraki onarıma veriliyor (`defteri göster`)
@@ -106,7 +106,7 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [x] Excel: XLOOKUP, NPV, IRR
 - [x] Excel: döngüsel başvuru ve kırpılan sütun denetimi (üretilen dosyalarda gerçek bir kırpılma hatası bulundu, düzeltildi)
 - [x] Slaytta en küçük yazı 14 punto
-- [ ] Etkileşimli Vega-Lite / Plotly görselleri
+- [x] Etkileşimli Vega-Lite / Plotly görselleri
 - [x] Dışarıdan kaydedilen dosyaları izleme (sürüm kaydı ve denetim)
 - [x] Günlük özet (`gece özeti` ve gece saatinde dosyaya)
 - [x] Bağımlılık açığı denetimi (OSV; canlı geçti)
@@ -126,8 +126,8 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [x] İki varyant yan yana (canlı geçti; ama 30 dakika sürdü, aşağıdaki hız maddesine bak)
 - [ ] Dockerfile / Compose ve gerçek derleme
 - [ ] Belge üretimi
-- [ ] Zamanlanmış görevler
-- [ ] Öncelik kuyruğu
+- [x] Zamanlanmış görevler (canlı geçti)
+- [x] Öncelik kuyruğu (canlı geçti)
 - [x] Gözcü
 - [ ] Listenin kalan "yalnız testle" maddeleri
 - [ ] İki varyant üretimi 30 dakika sürüyor: sebebi ölçülüp kısaltılacak

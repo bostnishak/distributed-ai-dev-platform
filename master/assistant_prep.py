@@ -51,6 +51,8 @@ _MEDIA_TYPES: dict[str, tuple[str | None, bool]] = {
     ".txt": (None, True),
     ".md": (None, True),
     ".json": (None, True),
+    ".html": ("text/html", True),  # interactive charts and graphs: downloaded, never rendered on this origin
+    ".d2": ("text/plain", True),
 }
 
 _TEXT_SUFFIXES = (

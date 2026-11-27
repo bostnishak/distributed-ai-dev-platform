@@ -144,6 +144,8 @@ def build_image_gen_stream(prompt: str, history: str) -> StreamingResponse:
             if res.get("palette_name"):
                 meta.append(f"**Palet:** {res['palette_name']}")
             svg_link = f" · [Vektörel SVG İndir]({res['svg_url']})" if res.get("svg_url") else ""
+            extra = [f"[{label}]({res[key]})" for key, label in (("interactive_url", "Etkileşimli sürüm (indir)"), ("d2_svg_url", "D2 çizimi"), ("d2_url", "D2 kaynağı")) if res.get(key)]
+            svg_link += "".join(f" · {item}" for item in extra) + (f"\n- {res['warning']}" if res.get("warning") else "")
             md = f"## Üretilen Görsel Tasarım\n- {' · '.join(meta)}\n- [Yüksek Çözünürlüklü PNG İndir]({res['png_url']}){svg_link}\n\n![Üretilen Görsel]({preview_url})"
             if str(res.get("engine", "")).startswith("scene-procedural"):
                 md += TEMPLATE_NOTE

@@ -19,6 +19,7 @@ import httpx
 
 import config
 import flowchart_studio
+import interactive_artifacts
 import poster_icons
 import poster_layout
 import poster_palettes
@@ -528,6 +529,24 @@ async def _flow_spec(prompt: str) -> dict[str, Any] | None:
     return best
 
 
+def _flow_extras(flow: dict[str, Any], out_svg: Path) -> dict[str, str]:
+    """The same flow as an interactive page and a D2 drawing, and a note when a label does not fit its box."""
+    extras: dict[str, str] = {}
+    media = "/api/assistant/media/"
+    out_svg.with_suffix(".d2").write_text(interactive_artifacts.d2_text(flow), encoding="utf-8")
+    extras["d2_url"] = media + out_svg.with_suffix(".d2").name
+    drawing = out_svg.with_name(out_svg.stem + "-d2.svg")
+    if interactive_artifacts.d2_svg(interactive_artifacts.d2_text(flow), drawing):
+        extras["d2_svg_url"] = media + drawing.name
+    if interactive_artifacts.available("cytoscape"):
+        page = out_svg.with_suffix(".html")
+        page.write_text(interactive_artifacts.page("cytoscape", flow["title"], interactive_artifacts.graph_data(flow)), encoding="utf-8")
+        extras["interactive_url"] = media + page.name
+    if clipped := flowchart_studio.clipped_labels(flow):
+        extras["warning"] = "Kutuya sığmayan etiket: " + "; ".join(clipped[:3])
+    return extras
+
+
 async def generate_ai_image(prompt: str, history: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     """Generate multi-mode visual artwork (logo, diagram, poster, or scenic illustration) + crisp PNG."""
     file_id = f"img-gen-{datetime.now(UTC).strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:6]}"
@@ -555,7 +574,7 @@ async def generate_ai_image(prompt: str, history: list[dict[str, Any]] | None = 
             svg_text, engine = flowchart_studio.render(flow, STUDIO_PALETTES[pal_key]), "flowchart-studio (local)"
             for suffix, text in flowchart_studio.exports(flow).items():
                 out_svg.with_suffix(f".{suffix}").write_text(text, encoding="utf-8")
-            meta = {"brand_name": flow["title"], "tagline": ""}
+            meta = {"brand_name": flow["title"], "tagline": "", **await asyncio.to_thread(_flow_extras, flow, out_svg)}
         else:
             spec_d = await _diagram_spec_from_llm(combined_prompt, seed)
             svg_text, pal_key, engine = _render_diagram_svg(spec_d), spec_d["palette"], f"diagram-studio ({spec_d.get('model', 'local')})"
