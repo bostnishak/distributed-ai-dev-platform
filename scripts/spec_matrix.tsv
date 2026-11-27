@@ -22,7 +22,7 @@ v1	2 QA	Sınırlı onarım döngüsü, dürüst başarısızlık bildirimi	C	wor
 v1	3 Ollama	Kurulu modelleri keşfetme ve role göre seçim, yedek model	T	gateway/registry
 v1	3 Ollama	Role göre sıcaklık ve şemalı çıktı	T	gateway/client_helpers
 v1	3 Ollama	Dosya dosya parçalı üretim	C	workspace_batches
-v1	3 Ollama	Ajan bazında TTFT ve token/sn göstergesi	K	model bazında token/sn ve süre var; ilk token süresi (TTFT) yok
+v1	3 Ollama	Ajan bazında TTFT ve token/sn göstergesi	C	'performans durumu': model bazında token/sn ve akışlı yanıtlarda ilk kelime süresi
 v1	4 Bellek	Son turlar ve takip isteği birleştirme	C	followup
 v1	4 Bellek	Proje durumu, sürüm anlık görüntüsü	T	workspace_builder_ops
 v1	4 Bellek	Uzun süreli tercih belleği	T	memory_engine
@@ -34,7 +34,7 @@ v1	5 IDE	API test konsolu sekmesi	C	workspace_inspect.py; gerçek Chromium'da de
 v1	6 Teslim	Uçtan uca testler ve çalışma kılavuzu	C	scripts/e2e_stress.py
 v2	2.1	Sabit önek önce istem düzeni	K	bazı istemlerde
 v2	2.1	keep_alive, num_ctx boyutlama	T	gateway/registry
-v2	2.1	Model yakınlığına göre görev gruplama	K	tek GPU kilidi var; DAG gruplama yok
+v2	2.1	Model yakınlığına göre görev gruplama	T	aynı modelli dosyalar art arda
 v2	2.2	Tier 0 modelsiz düzenleme	C	tier0_edit
 v2	2.2	Karmaşıklığa göre model basamağı	T	complexity_governor
 v2	2.2	Logprob/entropi ile yükseltme	E	Ollama yanıtında güvenilir logprob kullanılmıyor
@@ -99,14 +99,14 @@ v3	4.3	Sertleştirilmiş Dockerfile/Compose üretimi ve denetimi	T	deploy_kit.py
 v3	4.3	Yük ve kaos testi	C	sohbetten 'yük testi yap' (ağsız kutuda); kaos senaryosu yok
 v3	4.3	Çalışma anı bekçisi	T	watchdog.py: duran proje sunucusunu olay kaydına yazar; otomatik düzeltme önermez
 v3	5.1	Ekran görüntüsünden koda	C	design_from_image.py: ölçülen renk/yerleşim + görsel model; canlıda yerleşim %87, renk %97
-v3	5.2	Typst/WeasyPrint belge stüdyosu	K	PyMuPDF ile PDF; Typst yok
+v3	5.2	Typst/WeasyPrint belge stüdyosu	C	typst_render.py: Typst istenince ya da denklemli belgede; WeasyPrint yok
 v3	5.2	PDF sayfa sayfa görsel kanıtlama	T	office_verify.proof_page: boş sayfa, taşma, çakışma, küçük punto
 v3	5.3	Çoklu diyagram biçimi	C	SVG + Mermaid, Graphviz, PlantUML metni (D2 yok)
 v3	5.3	Gerçek veriye bağlı grafik	C	data_chart.py: CSV'den çubuk grafik; etkileşimli Vega/Plotly değil
 v3	5.3	Yerel ses (ASR/TTS)	K	multimodal_studio_media STT; TTS yok
 v3	6.1	İki zamanlı bilgi grafiği	T	memory_timeline
 v3	6.2	Bağlam sayfalama	K	context_pins: kullanıcının kuralları sıkıştırmada hiç düşmüyor; sayfa içeri/dışarı çağrıları yok
-v3	6.3	Uyku birleştirmesi ve çelişki çözümü	K	memory_conflicts, memory_maintenance
+v3	6.3	Uyku birleştirmesi ve çelişki çözümü	T	SELF_EVAL_HOUR gecesinde birleştirme; çelişkiler kullanıcıya sıraya alınır
 v3	6.3	Bellek denetim ve silme	T	memory_api, retention
 v3	7.1	WASM ve iş nesnesi yalıtımı	T	isolation.py: sohbetten başlatılan canlı sunucu iş nesnesiyle sınırlı
 v3	7.2	Leke (taint) izleme ve yetki düşürme	T	policy.Context; çalışma düzeyinde, bayt düzeyinde değil
@@ -121,13 +121,13 @@ v3	9.2	LSP ve DAP veri yolu	C	lsp_client + debug_probe (debugpy, kum havuzunda c
 v3	10	Önizlemede tıklayıp düzenleme	C	öğe seçici; gerçek Chromium'da denendi
 v3	10	DAG savaş odası ve zaman kaydırıcı	K	sürüm zaman çizelgesi var; canlı graf yok
 v3	10	Turnuva modu	K	media_lab_arena model puanlama
-v3	10	Köken ve bellek çekmeceleri	K	kanıt çekmecesi var; bellek çekmecesi yok
+v3	10	Köken ve bellek çekmeceleri	C	IDE: Kanıt ve Bellek çekmeceleri
 v3	10	Elle yapılan düzenlemeyi koruma	C	merge3 + geri al; elle düzenlemeden tercih öğrenmiyor
 v3	11.1	Parametrik benchmark üretici	T	golden.py: tohumdan rastgele değerler
 v3	11.2	İstatistiksel sürüm kapısı, SPRT	T	eval_stats
 v3	11.2	Otomatik geri alma	T	release_guard.py: gerileyen koşuda istemleri geri alır (golden.py --auto-rollback); canlı trafik izlemiyor
 v4	1.1	5 vitesli orantılılık freni	T	complexity_governor
-v4	1.2	Otomatik vites yükseltme ve süre bütçesi	K	onarım yükseltmesi var; süre bütçesi yok
+v4	1.2	Otomatik vites yükseltme ve süre bütçesi	T	onarım yükseltmesi + pacing süre uyarısı
 v4	1.2	@fast/@deep komutları	T	complexity_governor
 v4	2.1	Web araması ve temiz metin çıkarma	C	DuckDuckGo + trafilatura
 v4	2.2	Çok adımlı derin araştırma ve çelişki tespiti	C	research.py: yanıtsız kalanlar için ikinci tur
@@ -137,7 +137,7 @@ v4	3.1	Üç sesli tartışma kurulu	C	tool_executor: 'konseyde tartış'; canlı
 v4	3.2	Tasarım kuralları ve şablon görünüm dedektörü	T	design_slop
 v4	3.2	OKLCH palet derleyici	T	design_system.py: renk verilmeyen görsel isteklerde
 v4	3.3	Kişisel beğeni belleği	C	preferences.py: açık kalıcı ifadeler; örtük beğeni öğrenmiyor
-v4	4.1	Özet ağacı (RAPTOR)	K	doc_reader eşle-indirge; çok katmanlı özet ağacı ve gömme indeksi yok
+v4	4.1	Özet ağacı (RAPTOR)	C	doc_tree.py: parça → bölüm → bütün, satır aralıklı; gömme indeksi yok
 v4	4.2	Belge gezinme ve eşle-indirge okuma	C	doc_reader.py: 'belgenin tamamını' isteklerinde; satır numaralı doğrulanmış alıntı
 v4	5.1	Tarayıcı kullanan ajan (erişilebilirlik ağacı)	C	browser_agent.py: @tarayıcı <adres> <görev>; DOM öğe listesi, görsel model yedeği yok
 v4	5.2	Her eylemi doğrulama ve geri alınamaz eylemde onay	C	browser_agent.py: düğme adıyla onay; yerel gizli talimat testinde geçti
@@ -150,7 +150,7 @@ v4	6.4	DuckDB veri çalışması	C	data_lab
 v4	6.4	Otomatik EDA ve ML hattı	C	eda.py: CSV için profil + 5 katlı çapraz doğrulama; Vega/Plotly grafik yok
 v4	6.5	Uzun yazıda sayı tutarlılığı	T	doc_sanity, doc_proof
 v4	7	Karma buluta yükseltme (varsayılan kapalı)	K	escalation.py yalnız anonimleştirir; hiçbir yere göndermez
-v4	8	Uzmanlığa göre anlatım ve netleştirme sorusu	K	clarify
+v4	8	Uzmanlığa göre anlatım ve netleştirme sorusu	C	pacing.audience_note + clarify
 v4	9	Dosya izleyici ve gelen kutusu tetikleyicisi	C	triggers.py: data/inbox; pilde/sıcakta bekler. Git kancası yok
 v4	9	Zamanlanmış görevler	T	cronjobs
 v4	10.1	Donanım profili ve doctor	C	scripts/ai_os.py

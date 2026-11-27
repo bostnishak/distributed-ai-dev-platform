@@ -46,6 +46,17 @@ async function showProof(wsId, body) {
   );
 }
 
+async function showMemory(_wsId, body) {
+  body.replaceChildren(el('div', '', 'Yükleniyor...'));
+  const res = await safeFetchJson('/api/studio/memory-view');
+  const data = res.data || {};
+  body.replaceChildren(
+    section('Kalıcı tercihlerin', (data.preferences || []).map((p) => `${p.text} (${p.at})`)),
+    section('Öğrenilen bilgiler', (data.facts || []).map((f) => `[${f.category}] ${f.value}`)),
+    el('div', '', 'Tercihleri silmek için sohbete "tercihlerimi sil" yaz.'),
+  );
+}
+
 function showConsole(wsId, body) {
   const input = el('textarea', 'ide-api-input');
   input.rows = 4;
@@ -115,7 +126,9 @@ export function attachInspector(card, ctx) {
   proof.addEventListener('click', () => open('Doğrulama kanıtı', showProof));
   const api = button('API dene');
   api.addEventListener('click', () => open('API deneme konsolu', showConsole));
-  toolbar.append(proof, api);
+  const memory = button('Bellek');
+  memory.addEventListener('click', () => open('Bellek', showMemory));
+  toolbar.append(proof, api, memory);
 
   if (hasPreview) {
     const pick = button('Öğe seç');

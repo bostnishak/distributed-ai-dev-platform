@@ -8,12 +8,16 @@ from __future__ import annotations
 
 import logging
 import os
+import sqlite3
 import sys
 import time
 from collections.abc import Callable
 from pathlib import Path
 
 import event_log
+import memory_conflicts
+import memory_engine
+import memory_maintenance
 import workspace_builder_ops as ops
 from process_utils import spawn_process
 
@@ -44,10 +48,24 @@ def nightly_due(now: time.struct_time, hour: str, idle: Callable[[], bool]) -> b
     return hour.isdigit() and now.tm_hour == int(hour) and _state["last_eval_day"] != day and idle()
 
 
+def consolidate_memory() -> int:
+    """Merge repeated learned facts and queue contradictions for the user, for every user with stored facts."""
+    owners = sorted({str(f.get("user_id", "default")) for f in memory_engine.list_semantic_facts()} | {"default"})
+    merged = 0
+    for owner in owners:
+        try:
+            with memory_conflicts._connect() as conn:
+                merged += int(memory_maintenance.consolidate(conn, owner).get("merged", 0))
+        except (sqlite3.Error, ValueError, AttributeError) as exc:
+            _log.warning("bellek birleştirme başarısız (%s): %s", owner, exc)
+    return merged
+
+
 def tick(idle: Callable[[], bool], now: time.struct_time | None = None) -> None:
     check_servers()
     now = now or time.localtime()
     if nightly_due(now, os.environ.get("SELF_EVAL_HOUR", ""), idle) and _SCRIPT.is_file():
         _state["last_eval_day"] = time.strftime("%Y-%m-%d", now)
+        consolidate_memory()
         spawn_process([sys.executable, str(_SCRIPT), "--auto-rollback"], cwd=_SCRIPT.parent.parent)
         _log.info("gece kalite ölçümü başlatıldı")

@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 import config
+import pacing
 import security_scan
 import skill_library
 
@@ -57,8 +58,12 @@ async def traced(events: AsyncIterator[dict[str, Any]], request: str) -> AsyncIt
     started = mark = time.monotonic()
     stage, stages = "başlangıç", []
     done: dict[str, Any] = {}
+    warned = False
     try:
         async for evt in events:
+            if not warned and evt.get("type") != "done" and (late := pacing.overrun_note(request, time.monotonic() - started)):
+                warned = True
+                yield {"type": "status", "message": late}
             if name := _stage_name(evt):
                 now = time.monotonic()
                 stages.append({"stage": stage, "seconds": round(now - mark, 1)})

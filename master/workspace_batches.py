@@ -55,7 +55,7 @@ def file_batches(planned: list[dict[str, str]]) -> list[list[dict[str, str]]]:
     if not planned:
         return []
     tests = [f for f in planned[1:] if "test" in f["path"].lower()]
-    middle = [f for f in planned[1:] if f not in tests]
+    middle = sorted((f for f in planned[1:] if f not in tests), key=lambda f: str(f.get("model", "")))  # same model back to back: fewer reloads
     batches = [[planned[0]]] + [middle[i : i + width] for i in range(0, len(middle), width)] + [[f] for f in tests]
     return [b for b in batches if b]
 

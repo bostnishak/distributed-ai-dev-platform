@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import run_trace
-from gateway import client_helpers
+from gateway import client_helpers, first_token
 
 _RECENT = 500
 
@@ -50,5 +50,7 @@ def report() -> str:
     runs = run_trace.summary()
     if runs.get("runs"):
         lines.append(f"Proje üretimleri: {runs['runs']} koşu" + (f", başarı %{round(100 * runs['pass_rate'])}" if "pass_rate" in runs else ""))
+    if waits := first_token.medians():
+        lines.append("İlk kelime ortanca süresi (akışlı yanıtlar): " + ", ".join(f"{m} {ms / 1000:.1f} sn" for m, ms in sorted(waits.items())))
     lines.append("_Süreler sıra bekleme ve model yükleme dahil gerçek çağrı süreleridir._")
     return "\n".join(lines)

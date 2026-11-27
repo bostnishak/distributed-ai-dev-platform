@@ -19,6 +19,8 @@ from pydantic import BaseModel, Field
 
 import event_log
 import ledger
+import memory_engine
+import preferences
 import provenance
 import workspace_builder as wb
 import workspace_docker
@@ -113,6 +115,13 @@ def _workspace(ws_id: str) -> Path:
     if not ws_dir.is_dir():
         raise HTTPException(status_code=404, detail="Çalışma alanı bulunamadı.")
     return ws_dir
+
+
+@router.get("/memory-view")
+async def memory_view(user_id: str = "default"):
+    """What the assistant has been told to remember, and the learned facts."""
+    facts = [{"category": f.get("category", ""), "value": f.get("fact_value", "")} for f in memory_engine.list_semantic_facts(user_id=user_id)][:60]
+    return {"preferences": preferences.load(user_id), "facts": facts}
 
 
 @router.get("/workspaces/{id}/proof")

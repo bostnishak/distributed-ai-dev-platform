@@ -7,11 +7,11 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 
 | Sürüm | canlı | test | kısmi | yok | dışarıda | teknik engel | Toplam |
 |---|---|---|---|---|---|---|---|
-| v1 | 17 | 13 | 2 | 0 | 0 | 0 | 32 |
-| v2 | 14 | 20 | 7 | 0 | 2 | 1 | 44 |
-| v3 | 15 | 17 | 11 | 0 | 5 | 2 | 50 |
-| v4 | 16 | 11 | 6 | 0 | 0 | 0 | 33 |
-| **Hepsi** | 62 | 61 | 26 | 0 | 7 | 3 | 159 |
+| v1 | 18 | 13 | 1 | 0 | 0 | 0 | 32 |
+| v2 | 14 | 21 | 6 | 0 | 2 | 1 | 44 |
+| v3 | 17 | 18 | 8 | 0 | 5 | 2 | 50 |
+| v4 | 18 | 12 | 3 | 0 | 0 | 0 | 33 |
+| **Hepsi** | 67 | 64 | 18 | 0 | 7 | 3 | 159 |
 
 ## v1
 
@@ -39,7 +39,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 3 Ollama | Kurulu modelleri keşfetme ve role göre seçim, yedek model | test | gateway/registry |
 | 3 Ollama | Role göre sıcaklık ve şemalı çıktı | test | gateway/client_helpers |
 | 3 Ollama | Dosya dosya parçalı üretim | canlı | workspace_batches |
-| 3 Ollama | Ajan bazında TTFT ve token/sn göstergesi | kısmi | model bazında token/sn ve süre var; ilk token süresi (TTFT) yok |
+| 3 Ollama | Ajan bazında TTFT ve token/sn göstergesi | canlı | 'performans durumu': model bazında token/sn ve akışlı yanıtlarda ilk kelime süresi |
 | 4 Bellek | Son turlar ve takip isteği birleştirme | canlı | followup |
 | 4 Bellek | Proje durumu, sürüm anlık görüntüsü | test | workspace_builder_ops |
 | 4 Bellek | Uzun süreli tercih belleği | test | memory_engine |
@@ -56,7 +56,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 |---|---|---|---|
 | 2.1 | Sabit önek önce istem düzeni | kısmi | bazı istemlerde |
 | 2.1 | keep_alive, num_ctx boyutlama | test | gateway/registry |
-| 2.1 | Model yakınlığına göre görev gruplama | kısmi | tek GPU kilidi var; DAG gruplama yok |
+| 2.1 | Model yakınlığına göre görev gruplama | test | aynı modelli dosyalar art arda |
 | 2.2 | Tier 0 modelsiz düzenleme | canlı | tier0_edit |
 | 2.2 | Karmaşıklığa göre model basamağı | test | complexity_governor |
 | 2.2 | Logprob/entropi ile yükseltme | teknik engel | Ollama yanıtında güvenilir logprob kullanılmıyor |
@@ -126,14 +126,14 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 4.3 | Yük ve kaos testi | canlı | sohbetten 'yük testi yap' (ağsız kutuda); kaos senaryosu yok |
 | 4.3 | Çalışma anı bekçisi | test | watchdog.py: duran proje sunucusunu olay kaydına yazar; otomatik düzeltme önermez |
 | 5.1 | Ekran görüntüsünden koda | canlı | design_from_image.py: ölçülen renk/yerleşim + görsel model; canlıda yerleşim %87, renk %97 |
-| 5.2 | Typst/WeasyPrint belge stüdyosu | kısmi | PyMuPDF ile PDF; Typst yok |
+| 5.2 | Typst/WeasyPrint belge stüdyosu | canlı | typst_render.py: Typst istenince ya da denklemli belgede; WeasyPrint yok |
 | 5.2 | PDF sayfa sayfa görsel kanıtlama | test | office_verify.proof_page: boş sayfa, taşma, çakışma, küçük punto |
 | 5.3 | Çoklu diyagram biçimi | canlı | SVG + Mermaid, Graphviz, PlantUML metni (D2 yok) |
 | 5.3 | Gerçek veriye bağlı grafik | canlı | data_chart.py: CSV'den çubuk grafik; etkileşimli Vega/Plotly değil |
 | 5.3 | Yerel ses (ASR/TTS) | kısmi | multimodal_studio_media STT; TTS yok |
 | 6.1 | İki zamanlı bilgi grafiği | test | memory_timeline |
 | 6.2 | Bağlam sayfalama | kısmi | context_pins: kullanıcının kuralları sıkıştırmada hiç düşmüyor; sayfa içeri/dışarı çağrıları yok |
-| 6.3 | Uyku birleştirmesi ve çelişki çözümü | kısmi | memory_conflicts, memory_maintenance |
+| 6.3 | Uyku birleştirmesi ve çelişki çözümü | test | SELF_EVAL_HOUR gecesinde birleştirme; çelişkiler kullanıcıya sıraya alınır |
 | 6.3 | Bellek denetim ve silme | test | memory_api, retention |
 | 7.1 | WASM ve iş nesnesi yalıtımı | test | isolation.py: sohbetten başlatılan canlı sunucu iş nesnesiyle sınırlı |
 | 7.2 | Leke (taint) izleme ve yetki düşürme | test | policy.Context; çalışma düzeyinde, bayt düzeyinde değil |
@@ -148,7 +148,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 10 | Önizlemede tıklayıp düzenleme | canlı | öğe seçici; gerçek Chromium'da denendi |
 | 10 | DAG savaş odası ve zaman kaydırıcı | kısmi | sürüm zaman çizelgesi var; canlı graf yok |
 | 10 | Turnuva modu | kısmi | media_lab_arena model puanlama |
-| 10 | Köken ve bellek çekmeceleri | kısmi | kanıt çekmecesi var; bellek çekmecesi yok |
+| 10 | Köken ve bellek çekmeceleri | canlı | IDE: Kanıt ve Bellek çekmeceleri |
 | 10 | Elle yapılan düzenlemeyi koruma | canlı | merge3 + geri al; elle düzenlemeden tercih öğrenmiyor |
 | 11.1 | Parametrik benchmark üretici | test | golden.py: tohumdan rastgele değerler |
 | 11.2 | İstatistiksel sürüm kapısı, SPRT | test | eval_stats |
@@ -159,7 +159,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | Bölüm | Madde | Durum | Not |
 |---|---|---|---|
 | 1.1 | 5 vitesli orantılılık freni | test | complexity_governor |
-| 1.2 | Otomatik vites yükseltme ve süre bütçesi | kısmi | onarım yükseltmesi var; süre bütçesi yok |
+| 1.2 | Otomatik vites yükseltme ve süre bütçesi | test | onarım yükseltmesi + pacing süre uyarısı |
 | 1.2 | @fast/@deep komutları | test | complexity_governor |
 | 2.1 | Web araması ve temiz metin çıkarma | canlı | DuckDuckGo + trafilatura |
 | 2.2 | Çok adımlı derin araştırma ve çelişki tespiti | canlı | research.py: yanıtsız kalanlar için ikinci tur |
@@ -169,7 +169,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 3.2 | Tasarım kuralları ve şablon görünüm dedektörü | test | design_slop |
 | 3.2 | OKLCH palet derleyici | test | design_system.py: renk verilmeyen görsel isteklerde |
 | 3.3 | Kişisel beğeni belleği | canlı | preferences.py: açık kalıcı ifadeler; örtük beğeni öğrenmiyor |
-| 4.1 | Özet ağacı (RAPTOR) | kısmi | doc_reader eşle-indirge; çok katmanlı özet ağacı ve gömme indeksi yok |
+| 4.1 | Özet ağacı (RAPTOR) | canlı | doc_tree.py: parça → bölüm → bütün, satır aralıklı; gömme indeksi yok |
 | 4.2 | Belge gezinme ve eşle-indirge okuma | canlı | doc_reader.py: 'belgenin tamamını' isteklerinde; satır numaralı doğrulanmış alıntı |
 | 5.1 | Tarayıcı kullanan ajan (erişilebilirlik ağacı) | canlı | browser_agent.py: @tarayıcı <adres> <görev>; DOM öğe listesi, görsel model yedeği yok |
 | 5.2 | Her eylemi doğrulama ve geri alınamaz eylemde onay | canlı | browser_agent.py: düğme adıyla onay; yerel gizli talimat testinde geçti |
@@ -182,7 +182,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 6.4 | Otomatik EDA ve ML hattı | canlı | eda.py: CSV için profil + 5 katlı çapraz doğrulama; Vega/Plotly grafik yok |
 | 6.5 | Uzun yazıda sayı tutarlılığı | test | doc_sanity, doc_proof |
 | 7 | Karma buluta yükseltme (varsayılan kapalı) | kısmi | escalation.py yalnız anonimleştirir; hiçbir yere göndermez |
-| 8 | Uzmanlığa göre anlatım ve netleştirme sorusu | kısmi | clarify |
+| 8 | Uzmanlığa göre anlatım ve netleştirme sorusu | canlı | pacing.audience_note + clarify |
 | 9 | Dosya izleyici ve gelen kutusu tetikleyicisi | canlı | triggers.py: data/inbox; pilde/sıcakta bekler. Git kancası yok |
 | 9 | Zamanlanmış görevler | test | cronjobs |
 | 10.1 | Donanım profili ve doctor | canlı | scripts/ai_os.py |

@@ -27,6 +27,7 @@ _WHOLE_RE = re.compile(
     r"tamam[ıi]n[ıi]|tüm\s+(?:belge|döküman|doküman|dosya|metin|rapor|bölüm)|belgenin\s+(?:tamam|bütün|her)|bütün\s+(?:belge|bölüm|dosya)|her\s+bölüm|baştan\s+sona|whole\s+document|entire\s+(?:file|document)",
     re.IGNORECASE,
 )
+_SUMMARY_RE = re.compile(r"\bözetle|\bözet\s+(?:çıkar|ver|yaz)|\bsummar", re.IGNORECASE)
 _PART_CHARS = 6000
 _MAX_PARTS = 32
 _DOC_EXT = (".pdf", ".docx", ".pptx", ".txt", ".md", ".log")
@@ -99,6 +100,8 @@ def fastpath(prompt: str, file: UploadFile) -> StreamingResponse | None:
     name = file.filename or ""
     if not name.lower().endswith(_DOC_EXT) or not _WHOLE_RE.search(prompt):
         return None
+    import doc_tree  # doc_tree builds on this module
+
     raw = file.file.read(20_000_000)
     file.file.seek(0)
     try:
@@ -117,8 +120,9 @@ def fastpath(prompt: str, file: UploadFile) -> StreamingResponse | None:
                 yield sse({"type": "token", "content": earlier + "\n\n_Bu belge değişmediği için aynı sorunun önceki yanıtı gösterildi._"})
                 yield sse({"type": "done", "model": "doc-reader", "task_type": "dokuman"})
                 return
-            async for kind, value in answer(prompt, text):
-                if kind == "report" and "## Alıntılar" in value:
+            reader = doc_tree.summarise(text) if _SUMMARY_RE.search(prompt) else answer(prompt, text)
+            async for kind, value in reader:
+                if kind == "report" and "alıntı" in value.casefold():
                     await asyncio.to_thread(semantic_cache.store, text, prompt, value)
                 yield sse({"type": "status", "message": value} if kind == "status" else {"type": "token", "content": value})
         except (OSError, RuntimeError, ValueError) as exc:

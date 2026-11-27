@@ -20,7 +20,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, ValidationError
 
 import config
-from gateway import priority_gate
+from gateway import first_token, priority_gate
 from gateway import prompts as gw_prompts
 from gateway import registry as gw_registry
 from gateway.client_helpers import (
@@ -349,6 +349,7 @@ class LLMClient:
                 if call.cancel_token and call.cancel_token.cancelled:
                     break
                 if evt.get("type") == "token":
+                    acc or first_token.note(prep.chosen_model, t0, time.perf_counter())
                     acc.append(str(evt.get("content") or ""))
                 elif evt.get("type") == "done":
                     tok_in = int(evt.get("tokens_in") or prep.est_in)

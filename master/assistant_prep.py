@@ -24,6 +24,7 @@ import context_pins
 import extract as _extract_mod
 import long_doc
 import memory_timeline
+import pacing
 import reasoning_mode
 import reply_labels
 import research_context
@@ -498,6 +499,7 @@ def build_llm_stream_inputs(
     extra_blocks.append(reply_labels.now_context())
     extra_blocks.append(reply_labels.language_note(ctx["prompt"]))
     extra_blocks.append(reasoning_mode.guidance(ctx["prompt"]))
+    extra_blocks.append(pacing.audience_note(ctx["prompt"]))
     mem_ctx = "\n\n".join(b for b in extra_blocks if b)
     if mem_ctx and messages:
         messages[0]["content"] = f"{messages[0]['content']}\n\n{mem_ctx}"
