@@ -1,0 +1,2 @@
+Aşağıdaki dosyada yalnız listelenen fonksiyonlar çok büyük ya da çok dallanmış. Her birini küçük, adı anlamlı yardımcı fonksiyonlara böl: her fonksiyonda en çok 8 karar noktası ve 40 satır olsun. Davranış, görünen yazılar, id'ler ve dışarıya açık adlar AYNEN kalsın; yeni özellik ekleme, hiçbir şeyi silme.
+Bölünecekler:

@@ -1,0 +1,2 @@
+Sayfa gerçek tarayıcıda denetlendi. YALNIZ aşağıdaki koşullar karşılanmıyor; her satırın sonunda ölçülen sorun yazıyor. Başka hiçbir şeyi değiştirmeden yalnız bunları düzelt.
+Karşılanmayan koşullar:

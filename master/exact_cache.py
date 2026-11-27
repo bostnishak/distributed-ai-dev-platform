@@ -12,10 +12,13 @@ import time
 from collections.abc import Awaitable, Callable
 from pathlib import Path
 
+import diskcache
+
 import config
 
 _TTL_S = 7 * 86_400
-_MAX_ENTRIES = 2000
+_SIZE_LIMIT = 200 * 1024 * 1024
+_OPEN: dict[str, diskcache.Cache] = {}
 
 Chat = Callable[[str, str, dict], Awaitable[str]]
 
@@ -28,26 +31,28 @@ def key(system: str, user: str, schema: dict, model: str) -> str:
     return hashlib.sha256(json.dumps([model, system, user, schema], sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 
+def _store() -> diskcache.Cache:
+    """One DiskCache (SQLite underneath) per data folder; the oldest entries go when it is full."""
+    folder = str(_folder())
+    if folder not in _OPEN:
+        _OPEN[folder] = diskcache.Cache(folder, size_limit=_SIZE_LIMIT, eviction_policy="least-recently-stored")
+    return _OPEN[folder]
+
+
 def cached(chat: Chat, model: str, now: Callable[[], float] = time.time) -> Chat:
     """`chat` with its answers remembered."""
 
     async def ask(system: str, user: str, schema: dict) -> str:
-        path = _folder() / f"{key(system, user, schema, model)}.json"
-        try:
-            entry = json.loads(path.read_text(encoding="utf-8"))
-            if now() - entry["at"] < _TTL_S:
-                return entry["answer"]
-        except (OSError, ValueError, KeyError):
-            entry = None
+        store, name = _store(), key(system, user, schema, model)
+        entry = store.get(name)
+        if entry and now() - entry["at"] < _TTL_S:
+            return entry["answer"]
         answer = await chat(system, user, schema)
         try:
             json.loads(answer)  # only well-formed answers are worth repeating
         except ValueError:
             return answer
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps({"at": now(), "answer": answer}, ensure_ascii=False), encoding="utf-8")
-        for old in sorted(path.parent.glob("*.json"), key=lambda p: p.stat().st_mtime)[:-_MAX_ENTRIES]:
-            old.unlink(missing_ok=True)
+        store.set(name, {"at": now(), "answer": answer}, expire=_TTL_S)
         return answer
 
     return ask

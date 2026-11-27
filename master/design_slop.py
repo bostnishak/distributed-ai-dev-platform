@@ -12,7 +12,7 @@ _RADIUS_RE = re.compile(r"border-radius\s*:\s*([^;}]+)", re.IGNORECASE)
 
 
 def findings(ws_dir: Path, request: str) -> list[str]:
-    sources = [p for p in ws_dir.rglob("*") if p.suffix in (".html", ".css") and not any(x.startswith(".") for x in p.relative_to(ws_dir).parts) and p.name != "theme.css"]
+    sources = [p for p in ws_dir.rglob("*") if p.suffix in (".html", ".css") and "vendor" not in p.parts and not any(x.startswith(".") for x in p.relative_to(ws_dir).parts) and p.name != "theme.css"]
     text = "\n".join(p.read_text(encoding="utf-8", errors="replace") for p in sources)
     found = []
     if _PURPLE_GRADIENT_RE.search(text) and not re.search(r"mor|purple|violet|gradient|degrade", request, re.IGNORECASE):

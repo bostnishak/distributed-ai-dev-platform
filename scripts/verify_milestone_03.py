@@ -84,7 +84,7 @@ PAGE = """<!doctype html><meta charset="utf-8"><title>Notlar</title><link rel="i
 <form id="f"><input id="m" aria-label="Not"><button type="submit">Ekle</button></form><p id="h"></p><input type="search" id="a" placeholder="Ara" aria-label="Ara"><ul id="l"></ul>
 <script>
 async function yukle(){ const r = await fetch('/api/notlar'); const veri = await r.json(); l.replaceChildren(...veri.filter(n => n.metin.toLocaleLowerCase('tr').includes(a.value.toLocaleLowerCase('tr'))).map(n => { const li = document.createElement('li'); li.textContent = n.metin + ' '; const k = document.createElement('input'); k.type = 'checkbox'; k.checked = n.bitti; k.setAttribute('aria-label', 'Bitti'); k.onchange = () => fetch('/api/notlar/' + n.id + '/bitti', {method: 'PUT'}); li.append(k); const b = document.createElement('button'); b.textContent = 'Sil'; b.onclick = async () => { await fetch('/api/notlar/' + n.id, {method: 'DELETE'}); yukle(); }; li.append(b); return li; })); }
-f.addEventListener('submit', async e => { e.preventDefault(); const r = await fetch('/api/notlar', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({metin: m.value})}); h.textContent = r.ok ? '' : 'Boş not eklenemez'; if (r.ok) m.value = ''; yukle(); });
+f.addEventListener('submit', async e => { e.preventDefault(); const dugme = f.querySelector('button'); if (dugme.disabled) return; dugme.disabled = true; const r = await fetch('/api/notlar', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({metin: m.value})}); h.textContent = r.ok ? '' : 'Boş not eklenemez'; if (r.ok) m.value = ''; await yukle(); dugme.disabled = false; });
 a.addEventListener('input', yukle);
 yukle();
 </script>"""

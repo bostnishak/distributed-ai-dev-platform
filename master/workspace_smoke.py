@@ -14,13 +14,16 @@ import subprocess
 import sys
 import tempfile
 from collections.abc import AsyncIterator, Awaitable, Callable
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 import causal_debug
 import cheat_guard
+import clean_slate
 import complexity_governor
 import debug_probe
+import oscillation
 import spec_contract
 import workspace_behavior
 import workspace_docker
@@ -145,6 +148,36 @@ def _repair_prompt(ws_dir: Path, target: Path, log: str) -> tuple[str, str]:
     )
 
 
+def _read(path: Path) -> str:
+    return path.read_text(encoding="utf-8", errors="replace")
+
+
+@dataclass
+class _RepairMemory:
+    """What this repair loop already tried: the failed approaches and every state each file has been in."""
+
+    banned: list[str] = field(default_factory=list)
+    tracker: oscillation.Tracker = field(default_factory=oscillation.Tracker)
+
+
+def _keep(path: Path, text: str) -> None:
+    path.write_text(text, encoding="utf-8")
+
+
+async def _fix_once(ws_dir: Path, target: Path, log: str, regenerate: _Regenerate, memory: _RepairMemory) -> None:
+    """One repair of the failing file. After two that did not help, or as soon as a patch swings the file back to an
+    earlier state, the model starts from a clean context with the failed approaches banned."""
+    rel, ask = _repair_prompt(ws_dir, target, log)
+    before = _read(target)
+    if len(memory.banned) >= clean_slate.AFTER_FAILURES or memory.tracker.returns:
+        ask = clean_slate.prompt("", rel, before, log, memory.banned)
+    _apply_fix(target, await regenerate(rel, ask), ws_dir)
+    after = _read(target)
+    memory.banned.append(clean_slate.failed_approach(before, after, log))
+    if memory.tracker.repeats(rel, before, after):
+        _keep(target, before)  # the swung-back state is not kept
+
+
 def _guard_regression(ws_dir: Path, entry: Path) -> None:
     """The project failed to start and was repaired: leave a test so that this cannot come back unnoticed."""
     module = entry.relative_to(ws_dir).with_suffix("").as_posix().replace("/", ".")
@@ -184,6 +217,7 @@ async def smoke_and_repair(ws_dir: Path, regenerate: _Regenerate, rounds: int = 
     entry = _find_entry(ws_dir)
     log = ""
     scenarios: list[Any] = []
+    memory = _RepairMemory()
     for attempt in range(rounds + 1):
         yield {"type": "status", "message": "Proje çalıştırılarak test ediliyor..." if attempt == 0 else f"Hata düzeltildi, yeniden test ediliyor ({attempt}/{rounds})..."}
         try:
@@ -209,8 +243,7 @@ async def smoke_and_repair(ws_dir: Path, regenerate: _Regenerate, rounds: int = 
                 _guard_regression(ws_dir, entry)
             yield {"type": "smoke", "ok": True, "warning": test_warning}
             return
-        if attempt == rounds or target is None:
+        if attempt == rounds or target is None or memory.tracker.halted:
             break
-        rel, ask = _repair_prompt(ws_dir, target, log)
-        _apply_fix(target, await regenerate(rel, ask), ws_dir)
+        await _fix_once(ws_dir, target, log, regenerate, memory)
     yield {"type": "smoke", "ok": False, "warning": "Otomatik çalıştırma testi hata verdi: " + (log.strip().splitlines() or ["bilinmeyen hata"])[-1][:200]}

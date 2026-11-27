@@ -28,7 +28,7 @@ def extract(request: str) -> dict[str, list[str]]:
 
 def missing(ws_dir: Path, spec: dict[str, list[str]]) -> list[str]:
     """Colour codes and labels of the spec that no source file contains."""
-    files = (p for p in ws_dir.rglob("*") if p.suffix in _SOURCE_EXTS and p.is_file() and not any(part.startswith(".") for part in p.relative_to(ws_dir).parts))
+    files = (p for p in ws_dir.rglob("*") if p.suffix in _SOURCE_EXTS and p.is_file() and "vendor" not in p.parts and not any(part.startswith(".") for part in p.relative_to(ws_dir).parts))
     source = html.unescape("\n".join(p.read_text(encoding="utf-8", errors="replace") for p in files)).casefold()
     return [item for item in [*spec["colors"], *spec["labels"], *spec["sizes"]] if item.casefold() not in source]
 

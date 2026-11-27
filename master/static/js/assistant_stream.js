@@ -105,6 +105,9 @@ async function consumeAssistantStream(resp, ui, ctx) {
         res.fullText += evt.content;
         setSanitizedHtml(ui.bubble, renderMarkdown(res.fullText));
         if (ctx.state.currentChatId === ctx.targetChatId) ctx.scrollToBottomIfPinned(false);
+      } else if (evt.type === 'restart') {
+        res.fullText = '';
+        ui.bubble.textContent = 'Yanıt bozulmaya başladı (' + evt.reason + '), yeniden yazılıyor...';
       } else if (evt.type === 'status') {
         if (!ui.isStreaming() && evt.message) ui.bubble.textContent = evt.message;
       } else if (evt.type === 'council') {

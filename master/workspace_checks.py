@@ -12,7 +12,7 @@ from process_utils import run_process
 _JS_ID_RE = re.compile(r"""getElementById\(\s*['"]([\w-]+)['"]\s*\)|querySelector(?:All)?\(\s*['"]#([\w-]+)['"]\s*\)""")
 _HTML_ID_RE = re.compile(r"""\bid\s*=\s*["']([\w-]+)["']""")
 _JS_MAKES_ID_RE = re.compile(r"""(?:\.id\s*=\s*|id\s*=\s*\?["']|setAttribute\(\s*['"]id['"]\s*,\s*)['"]?([\w-]+)""")
-_SKIP = (".history", "node_modules", "dist", "build", "venv", ".venv")
+_SKIP = (".history", "node_modules", "dist", "build", "venv", ".venv", "vendor")
 
 
 def _files(ws_dir: Path, suffix: str) -> list[Path]:

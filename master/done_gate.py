@@ -17,6 +17,9 @@ from typing import Any
 
 import httpx
 
+import a11y
+import arch_scan
+import asset_vault
 import atomic_io
 import code_audit
 import flow_analysis
@@ -29,7 +32,10 @@ import preview_server
 import provenance
 import security_scan
 import shortcut_audit
+import slice_build
+import spec_pointer
 import state_property
+import torture
 import workspace_builder as wb
 import workspace_docker
 import workspace_requirements
@@ -164,10 +170,13 @@ def _server_checks(ws_dir: Path, server: live_server.LiveServer) -> tuple[str, s
         return FAILED, f"istenen uç noktalar çalışan sunucuda yok: {', '.join(absent[:5])}"
     api = state_property.check(server.url, server.rows, (lambda: live_journey.page_text(server.url + "/")) if has_page else None)
     evidence["api"] = {"checked": api.checked, "problems": api.problems}
+    tortured = torture.run(server.url, {**torture.QUICK, **torture.NETWORK}) if has_page and passed and not api.problems else None
+    evidence["torture"] = {name: list(outcome) for name, outcome in (tortured or {}).items()}
     atomic_io.write_text(ws_dir / EVIDENCE, json.dumps(evidence, ensure_ascii=False, indent=1))
     if api.problems:
         return FAILED, "; ".join(([] if passed else [detail]) + api.problems[:3])
-    return (PASSED if passed else FAILED), detail + (f" | API denetimi: {len(api.checked)} kontrol geçti" if api.checked else "")
+    proved = (PASSED if passed else FAILED), detail + (f" | API denetimi: {len(api.checked)} kontrol geçti" if api.checked else "")
+    return torture.judged(proved, tortured, FAILED)
 
 
 def server_proof(ws_dir: Path) -> tuple[str, str] | None:
@@ -182,20 +191,43 @@ def server_proof(ws_dir: Path) -> tuple[str, str] | None:
         return FAILED, f"canlı sunucu denemesi başarısız: {exc}"[:500]
 
 
+def _page_proof(ws_dir: Path) -> tuple[str, str]:
+    """The page served from the preview origin: real clicks, then the torture checks and critical accessibility faults."""
+    preview_server.start_preview_server_background()
+    url = f"{preview_server.get_preview_origin()}/preview/{ws_dir.name}/index.html"
+    for _attempt in range(20):
+        try:
+            httpx.get(url, timeout=2)
+            break
+        except httpx.HTTPError:
+            time.sleep(0.3)
+    status, detail = page_problems(url)
+    proved = torture.judged((status, detail), torture.run(url, torture.QUICK) if status == PASSED else None, FAILED)
+    if proved[0] == PASSED and (critical := [line for line in a11y.audit(url) or [] if line.startswith("critical")]):
+        return FAILED, ("Erişilebilirlik: " + "; ".join(critical[:3]))[:600]
+    return proved
+
+
+def _requested(ws_dir: Path) -> str:
+    """The request the project was frozen with: a link the user wrote there is their own choice."""
+    try:
+        return str(json.loads((ws_dir / spec_pointer.SPEC).read_text(encoding="utf-8")).get("request") or "")
+    except (OSError, ValueError, AttributeError):
+        return ""
+
+
 def live_proof(ws_dir: Path, warnings: list[str]) -> tuple[str, str]:
     failure = next((w for w in warnings if "Otomatik çalıştırma testi hata" in w), "")
     if failure:
         return FAILED, failure
+    if unmet := slice_build.summary(ws_dir)[1]:
+        return FAILED, "; ".join(unmet[:3])[:500]
+    if broken := arch_scan.blocking(ws_dir):
+        return FAILED, "; ".join(broken[:3])[:500]
+    if outside := asset_vault.blocking(ws_dir, _requested(ws_dir)):
+        return FAILED, ("İnternet olmadan çalışmaz, dış bağlantı var: " + "; ".join(outside[:3]))[:500]
     if (ws_dir / "index.html").is_file():
-        preview_server.start_preview_server_background()
-        url = f"{preview_server.get_preview_origin()}/preview/{ws_dir.name}/index.html"
-        for _attempt in range(20):
-            try:
-                httpx.get(url, timeout=2)
-                break
-            except httpx.HTTPError:
-                time.sleep(0.3)
-        return page_problems(url)
+        return _page_proof(ws_dir)
     if (served := server_proof(ws_dir)) is not None:
         return served
     if any(f.endswith(".py") for f in wb.list_relative_files(ws_dir)):

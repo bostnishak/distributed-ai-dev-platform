@@ -25,7 +25,7 @@ _UNSAFE_RULES = (
 def _sources(ws_dir: Path):
     for path in ws_dir.rglob("*"):
         parts = path.relative_to(ws_dir).parts
-        if path.is_file() and path.suffix in _EXTS and not any(p.startswith(".") or p == "node_modules" for p in parts[:-1]):
+        if path.is_file() and path.suffix in _EXTS and not any(p.startswith(".") or p in ("node_modules", "vendor") for p in parts[:-1]):
             yield path
 
 

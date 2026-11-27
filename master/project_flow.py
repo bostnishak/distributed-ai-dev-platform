@@ -24,8 +24,10 @@ import ledger
 import plan_matrix
 import post_checks
 import preferences
+import req_ledger
 import security_scan
 import skill_library
+import slice_build
 import spec_contract
 import taste
 import wiki_ground
@@ -207,6 +209,41 @@ def _note_assumptions(ws_id: str, assumed: list[str]) -> None:
         ledger.assume(wb.safe_workspace_dir(ws_id), assumed)
 
 
+async def _build_events(request: str, project_type: str, model_override: str | None, wanted: tuple[req_ledger.Req, ...]) -> AsyncIterator[dict[str, Any]]:
+    """The file writing, with the requirement ledger in force so a many-constraint page is built in checked slices."""
+    import workspace_builder as wb
+
+    token = req_ledger.ACTIVE.set(wanted)
+    try:
+        async for evt in wb.stream_generate_project(request, project_type=project_type, model_override=model_override, run_smoke=False):
+            yield evt
+    finally:
+        req_ledger.ACTIVE.reset(token)
+
+
+async def _ledger_events(evt: dict[str, Any], wanted: tuple[req_ledger.Req, ...]) -> AsyncIterator[dict[str, Any]]:
+    """The delivered project is judged against the ledger once more; unmet requirements become warnings of 'done'."""
+    import workspace_builder as wb
+
+    if evt["type"] == "done" and wanted:
+        line, unmet = await asyncio.to_thread(slice_build.final, wb.safe_workspace_dir(evt["workspace"]["id"]), wanted)
+        if line:
+            yield {"type": "status", "message": line}
+            evt = {**evt, "warnings": [*evt.get("warnings", []), *unmet]}
+    yield evt
+
+
+def _with_plan(done: dict[str, Any], contract: Any) -> dict[str, Any]:
+    """The contract and the plan written beside the project; what the code visibly lacks is added to the warnings."""
+    import workspace_builder as wb
+
+    if not contract:
+        return done
+    ws_built = wb.safe_workspace_dir(done["workspace"]["id"])
+    (ws_built / spec_contract.SPEC_FILE).write_text(contract.model_dump_json(indent=2), encoding="utf-8")
+    return {**done, "warnings": [*done.get("warnings", []), *plan_matrix.write(ws_built, contract.model_dump(), wb.list_relative_files(ws_built))]}
+
+
 async def stream_generate(prompt: str, project_type: str = "auto", model_override: str | None = None) -> AsyncIterator[dict[str, Any]]:
     """Drop-in replacement for workspace_builder.stream_generate_project with research and a coverage pass."""
     import workspace_builder as wb
@@ -233,19 +270,18 @@ async def stream_generate(prompt: str, project_type: str = "auto", model_overrid
     info, contract, notes = ready["info"], ready["contract"], ready["notes"]
     done: dict[str, Any] = {}
     assumed = ledger.assumption_lines(spoken)
-    async for evt in wb.stream_generate_project(prompt + brief_text(info) + notes, project_type=project_type, model_override=model_override, run_smoke=False):
+    wanted = req_ledger.build(contract.model_dump(), prompt) if contract else ()
+    async for evt in _build_events(prompt + brief_text(info) + notes, project_type, model_override, wanted):
         if evt["type"] == "done":
             done = evt
         else:
             yield evt
-    if done and contract:
-        ws_built = wb.safe_workspace_dir(done["workspace"]["id"])
-        (ws_built / spec_contract.SPEC_FILE).write_text(contract.model_dump_json(indent=2), encoding="utf-8")
-        done = {**done, "warnings": [*done.get("warnings", []), *plan_matrix.write(ws_built, contract.model_dump(), wb.list_relative_files(ws_built))]}
     if done:
+        done = _with_plan(done, contract)
         _note_assumptions(done["workspace"]["id"], assumed)
         async for evt in _coverage_events(done, info, (think, write)):
-            yield evt
+            async for out in _ledger_events(evt, wanted):
+                yield out
 
 
 async def _research_events(prompt: str, think: Any) -> AsyncIterator[dict[str, Any]]:

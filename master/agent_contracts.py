@@ -68,7 +68,7 @@ async def intake(request: str, chat: _Chat | None = None) -> SpecificationContra
     answer.buttons = [b for b in answer.buttons if b.label.casefold() in named]  # a button the user never named is a hallucination
     answer.endpoints = [e for e in answer.endpoints if e.path.casefold() in named]  # likewise an endpoint
     answer.regions = [r for r in answer.regions if any(w in named for w in r.casefold().split() if len(w) > 2)]
-    if answer.persistence and not any(w in named for w in ("sakla", "kaydet", "kalıcı", "veritaban", "sqlite", "persist", "database", "save", "store")):
+    if answer.persistence and not any(w in named for w in ("sakla", "kaydet", "kalıcı", "kalsın", "yenilen", "localstorage", "veritaban", "sqlite", "persist", "database", "save", "store")):
         answer.persistence = ""
     return SpecificationContract(**answer.model_dump(), **spec_contract.extract(request))
 

@@ -19,6 +19,7 @@ import httpx
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 
+import asset_vault
 import config
 import process_registry
 import workspace_builder as wb
@@ -67,6 +68,17 @@ async def serve_isolated_preview(ws_id: str, filepath: str):
             "Content-Security-Policy": _PREVIEW_CSP,
         },
     )
+
+
+@preview_app.get("/vendor/{filepath:path}")
+async def serve_vault(filepath: str):
+    """The local asset vault, read-only, so a page can use a library or font without the internet."""
+    root = asset_vault.source().resolve()
+    target = (root / filepath).resolve()
+    if root not in target.parents or not target.is_file():
+        raise HTTPException(status_code=404, detail="Kasada yok.")
+    media, _ = mimetypes.guess_type(str(target))
+    return FileResponse(target, media_type=media or "application/octet-stream", headers={"X-Content-Type-Options": "nosniff", "Cache-Control": "max-age=86400"})
 
 
 _STATE: dict[str, int] = {"port": 0}

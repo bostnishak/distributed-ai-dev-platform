@@ -23,8 +23,10 @@ from typing import Any
 
 import httpx
 
+import arch_heal
 import build_dag
 import checkpoint
+import chunked_code
 import config
 import repo_map
 import security_scan
@@ -123,18 +125,11 @@ async def pick_coder_model(preferred: str | None = None) -> str:
 
 async def _ollama_generate(model: str, system: str, user: str, num_predict: int = 4096, temperature: float = 0.25) -> str:
     import gateway
+    from gateway import stream_guard
 
     prof = "code" if temperature <= 0.3 else "analytic"
-    res = await gateway.default_client.chat(
-        [{"role": "system", "content": system}, {"role": "user", "content": user}],
-        model=model,
-        profile=prof,
-        num_predict=num_predict,
-        timeout_s=600.0,
-        feature="workspace_builder",
-        max_retries=0,
-    )
-    return res.content
+    messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
+    return await stream_guard.collect(gateway.default_client, messages, system == FILE_WRITER_SYSTEM_PROMPT, model=model, profile=prof, num_predict=num_predict, timeout_s=600.0, feature="workspace_builder")
 
 
 def _strip_code_fences(raw: str) -> str:
@@ -424,6 +419,26 @@ def _write_workspace_file(ws_dir: Path, fpath: str, code: str) -> Path:
     return target
 
 
+async def _first_draft(model: str, fspec: dict[str, str], file_prompt: str) -> str:
+    """One shot for ordinary files; skeleton first when the file is going to be long or the single shot was cut off."""
+    system = fspec.get("system") or FILE_WRITER_SYSTEM_PROMPT
+
+    async def generate(user: str) -> str:
+        return await _ollama_generate(model=model, system=system, user=user, num_predict=fspec.get("tokens", 4096), temperature=0.2)
+
+    code = "" if chunked_code.wanted(fspec["path"], file_prompt) else _strip_code_fences(await generate(file_prompt))
+    if code and not chunked_code.cut_off(fspec["path"], code):
+        return code
+    try:
+        whole, unfilled = await chunked_code.write(file_prompt, generate)
+    except ValueError as exc:
+        _log.warning("skeleton-first generation of %s failed: %s", fspec["path"], exc)
+        return code or _strip_code_fences(await generate(file_prompt))
+    if unfilled:
+        _log.warning("%s: functions left unfilled: %s", fspec["path"], ", ".join(unfilled))
+    return whole
+
+
 async def _generate_and_write_file(
     ws_dir: Path,
     model: str,
@@ -432,8 +447,8 @@ async def _generate_and_write_file(
 ) -> str:
     fpath = fspec["path"]
     model = await pick_coder_model(fspec["model"]) if fspec.get("model") else model  # missing model: best installed one
-    raw_code = await _ollama_generate(model=model, system=fspec.get("system") or FILE_WRITER_SYSTEM_PROMPT, user=file_prompt, num_predict=fspec.get("tokens", 4096), temperature=0.2)
-    code = await _validate_and_fix_code(model, fpath, _strip_code_fences(raw_code))
+    code = await _first_draft(model, fspec, file_prompt)
+    code = await _validate_and_fix_code(model, fpath, code)
     _write_workspace_file(ws_dir, fpath, code)
     return code
 
@@ -558,8 +573,12 @@ async def stream_iterate_project(
         )
         return current_content, edit_prompt
 
+    used_before = arch_heal.alive(ws_dir)
     async for evt in build_dag.edit_files(ws_dir, instruction, model, targets, prompt_for):
         yield evt
+    split = await arch_heal.decompose(ws_dir, lambda system, user: _ollama_generate(model, system, user, temperature=0.1))
+    for line in [*split, *arch_heal.heal(ws_dir, used_before=used_before)]:
+        yield {"type": "status", "message": line}
 
     repair_project(ws_dir)
     warnings = verify_workspace_files(ws_dir) + [n for n in (repo_map.dependents_note(ws_dir, [f['path'] for f in targets]),) if n]

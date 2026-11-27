@@ -1,0 +1,2 @@
+Mevcut sayfaya YALNIZ aşağıdaki koşulları ekle. Var olan yerleşimi, id'leri, renkleri ve çalışan davranışları değiştirme.
+Eklenecek koşullar:

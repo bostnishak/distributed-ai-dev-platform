@@ -1,0 +1,15 @@
+([count]) => {
+  const field = document.querySelector('input:not([type]), input[type=text], textarea');
+  const button = [...document.querySelectorAll('button, input[type=submit]')].find(b => /ekle|kaydet|oluştur|add|save|create/i.test(b.innerText || b.value));
+  for (let i = 0; i < count; i++) {
+    field.value = 'yük-' + i;
+    field.dispatchEvent(new Event('input', {bubbles: true}));
+    for (const n of document.querySelectorAll('input[type=number]')) n.value = '1';
+    button.click();
+  }
+  const started = performance.now();
+  field.value = 'son-kayıt';
+  button.click();
+  document.body.offsetHeight;
+  return {ms: performance.now() - started, nodes: document.getElementsByTagName('*').length};
+}

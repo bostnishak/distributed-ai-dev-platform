@@ -1,0 +1,2 @@
+Aşağıdaki dosya, listelenen koşulları karşılamıyor. Önceki denemeleri unut: yalnız burada yazanlara bak ve dosyayı baştan, temiz biçimde yaz.
+Yalnız dosyanın EKSİKSİZ yeni içeriğini ```kod bloğu``` içinde döndür, açıklama yazma. Karşılanmış davranışları bozma.

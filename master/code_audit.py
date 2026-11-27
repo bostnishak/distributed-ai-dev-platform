@@ -18,7 +18,7 @@ from pathlib import Path
 import static_lint
 from process_utils import run_process
 
-_SKIP = {".history", "venv", ".venv", "node_modules", "__pycache__", ".git"}
+_SKIP = {".history", "venv", ".venv", "node_modules", "__pycache__", ".git", "vendor"}
 _SOURCES = ("input", "request.args", "request.form", "request.json", "request.values", "request.get_json", "sys.argv", "request.query_params", "request.path_params")
 _SINKS = {"execute": "SQL", "executescript": "SQL", "executemany": "SQL", "system": "kabuk", "popen": "kabuk", "eval": "kod", "exec": "kod", "render_template_string": "HTML şablonu"}
 _ROUTE_RE = re.compile(r"\.(?:get|post|put|delete|patch|route)$")

@@ -20,7 +20,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, ValidationError
 
 import config
-from gateway import first_token, priority_gate
+from gateway import first_token, priority_gate, stream_guard
 from gateway import prompts as gw_prompts
 from gateway import registry as gw_registry
 from gateway.client_helpers import (
@@ -345,12 +345,14 @@ class LLMClient:
         acc: list[str] = []
         tok_in, tok_out = prep.est_in, 0
         try:
-            async for evt in prov.stream(prep.chosen_model, prep.fitted_msgs, prep.decoding_opts, timeout_s=call.timeout_s):
+            async for evt in stream_guard.watched(prov, prep.chosen_model, prep.fitted_msgs, prep.decoding_opts, call.timeout_s):
                 if call.cancel_token and call.cancel_token.cancelled:
                     break
                 if evt.get("type") == "token":
                     acc or first_token.note(prep.chosen_model, t0, time.perf_counter())
                     acc.append(str(evt.get("content") or ""))
+                elif evt.get("type") == "restart":
+                    acc.clear()
                 elif evt.get("type") == "done":
                     tok_in = int(evt.get("tokens_in") or prep.est_in)
                     tok_out = int(evt.get("tokens_out") or gw_registry.estimate_tokens("".join(acc)))
@@ -362,7 +364,7 @@ class LLMClient:
                 CallTraceRecord(
                     run_id=prep.rid,
                     user_id=call.user_id,
-                    feature="stream",
+                    feature=call.feature or "stream",
                     template_version="",
                     provider=prep.chosen_prov,
                     model=prep.chosen_model,
@@ -381,7 +383,7 @@ class LLMClient:
                 CallTraceRecord(
                     run_id=prep.rid,
                     user_id=call.user_id,
-                    feature="stream",
+                    feature=call.feature or "stream",
                     template_version="",
                     provider=prep.chosen_prov,
                     model=prep.chosen_model,

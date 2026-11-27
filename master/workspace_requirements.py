@@ -10,6 +10,7 @@ import re
 import sys
 from pathlib import Path
 
+import asset_vault
 from workspace_kit import inject_theme
 
 _PIP_NAMES = {
@@ -221,7 +222,7 @@ def _classic_scripts(ws_dir: Path) -> None:
             if not target.is_file() or ws_dir.resolve() not in target.parents:
                 continue
             code = target.read_text(encoding="utf-8", errors="replace")
-            fixed = _EXPORT_RE.sub(r"", _ES_LINE_RE.sub("", code))
+            fixed = _EXPORT_RE.sub(r"\1", _ES_LINE_RE.sub("", code))
             if fixed != code:
                 target.write_text(fixed, encoding="utf-8")
 
@@ -271,3 +272,4 @@ def repair_project(ws_dir: Path) -> None:
     _refresh_static_copies(ws_dir)
     _add_package_launcher(ws_dir)
     _ensure_db_tables(ws_dir)
+    asset_vault.localize(ws_dir)  # CDN links become copies from the local vault: the page works offline

@@ -19,6 +19,7 @@ from dataclasses import dataclass
 from xml.etree import ElementTree
 
 import config
+import docs_index
 
 _log = logging.getLogger(__name__)
 _AGENT = {"User-Agent": "research-reader/1.0", "Accept": "application/json, application/atom+xml"}
@@ -157,7 +158,18 @@ def offline_docs(query: str, limit: int = 3) -> list[Page]:
             pages.setdefault(url, Page(url, f"Çevrimdışı belge ({slug}): {name}", text[:12000]))
         if len(pages) == limit:
             break
+    if slugs and len(pages) < limit:
+        _fill_from_index(pages, query, tuple(slugs[:3]), limit)
     return list(pages.values())
+
+
+def _fill_from_index(pages: dict[str, Page], query: str, slugs: tuple[str, ...], limit: int) -> None:
+    """Names did not give enough: the full-text index of the same documentation adds pages that discuss the words."""
+    docs_index.build()
+    for slug, path, name, text in docs_index.search(" ".join(terms(query)), slugs, limit):
+        url = f"https://devdocs.io/{slug}/{path}"
+        if len(pages) < limit and len(text) > 200:
+            pages.setdefault(url, Page(url, f"Çevrimdışı belge ({slug}): {name}", text[:12000]))
 
 
 def online(query: str) -> list[Page]:
