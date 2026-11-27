@@ -1016,3 +1016,28 @@ def test_a_two_or_three_slide_request_can_be_satisfied():
     assert not deep_research._slides_are_real(spec(1), "Depo verimliliği üzerine 3 slaytlık sunum hazırla.")
     assert not deep_research._slides_are_real(spec(2), "Depo verimliliği üzerine sunum hazırla.")
     assert deep_research._slides_are_real(spec(3), "Depo verimliliği üzerine sunum hazırla.")
+
+
+def test_marked_values_never_reach_documents_logs_or_training_data(monkeypatch):
+    import confidential
+    import document_factory
+    import log_sanitizer
+    import security_scan
+
+    store = {}
+    monkeypatch.setattr(confidential.secret_store, "set_secret", store.__setitem__)
+    monkeypatch.setattr(confidential.secret_store, "get_secret", lambda name: store.get(name, ""))
+    monkeypatch.setattr(confidential.secret_store, "delete_secret", lambda name: store.pop(name, None))
+    confidential._cache.clear()
+    assert "işaretlendi" in confidential.observe("gizli işaretle: Mavi Fil Projesi")
+    assert confidential.observe("Maaş listesi <gizli>Ayşe 85.000 TL</gizli> için özet yaz") == ""
+    text = "mavi  fil\nprojesi bütçesi; AYŞE 85.000 TL alıyor."
+    for sink in (security_scan.redact, log_sanitizer.redact_sensitive_text):
+        out = sink(text)
+        assert "fil" not in out.casefold() and "85.000" not in out and out.count(confidential.MASK) == 2, out
+    content = document_factory._DocContent("Mavi Fil Projesi", "Ayşe 85.000 TL", [{"heading": "x", "content": "mavi fil projesi"}], ["a"], [["Ayşe 85.000 TL", 5]], "Türkçe")
+    clean = confidential.scrub(content)
+    assert confidential.MASK in clean.title and clean.rows == [[confidential.MASK, 5]] and "fil" not in str(clean.sections).casefold()
+    assert "silindi" in confidential.observe("gizli verileri unut")
+    assert security_scan.redact("mavi fil projesi") == "mavi fil projesi"
+    confidential._cache.clear()

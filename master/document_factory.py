@@ -31,6 +31,7 @@ from openpyxl.formatting.rule import ColorScaleRule
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
+import confidential
 import multimodal_studio as mms
 import office_flow
 from document_chart import _coerce_excel_cell, _row_height, chart_series, format_cell, render_bar_chart_png
@@ -39,7 +40,6 @@ from document_formulas import is_rate_column, row_total_formula
 from prompt_loader import load_prompt
 
 logger = logging.getLogger(__name__)
-
 _DOC_BLOCK_RE = re.compile(r"(?:\bbalonla\w*|\bteknik\s+çizim\b|(?<!\w)(?:\.exe|exe)(?!\w)|\b(?:web\s+sitesi|e-ticaret\s+sitesi|oyun)\s+(?:yap|oluştur|olustur|kur|kodla|programla)\w*\b|nasıl\s+yapılır|nasil\s+yapilir|yaparken|nelere\s+dikkat|ipuçları|ipuclari|tavsiyeler|\bhow\s+to\b|\btips\s+for\b)", re.I)
 DOC_ACTION_RE = re.compile(r"(?:hazırla\w*|hazirla\w*|oluştur\w*|olustur\w*|yap\w*|üret\w*|uret\w*|çıkar\w*|cikar\w*|ver\w*|yaz\w*|indir\w*|dışa\s+aktar\w*|disa\s+aktar\w*|derle\w*|kaydet\w*|\b(?:create|generate|make|build|produce|export|write|draft|prepare|compile|download|save|output)\w*\b)", re.I)
 _FMT_MATCHERS: tuple[tuple[str, re.Pattern[str]], ...] = (
@@ -220,7 +220,7 @@ async def generate_document_deliverable(prompt: str, fmt: str, context_text: str
             raise RuntimeError(_NO_CONTENT_MSG) from exc
         logger.warning("document_factory: LLM call failed (%s); using the uploaded source data only", exc)
     content = _DocContent(str(spec.get("title") or lbl["report"]), str(spec.get("summary") or ""), list(spec.get("sections") or []), [str(h) for h in (spec.get("table_headers") or [lbl["item"], lbl["content"], lbl["value"]])], list(spec.get("table_rows") or []), target_lang)
-    out_path = _compile_deliverable_file(mms.media_dir(), file_id, fmt, content)
+    out_path = _compile_deliverable_file(mms.media_dir(), file_id, fmt, content := confidential.scrub(content))  # marked values never leave in a file
     return {"file_id": file_id, "format": fmt, "title": content.title, "summary": content.summary, "sections": content.sections, "table_headers": content.headers, "table_rows": content.rows, "model": model, "url": f"/api/assistant/media/{out_path.name}"}
 
 

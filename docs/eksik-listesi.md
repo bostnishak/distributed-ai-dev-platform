@@ -77,7 +77,7 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [x] Bellek: sabitleme
 - [x] Bellek: süre sonu
 - [x] Bellek: kalıcı silme (`hafızamı göster`, `hafıza <no> sabitle / süre N gün / kalıcı sil`)
-- [~] Gizli etiketli verinin PDF, günlük ve eğitim verisine sızması — sır taraması var, etiket yayılımı yok
+- [x] Gizli işaretlenen değerler belgeye, sunuma, günlüğe ve eğitim verisine yazılmıyor (`<gizli>...</gizli>`, `gizli işaretle: ...`)
 - [x] Köken kaydı: model özeti, üretim ayarları, kanıt özetleri (teslim kaydında)
 - [x] Fonksiyonlar arası veri akışı, ölü kod, boş değer erişimi (`flow_analysis.py`; platformun kendi kodunda 2 gerçek açık buldu)
 - [x] Önce/sonra ölçümlü performans karşılaştırması (`.ai-os/performance.md`)

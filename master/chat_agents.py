@@ -10,6 +10,7 @@ from fastapi.responses import StreamingResponse
 import arena
 import best_of_n
 import browser_agent
+import confidential
 import daemons
 import data_chart
 import decisions
@@ -76,6 +77,10 @@ def _agents(prompt: str, history: str) -> StreamingResponse | None:
 def fastpath(prompt: str, file: UploadFile | None, history: str = "") -> StreamingResponse | None:
     if file is not None and file.filename:
         return doc_tools.fastpath(prompt, file) or design_from_image.fastpath(prompt, file) or data_chart.fastpath(prompt, file) or eda.fastpath(prompt, file) or doc_reader.fastpath(prompt, file)
+    if reply := confidential.observe(prompt):
+        import assistant_stream_fastpaths as fp
+
+        return fp.single_token_stream(reply, "kod", "gizlilik")
     preferences.remember(prompt)
     if result := _command(prompt, history):
         import assistant_stream_fastpaths as fp

@@ -25,6 +25,7 @@ from pptx.oxml import parse_xml
 from pptx.oxml.ns import nsdecls
 from pptx.util import Inches
 
+import confidential
 import deck_plan
 import json_repair
 import multimodal_studio as mms
@@ -176,8 +177,19 @@ def build_pptx_presentation(
             _render_cover_slide(slide, str(sdata.get("title") or title), str(sdata.get("subtitle") or cover_sub), ctx, cover_notes)
         else:
             _render_content_slide(slide, sdata, ctx)
+    confidential_free(prs)
     prs.save(str(out_path))
     return out_path
+
+
+def confidential_free(prs: Any) -> None:
+    """Replace marked values in every text run of the deck, speaker notes included."""
+    for slide in prs.slides:
+        frames = [shape.text_frame for shape in slide.shapes if shape.has_text_frame]
+        frames += [cell.text_frame for shape in slide.shapes if shape.has_table for row in shape.table.rows for cell in row.cells]
+        frames += [slide.notes_slide.notes_text_frame] if slide.has_notes_slide else []
+        for run in (r for frame in frames if frame is not None for paragraph in frame.paragraphs for r in paragraph.runs):
+            run.text = confidential.redact(run.text)
 
 
 _PLACEHOLDER_RE = re.compile(r"<[^<>\n]{2,40}>")

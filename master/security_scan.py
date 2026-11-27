@@ -5,6 +5,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+import confidential
+
 _EXTS = (".py", ".js", ".ts", ".html", ".json", ".env", ".yml", ".yaml")
 _SECRET_RULES = (
     ("gizli anahtar", re.compile(r"\b(?:sk-[A-Za-z0-9_-]{20,}|ghp_[A-Za-z0-9]{30,}|AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{30,})")),
@@ -48,4 +50,4 @@ def redact(text: str) -> str:
     """The text with anything that looks like a secret removed (used before a run is stored)."""
     for _name, rx in _SECRET_RULES:
         text = rx.sub("[GİZLİ]", text)
-    return text
+    return confidential.redact(text)

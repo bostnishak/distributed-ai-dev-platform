@@ -11,6 +11,8 @@ import logging
 import re
 from typing import Any
 
+import confidential
+
 _REDACT_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
     # HTTP Auth headers & key-value secrets
     (re.compile(r"(?i)(authorization\s*[:=]\s*(?:bearer|basic)\s+)[^\s,;\"']+"), r"\1[REDACTED]"),
@@ -48,7 +50,7 @@ def redact_sensitive_text(text: str) -> str:
     out = (text or "")
     for pat, repl in _REDACT_PATTERNS:
         out = pat.sub(repl, out)
-    return out
+    return confidential.redact(out)
 
 
 def redact_sensitive_data(obj: Any, debug_mode: bool = False) -> Any:
