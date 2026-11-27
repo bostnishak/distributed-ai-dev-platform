@@ -1,2 +1,3 @@
-# False positive: `config.SECRET_KEY = new_secret_key.strip()` assigns a variable, no secret is in the file.
+# Verified false positives: an assignment from a variable, and an earlier version of this very comment. No secret values.
 fe349f3ace0e324fa4839d356e8d3eae5126f65f:master/secret_store.py:cm6453-secret-key:179
+8562ea5cefe6d868b15b66990b7897b7cac544c7:.gitleaksignore:cm6453-secret-key:1

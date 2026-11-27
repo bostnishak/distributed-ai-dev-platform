@@ -21,6 +21,7 @@ from typing import Any
 
 import config
 import event_log
+import isolation
 import safe_archive
 from process_utils import run_process, spawn_process
 
@@ -29,6 +30,7 @@ META_FILENAME = ".workspace.json"
 _PREVIEW_ENTRIES = ("index.html", "public/index.html", "frontend/index.html")
 _TR_ASCII_MAP = str.maketrans("çğıöşüÇĞİÖŞÜ", "cgiosuCGIOSU")
 _RUNNING_SERVERS: dict[str, tuple[int, subprocess.Popen]] = {}
+_JOBS: dict[str, object] = {}
 log = logging.getLogger(__name__)
 
 
@@ -450,5 +452,7 @@ def start_workspace_server(ws_id: str) -> dict[str, Any]:
             cmd = [sys.executable, "-m", "flask", "--app", entry.stem, "run", "--host", "127.0.0.1", "--port", str(port)]
 
     proc = spawn_process(cmd, cwd=ws_dir)
+    isolation.release(_JOBS.pop(ws_id, None))
+    _JOBS[ws_id] = isolation.contain(proc)  # generated code on the host: capped, ends with the job
     _RUNNING_SERVERS[ws_id] = (port, proc)
     return {"ok": True, "port": port, "url": f"http://127.0.0.1:{port}"}

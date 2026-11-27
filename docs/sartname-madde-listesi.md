@@ -9,9 +9,9 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 |---|---|---|---|---|---|---|---|
 | v1 | 17 | 13 | 2 | 0 | 0 | 0 | 32 |
 | v2 | 9 | 13 | 13 | 6 | 2 | 1 | 44 |
-| v3 | 9 | 15 | 12 | 7 | 5 | 2 | 50 |
+| v3 | 9 | 16 | 12 | 6 | 5 | 2 | 50 |
 | v4 | 16 | 11 | 5 | 1 | 0 | 0 | 33 |
-| **Hepsi** | 51 | 52 | 32 | 14 | 7 | 3 | 159 |
+| **Hepsi** | 51 | 53 | 32 | 13 | 7 | 3 | 159 |
 
 ## v1
 
@@ -93,7 +93,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 7.3 | WebSocket canlı DAG akışı | kısmi | SSE ile aşama akışı var |
 | 8.1 | İzleme (OpenTelemetry) ve pano | kısmi | telemetry_otel, run_trace; pano yok |
 | 8.2 | 25+ senaryoluk altın test takımı | canlı | scripts/golden.py: hızlı küme canlıda; --slow ile üretim senaryoları |
-| 8.3 | Sürüm kapısı ölçütleri | test | eval_stats (hatta bağlı değil) |
+| 8.3 | Sürüm kapısı ölçütleri | test | eval_stats: golden ve release_guard içinde |
 | 9 | Çalışırken duraklatma ve yönlendirme | yok |  |
 | 9 | Kanıt kartı (doğrulama özeti) | canlı | IDE 'Kanıt' çekmecesi |
 | 9 | İki varyant yan yana | test | variants.py: iki üretim arka arkaya, iki kart |
@@ -135,7 +135,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 6.2 | Bağlam sayfalama | yok |  |
 | 6.3 | Uyku birleştirmesi ve çelişki çözümü | kısmi | memory_conflicts, memory_maintenance |
 | 6.3 | Bellek denetim ve silme | test | memory_api, retention |
-| 7.1 | WASM ve iş nesnesi yalıtımı | test | isolation (hatta bağlı değil) |
+| 7.1 | WASM ve iş nesnesi yalıtımı | test | isolation.py: sohbetten başlatılan canlı sunucu iş nesnesiyle sınırlı |
 | 7.2 | Leke (taint) izleme ve yetki düşürme | test | policy.Context; çalışma düzeyinde, bayt düzeyinde değil |
 | 7.3 | Kod olarak politika | test | policy.py (OPA/Cedar değil) |
 | 7.4 | İmzalı köken kaydı ve SBOM | canlı | provenance |
@@ -152,7 +152,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 10 | Elle yapılan düzenlemeyi koruma | kısmi | yama korur, geri al, tercih belleği; elle düzenlemeden sinyal yok |
 | 11.1 | Parametrik benchmark üretici | test | golden.py: tohumdan rastgele değerler |
 | 11.2 | İstatistiksel sürüm kapısı, SPRT | test | eval_stats |
-| 11.2 | Otomatik geri alma | yok |  |
+| 11.2 | Otomatik geri alma | test | release_guard.py: gerileyen koşuda istemleri geri alır (golden.py --auto-rollback); canlı trafik izlemiyor |
 
 ## v4
 

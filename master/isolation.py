@@ -68,6 +68,28 @@ def run_capped(args: list[str], memory_mb: int = 512, processes: int = 8, timeou
             kernel.CloseHandle(handle)
 
 
+def contain(proc: subprocess.Popen, memory_mb: int = 1024, processes: int = 16) -> tuple[ctypes.WinDLL, int] | None:
+    """Put an already started long-running process under memory and process limits; None where that is not possible.
+
+    Closing the returned handle (`release`) ends the whole process tree.
+    """
+    if sys.platform != "win32":
+        return None
+    try:
+        kernel, handle = _job(memory_mb, processes)
+    except OSError:
+        return None
+    if not kernel.AssignProcessToJobObject(handle, int(proc._handle)):
+        kernel.CloseHandle(handle)
+        return None
+    return kernel, handle
+
+
+def release(contained: tuple[ctypes.WinDLL, int] | None) -> None:
+    if contained:
+        contained[0].CloseHandle(contained[1])
+
+
 def run_wasm(wat_or_wasm: str | bytes, function: str, *values: int, fuel: int = 1_000_000) -> int:
     """Call an exported function with no imports (no files, no network); RuntimeError when it runs out of fuel or traps."""
     import wasmtime

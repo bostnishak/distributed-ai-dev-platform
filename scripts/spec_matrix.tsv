@@ -71,7 +71,7 @@ v2	7.3	Öncelikli GPU kuyruğu	K	chat_queue bildirim veriyor; öncelik yok
 v2	7.3	WebSocket canlı DAG akışı	K	SSE ile aşama akışı var
 v2	8.1	İzleme (OpenTelemetry) ve pano	K	telemetry_otel, run_trace; pano yok
 v2	8.2	25+ senaryoluk altın test takımı	C	scripts/golden.py: hızlı küme canlıda; --slow ile üretim senaryoları
-v2	8.3	Sürüm kapısı ölçütleri	T	eval_stats (hatta bağlı değil)
+v2	8.3	Sürüm kapısı ölçütleri	T	eval_stats: golden ve release_guard içinde
 v2	9	Çalışırken duraklatma ve yönlendirme	Y
 v2	9	Kanıt kartı (doğrulama özeti)	C	IDE 'Kanıt' çekmecesi
 v2	9	İki varyant yan yana	T	variants.py: iki üretim arka arkaya, iki kart
@@ -108,7 +108,7 @@ v3	6.1	İki zamanlı bilgi grafiği	T	memory_timeline
 v3	6.2	Bağlam sayfalama	Y
 v3	6.3	Uyku birleştirmesi ve çelişki çözümü	K	memory_conflicts, memory_maintenance
 v3	6.3	Bellek denetim ve silme	T	memory_api, retention
-v3	7.1	WASM ve iş nesnesi yalıtımı	T	isolation (hatta bağlı değil)
+v3	7.1	WASM ve iş nesnesi yalıtımı	T	isolation.py: sohbetten başlatılan canlı sunucu iş nesnesiyle sınırlı
 v3	7.2	Leke (taint) izleme ve yetki düşürme	T	policy.Context; çalışma düzeyinde, bayt düzeyinde değil
 v3	7.3	Kod olarak politika	T	policy.py (OPA/Cedar değil)
 v3	7.4	İmzalı köken kaydı ve SBOM	C	provenance
@@ -125,7 +125,7 @@ v3	10	Köken ve bellek çekmeceleri	K	kanıt çekmecesi var; bellek çekmecesi y
 v3	10	Elle yapılan düzenlemeyi koruma	K	yama korur, geri al, tercih belleği; elle düzenlemeden sinyal yok
 v3	11.1	Parametrik benchmark üretici	T	golden.py: tohumdan rastgele değerler
 v3	11.2	İstatistiksel sürüm kapısı, SPRT	T	eval_stats
-v3	11.2	Otomatik geri alma	Y
+v3	11.2	Otomatik geri alma	T	release_guard.py: gerileyen koşuda istemleri geri alır (golden.py --auto-rollback); canlı trafik izlemiyor
 v4	1.1	5 vitesli orantılılık freni	T	complexity_governor
 v4	1.2	Otomatik vites yükseltme ve süre bütçesi	K	onarım yükseltmesi var; süre bütçesi yok
 v4	1.2	@fast/@deep komutları	T	complexity_governor
