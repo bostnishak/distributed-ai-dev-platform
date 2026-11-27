@@ -10,8 +10,8 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | v1 | 32 | 0 | 0 | 0 | 0 | 0 | 32 |
 | v2 | 41 | 0 | 0 | 0 | 2 | 1 | 44 |
 | v3 | 43 | 0 | 0 | 0 | 5 | 2 | 50 |
-| v4 | 31 | 1 | 0 | 0 | 1 | 0 | 33 |
-| **Hepsi** | 147 | 1 | 0 | 0 | 8 | 3 | 159 |
+| v4 | 32 | 0 | 0 | 0 | 1 | 0 | 33 |
+| **Hepsi** | 148 | 0 | 0 | 0 | 8 | 3 | 159 |
 
 ## v1
 
@@ -180,7 +180,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 6.3 | Slayt slayt görsel denetim | canlı | canlı deneme: scripts/live_items.py server |
 | 6.4 | DuckDB veri çalışması | canlı | data_lab |
 | 6.4 | Otomatik EDA ve ML hattı | canlı | eda.py: CSV için profil + 5 katlı çapraz doğrulama; Vega/Plotly grafik yok |
-| 6.5 | Uzun yazıda sayı tutarlılığı | test | doc_sanity, doc_proof |
+| 6.5 | Uzun yazıda sayı tutarlılığı | canlı | canlı deneme: scripts/live_items.py code (model kullanmayan denetimler) |
 | 7 | Karma buluta yükseltme (varsayılan kapalı) | dışarıda | Kullanıcı istemedi (ücretli servis olmasın); yalnız ücretsiz yerel anonimleştirme komutu var, hiçbir yere gönderim yok |
 | 8 | Uzmanlığa göre anlatım ve netleştirme sorusu | canlı | pacing.audience_note + clarify |
 | 9 | Dosya izleyici ve gelen kutusu tetikleyicisi | canlı | triggers.py: data/inbox; pilde/sıcakta bekler. Git kancası yok |

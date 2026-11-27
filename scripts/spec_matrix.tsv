@@ -148,7 +148,7 @@ v4	6.3	Sunum üretimi	C	canlı deneme: scripts/live_items.py server
 v4	6.3	Slayt slayt görsel denetim	C	canlı deneme: scripts/live_items.py server
 v4	6.4	DuckDB veri çalışması	C	data_lab
 v4	6.4	Otomatik EDA ve ML hattı	C	eda.py: CSV için profil + 5 katlı çapraz doğrulama; Vega/Plotly grafik yok
-v4	6.5	Uzun yazıda sayı tutarlılığı	T	doc_sanity, doc_proof
+v4	6.5	Uzun yazıda sayı tutarlılığı	C	canlı deneme: scripts/live_items.py code (model kullanmayan denetimler)
 v4	7	Karma buluta yükseltme (varsayılan kapalı)	X	Kullanıcı istemedi (ücretli servis olmasın); yalnız ücretsiz yerel anonimleştirme komutu var, hiçbir yere gönderim yok
 v4	8	Uzmanlığa göre anlatım ve netleştirme sorusu	C	pacing.audience_note + clarify
 v4	9	Dosya izleyici ve gelen kutusu tetikleyicisi	C	triggers.py: data/inbox; pilde/sıcakta bekler. Git kancası yok

@@ -9,7 +9,7 @@ Bu dosya "ne kaldı" sorusunun tek cevabıdır. Bir madde, kod testi **ve** canl
 
 ## Çalışma sırası: 3 parça
 
-**Kaldığım yer (27.11.2026):** 1. parça sürüyor, bitmedi. Sıradakiler: Dockerfile ve sunum canlı denemeleri, tam test, main'e PR (güvenlik düzeltmesi içerir), sonra açık kalan 1. parça maddeleri.
+**Kaldığım yer (27.11.2026, akşam):** 1. parçada 3 madde kaldı, üçü de ekran kartı istiyor: zorluk basamakları (L1–L5), üç sesli kurul, iki varyant. Kartı başka bir eğitim işi kullandığı için bekletildi. Koşturma: `ITEM_FILTER="Üç sesli" python scripts/live_items.py server`, `ITEM_FILTER="İki varyant" ...`, `python scripts/ladder.py` (sunucu 8000'de açıkken).
 
 Dizüstü bilgisayar kesintisiz yüklenmesin diye iş üçe bölündü. Bir parça bitince **durulur**; sen "devam" demeden sonrakine geçilmez.
 
@@ -131,7 +131,7 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [x] Zamanlanmış görevler (canlı geçti)
 - [x] Öncelik kuyruğu (canlı geçti)
 - [x] Gözcü
-- [ ] Listenin kalan "yalnız testle" maddeleri
+- [x] Şartname listesinde yalnız otomatik testle kalan madde yok (148 canlı, 3 teknik engel, 8 kapsam dışı)
 - [~] İki varyant: araştırma kaldırıldı; son canlı deneme başka bir eğitim işi kartı kullanırken zaman aşımına uğradı, yeniden denenecek
 
 ## 6. v5

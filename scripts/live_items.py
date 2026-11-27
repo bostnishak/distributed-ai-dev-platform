@@ -632,6 +632,21 @@ def critical():
     return "onaylamadı, riski söyledi ve parola özetlemeyi önerdi"
 
 
+@item("code", "v4 Uzun yazıda sayı tutarlılığı")
+def long_text_numbers():
+    import deck_facts
+    import doc_proof
+    import doc_sanity
+
+    long_text = "Yatırım 2.000.000 TL, yıllık gelir 500.000 TL. " * 60
+    need(doc_proof.acceptable(long_text, long_text.replace("Yatırım", "Yatırımın")) and not doc_proof.acceptable(long_text, long_text.replace("500.000", "600.000", 1)), "düzeltme sayıyı değiştirebiliyor")
+    spec = {"blocks": [{"type": "table", "rows": [["Geri ödeme süresi", "1.624.427 yıl"], ["Verim oranı", "%420"], ["Toplam yatırım tutarı", "100 TL"], ["Net gelir", "900 TL"]]}]}
+    found = doc_sanity.implausible_results(spec)
+    need(len(found) == 3, found)
+    need(deck_facts.unsupported_numbers("Gelir 750.000 TL oldu.", long_text) and not deck_facts.unsupported_numbers("Gelir 500.000 TL.", long_text), "kaynakta olmayan sayı fark edilmiyor")
+    return "sayı değiştiren düzeltme reddedildi; üç akla aykırı sonuç ve kaynakta olmayan sayı bulundu"
+
+
 @item("model", "v2 L2 anlamsal, L3 bileşen önbelleği")
 def component_cache():
     import skill_library
