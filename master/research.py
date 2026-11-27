@@ -24,6 +24,7 @@ import long_doc
 import page_facts
 import policy
 import research_context
+import security_scan
 import untrusted
 from prompt_loader import load_prompt
 from rag.web import is_safe_public_url
@@ -208,6 +209,9 @@ async def _write_report(question: str, claims: dict[int, Claim], chat: Chat) -> 
 async def investigate(question: str, chat: Chat = _ask) -> AsyncIterator[tuple[str, str]]:
     """("status", message) while working, then one ("report", markdown). Unanswered points get a second search round."""
     question = _TRIGGER_RE.sub(" ", question).strip(" :,-") or question
+    if policy.has_secret(question):  # it must not reach a search engine, the report or the log
+        question = security_scan.redact(question)
+        yield "report", "UYARI: mesajında gizli anahtara benzeyen bir değer var; araştırmaya katmadan çıkardım. Bu anahtarı iptal edip yenilemeni öneririm.\n\n"
     if not research_context.web_enabled():
         yield "report", "Web araması kapalı olduğu için araştırma yapamıyorum; güncel olmayan bilgiyi araştırma sonucu gibi sunmuyorum."
         return

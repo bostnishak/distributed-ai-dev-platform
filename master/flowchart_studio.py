@@ -30,6 +30,19 @@ def missing_steps(prompt: str, flow: dict[str, Any]) -> list[str]:
     return [c for c in clauses if not any(w[:4] in labels for w in re.findall(r"\w{4,}", c.casefold()))]
 
 
+def stuck_steps(flow: dict[str, Any]) -> list[str]:
+    """Steps from which no end can be reached: the process would loop for ever there (checked over every path)."""
+    finishing = {s["id"] for s in flow["steps"] if s["type"] == "end"}
+    grew = True
+    while grew:
+        grew = False
+        for e in flow["edges"]:
+            if e["to"] in finishing and e["from"] not in finishing:
+                finishing.add(e["from"])
+                grew = True
+    return [s["label"] for s in flow["steps"] if s["id"] not in finishing]
+
+
 def is_flow_request(prompt: str) -> bool:
     return bool(_FLOW_RE.search(prompt or "")) and not _NOT_FLOW_RE.search(prompt or "")
 

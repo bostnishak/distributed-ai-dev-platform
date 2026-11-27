@@ -70,7 +70,7 @@ v2	7.2	MCP araç veri yolu ve izin kapsamları	K	mcp_server, mcp_connector
 v2	7.3	Öncelikli GPU kuyruğu	K	chat_queue bildirim veriyor; öncelik yok
 v2	7.3	WebSocket canlı DAG akışı	K	SSE ile aşama akışı var
 v2	8.1	İzleme (OpenTelemetry) ve pano	K	telemetry_otel, run_trace; pano yok
-v2	8.2	25+ senaryoluk altın test takımı	K	6 + 7 senaryo
+v2	8.2	25+ senaryoluk altın test takımı	C	scripts/golden.py: hızlı küme canlıda; --slow ile üretim senaryoları
 v2	8.3	Sürüm kapısı ölçütleri	T	eval_stats (hatta bağlı değil)
 v2	9	Çalışırken duraklatma ve yönlendirme	Y
 v2	9	Kanıt kartı (doğrulama özeti)	C	IDE 'Kanıt' çekmecesi
@@ -83,8 +83,8 @@ v3	1.4	Şemaya zorlanmış JSON üretimi	T	Ollama format şeması
 v3	1.4	GBNF/XGrammar yama ve sözdizimi maskeleri	E	Ollama API'si özel dilbilgisi almıyor
 v3	2.1	Z3 ile sayısal doğrulama	C	z3_math
 v3	2.1	Z3 ile iş kuralı değişmezleri ve karşı örnek	Y
-v3	2.1	Durum makinesi tam tarama	Y
-v3	2.1	Durumlu özellik testi (Hypothesis)	Y
+v3	2.1	Durum makinesi tam tarama	K	akış şemasında çıkışsız döngü taraması
+v3	2.1	Durumlu özellik testi (Hypothesis)	K	api_probe ekle-listele-sil tutarlılığı; Hypothesis ile rastgele dizi yok
 v3	2.2	Mutasyon testi kapısı	C	mutation.py; uyarı verir, teslimi engellemez
 v3	2.3	Yerleşim geometrisi ve kontrast denetimi	T	visual_audit
 v3	2.3	Görsel model eleştirisi	C	vlm_critique; kusurların bir kısmını kaçırıyor
@@ -95,7 +95,7 @@ v3	3.3	Çoklu LoRA, TIES/DARE birleştirme	X	eğitim
 v3	3.4	Bilgi damıtma	X	eğitim
 v3	4.1	Ajan başına git worktree ve AST birleştirme	Y
 v3	4.2	Depolar arası sözleşme ve geri alınabilir göç	Y
-v3	4.3	Sertleştirilmiş Dockerfile/Compose üretimi ve denetimi	Y
+v3	4.3	Sertleştirilmiş Dockerfile/Compose üretimi ve denetimi	T	deploy_kit.py: istenince Python web projesine; hadolint/trivy ile değil
 v3	4.3	Yük ve kaos testi	K	scripts/load_and_chaos_bench.py platform için
 v3	4.3	Çalışma anı bekçisi	Y
 v3	5.1	Ekran görüntüsünden koda	C	design_from_image.py: ölçülen renk/yerleşim + görsel model; canlıda yerleşim %87, renk %97
@@ -123,7 +123,7 @@ v3	10	DAG savaş odası ve zaman kaydırıcı	K	sürüm zaman çizelgesi var; ca
 v3	10	Turnuva modu	K	media_lab_arena model puanlama
 v3	10	Köken ve bellek çekmeceleri	K	kanıt çekmecesi var; bellek çekmecesi yok
 v3	10	Elle yapılan düzenlemeyi koruma	K	yama korur, geri al ve sürüme dön canlı; tercih sinyali toplanmıyor
-v3	11.1	Parametrik benchmark üretici	Y
+v3	11.1	Parametrik benchmark üretici	T	golden.py: tohumdan rastgele değerler
 v3	11.2	İstatistiksel sürüm kapısı, SPRT	T	eval_stats
 v3	11.2	Otomatik geri alma	Y
 v4	1.1	5 vitesli orantılılık freni	T	complexity_governor
@@ -132,10 +132,10 @@ v4	1.2	@fast/@deep komutları	T	complexity_governor
 v4	2.1	Web araması ve temiz metin çıkarma	C	DuckDuckGo + trafilatura
 v4	2.2	Çok adımlı derin araştırma ve çelişki tespiti	C	research.py: yanıtsız kalanlar için ikinci tur
 v4	2.2	Alıntı doğrulama kapısı	C	research.py; çeviri hatasını yakalayamaz
-v4	2.3	Sürüme bağlı belge kasası, çevrimdışı mod	Y
+v4	2.3	Sürüme bağlı belge kasası, çevrimdışı mod	T	docs_vault.py: sürüm ve özet, 14 gün önbellek; belge metni indirmiyor
 v4	3.1	Üç sesli tartışma kurulu	C	tool_executor: 'konseyde tartış'; canlıda denendi
 v4	3.2	Tasarım kuralları ve şablon görünüm dedektörü	T	design_slop
-v4	3.2	OKLCH palet derleyici	Y
+v4	3.2	OKLCH palet derleyici	T	design_system.py: renk verilmeyen görsel isteklerde
 v4	3.3	Kişisel beğeni belleği	Y
 v4	4.1	Özet ağacı (RAPTOR)	K	doc_reader eşle-indirge; çok katmanlı özet ağacı ve gömme indeksi yok
 v4	4.2	Belge gezinme ve eşle-indirge okuma	C	doc_reader.py: 'belgenin tamamını' isteklerinde; satır numaralı doğrulanmış alıntı

@@ -138,6 +138,27 @@ def geometry(raw: bytes, colours: list[tuple[str, float]]) -> str:
     return "\n".join(lines)
 
 
+def _vivid(hex_: str) -> bool:
+    channels = [int(hex_[i : i + 2], 16) for i in (1, 3, 5)]
+    return max(channels) - min(channels) > 60
+
+
+def missing_blocks(reference: bytes, shot: bytes) -> list[dict]:
+    """Coloured boxes of the picture (buttons, badges) that have no box of that colour nearby in the rendered page."""
+    colours = palette(reference)
+    wanted = [b for b in blocks(reference, colours) if _vivid(b["colour"])]
+    seen = blocks(shot, [colours[0], *[(b["colour"], 0.0) for b in wanted]], limit=40) if wanted else []
+    return [b for b in wanted if not any(s["colour"] == b["colour"] and abs(s["x"] - b["x"]) <= 30 and abs(s["y"] - b["y"]) <= 30 for s in seen)]
+
+
+async def _fix_blocks(ws_id: str, absent: list[dict]) -> None:
+    import workspace_builder as wb
+
+    wanted = "; ".join(f"soldan %{b['x']}, üstten %{b['y']} konumundaki düğme/kutunun arka plan rengi {b['colour']} olmalı" for b in absent[:3])
+    async for _event in wb.stream_iterate_project(ws_id, f"Yalnız şu renkleri düzelt, başka hiçbir şeyi değiştirme: {wanted}."):
+        pass
+
+
 def similarity(first: bytes, second: bytes) -> tuple[int, int]:
     """(layout, colour) similarity in percent: block brightness structure, and overlap of the colour histograms."""
     from PIL import Image
@@ -169,7 +190,7 @@ def build_request(prompt: str, colours: list[tuple[str, float]], screen: Screen,
         f"Piksellerden ölçülen yerleşim (kesin; her rengi burada görüldüğü yerde kullan):\n{measured}\n"
         f"En geniş alanı kaplayan {colours[0][0] if colours else '#ffffff'} arka plan rengidir.\n"
         f"Başlık: {screen.title}\nYerleşim: {screen.layout}\nBölgeler:\n{regions}\nGörünen metinler (aynen kullan): {texts}\n"
-        "Görselde olmayan bölüm ya da örnek veri ekleme."
+        "Görselde olmayan bölüm, örnek veri ya da yer tutucu (placeholder) metin ekleme."
     )
 
 
@@ -203,7 +224,14 @@ async def _stream(prompt: str, raw: bytes):
             from PIL import Image
 
             width, height = Image.open(io.BytesIO(png)).size
-            shot = await asyncio.to_thread(vlm_critique.screenshot, page, max(width, 320), max(height, 320))
+            size = (max(width, 320), max(height, 320))
+            shot = await asyncio.to_thread(vlm_critique.screenshot, page, *size)
+            if absent := missing_blocks(png, shot):
+                yield fp.sse_event({"type": "token", "content": f"\nGörseldeki renkli alan(lar) sayfada yok ({', '.join(b['colour'] for b in absent)}); düzeltiliyor...\n"})
+                await _fix_blocks(done["workspace"]["id"], absent)
+                shot = await asyncio.to_thread(vlm_critique.screenshot, page, *size)
+                if left := missing_blocks(png, shot):
+                    yield fp.sse_event({"type": "token", "content": f"UYARI: şu renkli alanlar hâlâ görseldeki gibi değil: {', '.join(b['colour'] for b in left)}.\n"})
             layout, colour = similarity(png, shot)
             yield fp.sse_event({"type": "token", "content": f"\nÖlçülen benzerlik — yerleşim: %{layout}, renk dağılımı: %{colour}. Önizlemeyi görselle karşılaştır.\n"})
         _failed, notes = fp._verdict(done)

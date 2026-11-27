@@ -84,3 +84,26 @@ def test_the_same_number_written_two_ways(first, second):
 def test_different_numbers_stay_different():
     assert research._numbers("480.000") != research._numbers("48.000")
     assert research._numbers("07.10.2024") != research._numbers("7102024")
+
+
+def test_a_secret_in_the_question_is_removed_before_anything_else(monkeypatch):
+    key = "sk-" + "z" * 30
+    seen = []
+    monkeypatch.setattr(research.research_context, "web_enabled", lambda: True)
+
+    async def gather(queries, run):
+        seen.extend(queries)
+        return []
+
+    monkeypatch.setattr(research, "_gather", gather)
+
+    async def chat(system, user, schema):
+        seen.append(user)
+        return '{"queries": []}'
+
+    async def run():
+        return [e async for e in research.investigate(f"derin araştır: {key} neden çalışmıyor", chat)]
+
+    events = asyncio.run(run())
+    assert not any(key in text for text in seen) and not any(key in text for _kind, text in events)
+    assert "iptal" in events[1][1] or "iptal" in events[0][1]

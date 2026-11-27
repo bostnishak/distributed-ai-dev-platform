@@ -519,12 +519,12 @@ async def _flow_spec(prompt: str) -> dict[str, Any] | None:
     best, gaps, ask = None, [], prompt
     for _ in range(3):
         if flow := flowchart_studio.clean(await _llm_json_call(flowchart_studio.SYSTEM, ask, model, 900)):
-            absent = flowchart_studio.missing_steps(prompt, flow)
-            if best is None or len(absent) < len(gaps):
-                best, gaps = flow, absent
-            if not absent:
+            absent, stuck = flowchart_studio.missing_steps(prompt, flow), flowchart_studio.stuck_steps(flow)
+            if best is None or len(absent) + len(stuck) < len(gaps):
+                best, gaps = flow, absent + stuck
+            if not absent and not stuck:
                 break
-            ask = f"{prompt}\nÖnceki çizimde şu adımlar eksikti, mutlaka ekle: {'; '.join(absent)}"
+            ask = f"{prompt}\nÖnceki çizimde eksik adımlar: {'; '.join(absent) or 'yok'}. Sona hiç ulaşamayan (çıkışsız döngüdeki) adımlar: {'; '.join(stuck) or 'yok'}. İkisini de düzelt."
     return best
 
 

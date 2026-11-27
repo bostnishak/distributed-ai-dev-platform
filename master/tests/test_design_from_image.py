@@ -58,3 +58,14 @@ def test_header_strip_and_button_are_located():
     assert strips[0][2] == "#1e293b" and strips[0][1] == 20 and strips[-1][2] == "#f8fafc"
     button = next(b for b in dfi.blocks(png, colours) if b["colour"] == "#22c55e")
     assert button["x"] == 10 and 32 <= button["y"] <= 34 and 40 <= button["w"] <= 41
+
+
+def test_a_recoloured_button_is_noticed_even_if_the_colour_exists_elsewhere():
+    from PIL import Image, ImageDraw
+
+    wrong = Image.open(io.BytesIO(_picture(button="#1e293b"))).convert("RGB")
+    ImageDraw.Draw(wrong).rectangle((380, 280, 399, 299), fill="#22c55e")  # the colour is somewhere, but not on the button
+    out = io.BytesIO()
+    wrong.save(out, "PNG")
+    assert [b["colour"] for b in dfi.missing_blocks(_picture(), out.getvalue())] == ["#22c55e"]
+    assert dfi.missing_blocks(_picture(), _picture()) == []

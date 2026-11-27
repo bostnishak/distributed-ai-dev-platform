@@ -90,3 +90,47 @@ def test_mutation_score_separates_real_tests_from_vanity_tests(tmp_path, test_bo
     tried, survived = mutation.run(tmp_path, runs_ok)
     assert tried >= 3 and (not survived) == all_killed
     assert (tmp_path / "logic.py").read_text(encoding="utf-8") == logic  # the project folder is never modified
+
+
+@pytest.mark.parametrize(("store", "remove", "error"), [(True, True, None), (False, True, "does not list"), (True, False, "still lists")])
+def test_stateful_check_follows_create_and_delete(store, remove, error):
+    from fastapi import FastAPI
+    from pydantic import BaseModel, Field
+
+    class Note(BaseModel):
+        title: str = Field(max_length=100)
+
+    app = FastAPI()
+    rows: dict[int, str] = {}
+
+    @app.post("/notes")
+    def create(note: Note):
+        key = len(rows) + 1
+        if store:
+            rows[key] = note.title
+        return {"id": key}
+
+    @app.get("/notes")
+    def every():
+        return list(rows.values())
+
+    @app.delete("/notes/{key}")
+    def delete(key: int):
+        if remove:
+            rows.pop(key, None)
+        return {"ok": True}
+
+    if error is None:
+        _probe()["check_fastapi"](app)
+    else:
+        with pytest.raises(RuntimeError, match=error):
+            _probe()["check_fastapi"](app)
+
+
+def test_a_loop_without_an_exit_is_found():
+    import flowchart_studio
+
+    steps = [{"id": i, "type": t, "label": i} for i, t in (("a", "start"), ("b", "decision"), ("c", "process"), ("d", "process"), ("e", "end"))]
+    edges = [{"from": a, "to": b} for a, b in (("a", "b"), ("b", "e"), ("b", "c"), ("c", "d"), ("d", "c"))]
+    assert flowchart_studio.stuck_steps({"steps": steps, "edges": edges}) == ["c", "d"]
+    assert flowchart_studio.stuck_steps({"steps": steps, "edges": [*edges, {"from": "d", "to": "e"}]}) == []

@@ -34,6 +34,38 @@ def _fuzz(client, method, path, body, params):
     return sent + 1
 
 
+def _check_roundtrip(client, doc, defs):
+    """State must follow the requests: a created record is listed, a deleted one is gone."""
+    paths = doc.get("paths", {})
+    for path, ops in paths.items():
+        if "{" in path or "post" not in ops or "get" not in ops:
+            continue
+        ref = ops["post"].get("requestBody", {}).get("content", {}).get("application/json", {}).get("schema")
+        if not ref or any(p.get("required") for p in ops["get"].get("parameters", [])):
+            continue
+        schema = defs.get(ref.get("$ref", "").rsplit("/", 1)[-1], ref)
+        body = _sample(schema, defs)
+        text_fields = [k for k, v in schema.get("properties", {}).items() if v.get("type") == "string" and not v.get("format") and not v.get("enum") and not v.get("pattern")]
+        if not text_fields or not isinstance(body, dict):
+            continue
+        marker = "iz7q" + str(len(path))
+        body[text_fields[0]] = marker
+        made = client.post(path, json=body)
+        if made.status_code >= 300:
+            continue
+        listed = client.get(path)
+        if listed.status_code == 200 and marker not in listed.text:
+            raise RuntimeError("GET %s does not list the record that POST just created (not persisted?)" % path)
+        record = made.json() if made.headers.get("content-type", "").startswith("application/json") else None
+        key = record.get("id") if isinstance(record, dict) else None
+        item = next((p for p in paths if p.startswith(path.rstrip("/") + "/{") and p.count("{") == 1 and "delete" in paths[p]), None)
+        if key is not None and item:
+            gone = client.delete(item[: item.index("{")] + str(key))
+            if gone.status_code < 300 and marker in client.get(path).text:
+                raise RuntimeError("DELETE %s reported success but GET %s still lists the record" % (item, path))
+        print("API roundtrip %s ok" % path)
+
+
 def check_fastapi(app):
     """Real requests against every path without parameters: valid body never 5xx, empty body of a required model is 4xx."""
     from fastapi.testclient import TestClient
@@ -63,6 +95,7 @@ def check_fastapi(app):
                 if got.status_code >= 500:
                     raise RuntimeError("%s %s returned HTTP %s" % (method.upper(), path, got.status_code))
                 print("API %s %s -> %s" % (method.upper(), path, got.status_code))
+        _check_roundtrip(client, doc, defs)
 
 
 def check_flask_posts(app):

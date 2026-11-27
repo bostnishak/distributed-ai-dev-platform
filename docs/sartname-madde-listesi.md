@@ -8,10 +8,10 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | Sürüm | canlı | test | kısmi | yok | dışarıda | teknik engel | Toplam |
 |---|---|---|---|---|---|---|---|
 | v1 | 17 | 13 | 2 | 0 | 0 | 0 | 32 |
-| v2 | 8 | 11 | 13 | 9 | 2 | 1 | 44 |
-| v3 | 7 | 11 | 10 | 15 | 5 | 2 | 50 |
-| v4 | 14 | 8 | 5 | 6 | 0 | 0 | 33 |
-| **Hepsi** | 46 | 43 | 30 | 30 | 7 | 3 | 159 |
+| v2 | 9 | 11 | 12 | 9 | 2 | 1 | 44 |
+| v3 | 7 | 13 | 12 | 11 | 5 | 2 | 50 |
+| v4 | 14 | 10 | 5 | 4 | 0 | 0 | 33 |
+| **Hepsi** | 47 | 47 | 31 | 24 | 7 | 3 | 159 |
 
 ## v1
 
@@ -92,7 +92,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 7.3 | Öncelikli GPU kuyruğu | kısmi | chat_queue bildirim veriyor; öncelik yok |
 | 7.3 | WebSocket canlı DAG akışı | kısmi | SSE ile aşama akışı var |
 | 8.1 | İzleme (OpenTelemetry) ve pano | kısmi | telemetry_otel, run_trace; pano yok |
-| 8.2 | 25+ senaryoluk altın test takımı | kısmi | 6 + 7 senaryo |
+| 8.2 | 25+ senaryoluk altın test takımı | canlı | scripts/golden.py: hızlı küme canlıda; --slow ile üretim senaryoları |
 | 8.3 | Sürüm kapısı ölçütleri | test | eval_stats (hatta bağlı değil) |
 | 9 | Çalışırken duraklatma ve yönlendirme | yok |  |
 | 9 | Kanıt kartı (doğrulama özeti) | canlı | IDE 'Kanıt' çekmecesi |
@@ -110,8 +110,8 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 1.4 | GBNF/XGrammar yama ve sözdizimi maskeleri | teknik engel | Ollama API'si özel dilbilgisi almıyor |
 | 2.1 | Z3 ile sayısal doğrulama | canlı | z3_math |
 | 2.1 | Z3 ile iş kuralı değişmezleri ve karşı örnek | yok |  |
-| 2.1 | Durum makinesi tam tarama | yok |  |
-| 2.1 | Durumlu özellik testi (Hypothesis) | yok |  |
+| 2.1 | Durum makinesi tam tarama | kısmi | akış şemasında çıkışsız döngü taraması |
+| 2.1 | Durumlu özellik testi (Hypothesis) | kısmi | api_probe ekle-listele-sil tutarlılığı; Hypothesis ile rastgele dizi yok |
 | 2.2 | Mutasyon testi kapısı | canlı | mutation.py; uyarı verir, teslimi engellemez |
 | 2.3 | Yerleşim geometrisi ve kontrast denetimi | test | visual_audit |
 | 2.3 | Görsel model eleştirisi | canlı | vlm_critique; kusurların bir kısmını kaçırıyor |
@@ -122,7 +122,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 3.4 | Bilgi damıtma | dışarıda | eğitim |
 | 4.1 | Ajan başına git worktree ve AST birleştirme | yok |  |
 | 4.2 | Depolar arası sözleşme ve geri alınabilir göç | yok |  |
-| 4.3 | Sertleştirilmiş Dockerfile/Compose üretimi ve denetimi | yok |  |
+| 4.3 | Sertleştirilmiş Dockerfile/Compose üretimi ve denetimi | test | deploy_kit.py: istenince Python web projesine; hadolint/trivy ile değil |
 | 4.3 | Yük ve kaos testi | kısmi | scripts/load_and_chaos_bench.py platform için |
 | 4.3 | Çalışma anı bekçisi | yok |  |
 | 5.1 | Ekran görüntüsünden koda | canlı | design_from_image.py: ölçülen renk/yerleşim + görsel model; canlıda yerleşim %87, renk %97 |
@@ -150,7 +150,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 10 | Turnuva modu | kısmi | media_lab_arena model puanlama |
 | 10 | Köken ve bellek çekmeceleri | kısmi | kanıt çekmecesi var; bellek çekmecesi yok |
 | 10 | Elle yapılan düzenlemeyi koruma | kısmi | yama korur, geri al ve sürüme dön canlı; tercih sinyali toplanmıyor |
-| 11.1 | Parametrik benchmark üretici | yok |  |
+| 11.1 | Parametrik benchmark üretici | test | golden.py: tohumdan rastgele değerler |
 | 11.2 | İstatistiksel sürüm kapısı, SPRT | test | eval_stats |
 | 11.2 | Otomatik geri alma | yok |  |
 
@@ -164,10 +164,10 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 2.1 | Web araması ve temiz metin çıkarma | canlı | DuckDuckGo + trafilatura |
 | 2.2 | Çok adımlı derin araştırma ve çelişki tespiti | canlı | research.py: yanıtsız kalanlar için ikinci tur |
 | 2.2 | Alıntı doğrulama kapısı | canlı | research.py; çeviri hatasını yakalayamaz |
-| 2.3 | Sürüme bağlı belge kasası, çevrimdışı mod | yok |  |
+| 2.3 | Sürüme bağlı belge kasası, çevrimdışı mod | test | docs_vault.py: sürüm ve özet, 14 gün önbellek; belge metni indirmiyor |
 | 3.1 | Üç sesli tartışma kurulu | canlı | tool_executor: 'konseyde tartış'; canlıda denendi |
 | 3.2 | Tasarım kuralları ve şablon görünüm dedektörü | test | design_slop |
-| 3.2 | OKLCH palet derleyici | yok |  |
+| 3.2 | OKLCH palet derleyici | test | design_system.py: renk verilmeyen görsel isteklerde |
 | 3.3 | Kişisel beğeni belleği | yok |  |
 | 4.1 | Özet ağacı (RAPTOR) | kısmi | doc_reader eşle-indirge; çok katmanlı özet ağacı ve gömme indeksi yok |
 | 4.2 | Belge gezinme ve eşle-indirge okuma | canlı | doc_reader.py: 'belgenin tamamını' isteklerinde; satır numaralı doğrulanmış alıntı |

@@ -15,6 +15,8 @@ from typing import Any
 
 import agent_contracts
 import complexity_governor
+import design_system
+import docs_vault
 import json_repair
 import post_checks
 import skill_library
@@ -177,7 +179,8 @@ async def _preparation_events(prompt: str, think: Any) -> AsyncIterator[dict[str
             contract = evt["contract"]
         else:
             yield evt
-    yield {"type": "ready", "info": info, "contract": contract, "notes": (agent_contracts.writer_notes(contract) if contract else "") + skill_library.reference(prompt)}
+    yield {"type": "ready", "info": info, "contract": contract, "notes": (agent_contracts.writer_notes(contract) if contract else "") + skill_library.reference(prompt)
+           + design_system.brief(prompt) + await asyncio.to_thread(docs_vault.brief, prompt)}
 
 
 async def stream_generate(prompt: str, project_type: str = "auto", model_override: str | None = None) -> AsyncIterator[dict[str, Any]]:
