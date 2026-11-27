@@ -17,7 +17,7 @@ v1	2 QA	Yer tutucu tarayıcı	C	canlı deneme: scripts/live_items.py
 v1	2 QA	Spec uyum denetçisi	C	canlı deneme: scripts/live_items.py
 v1	2 QA	Tarayıcıda davranış testi	C	jsdom_probe, workspace_behavior
 v1	2 QA	API'yi gerçek isteklerle sınama	C	api_probe
-v1	2 QA	PDF ve görsel bütünlük denetimi	T	office_verify, post_checks
+v1	2 QA	PDF ve görsel bütünlük denetimi	C	canlı deneme: scripts/live_items.py code
 v1	2 QA	Sınırlı onarım döngüsü, dürüst başarısızlık bildirimi	C	workspace_builder
 v1	3 Ollama	Kurulu modelleri keşfetme ve role göre seçim, yedek model	C	canlı deneme: scripts/live_items.py
 v1	3 Ollama	Role göre sıcaklık ve şemalı çıktı	C	canlı deneme: scripts/live_items.py
@@ -34,7 +34,7 @@ v1	5 IDE	API test konsolu sekmesi	C	workspace_inspect.py; gerçek Chromium'da de
 v1	6 Teslim	Uçtan uca testler ve çalışma kılavuzu	C	scripts/e2e_stress.py
 v2	2.1	Sabit önek önce istem düzeni	C	prompt_layout.py: değişenler soruyla en sonda; ikinci turda istem okuma 1161 ms yerine 364 ms ölçüldü
 v2	2.1	keep_alive, num_ctx boyutlama	C	canlı deneme: scripts/live_items.py
-v2	2.1	Model yakınlığına göre görev gruplama	T	aynı modelli dosyalar art arda
+v2	2.1	Model yakınlığına göre görev gruplama	C	canlı deneme: scripts/live_items.py code
 v2	2.2	Tier 0 modelsiz düzenleme	C	tier0_edit
 v2	2.2	Karmaşıklığa göre model basamağı	C	canlı deneme: scripts/live_items.py
 v2	2.2	Logprob/entropi ile yükseltme	E	Ollama yanıtında güvenilir logprob kullanılmıyor
@@ -71,11 +71,11 @@ v2	7.3	Öncelikli GPU kuyruğu	C	canlı deneme: scripts/live_items.py
 v2	7.3	WebSocket canlı DAG akışı	C	run_api.py /api/runs/ws; tarayıcıda canlı doğrulandı
 v2	8.1	İzleme (OpenTelemetry) ve pano	C	perf_report: 'performans durumu'
 v2	8.2	25+ senaryoluk altın test takımı	C	scripts/golden.py: hızlı küme canlıda; --slow ile üretim senaryoları
-v2	8.3	Sürüm kapısı ölçütleri	T	eval_stats: golden ve release_guard içinde
+v2	8.3	Sürüm kapısı ölçütleri	C	canlı deneme: scripts/live_items.py code
 v2	9	Çalışırken duraklatma ve yönlendirme	C	Gerçek üretim 100 sn duraklatıldı, talimat eklendi, sonraki dosyaya uygulandı
 v2	9	Kanıt kartı (doğrulama özeti)	C	IDE 'Kanıt' çekmecesi
 v2	9	İki varyant yan yana	C	canlı deneme: scripts/live_items.py
-v2	9	Dürüst düşüş bildirimi	T	reply_labels
+v2	9	Dürüst düşüş bildirimi	C	canlı deneme: scripts/live_items.py code
 v3	1.1	LAN çıkarım ağı ve zamanlayıcı	X	tek bilgisayar
 v3	1.2	Spekülatif çözme	X	Ollama denetim vermiyor
 v3	1.3	Radix KV önbellek havuzu	E	Ollama dışarıdan KV denetimi vermiyor
@@ -95,12 +95,12 @@ v3	3.3	Çoklu LoRA, TIES/DARE birleştirme	X	eğitim
 v3	3.4	Bilgi damıtma	X	eğitim
 v3	4.1	Ajan başına git worktree ve AST birleştirme	C	swarm.py ve semantic_merge.py: iki ajan aynı dosyada, canlıda birleşti; Python sembol düzeyinde (tree-sitter değil, ast)
 v3	4.2	Depolar arası sözleşme ve geri alınabilir göç	C	federation.py: etki alanı, kopyada ileri-geri-ileri kanıtı, hepsi ya da hiçbiri; iki projede canlı
-v3	4.3	Sertleştirilmiş Dockerfile/Compose üretimi ve denetimi	T	deploy_kit.py: istenince Python web projesine; hadolint/trivy ile değil
+v3	4.3	Sertleştirilmiş Dockerfile/Compose üretimi ve denetimi	C	canlı deneme: scripts/live_items.py
 v3	4.3	Yük ve kaos testi	C	sohbetten 'yük testi yap' (ağsız kutuda); kaos senaryosu yok
 v3	4.3	Çalışma anı bekçisi	C	canlı deneme: scripts/live_items.py
 v3	5.1	Ekran görüntüsünden koda	C	design_from_image.py: ölçülen renk/yerleşim + görsel model; canlıda yerleşim %87, renk %97
 v3	5.2	Typst/WeasyPrint belge stüdyosu	C	typst_render.py: Typst istenince ya da denklemli belgede; WeasyPrint yok
-v3	5.2	PDF sayfa sayfa görsel kanıtlama	T	office_verify.proof_page: boş sayfa, taşma, çakışma, küçük punto
+v3	5.2	PDF sayfa sayfa görsel kanıtlama	C	canlı deneme: scripts/live_items.py code
 v3	5.3	Çoklu diyagram biçimi	C	SVG + Mermaid, Graphviz, PlantUML metni (D2 yok)
 v3	5.3	Gerçek veriye bağlı grafik	C	data_chart.py: CSV'den çubuk grafik; etkileşimli Vega/Plotly değil
 v3	5.3	Yerel ses (ASR/TTS)	C	tts.py (Piper tr_TR) + faster-whisper; üretilen ses geri çözülerek canlı doğrulandı; ses verisi lisansı ticari kullanıma kapalı
@@ -110,7 +110,7 @@ v3	6.3	Uyku birleştirmesi ve çelişki çözümü	C	canlı deneme: scripts/live
 v3	6.3	Bellek denetim ve silme	C	canlı deneme: scripts/live_items.py
 v3	7.1	WASM ve iş nesnesi yalıtımı	C	canlı deneme: scripts/live_items.py
 v3	7.2	Leke (taint) izleme ve yetki düşürme	C	canlı deneme: scripts/live_items.py
-v3	7.3	Kod olarak politika	T	policy.py (OPA/Cedar değil)
+v3	7.3	Kod olarak politika	C	canlı deneme: scripts/live_items.py code
 v3	7.4	İmzalı köken kaydı ve SBOM	C	provenance
 v3	7.4	Lisans uyum kapısı	C	canlı deneme: scripts/live_items.py
 v3	8	Kontrol/veri akışı analizi	C	canlı deneme: scripts/live_items.py
@@ -127,7 +127,7 @@ v3	11.1	Parametrik benchmark üretici	C	canlı deneme: scripts/live_items.py
 v3	11.2	İstatistiksel sürüm kapısı, SPRT	C	canlı deneme: scripts/live_items.py
 v3	11.2	Otomatik geri alma	C	canlı deneme: scripts/live_items.py
 v4	1.1	5 vitesli orantılılık freni	C	canlı deneme: scripts/live_items.py
-v4	1.2	Otomatik vites yükseltme ve süre bütçesi	T	onarım yükseltmesi + pacing süre uyarısı
+v4	1.2	Otomatik vites yükseltme ve süre bütçesi	C	canlı deneme: scripts/live_items.py code
 v4	1.2	@fast/@deep komutları	C	canlı deneme: scripts/live_items.py
 v4	2.1	Web araması ve temiz metin çıkarma	C	DuckDuckGo + trafilatura
 v4	2.2	Çok adımlı derin araştırma ve çelişki tespiti	C	research.py: yanıtsız kalanlar için ikinci tur
@@ -156,6 +156,6 @@ v4	9	Zamanlanmış görevler	C	canlı deneme: scripts/live_items.py
 v4	10.1	Donanım profili ve doctor	C	scripts/ai_os.py
 v4	10.2	Tembel servisler ve boşta kapatma	C	daemons.py: arama kabı kapalıyken ihtiyaçta açıldı ve boşta kapandı; ses motorları boşta bırakılır; servis durumu komutu
 v4	10.3	ai-os setup ve yapılandırma dosyası	C	scripts/ai_os.py setup, ai-os.config.json
-v4	10.3	ai-os up, bench	T	bench ve up canlı denenmedi
+v4	10.3	ai-os up, bench	C	canlı deneme: scripts/live_items.py code (up; bench yalnız giriş noktası)
 v4	10.3	Dockersız yerel mod	C	canlı deneme: scripts/live_items.py
 v4	11	7 boşluk kapatma testi	C	scripts/gap_suite.py: yedisi de canlı geçti; soğuk açılış 3.2 sn ve 214 MB

@@ -126,7 +126,7 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [x] Yetki kapısı ve leke politikası
 - [x] Yörünge toplama ve sır temizleme
 - [x] İki varyant yan yana (canlı geçti; ama 30 dakika sürdü, aşağıdaki hız maddesine bak)
-- [ ] Dockerfile / Compose ve gerçek derleme: canlı deneme kaldı, yeniden koşturulup nedeni incelenecek
+- [x] Dockerfile / Compose ve gerçek derleme (canlı geçti; 21 dakika sürdü — 12 model çağrısı)
 - [~] Belge üretimi: 2–3 slaytlık her sunumun başarısız olduğu hata bulundu ve düzeltildi; canlı yeniden denenmedi
 - [x] Zamanlanmış görevler (canlı geçti)
 - [x] Öncelik kuyruğu (canlı geçti)

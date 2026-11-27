@@ -7,11 +7,11 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 
 | Sürüm | canlı | test | kısmi | yok | dışarıda | teknik engel | Toplam |
 |---|---|---|---|---|---|---|---|
-| v1 | 30 | 2 | 0 | 0 | 0 | 0 | 32 |
-| v2 | 35 | 6 | 0 | 0 | 2 | 1 | 44 |
-| v3 | 40 | 3 | 0 | 0 | 5 | 2 | 50 |
-| v4 | 27 | 5 | 0 | 0 | 1 | 0 | 33 |
-| **Hepsi** | 132 | 16 | 0 | 0 | 8 | 3 | 159 |
+| v1 | 31 | 1 | 0 | 0 | 0 | 0 | 32 |
+| v2 | 38 | 3 | 0 | 0 | 2 | 1 | 44 |
+| v3 | 43 | 0 | 0 | 0 | 5 | 2 | 50 |
+| v4 | 29 | 3 | 0 | 0 | 1 | 0 | 33 |
+| **Hepsi** | 141 | 7 | 0 | 0 | 8 | 3 | 159 |
 
 ## v1
 
@@ -34,7 +34,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 2 QA | Spec uyum denetçisi | canlı | canlı deneme: scripts/live_items.py |
 | 2 QA | Tarayıcıda davranış testi | canlı | jsdom_probe, workspace_behavior |
 | 2 QA | API'yi gerçek isteklerle sınama | canlı | api_probe |
-| 2 QA | PDF ve görsel bütünlük denetimi | test | office_verify, post_checks |
+| 2 QA | PDF ve görsel bütünlük denetimi | canlı | canlı deneme: scripts/live_items.py code |
 | 2 QA | Sınırlı onarım döngüsü, dürüst başarısızlık bildirimi | canlı | workspace_builder |
 | 3 Ollama | Kurulu modelleri keşfetme ve role göre seçim, yedek model | canlı | canlı deneme: scripts/live_items.py |
 | 3 Ollama | Role göre sıcaklık ve şemalı çıktı | canlı | canlı deneme: scripts/live_items.py |
@@ -56,7 +56,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 |---|---|---|---|
 | 2.1 | Sabit önek önce istem düzeni | canlı | prompt_layout.py: değişenler soruyla en sonda; ikinci turda istem okuma 1161 ms yerine 364 ms ölçüldü |
 | 2.1 | keep_alive, num_ctx boyutlama | canlı | canlı deneme: scripts/live_items.py |
-| 2.1 | Model yakınlığına göre görev gruplama | test | aynı modelli dosyalar art arda |
+| 2.1 | Model yakınlığına göre görev gruplama | canlı | canlı deneme: scripts/live_items.py code |
 | 2.2 | Tier 0 modelsiz düzenleme | canlı | tier0_edit |
 | 2.2 | Karmaşıklığa göre model basamağı | canlı | canlı deneme: scripts/live_items.py |
 | 2.2 | Logprob/entropi ile yükseltme | teknik engel | Ollama yanıtında güvenilir logprob kullanılmıyor |
@@ -93,11 +93,11 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 7.3 | WebSocket canlı DAG akışı | canlı | run_api.py /api/runs/ws; tarayıcıda canlı doğrulandı |
 | 8.1 | İzleme (OpenTelemetry) ve pano | canlı | perf_report: 'performans durumu' |
 | 8.2 | 25+ senaryoluk altın test takımı | canlı | scripts/golden.py: hızlı küme canlıda; --slow ile üretim senaryoları |
-| 8.3 | Sürüm kapısı ölçütleri | test | eval_stats: golden ve release_guard içinde |
+| 8.3 | Sürüm kapısı ölçütleri | canlı | canlı deneme: scripts/live_items.py code |
 | 9 | Çalışırken duraklatma ve yönlendirme | canlı | Gerçek üretim 100 sn duraklatıldı, talimat eklendi, sonraki dosyaya uygulandı |
 | 9 | Kanıt kartı (doğrulama özeti) | canlı | IDE 'Kanıt' çekmecesi |
 | 9 | İki varyant yan yana | canlı | canlı deneme: scripts/live_items.py |
-| 9 | Dürüst düşüş bildirimi | test | reply_labels |
+| 9 | Dürüst düşüş bildirimi | canlı | canlı deneme: scripts/live_items.py code |
 
 ## v3
 
@@ -122,12 +122,12 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 3.4 | Bilgi damıtma | dışarıda | eğitim |
 | 4.1 | Ajan başına git worktree ve AST birleştirme | canlı | swarm.py ve semantic_merge.py: iki ajan aynı dosyada, canlıda birleşti; Python sembol düzeyinde (tree-sitter değil, ast) |
 | 4.2 | Depolar arası sözleşme ve geri alınabilir göç | canlı | federation.py: etki alanı, kopyada ileri-geri-ileri kanıtı, hepsi ya da hiçbiri; iki projede canlı |
-| 4.3 | Sertleştirilmiş Dockerfile/Compose üretimi ve denetimi | test | deploy_kit.py: istenince Python web projesine; hadolint/trivy ile değil |
+| 4.3 | Sertleştirilmiş Dockerfile/Compose üretimi ve denetimi | canlı | canlı deneme: scripts/live_items.py |
 | 4.3 | Yük ve kaos testi | canlı | sohbetten 'yük testi yap' (ağsız kutuda); kaos senaryosu yok |
 | 4.3 | Çalışma anı bekçisi | canlı | canlı deneme: scripts/live_items.py |
 | 5.1 | Ekran görüntüsünden koda | canlı | design_from_image.py: ölçülen renk/yerleşim + görsel model; canlıda yerleşim %87, renk %97 |
 | 5.2 | Typst/WeasyPrint belge stüdyosu | canlı | typst_render.py: Typst istenince ya da denklemli belgede; WeasyPrint yok |
-| 5.2 | PDF sayfa sayfa görsel kanıtlama | test | office_verify.proof_page: boş sayfa, taşma, çakışma, küçük punto |
+| 5.2 | PDF sayfa sayfa görsel kanıtlama | canlı | canlı deneme: scripts/live_items.py code |
 | 5.3 | Çoklu diyagram biçimi | canlı | SVG + Mermaid, Graphviz, PlantUML metni (D2 yok) |
 | 5.3 | Gerçek veriye bağlı grafik | canlı | data_chart.py: CSV'den çubuk grafik; etkileşimli Vega/Plotly değil |
 | 5.3 | Yerel ses (ASR/TTS) | canlı | tts.py (Piper tr_TR) + faster-whisper; üretilen ses geri çözülerek canlı doğrulandı; ses verisi lisansı ticari kullanıma kapalı |
@@ -137,7 +137,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 6.3 | Bellek denetim ve silme | canlı | canlı deneme: scripts/live_items.py |
 | 7.1 | WASM ve iş nesnesi yalıtımı | canlı | canlı deneme: scripts/live_items.py |
 | 7.2 | Leke (taint) izleme ve yetki düşürme | canlı | canlı deneme: scripts/live_items.py |
-| 7.3 | Kod olarak politika | test | policy.py (OPA/Cedar değil) |
+| 7.3 | Kod olarak politika | canlı | canlı deneme: scripts/live_items.py code |
 | 7.4 | İmzalı köken kaydı ve SBOM | canlı | provenance |
 | 7.4 | Lisans uyum kapısı | canlı | canlı deneme: scripts/live_items.py |
 | 8 | Kontrol/veri akışı analizi | canlı | canlı deneme: scripts/live_items.py |
@@ -159,7 +159,7 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | Bölüm | Madde | Durum | Not |
 |---|---|---|---|
 | 1.1 | 5 vitesli orantılılık freni | canlı | canlı deneme: scripts/live_items.py |
-| 1.2 | Otomatik vites yükseltme ve süre bütçesi | test | onarım yükseltmesi + pacing süre uyarısı |
+| 1.2 | Otomatik vites yükseltme ve süre bütçesi | canlı | canlı deneme: scripts/live_items.py code |
 | 1.2 | @fast/@deep komutları | canlı | canlı deneme: scripts/live_items.py |
 | 2.1 | Web araması ve temiz metin çıkarma | canlı | DuckDuckGo + trafilatura |
 | 2.2 | Çok adımlı derin araştırma ve çelişki tespiti | canlı | research.py: yanıtsız kalanlar için ikinci tur |
@@ -188,6 +188,6 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 10.1 | Donanım profili ve doctor | canlı | scripts/ai_os.py |
 | 10.2 | Tembel servisler ve boşta kapatma | canlı | daemons.py: arama kabı kapalıyken ihtiyaçta açıldı ve boşta kapandı; ses motorları boşta bırakılır; servis durumu komutu |
 | 10.3 | ai-os setup ve yapılandırma dosyası | canlı | scripts/ai_os.py setup, ai-os.config.json |
-| 10.3 | ai-os up, bench | test | bench ve up canlı denenmedi |
+| 10.3 | ai-os up, bench | canlı | canlı deneme: scripts/live_items.py code (up; bench yalnız giriş noktası) |
 | 10.3 | Dockersız yerel mod | canlı | canlı deneme: scripts/live_items.py |
 | 11 | 7 boşluk kapatma testi | canlı | scripts/gap_suite.py: yedisi de canlı geçti; soğuk açılış 3.2 sn ve 214 MB |
