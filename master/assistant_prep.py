@@ -20,6 +20,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 import answer_sources
 import code_probe
 import config
+import context_pins
 import extract as _extract_mod
 import long_doc
 import memory_timeline
@@ -391,6 +392,11 @@ def _append_history_messages(messages: list[dict[str, Any]], history: str, is_pr
     try:
         hist_items = json.loads(history) if history else []
         if isinstance(hist_items, list):
+            if note := context_pins.from_older_turns(hist_items, hist_window):
+                if messages and messages[0]["role"] == "system":  # part of the system prompt, so compaction cannot drop it
+                    messages[0] = {**messages[0], "content": messages[0]["content"] + "\n\n" + note}
+                else:
+                    messages.insert(0, {"role": "system", "content": note})
             for h_msg in hist_items[-hist_window:]:
                 if isinstance(h_msg, dict) and h_msg.get("role") in ("user", "assistant") and h_msg.get("text"):
                     messages.append({"role": h_msg["role"], "content": str(h_msg["text"])[:8000]})

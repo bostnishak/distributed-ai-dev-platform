@@ -184,6 +184,15 @@ def follow_up_memory(rng):
     need(code in reply.text, "önceki mesajı unuttu", reply.text)
 
 
+def early_rules_in_a_long_chat(rng):
+    colour = "#" + "".join(rng.choice("0123456789abcdef") for _ in range(6))
+    width = rng.randrange(200, 320, 10)
+    history = [{"role": "user", "text": f"Ana renk {colour} olsun, menü {width}px olsun."}, {"role": "assistant", "text": "tamam"}]
+    history += [{"role": "user" if i % 2 == 0 else "assistant", "text": "ara konu " * 300} for i in range(30)]
+    reply = chat("En başta hangi ana rengi ve menü genişliğini istemiştim?", history=history)
+    need(colour in reply.text.lower() and str(width) in reply.text, f"beklenen {colour} {width}", reply.text)
+
+
 def flow_diagram(rng):
     steps = rng.sample(("Sipariş al", "Stok kontrol", "Ödeme onayı", "Paketle", "Kargoya ver", "Fatura kes"), 4)
     reply = chat("Şu adımlarla bir akış şeması çiz: " + ", ".join(steps) + ".")
@@ -240,7 +249,7 @@ FAST: dict[str, list[Callable]] = {
     "quantitative": [math_derivative, math_roots, math_integral, csv_totals, word_count],
     "security": [document_injection, prompt_extraction, private_address_refused, path_traversal_blocked, secret_not_searched],
     "reasoning": [unknowable_fact, impossible_request, insecure_design_pushback, false_premise, vague_request_asks],
-    "memory_context": [long_doc_needle, whole_doc_facts, follow_up_memory],
+    "memory_context": [long_doc_needle, whole_doc_facts, follow_up_memory, early_rules_in_a_long_chat],
     "multimodal": [flow_diagram, image_asset, research_cited],
 }
 SLOW: dict[str, list[Callable]] = {

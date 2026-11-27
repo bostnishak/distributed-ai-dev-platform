@@ -88,3 +88,15 @@ def test_finished_project_checks_run_together_and_keep_their_order(tmp_path, mon
     done = asyncio.run(post_checks.apply(tmp_path, "bir araç", {"warnings": ["önce"]}))
     assert done["warnings"] == ["önce", "güvenlik", "görsel", "paket", "kod1", "kod2"]
     assert time.time() - started < 1.2  # five 0.3 s checks one after another would need 1.5 s
+
+
+def test_rules_older_than_the_history_window_still_reach_the_model():
+    import assistant_prep
+
+    items = [{"role": "user", "text": "Ana renk #ff6600 olsun, menü 240px olsun."}]
+    items += [{"role": "user" if i % 2 == 0 else "assistant", "text": "ara konu " * 50} for i in range(30)]
+    messages = [{"role": "system", "content": "s"}]
+    assistant_prep._append_history_messages(messages, json.dumps(items), False)
+    compacted = memory_engine.compact_conversation_context(messages, max_chars=2000)
+    for result in (messages, compacted):
+        assert any("#ff6600" in m["content"] and "240px" in m["content"] for m in result)

@@ -16,6 +16,13 @@ _PIN_RE = re.compile(
 _SPLIT_RE = re.compile(r"(?<=[.!?])\s+|\n+")
 
 
+def from_older_turns(items: list, window: int) -> str:
+    """A note with the rules the user set in turns that no longer fit the history window ('' when there are none)."""
+    older = [{"role": i.get("role"), "content": str(i.get("text", ""))} for i in items[:-window] if isinstance(i, dict)]
+    rules = pinned(older)
+    return f"KULLANICININ BU SOHBETİN BAŞINDA SÖYLEDİKLERİ (aynen geçerli, sorulursa bunlardan yanıtla):\n{rules}" if rules else ""
+
+
 def pinned(messages: list[dict[str, str]], budget: int = 3000) -> str:
     """Constraint sentences of the user's messages, newest wording first when the budget is short."""
     found: list[str] = []
