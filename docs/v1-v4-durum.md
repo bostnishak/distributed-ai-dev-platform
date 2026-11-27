@@ -37,12 +37,7 @@ doğrulandı; **kısmi** = bir bölümü var; **yok** = yapılmadı. Makine: RTX
 | Windows iş nesnesi ve WASM izolasyonu (henüz hatta bağlı değil) | test | `isolation.py` |
 | Bulut eğitim paketi ve GGUF içe aktarma | dışa aktarma çalıştı; içe aktarma gerçek GGUF ile denenmedi | `training_pack.py` |
 
-## Henüz yapılmayanlar (yapılabilir)
-
-Depo haritası (tree-sitter), mutasyon testi, tarayıcı kullanan ajan, derin araştırma (SearXNG + trafilatura + alıntı kapısı),
-arka plan tetikleyicileri, politika motoru ve leke izleme, tartışma kurulu, ekran görüntüsünden koda, Typst belge motoru,
-LSP ve nedensel hata ayıklama, MCTS, kontrol noktasından devam, IDE'de yeni arayüzler (savaş odası, turnuva, tıklayıp düzenleme),
-25 senaryoluk test takımı.
+Güncel ve madde madde liste: [sartname-madde-listesi.md](sartname-madde-listesi.md). Aşağıdaki tablolar ilk turun özetidir.
 
 ## Bu makinede yapılmayacaklar (kullanıcı onayladı)
 

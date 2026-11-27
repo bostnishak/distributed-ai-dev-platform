@@ -139,8 +139,8 @@ v4	3.2	OKLCH palet derleyici	Y
 v4	3.3	Kişisel beğeni belleği	Y
 v4	4.1	Özet ağacı (RAPTOR)	Y
 v4	4.2	Belge gezinme ve eşle-indirge okuma	K	long_doc BM25 seçimi
-v4	5.1	Tarayıcı kullanan ajan (erişilebilirlik ağacı)	Y
-v4	5.2	Her eylemi doğrulama ve geri alınamaz eylemde onay	Y
+v4	5.1	Tarayıcı kullanan ajan (erişilebilirlik ağacı)	C	browser_agent.py: @tarayıcı <adres> <görev>; DOM öğe listesi, görsel model yedeği yok
+v4	5.2	Her eylemi doğrulama ve geri alınamaz eylemde onay	C	browser_agent.py: düğme adıyla onay; yerel gizli talimat testinde geçti
 v4	6.1	Hesapların kodla yapılması	C	z3_math, data_lab, doc_calc
 v4	6.1	SymPy/SciPy çekirdeği	Y	paketler kurulu değil
 v4	6.2	Canlı formüllü Excel ve yeniden hesaplama	C	office_verify

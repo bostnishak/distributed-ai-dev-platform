@@ -10,8 +10,8 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | v1 | 15 | 13 | 3 | 1 | 0 | 0 | 32 |
 | v2 | 6 | 11 | 15 | 9 | 2 | 1 | 44 |
 | v3 | 4 | 8 | 8 | 23 | 5 | 2 | 50 |
-| v4 | 8 | 8 | 7 | 10 | 0 | 0 | 33 |
-| **Hepsi** | 33 | 40 | 33 | 43 | 7 | 3 | 159 |
+| v4 | 10 | 8 | 7 | 8 | 0 | 0 | 33 |
+| **Hepsi** | 35 | 40 | 33 | 41 | 7 | 3 | 159 |
 
 ## v1
 
@@ -171,8 +171,8 @@ Bu dosya `scripts/spec_matrix.tsv` dosyasından üretilir: `python scripts/spec_
 | 3.3 | Kişisel beğeni belleği | yok |  |
 | 4.1 | Özet ağacı (RAPTOR) | yok |  |
 | 4.2 | Belge gezinme ve eşle-indirge okuma | kısmi | long_doc BM25 seçimi |
-| 5.1 | Tarayıcı kullanan ajan (erişilebilirlik ağacı) | yok |  |
-| 5.2 | Her eylemi doğrulama ve geri alınamaz eylemde onay | yok |  |
+| 5.1 | Tarayıcı kullanan ajan (erişilebilirlik ağacı) | canlı | browser_agent.py: @tarayıcı <adres> <görev>; DOM öğe listesi, görsel model yedeği yok |
+| 5.2 | Her eylemi doğrulama ve geri alınamaz eylemde onay | canlı | browser_agent.py: düğme adıyla onay; yerel gizli talimat testinde geçti |
 | 6.1 | Hesapların kodla yapılması | canlı | z3_math, data_lab, doc_calc |
 | 6.1 | SymPy/SciPy çekirdeği | yok | paketler kurulu değil |
 | 6.2 | Canlı formüllü Excel ve yeniden hesaplama | canlı | office_verify |

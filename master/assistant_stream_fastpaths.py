@@ -14,6 +14,7 @@ from fastapi import UploadFile
 from fastapi.responses import StreamingResponse
 
 import assistant_cad_cnc as _cad
+import chat_agents
 import chat_guard
 import clarify as _clarify
 import config
@@ -24,7 +25,6 @@ import office_verify
 import project_flow
 import reasoning_mode
 import reply_labels
-import research
 import revise_chat
 import run_trace
 import text_tools
@@ -569,7 +569,7 @@ async def dispatch_chat_fastpath(
 ) -> StreamingResponse | None:
     """Try deterministic/tool SSE fast paths before falling back to general LLM chat."""
     has_file = bool(file is not None and file.filename)
-    if (early := _try_guard_fastpaths(prompt, has_file) or revise_chat.fastpath(prompt, history, has_file) or research.fastpath(prompt, has_file)) is not None:
+    if (early := _try_guard_fastpaths(prompt, has_file) or revise_chat.fastpath(prompt, history, has_file) or chat_agents.fastpath(prompt, has_file)) is not None:
         return early
     if (res := _try_abstain_fastpath(prompt, history, has_file)) is not None:
         return res
