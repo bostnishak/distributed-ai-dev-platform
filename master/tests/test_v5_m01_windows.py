@@ -1233,3 +1233,10 @@ def test_council_calls_have_time_to_finish_on_a_small_card(monkeypatch):
     monkeypatch.setattr(gateway.default_client, "chat", chat)
     assert asyncio.run(tool_executor._call_model("m", "s", "p", num_predict=2560)) == "yanıt"
     assert seen["timeout_s"] >= 2560 / 7 and seen["max_retries"] == 0
+
+
+def test_empty_table_columns_are_dropped():
+    import doc_tools
+
+    assert doc_tools._markdown_table([["Urun", "", "Adet"], ["Kalem", None, "12"]]) == "| Urun | Adet |\n|---|---|\n| Kalem | 12 |"
+    assert doc_tools._markdown_table([["", ""]]) == ""

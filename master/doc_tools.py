@@ -35,6 +35,10 @@ def _markdown_table(rows: list[list[Any]]) -> str:
         return ""
     width = max(len(r) for r in cells)
     cells = [r + [""] * (width - len(r)) for r in cells]
+    used = [i for i in range(width) if any(r[i] for r in cells)]
+    if not used:
+        return ""
+    cells, width = [[r[i] for i in used] for r in cells], len(used)
     return "\n".join(["| " + " | ".join(cells[0]) + " |", "|" + "---|" * width, *("| " + " | ".join(r) + " |" for r in cells[1:])])
 
 
