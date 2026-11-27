@@ -96,7 +96,7 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 
 ## 4. v4
 
-- [ ] 5. vites: arka planda uzun koşu
+- [~] 5. vites: `arka planda: <istek>`, `arka plan işleri` — otomatik testle geçti, modelle canlı denenecek
 - [x] Araştırma bağlayıcıları: arXiv, GitHub (saatlik sınır var), PyPI, npm, MDN
 - [x] Araştırma kaynaklarında yayın tarihi
 - [x] İndirilen DevDocs araştırmada kullanılıyor; web kapalıyken de yanıt veriyor (canlı geçti)

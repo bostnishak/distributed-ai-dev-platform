@@ -1124,3 +1124,45 @@ def test_the_active_isolation_layer_is_named_honestly():
     assert "Docker kutusu" in run_evidence.isolation_tier(ready=lambda: (True, ""))
     assert "çalıştırılmıyor" in run_evidence.isolation_tier(ready=lambda: (False, ""), platform="win32")
     assert run_evidence.isolation_tier(ready=lambda: (False, ""), platform="linux").startswith("Yalıtım yok")
+
+
+def test_a_background_build_runs_behind_the_chat_and_can_be_stopped(tmp_path, monkeypatch):
+    import asyncio
+
+    import config
+    import marathon
+    from gateway import priority_gate
+
+    monkeypatch.setattr(config, "data_dir", lambda: tmp_path)
+    seen = []
+
+    async def build(request):
+        seen.append(priority_gate.priority_of("chat"))
+        yield {"type": "status", "message": "plan yazılıyor"}
+        await asyncio.sleep(0.2)
+        yield {"type": "done", "workspace": {"id": "proje-1"}, "warnings": ["uyarı"]}
+
+    async def forever(request):
+        await asyncio.sleep(60)
+        yield {}
+
+    async def broken(request):
+        raise RuntimeError("model yok")
+        yield {}
+
+    async def go():
+        assert "#1 başladı" in await marathon.reply("arka planda: büyük bir stok sistemi yap", build)
+        assert "Zaten çalışan" in await marathon.reply("arka planda: ikinci bir iş yap lütfen", build)
+        assert "çalışıyor" in await marathon.reply("arka plan işleri")
+        await asyncio.sleep(0.6)
+        assert "**bitti**" in marathon.listing() and "proje `proje-1`" in marathon.listing()
+        await marathon.reply("arka planda: sonsuz süren bir iş yap", forever)
+        await asyncio.sleep(0.05)
+        assert "durduruldu" in await marathon.reply("arka plan işini durdur 2")
+        await marathon.reply("arka planda: bozulan bir iş yap lütfen", broken)
+        await asyncio.sleep(0.1)
+        assert "**başarısız**" in marathon.listing() and "model yok" in marathon.listing()
+
+    asyncio.run(go())
+    assert seen == [priority_gate.BACKGROUND]
+    assert marathon.fastpath("arka planda ne var") is None
