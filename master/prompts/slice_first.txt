@@ -1,0 +1,2 @@
+BU AŞAMA 1/3 — İSKELET VE YERLEŞİM: sayfanın tamamını kur ama yalnız yerleşimi, renkleri, ölçüleri, yazıları ve tüm bölgeleri bitir. CSS'in başına *{box-sizing:border-box} koy; telefon genişliğinde (375px) hiçbir şey yana taşmasın. Bölgeler için anlamlı etiketleri kullan (üst bar <header>, yan menü <aside>, ana alan <main>, alt bilgi <footer>). Düğmeler ve alanlar yerinde dursun, her biri bir id taşısın. <script> içinde yalnız boş veri dizisi ve onu ekrana çizen render() fonksiyonu olsun. Sonraki aşamalar bu iskelete ekleme yapacak.
+Bu aşamada karşılanacak koşullar:

@@ -18,6 +18,7 @@ from typing import Any
 
 import numpy as np
 
+import critic_models
 import multimodal_studio as mms
 
 # ============================================================================
@@ -225,8 +226,9 @@ async def run_reasoning_council(prompt: str, context: str = "") -> dict[str, Any
         f"--- Çözüm B ({model_b}) ---\n{draft_b[:2500]}\n\n"
         "Her iki çözümdeki eksikleri, olası hataları ve birleştirilmesi gereken en güçlü noktaları 4 maddede eleştir."
     )
+    critic = await critic_models.critic_for(model_a)  # a model asked to criticise its own family agrees with it
     critique = await _call_model(
-        model_a,
+        critic,
         "Sen Şeytanın Avukatı / Eleştirmen Ajansın. Hataları ve eksikleri acımasızca tespit et. Emoji kullanma.",
         critique_prompt,
         num_predict=768,
@@ -253,6 +255,7 @@ async def run_reasoning_council(prompt: str, context: str = "") -> dict[str, Any
         "proposer_b_model": model_b,
         "draft_a": draft_a,
         "draft_b": draft_b,
+        "critic_model": critic,
         "critique": critique,
         "final_answer": final_answer,
     }

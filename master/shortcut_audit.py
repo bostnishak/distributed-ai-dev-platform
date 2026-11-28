@@ -10,7 +10,7 @@ from pathlib import Path
 import cheat_guard
 from prompt_loader import load_prompt
 
-_SKIP_PARTS = {".history", ".git", "node_modules", "__pycache__", "venv", ".venv", "dist", ".ai-os"}
+_SKIP_PARTS = {".history", ".git", "node_modules", "__pycache__", "venv", ".venv", "dist", ".ai-os", "vendor"}
 _JS_EMPTY_CATCH_RE = re.compile(r"catch\s*(?:\([^)]*\))?\s*\{\s*(?:/\*.*?\*/\s*|//[^\n]*\n\s*)*\}", re.DOTALL)
 _JS_FAKE_RE = re.compile(r"setTimeout\s*\(\s*(?:\(\s*\)|function\s*\(\s*\))\s*(?:=>)?\s*\{[^{}]{0,300}?[\"'`][^\"'`]*(?:başarıyla|successfully|kaydedildi|gönderildi|yanıtı|response)[^\"'`]*[\"'`]", re.IGNORECASE)
 _JS_EMPTY_HANDLER_RE = re.compile(r"(?:addEventListener\(\s*[\"'][\w-]+[\"']\s*,|\bon[a-z]+\s*=\s*|\bon[A-Z]\w*=\{)\s*(?:\(\s*\w*\s*\)\s*=>|function\s*\(\s*\w*\s*\))\s*\{\s*\}|\bon[a-z]+=[\"']\s*[\"']")

@@ -1,0 +1,99 @@
+"""v5 milestone 06: the reality torture suite passes a correct page and catches the injected bugs (real browser)."""
+
+from __future__ import annotations
+
+import pytest
+
+import torture
+
+pytestmark = pytest.mark.integration
+
+GOOD = """<!doctype html><html><head><meta charset="utf-8"><title>Harcama</title><link rel="icon" href="data:,"></head><body><main>
+<h1>Harcama defteri</h1><input id="m" aria-label="Açıklama"><input id="t" type="number" step="0.01" aria-label="Tutar"><button id="e">Ekle</button>
+<input id="a" type="search" aria-label="Ara"><p id="s"></p><ul id="l"></ul></main>
+<script>
+const items = []; const $ = id => document.getElementById(id);
+function render() {
+  const q = $('a').value.toLocaleLowerCase('tr');
+  $('l').replaceChildren(...items.filter(x => x.text.toLocaleLowerCase('tr').includes(q)).map(x => {
+    const li = document.createElement('li'); li.textContent = x.text + ' — ' + (x.cents / 100).toFixed(2); return li; }));
+  $('s').textContent = 'Toplam: ' + (items.reduce((sum, x) => sum + x.cents, 0) / 100).toFixed(2);
+}
+$('e').addEventListener('click', () => {
+  const text = $('m').value.trim(); if (!text) return;
+  items.push({text, cents: Math.round(Number($('t').value || 0) * 100)}); $('m').value = ''; $('t').value = ''; render();
+});
+$('a').addEventListener('input', render); render();
+</script></body></html>"""
+
+FLOAT_MONEY = GOOD.replace("cents: Math.round(Number($('t').value || 0) * 100)", "cents: Number($('t').value || 0)").replace("(x.cents / 100).toFixed(2)", "x.cents").replace(
+    "(items.reduce((sum, x) => sum + x.cents, 0) / 100).toFixed(2)", "items.reduce((sum, x) => sum + x.cents, 0)")
+DOUBLE_SUBMIT = GOOD.replace("items.push({text, cents: Math.round(Number($('t').value || 0) * 100)}); $('m').value = ''; $('t').value = ''; render();",
+                             "setTimeout(() => { items.push({text, cents: 0}); $('m').value = ''; render(); }, 300);")
+ASCII_SEARCH = GOOD.replace("x.text.toLocaleLowerCase('tr')", "x.text.toLowerCase()").replace("$('a').value.toLocaleLowerCase('tr')", "$('a').value.toLowerCase()")
+NAN_TOTAL = GOOD.replace("(x.cents / 100).toFixed(2); return li", "(x.cents / Math.sqrt(x.cents) / 100).toFixed(2); return li")
+UNSAFE = GOOD.replace("li.textContent = x.text", "li.innerHTML = x.text")
+
+
+def _run(tmp_path, page):
+    (tmp_path / "index.html").write_text(page, encoding="utf-8")
+    results = torture.run((tmp_path / "index.html").as_uri(), {**torture.QUICK, **torture.HEAVY})
+    if results is None or all("denetim yapılamadı" in detail for _passed, detail in results.values()):
+        pytest.skip("tarayıcı çalıştırılamadı")
+    return results
+
+
+def test_correct_page_survives_every_check(tmp_path):
+    results = _run(tmp_path, GOOD)
+    assert torture.failures(results) == []
+    skipped = {name for name, (passed, _) in results.items() if passed is None}
+    assert skipped == set(torture.torture_files.CHECKS), "bu sayfada dışa aktarma ve tarih alanı yok"
+
+
+@pytest.mark.parametrize(("page", "check"), [(FLOAT_MONEY, "para hesabı"), (DOUBLE_SUBMIT, "çift gönderim"), (ASCII_SEARCH, "Türkçe arama"), (UNSAFE, "özel karakter ve XSS"), (NAN_TOTAL, "sayı ve tarih sınırları")])
+def test_each_injected_bug_is_caught_by_its_check(tmp_path, page, check):
+    assert page != GOOD
+    results = _run(tmp_path, page)
+    assert results[check][0] is False, results[check]
+
+
+def test_page_without_a_form_is_not_judged_on_form_checks(tmp_path):
+    results = _run(tmp_path, "<!doctype html><meta charset='utf-8'><p>Yalnız bir metin sayfası, toplam NaN</p>")
+    assert results["çift gönderim"][0] is None and results["boş durum"][0] is False
+
+
+def test_failures_names_only_what_failed():
+    assert torture.failures({"a": (True, ""), "b": (None, "yok"), "c": (False, "bozuk")}) == ["c: bozuk"]
+
+
+def test_data_bugs_block_delivery_and_network_manners_only_warn():
+    status, detail = torture.judged(("geçti", "ok"), {"çift gönderim": (False, "3 kayıt"), "yavaş ağ": (False, "kilit yok")}, "kaldı")
+    assert status == "kaldı" and "3 kayıt" in detail
+    status, detail = torture.judged(("geçti", "ok"), {"yavaş ağ": (False, "kilit yok"), "para hesabı": (True, "")}, "kaldı")
+    assert status == "geçti" and "uyarısı" in detail and "kilit yok" in detail
+    assert torture.judged(("geçti", "ok"), None, "kaldı") == ("geçti", "ok")
+
+
+_EXPORTING = GOOD.replace('<button id="e">Ekle</button>', '<button id="e">Ekle</button><input id="d" type="date" aria-label="Tarih"><button id="x">CSV indir</button>').replace(
+    "items.push({text, cents: Math.round(Number($('t').value || 0) * 100)});", "items.push({text, cents: Math.round(Number($('t').value || 0) * 100), day: $('d').value.split('-').reverse().join('.')});").replace(
+    "li.textContent = x.text + ' — '", "li.textContent = x.text + ' ' + x.day + ' — '").replace(
+    "$('a').addEventListener('input', render);",
+    "$('a').addEventListener('input', render); $('x').addEventListener('click', () => { const a = document.createElement('a'); "
+    "a.href = URL.createObjectURL(new Blob(['\\ufeff' + items.map(x => x.text).join('\\n')], {type: 'text/csv'})); a.download = 'kayitlar.csv'; a.click(); });")
+
+
+def test_exports_and_dates_survive_turkish_and_time_zones(tmp_path):
+    results = _run(tmp_path, _EXPORTING)
+    assert results["dışa aktarılan dosyalar"][0] is True, results["dışa aktarılan dosyalar"]
+    assert results["saat dilimi ve tarih"][0] is True, results["saat dilimi ve tarih"]
+
+
+@pytest.mark.parametrize(("change", "check", "word"), [
+    (("'\\ufeff' + ", ""), "dışa aktarılan dosyalar", "BOM"),
+    (("items.map(x => x.text)", "items.map(x => x.text.normalize('NFD').replace(/[^\\x00-\\x7f]/g, ''))"), "dışa aktarılan dosyalar", "bozuk"),
+    (("day: $('d').value.split('-').reverse().join('.')", "day: $('d').value ? new Date($('d').value).toLocaleDateString('tr-TR') : ''"), "saat dilimi ve tarih", "28"),
+])
+def test_broken_export_or_shifted_date_is_caught(tmp_path, change, check, word):
+    assert change[0] in _EXPORTING
+    results = _run(tmp_path, _EXPORTING.replace(*change))
+    assert results[check][0] is False and word in results[check][1], results[check]

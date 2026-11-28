@@ -1,0 +1,4 @@
+() => [...document.querySelectorAll('body *')]
+  .filter(e => e.getBoundingClientRect().right > window.innerWidth + 4)
+  .slice(0, 4)
+  .map(e => e.tagName.toLowerCase() + (e.id ? '#' + e.id : '') + (e.className && typeof e.className === 'string' ? '.' + e.className.trim().split(/\s+/)[0] : '') + ' (' + Math.round(e.getBoundingClientRect().width) + 'px)')

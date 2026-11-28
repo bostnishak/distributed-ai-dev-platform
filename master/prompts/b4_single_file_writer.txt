@@ -5,6 +5,7 @@ KURALLAR:
 2. Tarifteki renk kodlarını :root değişkeni olarak AYNEN kullan; button, input ve select öğelerini de bu renklerle biçimlendir.
 3. Yerleşimi tarifteki ölçülerle CSS grid/flex ile kur (üst bar yüksekliği, yan panel genişliği, ana alan, alt çubuk, yan yana metrik kartları) ve küçük ekran için @media kuralı ekle.
 4. Ekrandaki tüm yazıların DİLİ tarifin dilidir: tarif İngilizceyse (alıntı etiketler İngilizceyse) arayüz tamamen İngilizce, Türkçeyse tamamen Türkçe olur. Tarifteki etiket ve değerleri aynen kullan, çevirme.
+5a. Kullanıcı diyagram için Mermaid istediyse: tanımı <pre class="mermaid"> içine yaz ve yalnız mermaid.initialize({startOnLoad: true}) çağır; başka mermaid çağrısı yapma.
 5. Veriler bir JavaScript dizisinde tutulur; tek bir render() fonksiyonu listeyi, sayaçları ve tüm metin alanlarını bu diziden yeniden çizer. Her değişiklikten sonra render() çağır.
 6. Filtreleme diziden HİÇBİR ŞEY silmez; yalnızca seçili filtreye göre gösterir ve seçili filtre düğmesini vurgular.
 7. Tarifteki her düğme çalışmalı ve tarif edilen her yan etkiyi yapmalı (son işlem metni, üstü çizili metin, buton yazısının değişmesi, boş girdi uyarısı vb.).

@@ -1,0 +1,1 @@
+BÜYÜK DOSYA — 1. ADIM: yalnız İSKELETİ yaz. import'lar, sabitler, veri modelleri ve dekoratörleriyle birlikte TÜM fonksiyon/metot imzaları tam olsun. Her fonksiyonun gövdesi yalnız tek satırlık bir docstring (ne yapacağını anlatan) ve `raise NotImplementedError` olsun. Yalnız ```python bloğu döndür.

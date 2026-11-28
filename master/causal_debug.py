@@ -18,8 +18,11 @@ from pathlib import Path
 from pydantic import BaseModel, ValidationError
 
 import cheat_guard
+import clean_slate
+import critic_models
 import decisions
 import gateway
+import oscillation
 import patch_edit
 import repair_pairs
 import tree_search
@@ -45,7 +48,8 @@ class Audit(BaseModel):
 
 
 async def _ask(system: str, user: str, schema: dict) -> str:
-    res = await gateway.default_client.chat([{"role": "system", "content": system}, {"role": "user", "content": user}], model="qwen3.5:9b", profile="extract",
+    model = await critic_models.critic_for("qwen3.5:9b")  # the one who judges the failure is not of the writer's family
+    res = await gateway.default_client.chat([{"role": "system", "content": system}, {"role": "user", "content": user}], model=model, profile="extract",
                                             format_schema=schema, num_predict=700, num_ctx=8192, timeout_s=240.0, feature="debugger", max_retries=0)
     return res.content
 
@@ -235,11 +239,19 @@ async def repair(ws_dir: Path, run_tests: Callable[[], str], regenerate: Regener
     originals = sources(ws_dir)
     causes: list[str] = []
     seen = {_headline(log)}
+    banned: list[str] = []
+    tracker = oscillation.Tracker()
     for _round in range(rounds):
         before = sources(ws_dir)
-        changes, cause = await _propose(ws_dir, log, regenerate, models or Models())
+        changes, cause = await _propose(ws_dir, log + clean_slate.ban_list(banned), regenerate, models or Models())
         if not changes:
             break
+        swung = [path for path, body in changes.items() if path in before and tracker.repeats(path, before[path], body)]
+        if swung:
+            banned += [clean_slate.failed_approach(before[path], changes[path], "dosya önceki durumuna döndü (salınım)") for path in swung]
+            if tracker.halted:
+                break
+            continue
         _write(ws_dir, changes)
         after = await asyncio.to_thread(run_tests)
         if not after:
@@ -248,6 +260,7 @@ async def repair(ws_dir: Path, run_tests: Callable[[], str], regenerate: Regener
             return True, f"Testler başta başarısızdı; kök neden bulundu ve düzeltildi ({'; '.join([*causes, cause])})."
         if _headline(after) in seen:  # no progress: take this attempt back
             _write(ws_dir, {path: before[path] for path in changes})
+            banned += [clean_slate.failed_approach(before[path], body, after) for path, body in changes.items() if path in before]
             continue
         if cause == _CERTAIN:
             originals.update(changes)  # a certain fix stays even if later failures remain

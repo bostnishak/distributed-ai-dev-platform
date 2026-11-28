@@ -1,0 +1,1 @@
+Aşağıdaki dosyada yalnız belirtilen fonksiyonu tamamla. Yalnız o fonksiyonu (dekoratörleri ve imzasıyla) ```python bloğu içinde döndür; başka hiçbir şey yazma. İmzayı ve adı değiştirme, `raise NotImplementedError` bırakma.

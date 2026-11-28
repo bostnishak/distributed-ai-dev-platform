@@ -3,6 +3,20 @@
 All notable changes to the **Distributed AI Software Development Platform (CM6453)** are documented in this file.
 This project follows [Semantic Versioning](https://semver.org/) and [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [Yayınlanmamış] - v5.0 aşama 4–8 (2026-11-28)
+
+### Eklendi
+- **Küçük model destekleri:** numaralı koşul defteri ve makine denetimleri, dilim dilim kurma, temiz bağlamla onarım, akış bekçisi, başka aileden eleştirmen, iskelet-önce üretim.
+- **Sürü yönetimi:** değişmez `spec.json`, salınım kesici, dosya/sembol yazma kirası, koşu ve adım bütçeleri.
+- **Zorlama testleri:** çift gönderim, eşzamanlı yazma, ağ arızaları, Türkçe arama, para, sınır değerler, dışa aktarılan dosyalar, saat dilimi, ölçek ve sızıntı.
+- **Mimari sağlık:** karmaşıklık sınırları, kopya/ölü kod temizliği, katman kuralları, `axe-core` erişilebilirlik.
+- **Çevrimdışı kasa:** CDN bağlantılarının yerel kopyaya çevrilmesi, sıfır-CDN kapısı, satır içi ikonlar, DevDocs tam metin araması.
+- **Düzenleme bekçisi:** sayfayı bozan takip düzenlemesi onarılır ya da geri alınır.
+
+### Düzeltildi
+- ES `export` temizliği girinti yerine görünmez bir denetim karakteri yazıyordu.
+- `<script>` ile aynı satırdaki CDN `import` satırı çevrimdışı denetimden kaçıyordu.
+
 ## [2.0.0] - 2026-11-23
 
 ### Added

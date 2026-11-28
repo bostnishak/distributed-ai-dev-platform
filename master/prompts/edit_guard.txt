@@ -1,0 +1,2 @@
+Sayfaya istenen değişiklik eklenince daha önce çalışan bir şey BOZULDU. Yalnız bozulanı düzelt: istenen değişiklik kalsın, önceden çalışan her şey yine çalışsın. Silme veriden de silsin, süzme veriyi değiştirmesin. alert/confirm/prompt kullanma.
+ÖLÇÜLEN SORUN:

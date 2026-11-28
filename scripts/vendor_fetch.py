@@ -25,6 +25,7 @@ AGENT = {"User-Agent": "vendor-fetch"}
 LIBRARIES = {
     "@fontsource/inter": ("5.3.0", ["files/inter-latin-[4-7]00-normal.woff2", "files/inter-latin-ext-[4-7]00-normal.woff2", "LICENSE"]),
     "@fontsource/jetbrains-mono": ("5.3.0", ["files/jetbrains-mono-latin-[47]00-normal.woff2", "files/jetbrains-mono-latin-ext-[47]00-normal.woff2", "LICENSE"]),
+    "@fontsource/plus-jakarta-sans": ("5.3.0", ["files/plus-jakarta-sans-latin-[4-7]00-normal.woff2", "files/plus-jakarta-sans-latin-ext-[4-7]00-normal.woff2", "LICENSE"]),
     "lucide-static": ("1.82.0", ["sprite.svg", "LICENSE"]),
     "chart.js": ("4.6.2", ["dist/chart.umd.js", "dist/chart.umd.min.js", "LICENSE.md"]),
     "mermaid": ("12.3.0", ["dist/mermaid.min.js", "LICENSE"]),

@@ -547,7 +547,10 @@ def _handle_stream_event(
     evt: dict[str, Any], state: dict[str, Any], strip_emojis_fn: Any
 ) -> list[str]:
     out: list[str] = []
-    if evt.get("type") == "token":
+    if evt.get("type") == "restart":  # the stream guard cut a looping answer: what was shown is thrown away
+        state["buffered"].clear()
+        out.append(f"data: {json.dumps(evt, ensure_ascii=False)}\n\n")
+    elif evt.get("type") == "token":
         piece = strip_emojis_fn(str(evt.get("content") or ""))
         if piece:
             if state["need_buffer"]:

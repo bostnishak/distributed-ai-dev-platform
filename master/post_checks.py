@@ -7,7 +7,9 @@ import logging
 from pathlib import Path
 from typing import Any
 
+import a11y
 import api_fuzz
+import arch_heal
 import code_audit
 import complexity_governor
 import deploy_kit
@@ -44,6 +46,8 @@ async def apply(ws_dir: Path, request: str, done: dict[str, Any]) -> dict[str, A
         ("Veritabanı göçü denetimi", (migration_check.report, ws_dir), False),
         ("Rastgele tıklama dayanıklılığı", (ui_chaos.report, ws_dir), True),
         ("API zorlama testi", (api_fuzz.report, ws_dir), False),
+        ("Mimari sağlık", (arch_heal.report, ws_dir), False),
+        ("Erişilebilirlik (axe-core, klavye, pencere)", (a11y.report, ws_dir), True),
         ("Bellek ve DOM sızıntısı", (leak_check.report, ws_dir), True),
     )
     found = await asyncio.gather(*(asyncio.to_thread(*call) for _name, call, _page in steps))  # read-only checks run at the same time

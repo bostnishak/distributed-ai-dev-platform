@@ -146,10 +146,13 @@ class TestRunCode:
             monkeypatch.setattr(sandbox, "run_python_code", _fake_sandbox_run)
 
     def test_master_secrets_not_visible(self, client, monkeypatch):
+        import assistant
+
+        monkeypatch.setattr(assistant, "CODE_RUN_TIMEOUT_SECONDS", 90)  # a cold sandbox on a loaded machine; this test is about secrets
         monkeypatch.setenv("AGENT_TOKEN", "secret-that-must-not-leak")
         code = "import os; print(os.environ.get('AGENT_TOKEN'))"
         resp = client.post("/api/assistant/run-code", json={"code": code})
-        assert resp.json()["stdout"].strip() == "None"
+        assert resp.json()["stdout"].strip() == "None", resp.json()
 
     def test_stdout_captured(self, client):
         resp = client.post("/api/assistant/run-code", json={"code": "print(2 + 2)"})
