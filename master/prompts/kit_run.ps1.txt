@@ -1,0 +1,18 @@
+# Sanal ortam kurar, sabitlenmiş bağımlılıkları yükler, uygulamayı başlatır.  Kullanım: .\run.ps1 [-Port 8000] [-NoBrowser]
+param([int]$Port = __PORT__, [switch]$NoBrowser)
+$ErrorActionPreference = "Stop"
+Set-Location -LiteralPath $PSScriptRoot
+$env:PYTHONUTF8 = "1"
+if (-not (Test-Path ".venv\Scripts\python.exe")) {
+    Write-Host "Sanal ortam kuruluyor..."
+    if (Get-Command py -ErrorAction SilentlyContinue) { py -3 -m venv .venv } else { python -m venv .venv }
+}
+$python = Join-Path $PSScriptRoot ".venv\Scripts\python.exe"
+if (Test-Path "requirements.lock") {
+    & $python -m pip install --quiet --disable-pip-version-check -r requirements.lock
+    if ($LASTEXITCODE -ne 0) { throw "Bağımlılıklar kurulamadı." }
+}
+$arguments = @("start_app.py", "--port", "$Port")
+if ($NoBrowser) { $arguments += "--no-browser" }
+& $python @arguments
+exit $LASTEXITCODE

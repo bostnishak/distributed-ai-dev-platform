@@ -5,6 +5,7 @@ import { initAuthUi } from './auth_modal.js';
 import { initChatEnhancements } from './chat_enhancements.js';
 import { renderCnc } from './cnc.js';
 import { renderDashboard } from './dashboard.js';
+import { initGlassBox } from './glass_box.js';
 import { renderHub } from './hub.js';
 import { initPalette } from './palette.js';
 import { renderArtifacts, renderFiles, renderShare } from './panels.js';
@@ -18,6 +19,7 @@ import { announceAriaLive, fetchHealthWizardStatus } from './ux_shell.js';
 import { initWarRoom } from './war_room.js';
 
 const appStore = createReactiveStore();
+initGlassBox();
 window.__DADP_STORE__ = appStore;
 
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === '127.0.0.1' || location.hostname === 'localhost')) {

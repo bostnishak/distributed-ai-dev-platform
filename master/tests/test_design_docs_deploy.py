@@ -53,7 +53,7 @@ def test_dockerfile_is_written_only_when_asked_and_passes_its_own_lint(tmp_path)
     assert deploy_kit.apply(tmp_path, "bir api yaz") == ""
     assert "eklendi" in deploy_kit.apply(tmp_path, "bir api yaz ve docker ile yayına al")
     text = (tmp_path / "Dockerfile").read_text(encoding="utf-8")
-    assert deploy_kit.lint(text) == [] and '"main:app"' in text and "uvicorn" in (tmp_path / "requirements.txt").read_text(encoding="utf-8")
+    assert deploy_kit.lint(text) == [] and 'uvicorn main:app --host 0.0.0.0' in text and "uvicorn" in (tmp_path / "requirements.txt").read_text(encoding="utf-8")
 
 
 def test_lint_names_the_usual_mistakes():

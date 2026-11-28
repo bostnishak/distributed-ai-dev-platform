@@ -26,8 +26,10 @@ import marathon
 import math_kernel
 import memory_marks
 import night_summary
+import ops_chat
 import ops_commands
 import os_kernel
+import portable_kit
 import preferences
 import project_server
 import research
@@ -73,7 +75,7 @@ def _command(prompt: str, history: str) -> str:
 
 
 def _agents(prompt: str, history: str) -> StreamingResponse | None:
-    return (inbox.fastpath(prompt) or consistency.fastpath(prompt) or marathon.fastpath(prompt) or tts.fastpath(prompt, history) or arena.fastpath(prompt) or self_play.fastpath(prompt) or best_of_n.fastpath(prompt)
+    return (inbox.fastpath(prompt) or ops_chat.fastpath(prompt) or consistency.fastpath(prompt) or portable_kit.fastpath(prompt, history) or marathon.fastpath(prompt) or tts.fastpath(prompt, history) or arena.fastpath(prompt) or self_play.fastpath(prompt) or best_of_n.fastpath(prompt)
             or swarm.fastpath(prompt, history))
 
 

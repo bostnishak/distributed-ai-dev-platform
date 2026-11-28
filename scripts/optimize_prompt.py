@@ -83,7 +83,8 @@ def main() -> int:
     import golden
 
     known = {f.__name__: f for table in (golden.FAST, golden.SLOW) for group in table.values() for f in group}
-    path = PROMPTS / Path(args.prompt).name
+    role = PROMPTS / "v5" / f"{Path(args.prompt).stem}.md"  # agent roles live in v5/
+    path = role if role.is_file() else PROMPTS / Path(args.prompt).name
     if not path.is_file() or any(s not in known for s in args.scenarios):
         print("İstem dosyası ya da senaryo bulunamadı. Senaryolar: " + ", ".join(sorted(known)))
         return 2

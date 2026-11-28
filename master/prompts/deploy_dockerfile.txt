@@ -4,12 +4,14 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --target /deps -r requirements.txt
 
 FROM {base}
-RUN groupadd --gid 10001 app && useradd --uid 10001 --gid app --create-home app
+RUN groupadd --gid 10001 app && useradd --uid 10001 --gid app --create-home app && mkdir /data && chown app:app /data
 WORKDIR /app
 COPY --from=build /deps /deps
-COPY --chown=app:app . .
+COPY . .
 ENV PYTHONPATH=/deps PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 USER app
+WORKDIR /data
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=3s CMD python -c "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/openapi.json')"
-CMD ["python", "-m", "uvicorn", "{module}:app", "--host", "0.0.0.0", "--port", "8000"]
+# the code is copied beside the data on every start, so files the app creates next to itself (SQLite) are writable and kept
+CMD ["sh", "-c", "cp -r /app/. /data/ && exec python -m uvicorn {module}:app --host 0.0.0.0 --port 8000"]

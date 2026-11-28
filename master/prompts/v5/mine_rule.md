@@ -1,0 +1,1 @@
+Aşağıdaki başarısızlıktan, benzer işlerde aynı hatayı önleyecek TEK CÜMLELİK genel bir kural çıkar. Kural, hangi yöntemin ya da hangi tuzağın söz konusu olduğunu söylemeli (ör. hangi Python işlevi yetersiz, yerine ne yapılmalı). Testteki beklenen değerleri ya da örnek girdileri YAZMA. Yalnız kural cümlesini döndür.

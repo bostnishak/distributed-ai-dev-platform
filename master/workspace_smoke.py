@@ -23,6 +23,7 @@ import cheat_guard
 import clean_slate
 import complexity_governor
 import debug_probe
+import failure_rules
 import oscillation
 import spec_contract
 import workspace_behavior
@@ -157,7 +158,14 @@ class _RepairMemory:
     """What this repair loop already tried: the failed approaches and every state each file has been in."""
 
     banned: list[str] = field(default_factory=list)
+    first_failure: str = ""
     tracker: oscillation.Tracker = field(default_factory=oscillation.Tracker)
+
+
+async def _learn(request: str, memory: _RepairMemory, regenerate: _Regenerate) -> None:
+    """A failure that was repaired becomes one general rule for later requests like this one."""
+    if request and memory.first_failure:
+        await failure_rules.mine(request, memory.first_failure, lambda system, user: regenerate("kural", f"{system}\n\n{user}"))
 
 
 def _keep(path: Path, text: str) -> None:
@@ -226,6 +234,7 @@ async def smoke_and_repair(ws_dir: Path, regenerate: _Regenerate, rounds: int = 
             yield {"type": "smoke", "ok": True, "warning": f"Otomatik test çalıştırılamadı: {exc}"}
             return
         passed, target, log = _diagnose(ws_dir, ok, log, routes)
+        memory.first_failure = memory.first_failure or ("" if passed else log)
         if passed and workspace_web.has_page(ws_dir) and workspace_docker.available():
             result = await asyncio.to_thread(workspace_web.probe, ws_dir)  # real page load + clicks in jsdom
             if result and (found := workspace_web.problem(ws_dir, result) or spec_contract.problem(ws_dir, request)):
@@ -241,6 +250,7 @@ async def smoke_and_repair(ws_dir: Path, regenerate: _Regenerate, rounds: int = 
                 test_warning = searched if _ok else f"{test_warning} {searched}"
             if attempt and entry:
                 _guard_regression(ws_dir, entry)
+            await _learn(request, memory, regenerate)
             yield {"type": "smoke", "ok": True, "warning": test_warning}
             return
         if attempt == rounds or target is None or memory.tracker.halted:

@@ -15,6 +15,18 @@ Hepsi bu bilgisayarda çalışır; ücretli servis ya da anahtar gerekmez. Norma
 
 Her üretimden sonra bir **teslim durumu** satırı gelir: statik denetim, kod testleri, çalışan sistem ve imzalı kayıt. Dördü de geçmeden proje "tamamlandı" sayılmaz.
 
+## Dosyalar, rapor, paket ve yedek
+
+| Yaz | Ne yapar |
+|---|---|
+| `inbox` / `inbox: <soru>` | `data/inbox` klasörüne bırakılan taranmış PDF, Excel/CSV, ses ve videoları okur; yanıtı sayfa, hücre ya da dakika göstererek verir |
+| `tutarlı rapor: Başlık; ad adet x fiyat; ...; kdv 20` | Excel, sunum, PDF ve web panosunu aynı sayılarla üretir; tutmazsa teslim etmez |
+| `paketi sına` | Son projenin ZIP'ini boş klasöre açıp kapta başlatır |
+| `yedek al` / `yedekler` | Şifreli, doğrulanmış yedek alır ve listeler |
+| `dayanıklılık raporu` | Son yakma testinin sonucu |
+
+Proje kartında **Canlı kanıt** (işaretler ve ekran görüntüleri) ve **Geri al** düğmeleri, sayfanın altında donanım göstergesi vardır.
+
 ## Karar ve karşılaştırma
 
 | Yaz | Ne yapar |
@@ -67,3 +79,14 @@ GGUF model içe aktarma (ölçüm kapısından geçmezse yayımlanmaz):
 ```powershell
 master\venv\Scripts\python.exe scripts\ai_os.py import-gguf C:\yol\model.gguf --baseline qwen2.5-coder:7b
 ```
+
+Yedekten dönme (sunucu kapalıyken) ve çok saatlik dayanıklılık testi:
+
+```powershell
+master\venv\Scripts\python.exe scripts\ai_os.py restore <kimlik>
+```
+
+```powershell
+master\venv\Scripts\python.exe scripts\ai_os.py soak --hours 4
+```
+

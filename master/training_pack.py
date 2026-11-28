@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 import config
+import pii
 import repair_pairs
 import security_scan
 
@@ -31,7 +32,7 @@ def _project_text(workspace: str) -> str:
         relative = path.relative_to(root)
         if path.is_file() and path.suffix in _SOURCE_EXTS and not any(p.startswith(".") for p in relative.parts):
             parts.append(f"### {relative.as_posix()}\n{path.read_text(encoding='utf-8', errors='replace')}")
-    return security_scan.redact("\n\n".join(parts))[:_MAX_CHARS]
+    return pii.scrub(security_scan.redact("\n\n".join(parts)))[:_MAX_CHARS]
 
 
 def _runs() -> list[dict[str, Any]]:
@@ -48,7 +49,7 @@ def build() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     failed: dict[str, str] = {}
     preferences: list[dict[str, Any]] = []
     for run in _runs():
-        request, text = run.get("request", ""), _project_text(run.get("workspace", ""))
+        request, text = pii.scrub(run.get("request", "")), _project_text(run.get("workspace", ""))
         if not request or not text:
             continue
         if not run.get("passed"):
@@ -57,7 +58,8 @@ def build() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         sft[request] = {"messages": [{"role": "user", "content": request}, {"role": "assistant", "content": text}]}
         if request in failed:
             preferences.append({"prompt": request, "chosen": text, "rejected": failed.pop(request)})
-    return list(sft.values()), preferences + repair_pairs.load()
+    repairs = [{key: pii.scrub(value) for key, value in pair.items()} for pair in repair_pairs.load()]
+    return list(sft.values()), preferences + repairs
 
 
 def export(out_dir: Path) -> dict[str, int]:

@@ -19,9 +19,12 @@ import codeswitch
 import complexity_governor
 import config
 import design_system
+import doc_drift
 import docs_vault
 import done_gate
 import edit_guard
+import failure_rules
+import glass_box
 import json_repair
 import ledger
 import plan_matrix
@@ -189,6 +192,7 @@ async def _preparation_events(prompt: str, think: Any) -> AsyncIterator[dict[str
     """Research, then Intake and Architect: status lines followed by {"type": "ready", info, contract, notes}."""
     info: dict[str, Any] = dict(_EMPTY)
     gear = complexity_governor.classify(prompt)
+    glass_box.GEAR["last"] = f"GEAR_{gear.level}"
     async for evt in _research_events(prompt, think) if gear.research else _no_events():
         if evt["type"] == "info":
             info = evt["info"]
@@ -201,7 +205,7 @@ async def _preparation_events(prompt: str, think: Any) -> AsyncIterator[dict[str
             contract = evt["contract"]
         else:
             yield evt
-    yield {"type": "ready", "info": info, "contract": contract, "notes": (agent_contracts.writer_notes(contract) if contract else "") + skill_library.reference(prompt)
+    yield {"type": "ready", "info": info, "contract": contract, "notes": (agent_contracts.writer_notes(contract) if contract else "") + skill_library.reference(prompt) + failure_rules.hint(prompt)
            + design_system.brief(prompt) + await asyncio.to_thread(docs_vault.brief, prompt) + preferences.brief() + taste.brief()}
 
 
@@ -235,6 +239,8 @@ async def _ledger_events(evt: dict[str, Any], wanted: tuple[req_ledger.Req, ...]
             return await wb._ollama_generate(await wb.pick_coder_model(None), system, user, num_predict=9000, temperature=0.1)
 
         asset_vault.localize(ws_dir)  # the coverage pass rewrote files after the first conversion
+        for line in doc_drift.repair(ws_dir):
+            yield {"type": "status", "message": line}
         for line in await edit_guard.settle(ws_dir, str(evt["workspace"].get("prompt") or evt["workspace"].get("description") or ""), fix):
             yield {"type": "status", "message": line}
             if line.startswith("Uyarı"):

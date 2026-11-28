@@ -577,6 +577,7 @@ async def stream_iterate_project(
 
     used_before = arch_heal.alive(ws_dir)
     working = await asyncio.to_thread(edit_guard.snapshot, ws_dir)  # what works now must still work after the change
+    create_snapshot(ws_dir, f"önce: {instruction[:60]}")  # one click takes this change back
     async for evt in build_dag.edit_files(ws_dir, instruction, model, targets, prompt_for):
         yield evt
     def fix(system: str, user: str) -> Any:
