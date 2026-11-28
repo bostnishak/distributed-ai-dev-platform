@@ -9,7 +9,7 @@ Bu dosya "ne kaldı" sorusunun tek cevabıdır. Bir madde, kod testi **ve** canl
 
 ## Çalışma sırası: 3 parça
 
-**Kaldığım yer (28.11.2026):** 1. parça bitti ve birleştirildi. 2. parça (M04–M08) bitti. 3. parça (M09–M16) sen "devam" deyince başlayacak. Zorluk merdiveninde yerel model L4'e kadar çıkıyor.
+**Kaldığım yer (28.11.2026 09:05):** M09–M15 canlı kanıtlarından geçti. Kalan: M16 sertifikasyonu (`masterenv\Scripts\python.exe -X utf8 scriptserify_milestone_16.py`, sonuç `eval/reports/milestone_16.json`; kalan aşama çıkarsa yalnız onu düzelt), `docs/v5-durum.md` 09–16 satırları. Çok saatlik yakma testi istenirse ayrıca.
 
 Dizüstü bilgisayar kesintisiz yüklenmesin diye iş üçe bölündü. Bir parça bitince **durulur**; sen "devam" demeden sonrakine geçilmez.
 
