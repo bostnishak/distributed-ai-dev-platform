@@ -23,6 +23,7 @@ from pptx.exc import PythonPptxError
 from pypdf import PdfReader
 from pypdf.errors import PyPdfError
 
+import ingest_pdf
 from safe_archive import UnsafeArchive, inspect_zip
 
 log = logging.getLogger(__name__)
@@ -48,6 +49,12 @@ def _decode_bytes(raw: bytes) -> str:
     return raw.decode("utf-8", errors="replace")
 
 
+def _scanned_text(raw: bytes) -> str:
+    """A PDF without a text layer is read by OCR; "" when it has no images or there is no OCR model."""
+    found, _warnings = ingest_pdf.blocks(raw, max_pages=30)
+    return "\n".join(block.text for block in found)
+
+
 def extract_pdf_text(raw: bytes) -> str:
     """Extract PDF text using PyMuPDF (better Turkish Unicode/CID support), falling back to pypdf."""
     try:
@@ -59,6 +66,8 @@ def extract_pdf_text(raw: bytes) -> str:
         text = "\n".join(pages).strip()
         if text:
             return text
+        if scanned := _scanned_text(raw):
+            return scanned
     except (OSError, RuntimeError, ValueError, TypeError, AttributeError) as exc:
         log.debug("Recoverable error suppressed: %s", exc)
     reader = PdfReader(io.BytesIO(raw))

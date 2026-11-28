@@ -15,6 +15,7 @@ from typing import Any
 
 import agent_contracts
 import asset_vault
+import codeswitch
 import complexity_governor
 import config
 import design_system
@@ -284,7 +285,7 @@ async def stream_generate(prompt: str, project_type: str = "auto", model_overrid
     done: dict[str, Any] = {}
     assumed = ledger.assumption_lines(spoken)
     wanted = req_ledger.build(contract.model_dump(), prompt) if contract else ()
-    async for evt in _build_events(prompt + brief_text(info) + notes, project_type, model_override, wanted):
+    async for evt in _build_events(prompt + brief_text(info) + notes + codeswitch.note(prompt), project_type, model_override, wanted):
         if evt["type"] == "done":
             done = evt
         else:

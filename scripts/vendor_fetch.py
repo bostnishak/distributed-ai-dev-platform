@@ -42,6 +42,14 @@ PROGRAMS = {
     "d2": ("https://github.com/d2lang/d2/releases/download/v0.9.0/d2-v0.9.0-windows-amd64.tar.gz",
            "5f63b643de8f5a6dfb922d172e1b5496e4caf47497c33c4427cf1127f28c340f", "d2-v0.9.0/bin/d2.exe"),
 }
+# Model files from the publisher's own repository at a pinned revision, accepted only with the pinned SHA-256
+_PADDLE = "https://huggingface.co/PaddlePaddle/latin_PP-OCRv5_mobile_rec_onnx/resolve/89d3a50e2c27e2e7cceeab0e944c25c807d5db4f/"
+MODELS = {  # name -> {file: sha256}
+    "ocr-latin": {"inference.onnx": "7888113072263cb471b93f66dd5e2ad70548dc526fa1ace760d0d973dd121498",
+                  "inference.yml": "0bbe984570f597af3638e50bdf2e8276f3ab26a61966096538b3b0d1849f5c84"},
+}
+
+
 DOCS = ("html", "css", "javascript", "dom", "python~3.12", "fastapi", "sqlite", "playwright")
 
 
@@ -91,6 +99,19 @@ def program(name: str) -> dict:
     return {"url": url, "sha256": digest, "files": {target.relative_to(VAULT).as_posix(): hashlib.sha256(content).hexdigest()}}
 
 
+def model(name: str) -> dict:
+    target = VAULT / "models" / name
+    target.mkdir(parents=True, exist_ok=True)
+    files = {}
+    for file, digest in MODELS[name].items():
+        data = fetch(_PADDLE + file)
+        if hashlib.sha256(data).hexdigest() != digest:
+            raise ValueError(f"{name}/{file}: indirilen dosyanın özeti beklenenle uyuşmuyor")
+        (target / file).write_bytes(data)
+        files[(target / file).relative_to(VAULT).as_posix()] = digest
+    return {"files": files, "license": "Apache-2.0"}
+
+
 def docs(slug: str) -> dict:
     folder = VAULT / "docs" / slug
     folder.mkdir(parents=True, exist_ok=True)
@@ -117,6 +138,9 @@ def main() -> int:
     if "--docs-only" not in sys.argv and sys.platform == "win32":
         lock.setdefault("programs", {})
         jobs += [("programs", n, lambda n=n: program(n)) for n in PROGRAMS]
+    if "--docs-only" not in sys.argv:
+        lock.setdefault("models", {})
+        jobs += [("models", n, lambda n=n: model(n)) for n in MODELS]
     if "--libs-only" not in sys.argv:
         jobs += [("docs", s, lambda s=s: docs(s)) for s in DOCS]
     for kind, name, job in jobs:

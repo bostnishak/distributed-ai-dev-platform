@@ -20,6 +20,7 @@ import doc_reader
 import doc_tools
 import eda
 import federation
+import inbox
 import marathon
 import math_kernel
 import memory_marks
@@ -71,7 +72,7 @@ def _command(prompt: str, history: str) -> str:
 
 
 def _agents(prompt: str, history: str) -> StreamingResponse | None:
-    return (marathon.fastpath(prompt) or tts.fastpath(prompt, history) or arena.fastpath(prompt) or self_play.fastpath(prompt) or best_of_n.fastpath(prompt)
+    return (inbox.fastpath(prompt) or marathon.fastpath(prompt) or tts.fastpath(prompt, history) or arena.fastpath(prompt) or self_play.fastpath(prompt) or best_of_n.fastpath(prompt)
             or swarm.fastpath(prompt, history))
 
 
