@@ -31,6 +31,7 @@ import httpx
 import psutil
 
 import gpu_watch
+import office_verify
 from gateway import providers
 
 _APP_DIR = Path(__file__).resolve().parent
@@ -125,6 +126,14 @@ def _swap(run: Run) -> None:
 
 CPU_TASKS: dict[str, Callable[[Run], None]] = {"hesap (GEAR_0)": _gear0, "durum": _status, "dörtlü rapor": _report, "inbox": _inbox, "arıza enjeksiyonu": _hostile}
 MODEL_TASKS: dict[str, Callable[[Run], None]] = {"kısa yanıt (GEAR_1)": _short_answer, "model değişimi": _swap}
+
+
+def cpu_tasks() -> dict[str, Callable[[Run], None]]:
+    """The tasks this machine can verify: the four-way report needs LibreOffice to read its spreadsheet back."""
+    if office_verify.soffice():
+        return CPU_TASKS
+    _log.warning("LibreOffice yok: dörtlü rapor bu koşuda denenmiyor")
+    return {name: task for name, task in CPU_TASKS.items() if task is not _report}
 
 
 def _tree(process: psutil.Process) -> list[psutil.Process]:
@@ -229,7 +238,7 @@ def _watching(run: Run, process: psutil.Process, every: float):
 
 
 def _work(run: Run, seconds: float) -> None:
-    tasks = {**CPU_TASKS, **(MODEL_TASKS if run.model else {})}
+    tasks = {**cpu_tasks(), **(MODEL_TASKS if run.model else {})}
     names, started = list(tasks), time.time()
     turn = 0
     while time.time() - started < seconds or turn < len(names):  # every kind of task runs at least once
