@@ -16,7 +16,6 @@ keyring>=25.0
 pyzipper>=0.3.6
 z3-solver
 duckdb
-diskcache>=5.6
 playwright
 trafilatura
 ruff

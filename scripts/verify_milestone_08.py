@@ -26,6 +26,7 @@ sys.path.insert(0, str(ROOT / "master"))
 import asset_vault  # noqa: E402
 import config  # noqa: E402
 import docs_index  # noqa: E402
+import project_flow  # noqa: E402
 import studio_api  # noqa: E402
 import workspace_builder as wb  # noqa: E402
 import workspace_requirements  # noqa: E402
@@ -144,12 +145,12 @@ async def generated_by_model() -> str:
     request = ("Tek sayfalık bir satış panosu yap: tek HTML dosyası, Chart.js ile aylık satış çubuk grafiği (Oca 12, Şub 19, Mar 15) ve "
                "Mermaid ile 'Sipariş -> Hazırlık -> Kargo' akış diyagramı olsun. Kütüphaneleri CDN adresinden yükle.")
     done = {}
-    async for event in wb.stream_generate_project(request, run_smoke=False):
+    async for event in project_flow.stream_generate(request):  # the same path a chat request takes
         done = event if event.get("type") == "done" else done
     ws_dir = wb.safe_workspace_dir(done["workspace"]["id"])
     left = asset_vault.external(ws_dir)
     assert not left, f"dış bağlantı kaldı: {left}"
-    measured, errors, refused = open_offline(ws_dir / "index.html", "")
+    measured, errors, refused = await asyncio.to_thread(open_offline, ws_dir / "index.html", "")
     (PROOF.parent / "milestone_08_generated.html").write_text((ws_dir / "index.html").read_text(encoding="utf-8"), encoding="utf-8")
     canvases = (ws_dir / "index.html").read_text(encoding="utf-8").count("<canvas")
     assert not errors and not refused, f"konsol: {errors[:3]} ağ: {refused[:3]}"

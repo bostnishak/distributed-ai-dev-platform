@@ -183,4 +183,27 @@ def test_breaking_change_is_repaired_or_rolled_back(tmp_path, answers, kept, wor
 
     lines = asyncio.run(edit_guard.guard(tmp_path, before, "başlığı değiştir", generate))
     assert word in lines[0] and kept in (tmp_path / "index.html").read_text(encoding="utf-8")
+    assert (tmp_path / edit_guard.REJECTED).is_file() == (word == "uygulanmadı")
     assert "ÖLÇÜLEN SORUN" in asked[0] and (len(asked) < 2 or "TEKRARLAMA" in asked[1])
+
+
+def test_a_new_page_that_logs_errors_is_repaired_or_reported(tmp_path):
+    import asyncio
+
+    import edit_guard
+
+    noisy = _NOTES.replace("render();\n</script>", "render();\nconsole.error('Diyagram: nodes tanımsız');\n</script>")
+    assert noisy != _NOTES
+    assert _health(tmp_path, noisy).errors == ("Diyagram: nodes tanımsız",)
+
+    async def fixes(system, user):
+        assert "Diyagram: nodes tanımsız" in user
+        return "```html\n" + _NOTES + "\n```"
+
+    async def useless(system, user):
+        return "```html\n" + noisy + "\n```"
+
+    assert "onarıldı" in asyncio.run(edit_guard.settle(tmp_path, "pano", fixes))[0]
+    assert asyncio.run(edit_guard.settle(tmp_path, "pano", fixes)) == []
+    (tmp_path / "index.html").write_text(noisy, encoding="utf-8")
+    assert asyncio.run(edit_guard.settle(tmp_path, "pano", useless))[0].startswith("Uyarı")

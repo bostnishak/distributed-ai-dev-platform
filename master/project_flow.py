@@ -14,11 +14,13 @@ from pathlib import Path
 from typing import Any
 
 import agent_contracts
+import asset_vault
 import complexity_governor
 import config
 import design_system
 import docs_vault
 import done_gate
+import edit_guard
 import json_repair
 import ledger
 import plan_matrix
@@ -225,6 +227,17 @@ async def _ledger_events(evt: dict[str, Any], wanted: tuple[req_ledger.Req, ...]
     """The delivered project is judged against the ledger once more; unmet requirements become warnings of 'done'."""
     import workspace_builder as wb
 
+    if evt["type"] == "done":
+        ws_dir = wb.safe_workspace_dir(evt["workspace"]["id"])
+
+        async def fix(system: str, user: str) -> str:
+            return await wb._ollama_generate(await wb.pick_coder_model(None), system, user, num_predict=9000, temperature=0.1)
+
+        asset_vault.localize(ws_dir)  # the coverage pass rewrote files after the first conversion
+        for line in await edit_guard.settle(ws_dir, str(evt["workspace"].get("prompt") or evt["workspace"].get("description") or ""), fix):
+            yield {"type": "status", "message": line}
+            if line.startswith("Uyarı"):
+                evt = {**evt, "warnings": [*evt.get("warnings", []), line]}
     if evt["type"] == "done" and wanted:
         line, unmet = await asyncio.to_thread(slice_build.final, wb.safe_workspace_dir(evt["workspace"]["id"]), wanted)
         if line:

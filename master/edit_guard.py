@@ -16,6 +16,7 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import asset_vault
 import atomic_io
 import clean_slate
 import patch_edit
@@ -23,6 +24,7 @@ import torture_probe as probe
 from process_utils import run_process
 from prompt_loader import load_prompt
 
+REJECTED = ".ai-os/rejected_edit.html"
 _RECORD = "bekçi-kaydı-71"
 _SCRIPT_RE = re.compile(r"<script\b(?![^>]*\bsrc=)(?![^>]*type=[\"'](?:module|application/json))[^>]*>(.*?)</script>", re.DOTALL | re.IGNORECASE)
 _BLOCK_RE = re.compile(r"```[a-zA-Z0-9_+-]*\s*\n([\s\S]*?)\n```")
@@ -47,7 +49,7 @@ def _drive(session: probe.Session) -> Health:
         page.reload()
         page.wait_for_timeout(300)
         persists = probe.shown(page, _RECORD) > 0
-    return Health(tuple(dict.fromkeys(session.errors)), adds, persists)
+    return Health(tuple(dict.fromkeys([*session.errors, *session.console])), adds, persists)
 
 
 def health(ws_dir: Path) -> Health | None:
@@ -68,6 +70,11 @@ def health(ws_dir: Path) -> Health | None:
     except Exception as exc:  # noqa: BLE001, RUF100  # no usable browser, or the page cannot be driven
         _log.warning("düzenleme bekçisi sayfayı sınayamadı: %s", exc)
         return None
+
+
+def _write_page(ws_dir: Path, page: str) -> None:
+    atomic_io.write_text(ws_dir / "index.html", page)
+    asset_vault.localize(ws_dir)  # a rewrite may bring CDN links back
 
 
 def snapshot(ws_dir: Path) -> tuple[Health | None, str]:
@@ -114,6 +121,24 @@ async def _repair(page: str, diagnosis: str, instruction: str, generate: Generat
     return patched if "</html>" in patched.lower() else ""
 
 
+async def settle(ws_dir: Path, request: str, generate: Generate) -> list[str]:
+    """A freshly built page that logs errors in the browser is repaired with the exact message; what stays is reported."""
+    index, banned = ws_dir / "index.html", []
+    for attempt in range(_ATTEMPTS + 1):
+        found = await asyncio.to_thread(health, ws_dir)
+        if found is None or not found.errors:
+            return ["Tarayıcı konsolundaki hata onarıldı."] if attempt else []
+        if attempt == _ATTEMPTS:
+            break
+        page = index.read_text(encoding="utf-8")
+        diagnosis = "\n".join(filter(None, (f"Tarayıcı hatası: {found.errors[0]}", await asyncio.to_thread(syntax_error, page))))
+        candidate = await _repair(page, diagnosis, request, generate, banned)
+        banned.append(clean_slate.failed_approach(page, candidate or page, diagnosis))
+        if candidate:
+            _write_page(ws_dir, candidate)
+    return [f"Uyarı: sayfa tarayıcıda hata veriyor: {found.errors[0][:200]}"]
+
+
 async def guard(ws_dir: Path, before: tuple[Health | None, str], instruction: str, generate: Generate) -> list[str]:
     """`before` is (health, index.html) from before the change. Returns the lines to tell the user."""
     old_health, old_page = before
@@ -132,6 +157,8 @@ async def guard(ws_dir: Path, before: tuple[Health | None, str], instruction: st
         candidate = await _repair(page, diagnosis, instruction, generate, banned)
         banned.append(clean_slate.failed_approach(page, candidate or page, broken))
         if candidate:
-            atomic_io.write_text(ws_dir / "index.html", candidate)
+            _write_page(ws_dir, candidate)
+    (ws_dir / REJECTED).parent.mkdir(parents=True, exist_ok=True)
+    atomic_io.write_text(ws_dir / REJECTED, (ws_dir / "index.html").read_text(encoding="utf-8"))  # kept so it can be looked at
     atomic_io.write_text(ws_dir / "index.html", old_page)
     return [f"Uyarı: bu değişiklik uygulanmadı çünkü sayfayı bozuyordu ({broken[:200]}). Önceki çalışan sürüm geri yüklendi."]

@@ -9,7 +9,7 @@ Bu dosya "ne kaldı" sorusunun tek cevabıdır. Bir madde, kod testi **ve** canl
 
 ## Çalışma sırası: 3 parça
 
-**Kaldığım yer (28.11.2026):** 1. parça bitti ve birleştirildi. 2. parça (M04–M08) yapılıyor. 3. parça (M09–M16) sen "devam" deyince başlayacak. Zorluk merdiveninde yerel model L4'e kadar çıkıyor.
+**Kaldığım yer (28.11.2026):** 1. parça bitti ve birleştirildi. 2. parça (M04–M08) bitti. 3. parça (M09–M16) sen "devam" deyince başlayacak. Zorluk merdiveninde yerel model L4'e kadar çıkıyor.
 
 Dizüstü bilgisayar kesintisiz yüklenmesin diye iş üçe bölündü. Bir parça bitince **durulur**; sen "devam" demeden sonrakine geçilmez.
 
@@ -232,9 +232,11 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [x] Ölü kod, kullanılmayan CSS, yetim uç nokta ve dosya (otomatik silme yalnız düzenlemenin sahipsiz bıraktığını siler)
 - [x] Katman kuralları ve döngüsel içe aktarma (teslimi engeller)
 - [x] `axe-core`, klavye sırası, modal tuzağı (`a11y.py`)
-- [~] Çıkış kanıtı: 10 turluk gerçek düzenleme (`verify_milestone_07.py`) koşuluyor
+- [x] Çıkış kanıtı: 10 gerçek düzenleme sonunda mimari bulgu 0, kritik erişilebilirlik 0, sayfa hatası 0 (`verify_milestone_07.py` 2/2)
+- [x] Düzenleme bekçisi: sayfayı bozan değişiklik onarılır ya da geri alınır (`edit_guard.py`)
+- Sınır: sonuç koşudan koşuya değişir; son koşuda 10/10 uygulandı (1'i onarılarak), önceki koşuda 2 düzenleme geri alınmıştı
 
-### M08 — Çevrimdışı varlık kasası (`verify_milestone_08.py`)
+### M08 — Çevrimdışı varlık kasası (`MODEL=1 verify_milestone_08.py` 5/5)
 
 - [x] Dosyalar indirildi (Inter, JetBrains Mono, Plus Jakarta Sans, lucide, chart.js, mermaid, katex, axe, DevDocs)
 - [x] Satır içi SVG ikon kaydı
@@ -242,8 +244,9 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [x] ZIP dışa aktarımda varlıklar pakette
 - [x] Dış CDN bağlantısını reddeden kalite kapısı
 - [x] DevDocs tam metin dizinleyici (11.930 sayfa)
-- [x] SQLite + DuckDB + DiskCache
-- [x] Çıkış kanıtı: ağ kesikken grafik, diyagram, formül ve yazı tipleri hatasız
+- [—] SQLite + DuckDB kullanılıyor; **DiskCache bilerek eklenmedi**: düzeltmesi olmayan güvenlik açığı var (PYSEC-2026-2447). Önbellek dosya tabanlı kaldı
+- [x] Çıkış kanıtı: ağ kesikken grafik, diyagram, formül ve yazı tipleri hatasız; modelin ürettiği pano da hatasız
+- Sınır: kasada olmayan kütüphane (ör. Tailwind CDN) yerelleştirilmez, teslim engellenir
 
 ### M09 — Çok biçimli girdi
 

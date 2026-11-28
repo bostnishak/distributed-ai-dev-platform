@@ -23,6 +23,12 @@ class Session:
     context: Any
     errors: list[str]
     writes: list[dict[str, str]]
+    console: list[str]  # console.error lines the page logged itself (failed downloads are not counted)
+
+
+def _logged(session: Session, message: Any) -> None:
+    if message.type == "error" and "Failed to load resource" not in message.text:
+        session.console.append(message.text.splitlines()[0][:200])
 
 
 @contextlib.contextmanager
@@ -31,7 +37,8 @@ def opened(browser: Any, url: str) -> Iterator[Session]:
     try:
         context.add_init_script(req_checks._BOUND_JS)
         page = context.new_page()
-        session = Session(page, context, [], [])
+        session = Session(page, context, [], [], [])
+        page.on("console", lambda message: _logged(session, message))
         page.on("pageerror", lambda error: session.errors.append(str(error).splitlines()[0][:160]))
         page.on("dialog", lambda dialog: dialog.dismiss())
         page.on("request", lambda r: session.writes.append({"method": r.method, "url": r.url, "body": r.post_data or ""}) if r.method in ("POST", "PUT", "PATCH") else None)

@@ -139,3 +139,22 @@ def test_export_keyword_is_removed_without_leaving_stray_characters(tmp_path):
     (tmp_path / "a.js").write_text("export function bir() {}\n  export const iki = 2;\n", encoding="utf-8")
     workspace_requirements._classic_scripts(tmp_path)
     assert (tmp_path / "a.js").read_text(encoding="utf-8") == "function bir() {}\n  const iki = 2;\n"
+
+
+def test_delivery_step_converts_links_written_after_the_first_pass(tmp_path, monkeypatch):
+    import asyncio
+
+    import edit_guard
+    import project_flow
+    import workspace_builder as wb
+
+    _need_vault()
+    (tmp_path / "index.html").write_text('<script src="https://cdn.jsdelivr.net/npm/chart.js"></script><p>pano</p>', encoding="utf-8")
+    monkeypatch.setattr(wb, "safe_workspace_dir", lambda _ws: tmp_path)
+    monkeypatch.setattr(edit_guard, "health", lambda _dir: None)
+
+    async def run():
+        return [e async for e in project_flow._ledger_events({"type": "done", "workspace": {"id": "x"}}, ())]
+
+    assert asyncio.run(run())[-1]["type"] == "done"
+    assert asset_vault.external(tmp_path) == [] and (tmp_path / "vendor" / "chart.js").is_dir()
