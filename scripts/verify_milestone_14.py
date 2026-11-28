@@ -162,7 +162,7 @@ def glass_box_in_a_browser() -> str:
             marks = page.locator(".proof-marks li").all_inner_texts()
             shots = page.locator(".proof-film img").count()
             card.get_by_role("button", name="Geri al").click()
-            page.wait_for_function("document.querySelector('.glass-note').textContent.includes('Geri alındı')", timeout=15000)
+            page.locator(".glass-note", has_text="Geri alındı").last.wait_for(timeout=15000)  # the page's policy forbids string evaluation
             note = page.inner_text(".glass-note")
             # reopen: the open tab and the view come back
             page.locator(".ide-mode-btn", has_text="</> Kod").last.click()

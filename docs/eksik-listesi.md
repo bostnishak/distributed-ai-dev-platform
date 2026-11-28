@@ -248,66 +248,69 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 - [x] Çıkış kanıtı: ağ kesikken grafik, diyagram, formül ve yazı tipleri hatasız; modelin ürettiği pano da hatasız
 - Sınır: kasada olmayan kütüphane (ör. Tailwind CDN) yerelleştirilmez, teslim engellenir
 
-### M09 — Çok biçimli girdi
+### M09 — Çok biçimli girdi (`verify_milestone_09.py` 6/6)
 
-- [~] Dağınık PDF: çok sütun, döndürülmüş sayfa, birleşik tablo, formül, kutu koordinatı
-- [ ] Taranmış PDF için OCR (Türkçe harfleri koruyan)
-- [~] Ses: faster-whisper kodu var, kurulum ve zaman damgası doğrulanacak
-- [ ] Video: sahne değişimi kareleri
-- [ ] `inbox` klasörüne bırakılan kayda zaman damgalı soru
-- [ ] Dağınık Excel/CSV: başlık, tarih, `1.250,50` ve `1,250.50`, birleşik hücre
+- [x] Dağınık PDF: çok sütun, döndürülmüş sayfa, birleşik tablo, formül satırı, kutu koordinatı
+- [x] Taranmış PDF için OCR, Türkçe harflerle (PaddlePaddle Latin modeli). Sınır: sözcük sonundaki `ı` bazen `i` okunuyor
+- [x] Ses: faster-whisper (işlemcide), zaman damgalı
+- [x] Video: sahne değişimi kareleri (otomatik testle; canlı kanıtta video sorusu sorulmadı)
+- [x] `inbox` klasörüne kaynaklı soru (sayfa / hücre / dakika)
+- [x] Dağınık Excel/CSV: başlık, tarih, `1.250,50` ve `1,250.50`, birleşik hücre
 - [x] Zip-slip ve sıkıştırma bombası koruması
-- [~] Karışık Türkçe–İngilizce istekler, `tr-TR` sıralama
-- [ ] Çıkış kanıtı: taranmış PDF + dağınık Excel + ses
+- [x] Karışık Türkçe–İngilizce istekler, `tr-TR` sıralama kuralı
+- [x] Çıkış kanıtı: taranmış PDF + dağınık Excel + ses, uydurma yok
 
-### M10 — Araştırma sertleştirme
+### M10 — Araştırma sertleştirme (`verify_milestone_10.py` 5/5)
 
-- [~] SearXNG + tarayıcı + güvenilmeyen içerik etiketi + atıf kapısı — uçtan uca doğrulanacak
-- [ ] Çevrimdışı yedek yol
-- [ ] Çıkış kanıtı: düşman sayfa enjeksiyonunun engellenmesi
+- [x] SearXNG + güvenilmeyen içerik etiketi + atıf kapısı, uçtan uca
+- [—] Crawl4AI eklenmedi: bot algılamayı atlatan paketlerle geliyor. JavaScript sayfaları yerel tarayıcıyla okunuyor
+- [x] Çevrimdışı yedek yol (indirilmiş belgeler)
+- [x] Çıkış kanıtı: düşman sayfa enjeksiyonu modele ulaşmadan engellendi
 
-### M11 — Çıktılar arası tutarlılık
+### M11 — Çıktılar arası tutarlılık (`verify_milestone_11.py` 4/4)
 
-- [ ] Hesap, Excel, sunum, PDF ve web panosunda aynı sayılar
-- [ ] Çıkış kanıtı: dörtlü üretim, formül hatasız, görsel kanıt
+- [x] Hesap (SymPy), Excel, sunum, PDF ve web panosunda aynı sayılar (`tutarlı rapor:` komutu)
+- [x] Çıkış kanıtı: dörtlü üretim, LibreOffice'te formül hatasız, görsel kanıt
+- Sınır: kalem listesi biçimindeki hesaplar için; serbest metinli her belge için değil
 
-### M12 — Canlı belge ve taşınabilir paket
+### M12 — Canlı belge ve taşınabilir paket (`verify_milestone_12.py` 3/3)
 
-- [ ] README / API belgesi / `--help` ile gerçek kodun karşılaştırılması, sapmada teslimi durdurma
-- [ ] `run_windows.bat` ve `run.ps1`
-- [~] `Dockerfile` ve `docker-compose.yml`
-- [ ] ZIP'i temiz klasörde açıp kendi betiğiyle çalıştırma
-- [ ] Çıkış kanıtı
+- [x] README ile gerçek kodun (dosya, uç nokta, port, komut, `--bayrak`) karşılaştırılması; sapma teslimi durdurur
+- [x] `run_windows.bat`, `run.ps1`, sabitlenmiş bağımlılıklar
+- [x] `Dockerfile` ve `docker-compose.yml`
+- [x] ZIP'i temiz klasörde açıp çalıştırma (`paketi sına` kapta dener)
+- [x] Çıkış kanıtı: modelin ürettiği uygulama dışa aktarılıp açıldı
 
-### M13 — Yedekleme ve öğrenme
+### M13 — Yedekleme ve öğrenme (`verify_milestone_13.py` 3/3)
 
-- [~] Şifreli yedek var — çalışma alanları, bellek, beceriler, ayarların tamamı doğrulanacak
-- [ ] `ai-os restore <kimlik>`
-- [~] Beceri yeniden kullanımı ve hata kuralı enjeksiyonu
-- [ ] Kişisel veriden arındırılmış QLoRA dışa aktarım paketi (yalnız dosya; yükleme yok)
+- [x] Şifreli yedek: projeler, bellek, beceriler, ayarlar (indirilebilir kasa hariç)
+- [x] `ai-os restore <kimlik>`
+- [x] Doğrulanmış kod parçası ve hata kuralı; onarılan hatalardan kural çıkarılıyor
+- [x] Kişisel veriden arındırılmış eğitim paketi (yalnız dosya). Sınır: kişi adları kuralla tanınamaz
 - [x] `ai-os import-gguf` (gölge değerlendirmeli)
-- [ ] Çıkış kanıtı: boz-geri yükle tatbikatı ve ölçülmüş Pass@1 artışı
+- [x] Çıkış kanıtı: boz-geri yükle; ölçülen Pass@1 0/6 → 1/6. **Kazanç küçük ve tek koşu**; 7B'nin çıkardığı kuralların bir kısmı yanlış
 
-### M14 — Arayüz
+### M14 — Arayüz (`verify_milestone_14.py` 3/3)
 
-- [~] Donmayan arayüz, iptal / duraklat / devam / yönlendirme
-- [ ] Kanıt çekmecesi: canlı önizleme bağlantısı, ekran görüntüsü şeridi, yeşil/kırmızı işaretler
-- [ ] Her istekten önce kayıt, tek tıkla geri alma (200 ms)
-- [ ] Yeniden açınca sekmeler, önizlemeler ve duraklatılan işlerin dönmesi
-- [ ] Donanım şeridi: VRAM, ısı, model, işlemci/bellek, yalıtım katmanı, vites
-- [ ] Çıkış kanıtı: tarayıcıda deneme ve yarıda kapatıp devam
+- [x] Üretim sürerken arayüz yanıt veriyor; iptal / duraklat / devam / yönlendirme
+- [x] Canlı kanıt çekmecesi: önizleme bağlantısı, ekran görüntüsü şeridi, işaretler
+- [x] Her değişiklikten önce kayıt, tek tıkla geri alma (ölçülen 12 ms)
+- [x] Yeniden açınca açık dosyalar ve görünüm; yarım kalan proje uyarısı
+- [x] Donanım göstergesi
+- [x] Çıkış kanıtı: yarıda öldürülen sunucu ve gerçek tarayıcı denemesi
+- Sınır: "60 FPS" ayrıca ölçülmedi; duraklatılmış ajan grafiği yeniden başlatmada korunmuyor, `devam et` ile sürüyor
 
-### M15 — Dayanıklılık
+### M15 — Dayanıklılık (`verify_milestone_15.py` 2/2)
 
-- [ ] `ai-os soak --hours N`
-- [ ] Bellek, VRAM, açık tutamaç, port, disk izleme ve hata enjeksiyonu
-- [ ] Çıkış kanıtı: çok saatlik temiz rapor
+- [x] `ai-os soak --hours N`
+- [x] Bellek, VRAM, tutamaç, süreç, port, disk izleme ve hata enjeksiyonu
+- [~] Çıkış kanıtı: **10 dakikalık modelsiz** koşu temiz (68 iş, bellek artışı %0). Çok saatlik koşu yapılmadı: `python scripts/ai_os.py soak --hours 4`
 
 ### M16 — Son istemler ve sertifikasyon
 
-- [ ] `verify_milestone_04.py` – `verify_milestone_16.py` (her biri kendi aşamasında)
-- [ ] `prompts/v5/*.md`
-- [ ] v1–v5'in tamamını bir arada sınayan son test
+- [x] `verify_milestone_01.py` – `verify_milestone_16.py`
+- [x] `prompts/v5/*.md` (ortak sabit ön ek)
+- [~] v1–v5'in tamamını bir arada sınayan son test: M16_STATE
 
 ## 7. Yapılamayanlar (uydurma değerle doldurulmayacak)
 
