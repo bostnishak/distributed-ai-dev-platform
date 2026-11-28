@@ -248,7 +248,10 @@ async def _read(pages: list[tuple[str, str, str]], question: str, chat: Chat, cl
 async def _write_report(question: str, claims: dict[int, Claim], chat: Chat) -> Report:
     listing = "\n".join(f"{c.number}. {c.text} (alıntı: \"{c.quote}\") — {c.url}" for c in claims.values())
     report = await _structured(chat, "agent_research_report.md", f"SORU: {question}\n\nDOĞRULANMIŞ İDDİALAR:\n{listing}", Report)
-    return report or Report(summary=[Point(text=c.text, ids=[c.number]) for c in list(claims.values())[:6]])
+    if report and gate(report.summary, claims, question)[0]:
+        return report
+    # a model sometimes returns no usable summary: the verified claims themselves, each cited, stand in for it
+    return (report or Report()).model_copy(update={"summary": [Point(text=c.text, ids=[c.number]) for c in list(claims.values())[:6]]})
 
 
 async def investigate(question: str, chat: Chat | None = None) -> AsyncIterator[tuple[str, str]]:

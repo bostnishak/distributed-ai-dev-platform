@@ -48,9 +48,13 @@ class Audit(BaseModel):
 
 
 async def _ask(system: str, user: str, schema: dict) -> str:
-    model = await critic_models.critic_for("qwen3.5:9b")  # the one who judges the failure is not of the writer's family
-    res = await gateway.default_client.chat([{"role": "system", "content": system}, {"role": "user", "content": user}], model=model, profile="extract",
-                                            format_schema=schema, num_predict=700, num_ctx=8192, timeout_s=240.0, feature="debugger", max_retries=0)
+    critic = await critic_models.critic_for("qwen3.5:9b")  # the one who judges the failure is not of the writer's family
+    for model in dict.fromkeys((critic, "qwen3.5:9b")):  # a reasoning critic can spend the whole budget thinking and answer nothing
+        res = await gateway.default_client.chat([{"role": "system", "content": system}, {"role": "user", "content": user}], model=model, profile="extract",
+                                                format_schema=schema, num_predict=700, num_ctx=8192, timeout_s=240.0, feature="debugger", max_retries=0)
+        if res.content.strip():
+            break
+        _log.warning("%s boş yanıt verdi", model)
     return res.content
 
 
@@ -60,9 +64,15 @@ def sources(ws_dir: Path) -> dict[str, str]:
 
 
 def grounded(audit: Audit, log: str, files: dict[str, str]) -> list[Hypothesis]:
-    """Hypotheses that point at a real file and quote the real output."""
-    flat = " ".join(log.split())
-    return [h for h in audit.hypotheses if h.file in files and len(h.evidence.strip()) >= 8 and " ".join(h.evidence.split()) in flat]
+    """Hypotheses that point at a real file and quote the real output or that file; non-test files first.
+
+    A short failure log holds little to quote, so a model often quotes the guilty source line instead.
+    """
+    def quotes(h: Hypothesis, text: str) -> bool:
+        return len(h.evidence.strip()) >= 8 and " ".join(h.evidence.split()) in " ".join(text.split())
+
+    found = [h for h in audit.hypotheses if h.file in files and (quotes(h, log) or quotes(h, files[h.file]))]
+    return sorted(found, key=lambda h: h.file.startswith("tests/") or Path(h.file).name.startswith("test_"))
 
 
 def weakens_tests(path: str, old: str, new: str, literals: set[str] = frozenset()) -> bool:
