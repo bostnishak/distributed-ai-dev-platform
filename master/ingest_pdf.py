@@ -13,6 +13,7 @@ from typing import Any
 
 import pymupdf
 
+import ligatures
 import ocr_engine
 
 _DPI = 200
@@ -32,7 +33,7 @@ class Block:
 
 
 def _clean(text: str) -> str:
-    return text.replace("\u00a0", " ").replace("\u00ad", "-").strip()
+    return ligatures.split(text).replace("\u00a0", " ").replace("\u00ad", "-").strip()
 
 
 def _reading_order(blocks: list[Block], width: float) -> list[Block]:

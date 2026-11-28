@@ -11,6 +11,7 @@ import arena
 import best_of_n
 import browser_agent
 import confidential
+import consistency
 import daemons
 import data_chart
 import decisions
@@ -72,7 +73,7 @@ def _command(prompt: str, history: str) -> str:
 
 
 def _agents(prompt: str, history: str) -> StreamingResponse | None:
-    return (inbox.fastpath(prompt) or marathon.fastpath(prompt) or tts.fastpath(prompt, history) or arena.fastpath(prompt) or self_play.fastpath(prompt) or best_of_n.fastpath(prompt)
+    return (inbox.fastpath(prompt) or consistency.fastpath(prompt) or marathon.fastpath(prompt) or tts.fastpath(prompt, history) or arena.fastpath(prompt) or self_play.fastpath(prompt) or best_of_n.fastpath(prompt)
             or swarm.fastpath(prompt, history))
 
 

@@ -24,6 +24,7 @@ from pypdf import PdfReader
 from pypdf.errors import PyPdfError
 
 import ingest_pdf
+import ligatures
 from safe_archive import UnsafeArchive, inspect_zip
 
 log = logging.getLogger(__name__)
@@ -63,7 +64,7 @@ def extract_pdf_text(raw: bytes) -> str:
             pages = [str(page.get_text("text") or "") for page in doc]
         finally:
             doc.close()
-        text = "\n".join(pages).strip()
+        text = ligatures.split("\n".join(pages)).strip()
         if text:
             return text
         if scanned := _scanned_text(raw):

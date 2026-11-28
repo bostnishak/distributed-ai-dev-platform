@@ -8,6 +8,7 @@ contain, and writes the source list. Page text is untrusted data throughout.
 from __future__ import annotations
 
 import asyncio
+import importlib.util
 import json
 import logging
 import re
@@ -28,6 +29,7 @@ import research_context
 import research_sources
 import security_scan
 import untrusted
+import web_taint
 from prompt_loader import load_prompt
 from rag.web import is_safe_public_url
 
@@ -110,13 +112,18 @@ def _remember_date(url: str, raw: str) -> None:
         _PUBLISHED[url] = str(metadata.date)[:10]
 
 
+def page_text(raw: str) -> str:
+    """Main text of what a reader would see; hidden elements and comments never reach a model."""
+    import trafilatura
+
+    return trafilatura.extract(web_taint.visible_html(raw), include_tables=True, include_comments=False) or ""
+
+
 def read_page(url: str) -> str:
     """Main text of a public page; '' when unreadable. Redirects to private hosts are refused."""
     if not is_safe_public_url(url)[0]:
         return ""
-    try:
-        import trafilatura
-    except ImportError:
+    if not importlib.util.find_spec("trafilatura"):
         return page_facts.fetch_text(url)
     try:
         request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (research reader)", "Accept-Language": "tr,en;q=0.8"})
@@ -127,7 +134,11 @@ def read_page(url: str) -> str:
     except (urllib.error.URLError, OSError, ValueError, LookupError):
         return ""
     _remember_date(url, raw)
-    return trafilatura.extract(raw, include_tables=True, include_comments=False) or ""
+    text = page_text(raw)
+    if len(text) > 200:
+        return text
+    rendered = web_taint.rendered_html(url)  # the page builds itself with JavaScript
+    return page_text(rendered) if rendered else text
 
 
 def _flat(text: str) -> str:
@@ -225,6 +236,9 @@ async def _read(pages: list[tuple[str, str, str]], question: str, chat: Chat, cl
     """Extract verified claims from each page into `claims`."""
     for index, (url, title, text) in enumerate(pages, start=1):
         yield "status", f"Okunuyor {index}/{len(pages)}: {title[:70]}"
+        text, removed = web_taint.sanitize(text)
+        if removed:
+            yield "status", f"Güvenlik: {url[:60]} sayfasında modele talimat veren {len(removed)} parça engellendi."
         passage = untrusted.guard(long_doc.select(text, question, _PAGE_BUDGET))
         found = await _structured(chat, "agent_research_claims.md", f"SORU: {question}\n\nSAYFA METNİ:\n{passage}", Claims)
         for item in verified(found.claims if found else [], text)[:4]:
@@ -280,7 +294,9 @@ async def investigate(question: str, chat: Chat | None = None) -> AsyncIterator[
         total += len(extra)
         if len(claims) > before:
             report = await _write_report(question, claims, chat)
-    yield "report", render(report, claims, question, total)
+    blocked = sum(len(web_taint.sanitize(text)[1]) for _url, _title, text in pages)
+    note = f"\n\n_Güvenlik: sayfalardaki, modele talimat vermeye çalışan {blocked} parça okunmadan çıkarıldı._" if blocked else ""
+    yield "report", render(report, claims, question, total) + note
 
 
 def fastpath(prompt: str, has_file: bool) -> StreamingResponse | None:
