@@ -14,14 +14,14 @@ Kalan her şeyin alt başlıklı listesi: [eksik-listesi.md](eksik-listesi.md).
 | 06 | Gerçek dünya zorlama testleri | tamam | `tests/test_v5_m06_torture.py`, `python scripts/verify_milestone_06.py` (7/7) |
 | 07 | Mimari sağlık ve erişilebilirlik | tamam | `tests/test_v5_m07_fitness.py`, `python scripts/verify_milestone_07.py` (2/2) |
 | 08 | Çevrimdışı varlık kasası | tamam | `tests/test_v5_m08_vault.py`, `MODEL=1 python scripts/verify_milestone_08.py` (5/5); dosyalar `scripts/vendor_fetch.py` |
-| 09 | Çoklu ortam alımı | bekliyor | |
-| 10 | Araştırma sertleştirme | bekliyor | |
-| 11 | Çok alanlı doğrulama sertleştirme | bekliyor | |
-| 12 | Canlı belge ve taşınabilir paket | bekliyor | |
-| 13 | Yedekleme ve geri yükleme | bekliyor | |
-| 14 | Arayüz ve donanım göstergesi | bekliyor | |
-| 15 | Uzun süreli dayanıklılık testi | bekliyor | |
-| 16 | Son istemler ve sertifikasyon | bekliyor | |
+| 09 | Çoklu ortam alımı | tamam | `verify_milestone_09.py` (6/6); sözcük sonu `ı` bazen `i` okunuyor, video yalnız testle |
+| 10 | Araştırma sertleştirme | tamam | `verify_milestone_10.py` (5/5); web araması arama motorlarının CAPTCHA sınırına bağlı |
+| 11 | Çok alanlı doğrulama sertleştirme | tamam | `verify_milestone_11.py` (4/4); yalnız kalem listesi biçimindeki hesaplar |
+| 12 | Canlı belge ve taşınabilir paket | tamam | `verify_milestone_12.py` (3/3) |
+| 13 | Yedekleme ve geri yükleme | tamam | `verify_milestone_13.py` (3/3); öğrenme kazancı küçük ve tek koşu |
+| 14 | Arayüz ve donanım göstergesi | tamam | `verify_milestone_14.py`; 60 FPS ölçülmedi |
+| 15 | Uzun süreli dayanıklılık testi | kısmen | `verify_milestone_15.py` (2/2, 10 dakikalık modelsiz koşu); çok saatlik koşu yapılmadı |
+| 16 | Son istemler ve sertifikasyon | kısmen | `verify_milestone_16.py` tam koşu 15/17; M02 ve M10 düzeltme sonrası tek başına geçti |
 
 ## 01 aşamasında denenemeyen
 

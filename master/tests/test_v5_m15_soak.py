@@ -45,8 +45,14 @@ def test_leftover_process_and_port_are_noticed():
 def test_a_short_real_burn_in_without_a_model_is_clean(tmp_path):
     report = soak.soak(1.5 / 60, model=False, out=tmp_path / "soak.json")
     assert report["problems"] == [], report["problems"]
-    assert set(report["tasks"]) == set(soak.CPU_TASKS) and (tmp_path / "soak.json").is_file()
+    assert set(report["tasks"]) == set(soak.cpu_tasks()) and (tmp_path / "soak.json").is_file()
     assert len(report["samples"]) >= 8 and report["peak_rss_mb"] > 50
+
+
+def test_without_libreoffice_the_report_task_is_left_out_not_failed(monkeypatch):
+    """The failure CI found: no LibreOffice there, so the report could never be verified."""
+    monkeypatch.setattr(soak.office_verify, "soffice", lambda: None)
+    assert set(soak.CPU_TASKS) - set(soak.cpu_tasks()) == {"dörtlü rapor"}
 
 
 def test_chat_commands_report_snapshots_and_the_last_burn_in(tmp_path, monkeypatch):

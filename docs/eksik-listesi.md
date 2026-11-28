@@ -9,7 +9,7 @@ Bu dosya "ne kaldı" sorusunun tek cevabıdır. Bir madde, kod testi **ve** canl
 
 ## Çalışma sırası: 3 parça
 
-**Kaldığım yer (28.11.2026 09:05):** M09–M15 canlı kanıtlarından geçti. Kalan: M16 sertifikasyonu (`masterenv\Scripts\python.exe -X utf8 scriptserify_milestone_16.py`, sonuç `eval/reports/milestone_16.json`; kalan aşama çıkarsa yalnız onu düzelt), `docs/v5-durum.md` 09–16 satırları. Çok saatlik yakma testi istenirse ayrıca.
+**Kaldığım yer (28.11.2026):** 3. parça bitti; PR #32 birleştirilmeyi bekliyor. Yalnız istenirse: çok saatlik yakma testi (`python scripts/ai_os.py soak --hours 4`).
 
 Dizüstü bilgisayar kesintisiz yüklenmesin diye iş üçe bölündü. Bir parça bitince **durulur**; sen "devam" demeden sonrakine geçilmez.
 
@@ -310,7 +310,7 @@ Her parçanın sonunda: tam test ve denetimler, commit, push, PR; sonra modeller
 
 - [x] `verify_milestone_01.py` – `verify_milestone_16.py`
 - [x] `prompts/v5/*.md` (ortak sabit ön ek)
-- [~] v1–v5'in tamamını bir arada sınayan son test: M16_STATE
+- [~] v1–v5'in tamamını bir arada sınayan son test: tam koşu 15/17 (1331 test geçti, 1 atlandı); kalan M02 ve M10 düzeltilip **tek başına** yeniden koşuldu (M02 geçti, M10 5/5). Düzeltmelerden sonra 17 aşamanın tamamı tek seferde yeniden koşulmadı, bu yüzden tek koşuluk sertifika yok
 
 ## 7. Yapılamayanlar (uydurma değerle doldurulmayacak)
 
