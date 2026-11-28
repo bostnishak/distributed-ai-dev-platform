@@ -3,6 +3,18 @@
 All notable changes to the **Distributed AI Software Development Platform (CM6453)** are documented in this file.
 This project follows [Semantic Versioning](https://semver.org/) and [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [Yayınlanmamış] - v5.0 aşama 9–16
+
+### Eklendi
+- **Çok biçimli girdi:** Türkçe harfleri koruyan OCR, sıralı PDF çıkarma, dağınık Excel/CSV, zaman damgalı ses ve video, kaynaklı `inbox`.
+- **Araştırma:** web sayfalarındaki modele talimat veren metin modele ulaşmadan çıkarılır.
+- **Tutarlılık:** Excel, sunum, PDF ve web panosu aynı sayılarla üretilip bağımsız okunur.
+- **Belge ve paket:** README sapma denetimi, tek tıkla başlatma paketi, dışa aktarım denemesi.
+- **Yedek ve öğrenme:** `ai-os restore`, kişisel veri temizliği, hatalardan kural ve doğrulanmış kod parçası.
+- **Arayüz:** donanım göstergesi, canlı kanıt çekmecesi, tek tıkla geri alma, yarım kalan işler.
+- **Dayanıklılık:** `ai-os soak` yakma testi düzeneği.
+- **Sertifikasyon:** `prompts/v5/` rol istemleri ve `verify_milestone_16.py`.
+
 ## [Yayınlanmamış] - v5.0 aşama 4–8 (2026-11-28)
 
 ### Eklendi

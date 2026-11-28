@@ -11,6 +11,7 @@ import arena
 import best_of_n
 import browser_agent
 import confidential
+import consistency
 import daemons
 import data_chart
 import decisions
@@ -20,12 +21,15 @@ import doc_reader
 import doc_tools
 import eda
 import federation
+import inbox
 import marathon
 import math_kernel
 import memory_marks
 import night_summary
+import ops_chat
 import ops_commands
 import os_kernel
+import portable_kit
 import preferences
 import project_server
 import research
@@ -71,7 +75,7 @@ def _command(prompt: str, history: str) -> str:
 
 
 def _agents(prompt: str, history: str) -> StreamingResponse | None:
-    return (marathon.fastpath(prompt) or tts.fastpath(prompt, history) or arena.fastpath(prompt) or self_play.fastpath(prompt) or best_of_n.fastpath(prompt)
+    return (inbox.fastpath(prompt) or ops_chat.fastpath(prompt) or consistency.fastpath(prompt) or portable_kit.fastpath(prompt, history) or marathon.fastpath(prompt) or tts.fastpath(prompt, history) or arena.fastpath(prompt) or self_play.fastpath(prompt) or best_of_n.fastpath(prompt)
             or swarm.fastpath(prompt, history))
 
 

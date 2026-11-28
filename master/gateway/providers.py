@@ -359,6 +359,14 @@ def load_optional_cloud_providers() -> dict[str, Provider]:
     return loaded
 
 
+async def load_and_release(model: str, base_url: str | None = None) -> None:
+    """Puts one model on the card with the shortest possible call and takes only that model off again."""
+    base = (base_url or config.OLLAMA_URL).rstrip("/")
+    async with httpx.AsyncClient(timeout=300.0) as client:
+        (await client.post(f"{base}/api/generate", json={"model": model, "prompt": "1", "stream": False, "options": {"num_predict": 1}})).raise_for_status()
+        await client.post(f"{base}/api/generate", json={"model": model, "keep_alive": 0})
+
+
 async def unload_all_models(base_url: str | None = None) -> None:
     """Free the GPU: ask Ollama to drop every resident model (used before image generation shares the card)."""
     base = (base_url or config.OLLAMA_URL).rstrip("/")

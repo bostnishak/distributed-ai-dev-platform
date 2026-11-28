@@ -22,6 +22,8 @@ import arch_scan
 import asset_vault
 import atomic_io
 import code_audit
+import doc_drift
+import filmstrip
 import flow_analysis
 import js_mutation
 import live_journey
@@ -202,6 +204,7 @@ def _page_proof(ws_dir: Path) -> tuple[str, str]:
         except httpx.HTTPError:
             time.sleep(0.3)
     status, detail = page_problems(url)
+    filmstrip.capture(url, ws_dir)
     proved = torture.judged((status, detail), torture.run(url, torture.QUICK) if status == PASSED else None, FAILED)
     if proved[0] == PASSED and (critical := [line for line in a11y.audit(url) or [] if line.startswith("critical")]):
         return FAILED, ("Erişilebilirlik: " + "; ".join(critical[:3]))[:600]
@@ -222,6 +225,8 @@ def live_proof(ws_dir: Path, warnings: list[str]) -> tuple[str, str]:
         return FAILED, failure
     if unmet := slice_build.summary(ws_dir)[1]:
         return FAILED, "; ".join(unmet[:3])[:500]
+    if stale := doc_drift.lines(ws_dir):
+        return FAILED, "; ".join(stale[:3])[:500]
     if broken := arch_scan.blocking(ws_dir):
         return FAILED, "; ".join(broken[:3])[:500]
     if outside := asset_vault.blocking(ws_dir, _requested(ws_dir)):

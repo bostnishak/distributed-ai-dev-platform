@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
+import asyncio
 import io
 import json
 import mimetypes
 import re
 import shutil
-import zipfile
 from datetime import UTC, datetime
 from typing import Literal
 
@@ -17,6 +17,7 @@ from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 import feedback
+import portable_kit
 import preview_server
 import preview_shim
 import process_utils
@@ -257,13 +258,7 @@ async def download_workspace_zip(id: str):
     if not ws_dir.is_dir():
         raise HTTPException(status_code=404, detail="Çalışma alanı bulunamadı.")
 
-    buf = io.BytesIO()
-    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
-        for rel_dir in wb.list_relative_dirs(ws_dir):
-            zf.writestr(zipfile.ZipInfo(f"{id}/{rel_dir}/"), b"")
-        for rel in wb.list_relative_files(ws_dir):
-            zf.write(ws_dir / rel, arcname=f"{id}/{rel}")
-    buf.seek(0)
+    buf = io.BytesIO(await asyncio.to_thread(portable_kit.archive, ws_dir, id))  # with the one-click start kit
     return StreamingResponse(
         buf,
         media_type="application/zip",

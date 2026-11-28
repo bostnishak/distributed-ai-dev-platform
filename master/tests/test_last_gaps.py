@@ -159,6 +159,7 @@ def test_speech_reads_plain_text_and_last_answer():
 
 def test_idle_engines_are_released_after_the_limit(monkeypatch):
     monkeypatch.setenv("DAEMON_IDLE_TTL", "60")
+    monkeypatch.setattr(daemons, "_LIVE", {})  # engines other tests left running are not part of this one
     stopped = []
     daemons.touch("deneme", lambda: stopped.append(1))
     assert daemons.reap(time.monotonic() + 30) == [] and "deneme" in daemons.status()

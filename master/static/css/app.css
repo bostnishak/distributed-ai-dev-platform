@@ -913,3 +913,20 @@ ul.plain { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.6; }
 .ide-drawer-section { display: flex; flex-direction: column; gap: 2px; overflow-wrap: anywhere; }
 .ide-api-input { width: 100%; font-family: monospace; background: #010409; color: #e6edf3; border: 1px solid #30363d; border-radius: 6px; padding: 6px; }
 .ide-api-output { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }
+
+/* Glass box: hardware ribbon, proof drawer, undo, resume banner */
+.hw-ribbon { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: flex; flex-wrap: wrap; gap: 2px 14px; padding: 2px 12px; font-size: 11px; line-height: 18px; background: var(--panel); color: var(--text); border-top: 1px solid var(--border); }
+.hw-ribbon[hidden] { display: none; }
+body:has(.hw-ribbon:not([hidden])) { padding-bottom: 24px; box-sizing: border-box; }
+.glass-bar { display: flex; gap: 8px; align-items: center; padding: 6px 10px; flex-wrap: wrap; }
+.glass-note { font-size: 12px; }
+.proof-drawer { padding: 8px 12px; border-top: 1px solid var(--border); font-size: 13px; }
+.proof-drawer[hidden] { display: none; }
+.proof-marks { list-style: none; padding: 0; margin: 0 0 8px; }
+.proof-marks li.ok { color: #157347; }
+.proof-marks li.bad { color: #b02a37; }
+.proof-film { display: flex; gap: 8px; overflow-x: auto; }
+.proof-film figure { margin: 0; flex: 0 0 auto; }
+.proof-film img { width: 180px; border: 1px solid var(--border); border-radius: 6px; display: block; }
+.proof-film figcaption { font-size: 11px; text-align: center; }
+.resume-banner { position: fixed; right: 12px; bottom: 34px; z-index: 41; display: flex; gap: 8px; align-items: center; padding: 8px 12px; background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 8px; max-width: min(520px, 94vw); flex-wrap: wrap; }

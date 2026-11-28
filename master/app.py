@@ -30,6 +30,7 @@ import eval_studio
 import factory
 import games
 import gateway
+import glass_box
 import ha
 import hallucination
 import ide
@@ -142,6 +143,7 @@ app.include_router(cnc_api.router)
 app.include_router(studio_api.router)
 app.include_router(workspace_inspect.router)
 app.include_router(run_api.router)
+app.include_router(glass_box.router)
 app.include_router(user_api.router)
 app.include_router(memory_api.router)
 app.include_router(memory_conflicts.router)

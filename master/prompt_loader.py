@@ -7,14 +7,19 @@ from functools import lru_cache
 from pathlib import Path
 
 PROMPTS_DIR = Path(__file__).resolve().parent / "prompts"
+ROLE_DIR = PROMPTS_DIR / "v5"
+PREFIX = "_onek.md"
 
 
 @lru_cache(maxsize=256)
 def load_prompt(name: str) -> str:
-    """Load an external prompt/template file from `master/prompts/<name>` (UTF-8)."""
+    """Load an external prompt/template file from `master/prompts/<name>` (UTF-8); agent roles live in `prompts/v5/`."""
     target = (PROMPTS_DIR / name).resolve()
     if not str(target).startswith(str(PROMPTS_DIR.resolve())):
         raise ValueError(f"Invalid prompt path: {name}")
+    role = ROLE_DIR / f"{Path(name).stem}.md"
+    if Path(name).parent == Path() and role.is_file():  # an agent's role: the same unchanging prefix first, so its KV cache is reused
+        return (ROLE_DIR / PREFIX).read_text(encoding="utf-8") + role.read_text(encoding="utf-8")
     return target.read_text(encoding="utf-8")
 
 

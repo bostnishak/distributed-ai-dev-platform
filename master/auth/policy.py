@@ -41,7 +41,7 @@ _RULES: tuple[tuple[str, str, str], ...] = (
     ("GET|HEAD|OPTIONS", r".*", "read"),
     (
         "POST|PUT|PATCH",
-        r"^/api/(assistant|projects|studio|studios|research|presentations|documents|games|domains|orchestrator|rag|memory|ux|ml|hallucination|eval|cnc|dist|tasks|output|perf|user|agents|security|tools|productivity|accounting|automation|custom-agents|education|factory|ha|ide|marketplace|media|notebooks|notifications|orgs|privacy|runs|telemetry|vqa)",
+        r"^/api/(assistant|projects|studio|studios|research|presentations|documents|games|glass|domains|orchestrator|rag|memory|ux|ml|hallucination|eval|cnc|dist|tasks|output|perf|user|agents|security|tools|productivity|accounting|automation|custom-agents|education|factory|ha|ide|marketplace|media|notebooks|notifications|orgs|privacy|runs|telemetry|vqa)",
         "write",
     ),
     ("POST", r"^/v1/(chat/completions|embeddings)", "write"),

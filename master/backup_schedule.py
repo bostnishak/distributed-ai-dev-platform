@@ -18,6 +18,8 @@ import backup_manager
 import dbconn
 
 SKIP_NAMES = {"backups", "scheduled", ".incoming"}
+# downloaded or rebuilt on demand, so not part of a snapshot (the project folders under workspaces are kept whole)
+REBUILDABLE = {"vendor", "voices", "inbox_index", "inbox_frames", "exact_cache"}
 KEEP_DAILY = 7
 KEEP_WEEKLY = 4
 
@@ -25,7 +27,7 @@ KEEP_WEEKLY = 4
 def _snapshot_databases(source: Path, staging: Path) -> None:
     for path in sorted(source.rglob("*")):
         rel = path.relative_to(source)
-        if not path.is_file() or any(part in SKIP_NAMES for part in rel.parts):
+        if not path.is_file() or any(part in SKIP_NAMES for part in rel.parts) or rel.parts[0] in REBUILDABLE:
             continue
         target = staging / rel
         target.parent.mkdir(parents=True, exist_ok=True)

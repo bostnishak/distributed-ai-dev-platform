@@ -1,4 +1,5 @@
 // UX-02 Modular Split: Inline IDE Workbench card controller (<= 400 lines).
+import { attachGlassTools, rememberTabs, savedTabs } from './glass_box.js';
 import { createChangeLog } from './ide_change_log.js';
 import { attachInspector } from './assistant_ide_inspect.js';
 import {
@@ -186,6 +187,26 @@ function bindEditTools(ctx, ctrl) {
   });
 }
 
+// Reopening a project brings its open files and view back; the glass box (proof, undo) hangs under the card.
+function restoreGlass({ card, wsId, st, ctrl, tb }, flatPaths, entry, reloadPreview) {
+  const saved = savedTabs(wsId, flatPaths);
+  if (saved) {
+    st.openTabs.push(...saved.tabs.filter((p) => !st.openTabs.includes(p)));
+    if (saved.view) ctrl.setViewMode(saved.view);
+  }
+  if (saved?.active || entry) ctrl.selectFile(saved?.active || entry);
+  card.addEventListener('click', () => setTimeout(() => rememberTabs(wsId, st), 0));
+  attachGlassTools(card, wsId, async () => {
+    const res = await safeFetchJson(`/api/studio/workspaces/${wsId}/tree`);
+    if (res.ok) st.currentTree = res.data.tree || res.data;
+    st.fileCache.clear();
+    ctrl.renderTree();
+    if (st.activePath) await ctrl.selectFile(st.activePath);
+    reloadPreview();
+    tb.refreshVersions();
+  });
+}
+
 export function buildInlineWorkspaceCard(wsMeta, wsTree) {
   const wsId = wsMeta.id;
   const card = document.createElement('div');
@@ -263,6 +284,6 @@ export function buildInlineWorkspaceCard(wsMeta, wsTree) {
   const entry = (wsMeta.entry_point && flatPaths.includes(wsMeta.entry_point))
     ? wsMeta.entry_point
     : (flatPaths.find((p) => p === 'index.html' || p === 'main.py') || flatPaths[0]);
-  if (entry) ctrl.selectFile(entry);
+  restoreGlass({ card, wsId, st, ctrl, tb }, flatPaths, entry, reloadPreview);
   return card;
 }

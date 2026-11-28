@@ -22,6 +22,8 @@ sys.path.insert(0, str(ROOT / "master"))
 import arena  # noqa: E402
 import config  # noqa: E402
 import feature_flags  # noqa: E402
+import recovery  # noqa: E402
+import soak  # noqa: E402
 import training_pack  # noqa: E402
 import verified_tasks  # noqa: E402
 import visual_audit  # noqa: E402
@@ -158,11 +160,46 @@ def import_model(body: str, baseline: str) -> int:
     return subprocess.call(["ollama", "cp", "platform-coder-candidate", "platform-coder"])
 
 
+def recovery_command(command: str, identifier: str, port: int) -> int:
+    """Snapshots of data, memory, skills, projects and settings; restore needs the server stopped."""
+    if command == "backups":
+        for name, size in recovery.available():
+            print(f"{name}  {size / 2**20:.1f} MB")
+        return 0
+    if command == "backup":
+        print(f"Yedek alındı: {recovery.snapshot()}")
+        return 0
+    with socket.socket() as probe:
+        if probe.connect_ex(("127.0.0.1", port)) == 0:
+            print(f"Önce sunucuyu durdur (port {port} açık): çalışan veritabanının üstüne geri yüklenmez.")
+            return 2
+    try:
+        print(recovery.restore(identifier))
+    except ValueError as exc:
+        print(exc)
+        return 1
+    return 0
+
+
+def soak_command(hours: float, model: bool) -> int:
+    """Runs the burn-in harness and prints its verdict."""
+    out = ROOT / "eval" / "reports" / "soak.json"
+    report = soak.soak(hours, model=model, out=out)
+    print(f"{hours} saat; işler: {report['tasks']}")
+    print(f"en yüksek bellek {report['peak_rss_mb']} MB, ekran kartı {report['peak_vram_mb']} MB, bellek artışı {report['memory_growth']}")
+    for problem in report["problems"]:
+        print(f"SORUN: {problem}")
+    print(("TEMİZ" if not report["problems"] else "SORUNLU") + f" | rapor: {out}")
+    return 1 if report["problems"] else 0
+
+
 def main():
     parser = argparse.ArgumentParser(prog="ai-os")
-    parser.add_argument("command", choices=["doctor", "setup", "up", "unload", "bench", "export-training", "import-gguf"])
-    parser.add_argument("path", nargs="?", help="export-training: output folder; import-gguf: model file")
+    parser.add_argument("command", choices=["doctor", "setup", "up", "unload", "bench", "export-training", "import-gguf", "backup", "backups", "restore", "soak"])
+    parser.add_argument("path", nargs="?", help="export-training: output folder; import-gguf: model file; restore: snapshot id")
     parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("--hours", type=float, default=4.0, help="soak: how long to keep the server busy")
+    parser.add_argument("--no-model", action="store_true", help="soak: leave the graphics card alone")
     parser.add_argument("--profile", default="", help="up: ai-os.config.json içindeki özellik profili")
     parser.add_argument("--baseline", default="qwen2.5-coder:7b", help="import-gguf: model the candidate must not be worse than")
     parser.add_argument("--pull", action="store_true", help="setup: download missing models")
@@ -174,6 +211,10 @@ def main():
         return setup(args.pull)
     if args.command == "unload":
         return unload()
+    if args.command == "soak":
+        return soak_command(args.hours, not args.no_model)
+    if args.command in ("backup", "backups", "restore"):
+        return recovery_command(args.command, args.path or "", args.port)
     if args.command == "export-training":
         counts = training_pack.export(Path(args.path or "training-pack"))
         print(f"Dışa aktarıldı: {counts['sft']} doğrulanmış örnek, {counts['dpo']} tercih çifti")
